@@ -1,0 +1,195 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --color-primary: 25, 26, 27;
+  --color-secondary: 102, 102, 102;
+  --color-accent: 88, 101, 242;
+  --color-success: 34, 197, 94;
+  --color-warning: 234, 179, 8;
+  --color-error: 239, 68, 68;
+  --color-background: 251, 251, 251;
+  --color-semi-background: 243, 243, 243;
+  --color-foreground: 25, 26, 27;
+
+  --color-hover: 70, 85, 200;
+  --color-secondary-button: 238, 238, 238;
+  --color-secondary-hover: 220, 220, 220;
+}
+
+.dark {
+  --color-primary: 229, 231, 235;
+  --color-secondary: 156, 163, 175;
+  --color-accent: 88, 101, 242;
+  --color-selected: 242, 242, 242;
+  --color-muted: 195, 195, 195;
+  --color-success: 34, 197, 94;
+  --color-warning: 234, 179, 8;
+  --color-error: 239, 68, 68;
+  --color-background: 7, 7, 9;
+  --color-semi-background: 20, 20, 20;
+  --color-table-background: 31, 41, 51;
+  --color-foreground: 229, 231, 235;
+
+  --color-hover: 70, 85, 200;
+  --color-secondary-button: 24, 24, 27;
+  --color-secondary-hover: 36, 36, 39;
+}
+
+.fade-text {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-overflow: clip;
+  -webkit-line-clamp: 2;
+  max-height: 4.5em;
+  mask-image: linear-gradient(
+    to bottom,
+    rgba(0, 0, 0, 1) 80%,
+    rgba(0, 0, 0, 0) 100%
+  );
+  -webkit-mask-image: linear-gradient(
+    to bottom,
+    rgba(0, 0, 0, 1) 80%,
+    rgba(0, 0, 0, 0) 100%
+  );
+}
+
+@layer base {
+  body {
+    @apply bg-background text-foreground font-sans antialiased;
+    transition: background-color 0.3s ease, color 0.3s ease;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    @apply font-serif font-bold;
+    line-height: 1.2;
+  }
+
+  h1 {
+    @apply text-4xl sm:text-5xl lg:text-6xl;
+  }
+
+  h2 {
+    @apply text-3xl sm:text-4xl;
+  }
+
+  h3 {
+    @apply text-2xl sm:text-3xl;
+  }
+
+  p {
+    @apply leading-relaxed;
+  }
+}
+
+@layer components {
+  .container-narrow {
+    @apply w-full max-w-3xl mx-auto px-4 sm:px-6;
+  }
+
+  .btn {
+    @apply px-4 py-2 rounded-md font-medium transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2;
+  }
+
+  .btn-primary {
+    @apply bg-accent text-white hover:bg-hover hover:font-semibold focus:ring-accent/50;
+  }
+
+  .btn-secondary {
+    @apply bg-secondarybutton text-gray-800 hover:bg-secondaryhover dark:bg-secondarybutton dark:text-gray-200 dark:hover:bg-secondaryhover focus:ring-gray-500/50 hover:font-semibold hover:underline underline-offset-4;
+  }
+
+  .btn-danger {
+    @apply bg-error text-white hover:bg-error/90 focus:ring-error/50;
+  }
+
+  .form-input {
+    @apply w-full px-3 py-2 rounded-md border border-gray-300 dark:border-gray-700 bg-white dark:bg-semibackground text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-accent/50 focus:border-transparent transition duration-200;
+  }
+
+  .form-textarea {
+    @apply form-input min-h-[150px];
+  }
+
+  .article-content {
+    @apply prose dark:prose-invert prose-lg max-w-none;
+  }
+
+  .article-content h1 {
+    @apply mt-6 mb-4;
+  }
+
+  .article-content h2,
+  .article-content h3 {
+    @apply mt-5 mb-3;
+  }
+
+  .article-content p {
+    @apply my-4;
+  }
+
+  .article-content a {
+    @apply text-accent hover:text-accent/80 transition-colors duration-200;
+  }
+
+  .article-content ul,
+  .article-content ol {
+    @apply my-4 ml-6;
+  }
+
+  .article-content li {
+    @apply mb-2;
+  }
+
+  .article-content blockquote {
+    @apply pl-4 border-l-4 border-gray-300 dark:border-gray-700 italic my-6;
+  }
+
+  .article-content img {
+    @apply rounded-lg my-6 max-w-full mx-auto;
+  }
+
+  .article-content pre {
+    @apply p-4 bg-gray-100 dark:bg-gray-800 rounded-md overflow-x-auto my-6;
+  }
+
+  .article-content code {
+    @apply bg-gray-100 dark:bg-gray-800 px-1 py-0.5 rounded text-sm;
+  }
+}
+
+/* Animations */
+.fade-in {
+  animation: fadeIn 0.5s ease-in-out;
+}
+
+.slide-up {
+  animation: slideUp 0.5s ease-in-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
