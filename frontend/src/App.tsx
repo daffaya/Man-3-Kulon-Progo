@@ -19,6 +19,14 @@ import NotFoundPage from "./pages/NotFoundPage";
 import ProtectedRoute from "./ProtectedRoute";
 import AdminCategoriesPage from "./pages/AdminCategoriesPage";
 import WebAppPage from "./pages/WebAppPage";
+import SejarahPage from "./pages/profile/SejarahPage";
+import GuruPegawaiPage from "./pages/profile/GuruPegawaiPage";
+import KepalaMadrasahPage from "./pages/profile/KepalaMadrasahPage";
+import MitraPage from "./pages/profile/MitraPage";
+import ProgramKerjaPage from "./pages/profile/ProgramKerjaPage";
+import SaranaPrasaranaPage from "./pages/profile/SaranaPrasaranaPage";
+import StrukturOrganisasiPage from "./pages/profile/StrukturOrganisasiPage";
+import VisiMisiPage from "./pages/profile/VisiMisiPage";
 
 const AdminLayout = () => (
   <ProtectedRoute>
@@ -39,6 +47,18 @@ function App() {
             <Route path="/contact" element={<ContactPage />} />
             <Route path="/webApp" element={<WebAppPage />} />
             <Route path="/login" element={<LoginPage />} />
+
+            <Route path="/profile/sejarah" element={<SejarahPage />} />
+            <Route
+              path="/profile/struktur"
+              element={<StrukturOrganisasiPage />}
+            />
+            <Route path="/profile/visi-misi" element={<VisiMisiPage />} />
+            <Route path="/profile/kepala" element={<KepalaMadrasahPage />} />
+            <Route path="/profile/guru-pegawai" element={<GuruPegawaiPage />} />
+            <Route path="/profile/mitra" element={<MitraPage />} />
+            <Route path="/profile/program" element={<ProgramKerjaPage />} />
+            <Route path="/profile/sarana" element={<SaranaPrasaranaPage />} />
 
             <Route path="/atmin" element={<AdminLayout />}>
               <Route index element={<AdminDashboard />} />{" "}
