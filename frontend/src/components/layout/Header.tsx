@@ -52,14 +52,15 @@ const Header: React.FC = () => {
 
   // Profile dropdown items
   const profileDropdownItems = [
-    { to: "/profil/sejarah", label: "Sejarah" },
-    { to: "/profil/visi-misi", label: "Visi Misi" },
-    { to: "/profil/struktur-organisasi", label: "Struktur Organisasi" },
-    { to: "/profil/kepala-madrasah", label: "Kepala Madrasah" },
-    { to: "/profil/guru-pegawai", label: "Guru & Pegawai" },
-    { to: "/profil/mitra", label: "Mitra" },
-    { to: "/profil/program-kerja", label: "Program Kerja" },
-    { to: "/profil/sarana-prasarana", label: "Sarana Prasarana" },
+    { to: "/profile/sejarah", label: "Sejarah" },
+    { to: "/profile/visi-misi", label: "Visi Misi" },
+    { to: "/profile/struktur-organisasi", label: "Struktur Organisasi" },
+    { to: "/profile/kepala-madrasah", label: "Kepala Madrasah" },
+    { to: "/profile/guru-staf", label: "Guru & Staf" },
+    { to: "/profile/siswa", label: "Siswa" },
+    { to: "/profile/mitra", label: "Mitra" },
+    { to: "/profile/program-kerja", label: "Program Kerja" },
+    { to: "/profile/sarana-prasarana", label: "Sarana Prasarana" },
   ];
 
   return (
@@ -89,7 +90,7 @@ const Header: React.FC = () => {
             <button
               onClick={() => setIsProfileDropdownOpen(!isProfileDropdownOpen)}
               className={`flex items-center space-x-1 font-medium transition-colors ${
-                location.pathname.startsWith("/profil")
+                location.pathname.startsWith("/profile")
                   ? "text-accent"
                   : "text-gray-700 dark:text-gray-200 hover:text-accent dark:hover:text-accent"
               }`}
