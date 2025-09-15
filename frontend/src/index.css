@@ -5,7 +5,7 @@
 :root {
   --color-primary: 25, 26, 27;
   --color-secondary: 102, 102, 102;
-  --color-accent: 88, 101, 242;
+  --color-accent: 0, 99, 22;
   --color-success: 34, 197, 94;
   --color-warning: 234, 179, 8;
   --color-error: 239, 68, 68;
@@ -13,7 +13,7 @@
   --color-semi-background: 243, 243, 243;
   --color-foreground: 25, 26, 27;
 
-  --color-hover: 70, 85, 200;
+  --color-hover: 0, 99, 22;
   --color-secondary-button: 238, 238, 238;
   --color-secondary-hover: 220, 220, 220;
 }
@@ -21,7 +21,7 @@
 .dark {
   --color-primary: 229, 231, 235;
   --color-secondary: 156, 163, 175;
-  --color-accent: 88, 101, 242;
+  --color-accent: 0 170 19;
   --color-selected: 242, 242, 242;
   --color-muted: 195, 195, 195;
   --color-success: 34, 197, 94;
@@ -29,10 +29,10 @@
   --color-error: 239, 68, 68;
   --color-background: 7, 7, 9;
   --color-semi-background: 20, 20, 20;
-  --color-table-background: 31, 41, 51;
+  --color-table-background: 31, 51, 33;
   --color-foreground: 229, 231, 235;
 
-  --color-hover: 70, 85, 200;
+  --color-hover: 34, 197, 94;
   --color-secondary-button: 24, 24, 27;
   --color-secondary-hover: 36, 36, 39;
 }

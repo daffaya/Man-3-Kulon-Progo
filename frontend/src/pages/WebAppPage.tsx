@@ -3,16 +3,7 @@ import React, { useState } from "react";
 import Layout from "../components/layout/Layout";
 import AppCard from "../components/ui/AppCard";
 import { useNavigate } from "react-router-dom";
-import {
-  Archive,
-  Clipboard,
-  Users,
-  BookOpen,
-  Settings,
-  BarChart2,
-  User,
-  Book,
-} from "lucide-react";
+import { Archive, Clipboard, Users, BookOpen } from "lucide-react";
 
 const WebAppPage: React.FC = () => {
   const navigate = useNavigate();
@@ -47,20 +38,6 @@ const WebAppPage: React.FC = () => {
       description: "Buat dan kelola artikel untuk website sekolah",
       icon: <BookOpen className="w-6 h-6" />,
       requiredRole: "content_manager",
-    },
-    {
-      id: "settings",
-      title: "Pengaturan",
-      description: "Konfigurasi sistem dan pengguna",
-      icon: <Settings className="w-6 h-6" />,
-      requiredRole: "admin",
-    },
-    {
-      id: "reports",
-      title: "Laporan",
-      description: "Buat laporan dan analitik data sekolah",
-      icon: <BarChart2 className="w-6 h-6" />,
-      requiredRole: "admin",
     },
   ];
 
@@ -110,13 +87,16 @@ const WebAppPage: React.FC = () => {
           </div>
 
           {!userRole && (
-            <div className="mt-12 p-6 rounded-xl border border-accent/20 bg-accent/5 text-center">
+            <div
+              className="mt-12 p-6 relative overflow-hidden rounded-xl border 
+        bg-background rounded-xl dark:bg-semibackground dark:border-gray-700 text-center"
+            >
               <p className="text-muted mb-4">
                 Silakan login untuk mengakses aplikasi
               </p>
               <button
                 onClick={() => navigate("/login")}
-                className="px-6 py-2 bg-accent text-background rounded-lg font-medium hover:bg-accent/90 transition-colors"
+                className="btn-primary text-white font-semi-bold py-2 px-6 rounded-lg text-lg transition duration-300 transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50"
               >
                 Login Sekarang
               </button>
