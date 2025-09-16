@@ -10,7 +10,7 @@ const LoginPage: React.FC = () => {
   const [loginError, setLoginError] = useState<string | null>(null);
 
   const handleLoginSuccess = (data: {
-    user: { username: string };
+    user: { username: string; role: string };
     token: string;
   }) => {
     setLoginError(null);

@@ -45,7 +45,7 @@ const WebAppPage: React.FC = () => {
     // Logika autentikasi dan autorisasi
     if (!userRole) {
       // Redirect ke login jika belum login
-      navigate("/login", { state: { redirectTo: `/apps/${appId}` } });
+      navigate("/login", { state: { redirectTo: `/atmin/${appId}` } });
       return;
     }
 
@@ -56,7 +56,7 @@ const WebAppPage: React.FC = () => {
     }
 
     // Arahkan ke aplikasi
-    navigate(`/apps/${appId}`);
+    navigate(`/atmin/${appId}`);
   };
 
   return (

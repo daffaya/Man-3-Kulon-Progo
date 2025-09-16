@@ -31,13 +31,17 @@ const authRouterFactory = ({ pool, JWT_SECRET, JWT_EXPIRATION }) => {
           .status(401)
           .json({ success: false, message: "Username atau Password salah" });
       }
-      const token = jwt.sign({ id: user.id, username: user.username }, JWT_SECRET, {
-        expiresIn: JWT_EXPIRATION,
-      });
+      const token = jwt.sign(
+        { id: user.id, username: user.username, role: user.role },
+        JWT_SECRET,
+        {
+          expiresIn: JWT_EXPIRATION,
+        }
+      );
 
       res.json({
         success: true,
-        user: { username: user.username },
+        user: { username: user.username, role: user.role },
         token: token,
       });
     } catch (error) {

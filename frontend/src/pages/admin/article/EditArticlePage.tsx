@@ -1,11 +1,11 @@
 // backend/src/frontend/src/pages/EditArticle.tsx
 import React, { useState, useEffect, useCallback } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom"; // Import Link
-import Layout from "../../components/layout/Layout";
-import { useArticles } from "../../contexts/ArticleContext";
+import Layout from "../../../components/layout/Layout";
+import { useArticles } from "../../../contexts/ArticleContext";
 // Import Article dan ArticleFormData
-import { Article, ArticleFormData } from "../../types";
-import ArticleForm from "../../components/admin/ArticleForm"; // Import ArticleForm
+import { Article, ArticleFormData } from "../../../types";
+import ArticleForm from "../../../components/admin/ArticleForm"; // Import ArticleForm
 import { RefreshCw, X, ChevronLeft } from "lucide-react"; // Import icons
 
 const EditArticle: React.FC = () => {

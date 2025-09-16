@@ -12,8 +12,9 @@ import ArticlePage from "./pages/ArticlePage";
 import ProfilePage from "./pages/ProfilePage";
 import ContactPage from "./pages/ContactPage";
 import AdminDashboard from "./pages/admin/AdminDashboard";
-import NewArticlePage from "./pages/admin/NewArticlePage";
-import EditArticlePage from "./pages/admin/EditArticlePage";
+import ArticleManagementPage from "./pages/admin/article/ArticleManagementPage";
+import NewArticlePage from "./pages/admin/article/NewArticlePage";
+import EditArticlePage from "./pages/admin/article/EditArticlePage";
 import LoginPage from "./pages/auth/LoginPage";
 import NotFoundPage from "./pages/NotFoundPage";
 import ProtectedRoute from "./ProtectedRoute";
@@ -72,7 +73,10 @@ function App() {
             />
 
             <Route path="/atmin" element={<AdminLayout />}>
-              <Route index element={<AdminDashboard />} />{" "}
+              <Route index element={<AdminDashboard />} />
+
+              {/* Article */}
+              <Route path="articles" element={<ArticleManagementPage />} />
               <Route path="new" element={<NewArticlePage />} />
               <Route path="edit/:id" element={<EditArticlePage />} />
               <Route path="category" element={<AdminCategoriesPage />} />

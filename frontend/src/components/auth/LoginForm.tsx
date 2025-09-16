@@ -3,7 +3,7 @@ import { Eye, EyeOff } from "lucide-react";
 
 interface LoginFormProps {
   onLoginSuccess: (userData: {
-    user: { username: string };
+    user: { username: string; role: string };
     token: string;
   }) => void;
   onLoginError: (message: string) => void;
@@ -39,7 +39,10 @@ const LoginForm: React.FC<LoginFormProps> = ({
       const data = await response.json();
 
       if (response.ok && data.success) {
-        onLoginSuccess({ user: data.user, token: data.token });
+        onLoginSuccess({
+          user: { username: data.user, role: data.user.role },
+          token: data.token,
+        });
       } else {
         onLoginError(data.message);
       }
@@ -90,9 +93,9 @@ const LoginForm: React.FC<LoginFormProps> = ({
             onClick={togglePasswordVisibility}
           >
             {showPassword ? (
-              <EyeOff className="h-5 w-5 text-gray-500" />
+              <EyeOff className="h-5 w-5 text-accent" />
             ) : (
-              <Eye className="h-5 w-5 text-gray-500" />
+              <Eye className="h-5 w-5 text-accent" />
             )}
           </div>
         </div>
@@ -100,7 +103,7 @@ const LoginForm: React.FC<LoginFormProps> = ({
       <div>
         <button
           type="submit"
-          className="w-full flex justify-center mt-8 py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+          className="w-full flex justify-center mt-8 py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-accent hover:bg-hover focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
           disabled={loading}
         >
           {loading ? "Logging in..." : "Login"}

@@ -8,6 +8,7 @@ import React, {
 
 export interface User {
   username: string;
+  role: string;
   // tambahkan properti lain sesuai kebutuhan
 }
 

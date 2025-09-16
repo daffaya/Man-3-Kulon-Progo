@@ -18,7 +18,12 @@ const authenticateTokenFactory = ({ JWT_SECRET }) => {
         return res.sendStatus(403);
       }
       req.user = user;
-      console.log("[Auth Middleware] Token valid. User:", user.username);
+      console.log(
+        "[Auth Middleware] Token valid. User:",
+        user.username,
+        "Role:",
+        user.role
+      );
       next();
     });
   };

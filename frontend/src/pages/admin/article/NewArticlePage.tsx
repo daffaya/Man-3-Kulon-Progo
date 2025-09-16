@@ -2,11 +2,11 @@
 import React, { useContext } from "react"; // useContext mungkin tidak lagi diperlukan jika hanya pakai useArticles
 import { Link, useNavigate } from "react-router-dom";
 import { ChevronLeft } from "lucide-react";
-import Layout from "../../components/layout/Layout";
-import ArticleForm from "../../components/admin/ArticleForm"; // Import ArticleForm
-import { ArticleContext, useArticles } from "../../contexts/ArticleContext"; // Import useArticles
-import { ArticleFormData } from "../../types"; // Import ArticleFormData
-import { generateSlug, calculateReadingTime } from "../../lib/utils"; // Import helper functions
+import Layout from "../../../components/layout/Layout";
+import ArticleForm from "../../../components/admin/ArticleForm"; // Import ArticleForm
+import { ArticleContext, useArticles } from "../../../contexts/ArticleContext"; // Import useArticles
+import { ArticleFormData } from "../../../types"; // Import ArticleFormData
+import { generateSlug, calculateReadingTime } from "../../../lib/utils"; // Import helper functions
 
 const NewArticlePage: React.FC = () => {
   const { createNewArticle } = useArticles(); // Gunakan useArticles hook
