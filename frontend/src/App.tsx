@@ -16,6 +16,7 @@ import ArticleManagementPage from "./pages/admin/article/ArticleManagementPage";
 import NewArticlePage from "./pages/admin/article/NewArticlePage";
 import EditArticlePage from "./pages/admin/article/EditArticlePage";
 import LoginPage from "./pages/auth/LoginPage";
+import RegisterPage from "./pages/auth/RegisterPage";
 import NotFoundPage from "./pages/NotFoundPage";
 import ProtectedRoute from "./ProtectedRoute";
 import AdminCategoriesPage from "./pages/AdminCategoriesPage";
@@ -49,6 +50,7 @@ function App() {
             <Route path="/contact" element={<ContactPage />} />
             <Route path="/webApp" element={<WebAppPage />} />
             <Route path="/login" element={<LoginPage />} />
+            <Route path="/register" element={<RegisterPage />} />
 
             <Route path="/profile/sejarah" element={<SejarahPage />} />
             <Route

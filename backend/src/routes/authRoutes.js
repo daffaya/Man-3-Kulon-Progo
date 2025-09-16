@@ -51,6 +51,61 @@ const authRouterFactory = ({ pool, JWT_SECRET, JWT_EXPIRATION }) => {
         .json({ success: false, message: "Terjadi kesalahan server" });
     }
   });
+
+  authRouter.post("/register", async (req, res) => {
+    const { username, password, role } = req.body;
+    try {
+      console.log("[Auth Route] POST /register hit.");
+      if (!username || !password || !role) {
+        return res.status(400).json({
+          success: false,
+          message: "All field are required!",
+        });
+      }
+
+      // Check if user already exists
+      const [existingUserRows] = await pool.query(
+        "SELECT * FROM users WHERE username = ?",
+        [username]
+      );
+
+      // Check if any users were found (length > 0)
+      if (existingUserRows.length > 0) {
+        return res.status(400).json({
+          success: false,
+          message: "Username already exists",
+        });
+      }
+
+      const validRoles = ["arsiparis", "pengelola_bmn", "guru_bk", "jurnalis"];
+      if (!validRoles.includes(role)) {
+        return res.status(400).json({
+          success: false,
+          message: "Invalid Roles",
+        });
+      }
+
+      const saltRounds = 10;
+      const passwordHash = await bcrypt.hash(password, saltRounds);
+
+      const [result] = await pool.query(
+        "INSERT INTO users (username, password_hash, role) VALUES (?, ?, ?)",
+        [username, passwordHash, role]
+      );
+
+      res.status(201).json({
+        success: true,
+        message: "User registered successfully",
+      });
+    } catch (error) {
+      console.error("Registration error", error);
+      res.status(500).json({
+        success: false,
+        message: "Server error during registration",
+      });
+    }
+  });
+
   return authRouter;
 };
 
