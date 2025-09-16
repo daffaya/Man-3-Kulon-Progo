@@ -3,7 +3,6 @@ import authRouterFactory from "./authRoutes.js";
 import tagRouterFactory from "./tagRoutes.js";
 import publicArticleRouterFactory from "./publicArticleRoutes.js";
 import adminRouterFactory from "./adminRoutes.js";
-import categoryRouterFactory from "./categoryRoutes.js";
 import publicCategoryRouterFactory from "./publicCategoryRoutes.js";
 
 const apiRouterFactory = ({
@@ -19,7 +18,6 @@ const apiRouterFactory = ({
     "/auth",
     authRouterFactory({ pool, JWT_SECRET, JWT_EXPIRATION })
   );
-
 
   apiRouter.use("/categories", publicCategoryRouterFactory({ pool }));
 

@@ -40,9 +40,10 @@ const LoginForm: React.FC<LoginFormProps> = ({
 
       if (response.ok && data.success) {
         onLoginSuccess({
-          user: { username: data.user, role: data.user.role },
+          user: data.user,
           token: data.token,
         });
+        console.log("User data from API:", data.user); // Check the user structure
       } else {
         onLoginError(data.message);
       }

@@ -98,7 +98,7 @@ export const ArticleProvider: React.FC<ArticleProviderProps> = ({
 
   const [publicCategoriesError, setPublicCategoriesError] = useState<
     string | null
-  >(null); // PERUBAHAN: Error state kategori publik
+  >(null);
 
   const { token, isLoggedIn, logout } = useAuth();
 
@@ -110,7 +110,6 @@ export const ArticleProvider: React.FC<ArticleProviderProps> = ({
   }, [logout]);
 
   const fetchAdminCategories = useCallback(async () => {
-    console.log("[ArticleContext] Fetching admin categories...");
     setAdminCategoriesLoading(true);
 
     if (!isLoggedIn || !token) {
@@ -156,7 +155,6 @@ export const ArticleProvider: React.FC<ArticleProviderProps> = ({
       }
 
       const data = (await response.json()) as Category[];
-      console.log("[ArticleContext] Fetched admin categories data:", data);
 
       setAdminCategories(data);
       setAdminCategoriesLoading(false);
@@ -168,15 +166,10 @@ export const ArticleProvider: React.FC<ArticleProviderProps> = ({
   }, [isLoggedIn, token, handleAuthError]);
 
   const fetchPublicCategories = useCallback(async () => {
-    console.log("[ArticleContext] Fetching public categories...");
     setPublicCategoriesLoading(true);
 
     try {
       const response = await fetch("/api/categories");
-      console.log(
-        "[ArticleContext] Fetching public categories from URL:",
-        response
-      );
 
       if (!response.ok) {
         console.error(
@@ -195,7 +188,6 @@ export const ArticleProvider: React.FC<ArticleProviderProps> = ({
       }
 
       const data = (await response.json()) as Category[];
-      console.log("[ArticleContext] Fetched public categories data:", data);
 
       setPublicCategories(data);
       setPublicCategoriesLoading(false);
@@ -211,10 +203,6 @@ export const ArticleProvider: React.FC<ArticleProviderProps> = ({
 
   const createCategory = useCallback(
     async (categoryData: CategoryFormData): Promise<Category | null> => {
-      console.log(
-        "[ArticleContext] Attempting to create new category:",
-        categoryData
-      );
       if (!isLoggedIn || !token) {
         console.error(
           "[ArticleContext] User not logged in or token not available to create category."
@@ -252,10 +240,6 @@ export const ArticleProvider: React.FC<ArticleProviderProps> = ({
         }
 
         const newCategory = (await response.json()) as Category;
-        console.log(
-          "[ArticleContext] Category created successfully:",
-          newCategory
-        );
 
         return newCategory;
       } catch (error: any) {
@@ -271,10 +255,6 @@ export const ArticleProvider: React.FC<ArticleProviderProps> = ({
       id: number,
       updates: Partial<CategoryFormData>
     ): Promise<Category | null> => {
-      console.log(
-        `[ArticleContext] Attempting to update category with ID: ${id}`,
-        updates
-      );
       if (!isLoggedIn || !token) {
         console.error(
           "[ArticleContext] User not logged in or token not available to update category."
@@ -312,10 +292,6 @@ export const ArticleProvider: React.FC<ArticleProviderProps> = ({
         }
 
         const updatedCategory = (await response.json()) as Category;
-        console.log(
-          `[ArticleContext] Category ID ${id} updated successfully:`,
-          updatedCategory
-        );
 
         return updatedCategory;
       } catch (error: any) {
@@ -331,9 +307,6 @@ export const ArticleProvider: React.FC<ArticleProviderProps> = ({
 
   const deleteCategory = useCallback(
     async (id: number): Promise<boolean> => {
-      console.log(
-        `[ArticleContext] Attempting to delete category with ID: ${id}`
-      );
       if (!isLoggedIn || !token) {
         console.error(
           "[ArticleContext] User not logged in or token not available to delete category."
@@ -368,8 +341,6 @@ export const ArticleProvider: React.FC<ArticleProviderProps> = ({
           return false;
         }
 
-        console.log(`[ArticleContext] Category ID ${id} deleted successfully.`);
-
         return true;
       } catch (error: any) {
         console.error(
@@ -384,10 +355,6 @@ export const ArticleProvider: React.FC<ArticleProviderProps> = ({
 
   const fetchPublicArticles = useCallback(
     async (filters: ArticleFilters = {}) => {
-      console.log(
-        "[ArticleContext] Fetching public articles with filters:",
-        filters
-      );
       setLoading(true);
 
       const queryParams = new URLSearchParams();
@@ -411,8 +378,6 @@ export const ArticleProvider: React.FC<ArticleProviderProps> = ({
         queryParams.toString() ? `?${queryParams.toString()}` : ""
       }`;
 
-      console.log("[ArticleContext] Public articles fetch URL:", urlWithParams);
-
       try {
         const response = await fetch(urlWithParams);
 
@@ -433,7 +398,6 @@ export const ArticleProvider: React.FC<ArticleProviderProps> = ({
         }
 
         const data = (await response.json()) as PaginationData<Article>;
-        console.log("[ArticleContext] Fetched public articles data:", data);
 
         setPublicArticlesData(data);
         setLoading(false);
@@ -450,7 +414,6 @@ export const ArticleProvider: React.FC<ArticleProviderProps> = ({
   );
 
   const fetchPublicTagsList = useCallback(async () => {
-    console.log("[ArticleContext] Fetching public tags list...");
     setPublicTagsLoading(true);
 
     try {
@@ -473,7 +436,6 @@ export const ArticleProvider: React.FC<ArticleProviderProps> = ({
       }
 
       const tagsData = (await response.json()) as string[];
-      console.log("[ArticleContext] Fetched public tags list:", tagsData);
 
       setPublicTags(tagsData);
       setPublicTagsLoading(false);
@@ -486,10 +448,6 @@ export const ArticleProvider: React.FC<ArticleProviderProps> = ({
 
   const fetchAdminArticles = useCallback(
     async (filters: ArticleFilters = {}) => {
-      console.log(
-        "[ArticleContext] Fetching admin articles with filters:",
-        filters
-      );
       setAdminLoading(true);
 
       if (!isLoggedIn || !token) {
@@ -530,19 +488,12 @@ export const ArticleProvider: React.FC<ArticleProviderProps> = ({
         queryParams.toString() ? `?${queryParams.toString()}` : ""
       }`;
 
-      console.log("[ArticleContext] Admin fetch URL:", urlWithParams);
-
       try {
         const response = await fetch(urlWithParams, {
           headers: {
             Authorization: `Bearer ${token}`,
           },
         });
-
-        console.log(
-          "[ArticleContext] Admin fetch response status:",
-          response.status
-        );
 
         if (response.status === 401 || response.status === 403) {
           console.error("[ArticleContext] Admin fetch authentication failed.");
@@ -568,7 +519,6 @@ export const ArticleProvider: React.FC<ArticleProviderProps> = ({
         }
 
         const data = (await response.json()) as PaginationData<Article>;
-        console.log("[ArticleContext] Fetched admin articles data:", data);
 
         setAdminArticlesData(data);
         setAdminLoading(false);
@@ -586,9 +536,6 @@ export const ArticleProvider: React.FC<ArticleProviderProps> = ({
 
   const fetchAdminArticleById = useCallback(
     async (articleId: string): Promise<Article | undefined> => {
-      console.log(
-        `[ArticleContext] Fetching specific admin article by ID: ${articleId}`
-      );
       if (!isLoggedIn || !token || !articleId) {
         console.warn(
           "User not logged in, token, or Article ID not available to fetch specific admin article."
@@ -623,10 +570,6 @@ export const ArticleProvider: React.FC<ArticleProviderProps> = ({
         }
 
         const data = await response.json();
-        console.log(
-          `[ArticleContext] Fetched admin article data for ID ${articleId}:`,
-          data
-        );
 
         return data as Article;
       } catch (error: any) {
@@ -641,32 +584,15 @@ export const ArticleProvider: React.FC<ArticleProviderProps> = ({
   );
 
   useEffect(() => {
-    console.log(
-      "[ArticleContext useEffect] Fetching public articles on mount with default pagination (page 1, limit 10)."
-    );
     fetchPublicArticles({ page: 1, limit: 10 });
-
-    console.log(
-      "[ArticleContext useEffect] Fetching public tags list on mount."
-    );
     fetchPublicTagsList();
-
-    console.log(
-      "[ArticleContext useEffect] Fetching public categories on mount."
-    );
     fetchPublicCategories();
   }, [fetchPublicArticles, fetchPublicTagsList, fetchPublicCategories]);
 
   useEffect(() => {
     if (isLoggedIn && token) {
-      console.log(
-        "[ArticleContext useEffect] User logged in. Fetching admin categories..."
-      );
       fetchAdminCategories();
     } else {
-      console.log(
-        "[ArticleContext useEffect] User logged out. Clearing admin categories."
-      );
       setAdminCategories([]);
     }
   }, [isLoggedIn, token, fetchAdminCategories]);
@@ -678,10 +604,6 @@ export const ArticleProvider: React.FC<ArticleProviderProps> = ({
         "id" | "slug" | "readingTime" | "lastModified" | "category"
       > & { category_id?: number | null }
     ): Promise<Article | null> => {
-      console.log(
-        "[ArticleContext] Attempting to create new article.",
-        articleData
-      );
       if (!isLoggedIn || !token) {
         console.error(
           "[ArticleContext] User not logged in or token not available to create article."
@@ -720,11 +642,6 @@ export const ArticleProvider: React.FC<ArticleProviderProps> = ({
 
         const newArticle = (await response.json()) as Article;
 
-        console.log(
-          "[ArticleContext] Article created successfully.",
-          newArticle
-        );
-
         return newArticle;
       } catch (error: any) {
         console.error("[ArticleContext] Error creating new article:", error);
@@ -744,10 +661,6 @@ export const ArticleProvider: React.FC<ArticleProviderProps> = ({
         > & { category_id?: number | null }
       >
     ): Promise<Article | null> => {
-      console.log(
-        `[ArticleContext] Attempting to update article with ID: ${id}`,
-        updates
-      );
       if (!isLoggedIn || !token) {
         console.error(
           "[ArticleContext] User not logged in or token not available to update article"
@@ -786,11 +699,6 @@ export const ArticleProvider: React.FC<ArticleProviderProps> = ({
 
         const updatedArticle = (await response.json()) as Article;
 
-        console.log(
-          `[ArticleContext] Article ID ${id} updated successfully.`,
-          updatedArticle
-        );
-
         return updatedArticle;
       } catch (error: any) {
         console.error(
@@ -805,9 +713,6 @@ export const ArticleProvider: React.FC<ArticleProviderProps> = ({
 
   const removeArticle = useCallback(
     async (id: string): Promise<boolean> => {
-      console.log(
-        `[ArticleContext] Attempting to delete article with ID: ${id}`
-      );
       if (!isLoggedIn || !token) {
         console.error(
           "[ArticleContext] User not logged in or token not available to delete article"
@@ -841,8 +746,6 @@ export const ArticleProvider: React.FC<ArticleProviderProps> = ({
           }
           return false;
         }
-
-        console.log(`[ArticleContext] Article ID ${id} deleted successfully.`);
 
         return true;
       } catch (error: any) {
