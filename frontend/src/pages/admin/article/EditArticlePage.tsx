@@ -7,6 +7,7 @@ import { useArticles } from "../../../contexts/ArticleContext";
 import { Article, ArticleFormData } from "../../../types";
 import ArticleForm from "../../../components/admin/ArticleForm"; // Import ArticleForm
 import { RefreshCw, X, ChevronLeft } from "lucide-react"; // Import icons
+import AdminLayout from "../../../components/layout/AdminLayout";
 
 const EditArticle: React.FC = () => {
   const { id } = useParams<{ id: string }>(); // Ambil ID artikel dari URL
@@ -140,7 +141,10 @@ const EditArticle: React.FC = () => {
         <div className="container max-w-4xl mx-auto px-4 sm:px-6 py-12 text-center text-gray-600 dark:text-gray-400">
           <p className="text-xl font-bold mb-4">Article Not Found</p>
           <p>The article with ID "{id}" could not be loaded.</p>
-          <Link to="/atmin" className="mt-4 inline-block btn btn-secondary">
+          <Link
+            to="/atmin/articles"
+            className="mt-4 inline-block btn btn-secondary"
+          >
             Back to Dashboard
           </Link>
         </div>
@@ -149,14 +153,14 @@ const EditArticle: React.FC = () => {
   }
 
   return (
-    <Layout>
+    <AdminLayout>
       <div className="container max-w-4xl mx-auto px-4 sm:px-6 py-12 fade-in">
         <div className="mb-8">
           {" "}
           <div className="flex items-center">
             {" "}
             <Link
-              to="/atmin"
+              to="/atmin/articles"
               className="mr-4 text-gray-600 dark:text-gray-400 hover:text-accent dark:hover:text-accent transition-colors"
             >
               <ChevronLeft size={20} />{" "}
@@ -184,7 +188,7 @@ const EditArticle: React.FC = () => {
           )}
         </div>
       </div>
-    </Layout>
+    </AdminLayout>
   );
 };
 

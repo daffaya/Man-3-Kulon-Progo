@@ -7,6 +7,7 @@ import ArticleForm from "../../../components/admin/ArticleForm"; // Import Artic
 import { ArticleContext, useArticles } from "../../../contexts/ArticleContext"; // Import useArticles
 import { ArticleFormData } from "../../../types"; // Import ArticleFormData
 import { generateSlug, calculateReadingTime } from "../../../lib/utils"; // Import helper functions
+import AdminLayout from "../../../components/layout/AdminLayout";
 
 const NewArticlePage: React.FC = () => {
   const { createNewArticle } = useArticles(); // Gunakan useArticles hook
@@ -46,7 +47,7 @@ const NewArticlePage: React.FC = () => {
   };
 
   return (
-    <Layout>
+    <AdminLayout>
       <div className="container max-w-4xl mx-auto px-4 sm:px-6 py-12 fade-in">
         <div className="mb-8">
           <div className="flex items-center">
@@ -67,7 +68,7 @@ const NewArticlePage: React.FC = () => {
           <ArticleForm onSubmit={handleSubmit} />
         </div>
       </div>
-    </Layout>
+    </AdminLayout>
   );
 };
 

@@ -5,6 +5,7 @@ import AppCard from "../../components/ui/AppCard";
 import AdminHeader from "../../components/layout/AdminHeader";
 import { useAuth } from "../../contexts/AuthContext";
 import Toast from "../../components/ui/Toast";
+import AdminLayout from "../../components/layout/AdminLayout";
 
 const AdminDashboard: React.FC = () => {
   const navigate = useNavigate();
@@ -130,8 +131,7 @@ const AdminDashboard: React.FC = () => {
   const visibleApps = getVisibleApps();
 
   return (
-    <>
-      <AdminHeader />
+    <AdminLayout>
       <div className="pt-24 min-h-screen bg-background dark:bg-background py-12 px-4 sm:px-6 lg:px-8">
         <div className="max-w-4xl mx-auto">
           <div className="mb-8">
@@ -170,7 +170,7 @@ const AdminDashboard: React.FC = () => {
         </div>
       </div>
       <Toast message={toast.message} isVisible={toast.isVisible} />
-    </>
+    </AdminLayout>
   );
 };
 

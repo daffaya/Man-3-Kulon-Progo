@@ -7,14 +7,14 @@ import ArticleTable from "../../../components/admin/ArticleTable";
 import { useArticles } from "../../../contexts/ArticleContext";
 import { useAuth } from "../../../contexts/AuthContext";
 import { ArticleFilters } from "../../../types";
+import AdminLayout from "../../../components/layout/AdminLayout";
 
-// Update interface AppliedFilters untuk menyertakan category
 interface AppliedFilters {
   keyword?: string;
   published?: boolean;
   featured?: boolean;
   tag?: string | string[];
-  category?: string; // Tambahkan filter category (berdasarkan slug)
+  category?: string;
 }
 
 const ArticleManagementPage: React.FC = () => {
@@ -29,26 +29,21 @@ const ArticleManagementPage: React.FC = () => {
 
   const [showConfirmation, setShowConfirmation] = useState(false);
   const [articleToDelete, setArticleToDelete] = useState<string | null>(null);
-  const { isLoggedIn, logout, token, user } = useAuth(); // Pastikan user diimport
+  const { isLoggedIn, logout, token, user } = useAuth();
 
   const [keyword, setKeyword] = useState("");
-
   const [publishedStatus, setPublishedStatus] = useState<
     "all" | "published" | "draft" | "featured"
   >("all");
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const [tagInput, setTagInput] = useState("");
-
-  // State untuk filter kategori yang dipilih (simpan slug)
   const [selectedCategorySlug, setSelectedCategorySlug] =
-    useState<string>("all"); // Default 'all'
-
+    useState<string>("all");
   const [appliedFilters, setAppliedFilters] = useState<AppliedFilters>({});
-
   const [currentPage, setCurrentPage] = useState(1);
   const articlesPerPage = 10;
-
   const [debouncedKeyword, setDebouncedKeyword] = useState("");
+
   useEffect(() => {
     const handler = setTimeout(() => {
       setDebouncedKeyword(keyword);
@@ -59,20 +54,13 @@ const ArticleManagementPage: React.FC = () => {
     };
   }, [keyword]);
 
-  // --- useEffect untuk Fetch Artikel Admin saat Filter/Pagination Berubah ---
   useEffect(() => {
-    // Hanya fetch data jika user sudah login
     if (isLoggedIn && token) {
       const filtersWithPagination: ArticleFilters = {
         ...appliedFilters,
         page: currentPage,
         limit: articlesPerPage,
       };
-
-      console.log(
-        "[ArticleManagement useEffect] Dependencies changed. Preparing to fetch with:",
-        filtersWithPagination
-      );
 
       fetchAdminArticles(filtersWithPagination);
     }
@@ -85,37 +73,23 @@ const ArticleManagementPage: React.FC = () => {
     fetchAdminArticles,
   ]);
 
-  // --- useEffect untuk Memicu Apply Filters saat Debounced Keyword Berubah ---
   useEffect(() => {
-    console.log(
-      `[ArticleManagement useEffect] Debounced keyword changed to: "${debouncedKeyword}". Applying filters.`
-    );
     handleApplyFilters();
-  }, [debouncedKeyword]);
+  }, [debouncedKeyword, publishedStatus, selectedTags, selectedCategorySlug]);
 
   const handlePreviousPage = () => {
     if (currentPage > 1) {
-      console.log(
-        "[ArticleManagement] Navigating to previous page:",
-        currentPage - 1
-      );
       setCurrentPage(currentPage - 1);
     }
   };
 
   const handleNextPage = () => {
     if (adminArticlesData && currentPage < adminArticlesData.totalPages) {
-      console.log(
-        "[ArticleManagement] Navigating to next page:",
-        currentPage + 1
-      );
       setCurrentPage(currentPage + 1);
     }
   };
 
   const handleApplyFilters = useCallback(() => {
-    console.log("[ArticleManagement] Applying filters...");
-
     const filtersToApply: AppliedFilters = {
       keyword:
         debouncedKeyword.trim() !== "" ? debouncedKeyword.trim() : undefined,
@@ -131,26 +105,17 @@ const ArticleManagementPage: React.FC = () => {
         selectedCategorySlug !== "all" ? selectedCategorySlug : undefined,
     };
 
-    console.log(
-      "[ArticleManagement handleApplyFilters] Filters to apply:",
-      filtersToApply
-    );
-
     setAppliedFilters(filtersToApply);
     setCurrentPage(1);
   }, [debouncedKeyword, publishedStatus, selectedTags, selectedCategorySlug]);
 
   const handleRemoveFilters = useCallback(() => {
-    console.log("[ArticleManagement] Removing filters...");
-
     setKeyword("");
     setPublishedStatus("all");
     setSelectedTags([]);
     setTagInput("");
     setSelectedCategorySlug("all");
-
-    handleApplyFilters();
-  }, [handleApplyFilters]);
+  }, []);
 
   const handleKeywordInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setKeyword(e.target.value);
@@ -201,10 +166,6 @@ const ArticleManagementPage: React.FC = () => {
     setSelectedCategorySlug(newCategorySlug);
   };
 
-  useEffect(() => {
-    handleApplyFilters();
-  }, [publishedStatus, selectedTags, selectedCategorySlug]);
-
   const handleDeleteClick = (id: string) => {
     setArticleToDelete(id);
     setShowConfirmation(true);
@@ -238,7 +199,6 @@ const ArticleManagementPage: React.FC = () => {
     setArticleToDelete(null);
   };
 
-  // Jika tidak ada user atau tidak login, arahkan ke halaman login
   if (!isLoggedIn || !user) {
     return <Navigate to="/atmin/login" />;
   }
@@ -253,7 +213,7 @@ const ArticleManagementPage: React.FC = () => {
 
   if (!adminLoading && articlesToDisplay.length === 0 && hasActiveFilters) {
     return (
-      <Layout>
+      <AdminLayout>
         <div className="container mx-auto px-4 sm:px-6 py-12 text-center">
           <p className="text-xl text-gray-600 dark:text-gray-400">
             Tidak ada artikel yang cocok dengan filter.
@@ -267,13 +227,13 @@ const ArticleManagementPage: React.FC = () => {
             </button>
           )}
         </div>
-      </Layout>
+      </AdminLayout>
     );
   }
 
   if (!adminLoading && articlesToDisplay.length === 0 && !hasActiveFilters) {
     return (
-      <Layout>
+      <AdminLayout>
         <div className="container mx-auto px-4 sm:px-6 py-12 text-center">
           <p className="text-xl text-gray-600 dark:text-gray-400">
             Belum ada artikel yang ditemukan.
@@ -285,7 +245,7 @@ const ArticleManagementPage: React.FC = () => {
             <Plus size={18} className="mr-1" /> Buat Artikel Pertama Anda
           </Link>
         </div>
-      </Layout>
+      </AdminLayout>
     );
   }
 
@@ -298,7 +258,7 @@ const ArticleManagementPage: React.FC = () => {
       : undefined);
 
   return (
-    <Layout>
+    <AdminLayout>
       <div className="container mx-auto px-4 sm:px-6 py-12 fade-in">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-8">
           <h1 className="text-3xl font-serif font-bold mb-4 sm:mb-0">
@@ -492,7 +452,7 @@ const ArticleManagementPage: React.FC = () => {
           </div>
         </div>
       )}
-    </Layout>
+    </AdminLayout>
   );
 };
 
