@@ -260,7 +260,7 @@ const ArticleManagementPage: React.FC = () => {
   return (
     <AdminLayout>
       <div className="container mx-auto px-4 sm:px-6 py-12 fade-in">
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-8">
+        <div className="flex flex-col mx-4 sm:flex-row sm:items-center sm:justify-between mb-8">
           <h1 className="text-3xl font-serif font-bold mb-4 sm:mb-0">
             Manajemen Artikel
           </h1>

@@ -118,9 +118,9 @@ const AdminHeader: React.FC = () => {
               alt="logo_man3kp"
               className="w-12 h-12 text-accent"
             />
-            <span className="text-xl font-semibold text-gray-800 dark:text-white">
+            {/* <span className="text-xl font-semibold text-gray-800 dark:text-white">
               Admin Dashboard
-            </span>
+            </span> */}
           </Link>
         </div>
 

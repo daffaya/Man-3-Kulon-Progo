@@ -30,6 +30,7 @@ import SaranaPrasaranaPage from "./pages/profile/SaranaPrasaranaPage";
 import StrukturOrganisasiPage from "./pages/profile/StrukturOrganisasiPage";
 import VisiMisiPage from "./pages/profile/VisiMisiPage";
 import SiswaPage from "./pages/profile/SiswaPage";
+import AttendanceStudentPage from "./pages/admin/attendance/AttendanceStudentPage";
 
 const AdminLayout = () => (
   <ProtectedRoute>
@@ -82,6 +83,9 @@ function App() {
               <Route path="new" element={<NewArticlePage />} />
               <Route path="edit/:id" element={<EditArticlePage />} />
               <Route path="category" element={<AdminCategoriesPage />} />
+
+              {/* Attendance */}
+              <Route path="presensi" element={<AttendanceStudentPage />} />
             </Route>
             <Route path="*" element={<NotFoundPage />} />
           </Routes>

@@ -76,11 +76,12 @@ const AdminDashboard: React.FC = () => {
       requiredRole: "pengelola_bmn",
     },
     {
-      id: "attendance",
+      id: "presensi",
       title: "Presensi Siswa",
       description: "Rekap presensi dan kehadiran siswa",
       icon: <Users className="w-6 h-6" />,
       requiredRole: "guru_bk",
+      to: "/atmin/presensi",
     },
     {
       id: "articles",
@@ -133,7 +134,7 @@ const AdminDashboard: React.FC = () => {
   return (
     <AdminLayout>
       <div className="pt-24 min-h-screen bg-background dark:bg-background py-12 px-4 sm:px-6 lg:px-8">
-        <div className="max-w-4xl mx-auto">
+        <div className="max-w-6xl mx-auto">
           <div className="mb-8">
             <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
               Admin Dashboard
