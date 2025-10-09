@@ -25,7 +25,11 @@ const AttendanceForm = () => {
   // Tambahkan tipe data untuk state
   const [students, setStudents] = useState<Student[]>([]);
   const [attendances, setAttendances] = useState<Attendance[]>([]);
-  const [toast, setToast] = useState({ isVisible: false, message: "" });
+  const [toast, setToast] = useState({
+    isVisible: false,
+    message: "",
+    type: "error" as "success" | "error" | "warning" | "info",
+  });
   const [classes, setClasses] = useState<{ id: number; name: string }[]>([]);
 
   useEffect(() => {
@@ -64,7 +68,11 @@ const AttendanceForm = () => {
       });
 
       if (!selectedClass || !selectedDate) {
-        setToast({ isVisible: true, message: "Pilih kelas dan tanggal" });
+        setToast({
+          isVisible: true,
+          message: "Pilih kelas dan tanggal",
+          type: "warning", // Can use warning for missing data
+        });
         return;
       }
 
@@ -75,11 +83,13 @@ const AttendanceForm = () => {
       setToast({
         isVisible: true,
         message: "Presensi berhasil disimpan",
+        type: "success", // Success message
       });
     } catch (error) {
       setToast({
         isVisible: true,
         message: "Terjadi kesalahan",
+        type: "error", // Error message
       });
     }
   };
@@ -170,6 +180,14 @@ const AttendanceForm = () => {
       >
         Simpan Presensi
       </button>
+
+      {/* Show Toast here */}
+      <Toast
+        message={toast.message}
+        type={toast.type}
+        isVisible={toast.isVisible}
+        onClose={() => setToast({ ...toast, isVisible: false })}
+      />
     </div>
   );
 };

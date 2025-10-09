@@ -1,5 +1,8 @@
 import { Router } from "express";
-import authenticateTokenFactory from "../middleware/authMiddleware.js";
+import {
+  authenticateTokenFactory,
+  restrictTo,
+} from "../middleware/authMiddleware.js";
 import publicArticleRouterFactory from "./publicArticleRoutes.js";
 
 const adminRouterFactory = ({

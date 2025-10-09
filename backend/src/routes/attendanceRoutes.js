@@ -1,7 +1,10 @@
 import { Router } from "express";
-import authenticateTokenFactory from "../middleware/authMiddleware.js";
+import {
+  authenticateTokenFactory,
+  restrictTo,
+} from "../middleware/authMiddleware.js";
 
-const attendanceRoutesFactory = ({ pool, JWT_SECRET }) => {
+const attendanceRouterFactory = ({ pool, JWT_SECRET }) => {
   const router = Router();
   const authenticateToken = authenticateTokenFactory({ JWT_SECRET });
 
@@ -285,4 +288,4 @@ const attendanceRoutesFactory = ({ pool, JWT_SECRET }) => {
   return router;
 };
 
-export default attendanceRoutesFactory;
+export default attendanceRouterFactory;

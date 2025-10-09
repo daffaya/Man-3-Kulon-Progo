@@ -4,7 +4,8 @@ import tagRouterFactory from "./tagRoutes.js";
 import publicArticleRouterFactory from "./publicArticleRoutes.js";
 import adminRouterFactory from "./adminRoutes.js";
 import publicCategoryRouterFactory from "./publicCategoryRoutes.js";
-import attendanceRoutesFactory from "./attendanceRoutes.js";
+import attendanceRouterFactory from "./attendanceRoutes.js";
+import archiveRouterFactory from "./archiveRoutes.js";
 
 const apiRouterFactory = ({
   pool,
@@ -37,8 +38,9 @@ const apiRouterFactory = ({
     })
   );
 
-  const attendanceRouter = attendanceRoutesFactory({ pool, JWT_SECRET });
-  apiRouter.use("/attendance", attendanceRouter);
+  apiRouter.use("/attendance", attendanceRouterFactory({ pool, JWT_SECRET }));
+
+  apiRouter.use("/archives", archiveRouterFactory({ pool, JWT_SECRET }));
 
   return apiRouter;
 };
