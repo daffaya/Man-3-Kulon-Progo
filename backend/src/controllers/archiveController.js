@@ -1,6 +1,7 @@
 import archiveModelFactory from "../models/ArchiveModel.js";
 import path from "path";
-import fs from "fs/promises";
+import fsPromises from "fs/promises"; // Untuk operasi Promise-based
+import fs from "fs"; // Untuk streaming
 
 const archiveControllerFactory = ({ pool }) => {
   const {
@@ -97,7 +98,7 @@ const archiveControllerFactory = ({ pool }) => {
       // Cek apakah file masih ada di server
       const filePath = path.resolve(archive.file_path);
       try {
-        await fs.access(filePath);
+        await fsPromises.access(filePath);
       } catch {
         return res.status(404).json({
           success: false,
@@ -128,7 +129,7 @@ const archiveControllerFactory = ({ pool }) => {
     }
   };
 
-  // Create new archive (protected - arsiparis only)
+  // Create new archive (protected - arsiparis or super_admin)
   const handleCreateArchive = async (req, res) => {
     try {
       // Cek apakah ada file upload
@@ -148,6 +149,20 @@ const archiveControllerFactory = ({ pool }) => {
           success: false,
           error: "Nama file tidak valid",
         });
+      }
+
+      // Validasi category_id
+      if (category_id) {
+        const [categories] = await pool.query(
+          "SELECT id FROM archive_categories WHERE id = ?",
+          [parseInt(category_id)]
+        );
+        if (categories.length === 0) {
+          return res.status(400).json({
+            success: false,
+            error: "Category ID tidak valid",
+          });
+        }
       }
 
       // Parse document_date kalau ada
@@ -194,12 +209,20 @@ const archiveControllerFactory = ({ pool }) => {
         error.message
       );
 
-      // Handle multer error (file upload error)
+      // Handle multer error
       if (error.message.includes("multer")) {
         return res.status(400).json({
           success: false,
           error:
             "Upload file gagal. Pastikan file berukuran tidak lebih dari 10MB dan format PDF/Word",
+        });
+      }
+
+      // Handle foreign key error
+      if (error.message.includes("foreign key constraint")) {
+        return res.status(400).json({
+          success: false,
+          error: "Category ID tidak valid atau tidak ditemukan",
         });
       }
 
@@ -210,7 +233,7 @@ const archiveControllerFactory = ({ pool }) => {
     }
   };
 
-  // Update archive (protected - arsiparis only)
+  // Update archive (protected - arsiparis or super_admin)
   const handleUpdateArchive = async (req, res) => {
     try {
       const { id } = req.params;
@@ -224,6 +247,20 @@ const archiveControllerFactory = ({ pool }) => {
 
       const { description, category_id, document_number, document_date } =
         req.body;
+
+      // Validasi category_id
+      if (category_id) {
+        const [categories] = await pool.query(
+          "SELECT id FROM archive_categories WHERE id = ?",
+          [parseInt(category_id)]
+        );
+        if (categories.length === 0) {
+          return res.status(400).json({
+            success: false,
+            error: "Category ID tidak valid",
+          });
+        }
+      }
 
       // Prepare update data
       const updateData = {
@@ -264,6 +301,14 @@ const archiveControllerFactory = ({ pool }) => {
         });
       }
 
+      // Handle foreign key error
+      if (error.message.includes("foreign key constraint")) {
+        return res.status(400).json({
+          success: false,
+          error: "Category ID tidak valid atau tidak ditemukan",
+        });
+      }
+
       res.status(500).json({
         success: false,
         error: "Gagal memperbarui arsip",
@@ -271,7 +316,7 @@ const archiveControllerFactory = ({ pool }) => {
     }
   };
 
-  // Delete archive (protected - arsiparis only)
+  // Delete archive (protected - arsiparis or super_admin)
   const handleDeleteArchive = async (req, res) => {
     try {
       const { id } = req.params;

@@ -7,6 +7,13 @@ export const restrictTo = (roles) => (req, res, next) => {
     });
   }
 
+  if (
+    req.user.role.toLowerCase() === "super_admin" ||
+    roles.includes(req.user.role.toLowerCase())
+  ) {
+    return next();
+  }
+
   if (!roles.includes(req.user.role)) {
     return res.status(403).json({
       error: "Akses ditolak: Role tidak sesuai",

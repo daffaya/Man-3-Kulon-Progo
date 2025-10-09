@@ -5,6 +5,7 @@ import {
   restrictTo,
 } from "../middleware/authMiddleware.js";
 import rateLimiter from "../middleware/rateLimiter.js";
+import upload from "../services/fileUploadService.js";
 
 const archiveRouterFactory = ({ pool, JWT_SECRET }) => {
   const router = express.Router();
@@ -35,19 +36,21 @@ const archiveRouterFactory = ({ pool, JWT_SECRET }) => {
   router.post(
     "/",
     authenticateTokenFactory({ JWT_SECRET }),
-    restrictTo(["arsiparis"]),
+    restrictTo(["arsiparis", "super_admin"]),
+    upload,
     handleCreateArchive
   );
   router.put(
     "/:id",
     authenticateTokenFactory({ JWT_SECRET }),
-    restrictTo(["arsiparis"]),
+    restrictTo(["arsiparis", "super_admin"]),
+    upload,
     handleUpdateArchive
   );
   router.delete(
     "/:id",
     authenticateTokenFactory({ JWT_SECRET }),
-    restrictTo(["arsiparis"]),
+    restrictTo(["arsiparis", "super_admin"]),
     handleDeleteArchive
   );
 
