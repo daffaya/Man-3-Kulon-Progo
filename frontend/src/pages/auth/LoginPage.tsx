@@ -1,13 +1,21 @@
 import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation, Navigate } from "react-router-dom";
 import { useAuth } from "../../contexts/AuthContext";
 import LoginForm from "../../components/auth/LoginForm";
 import ThemeToggle from "../../components/ui/ThemeToggle";
 
 const LoginPage: React.FC = () => {
-  const { login } = useAuth();
+  const { login, isLoggedIn } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
   const [loginError, setLoginError] = useState<string | null>(null);
+
+  const redirectTo = location.state?.redirectTo || "/atmin";
+
+  // 🔒 Jika sudah login, redirect langsung (hindari render form)
+  if (isLoggedIn) {
+    return <Navigate to={redirectTo} replace />;
+  }
 
   const handleLoginSuccess = (data: {
     user: { username: string; role: string };
@@ -15,7 +23,7 @@ const LoginPage: React.FC = () => {
   }) => {
     setLoginError(null);
     login(data.user, data.token);
-    navigate("/atmin");
+    navigate(redirectTo, { replace: true }); // ✅ Ganti ke replace: true
   };
 
   const handleLoginError = (message: string) => {

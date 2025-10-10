@@ -62,7 +62,7 @@ const AdminDashboard: React.FC = () => {
 
   const apps = [
     {
-      id: "archive",
+      id: "uploadArchive",
       title: "Manajemen Arsip",
       description: "Kelola dokumen dan arsip sekolah dengan mudah",
       icon: <Archive className="w-6 h-6" />,

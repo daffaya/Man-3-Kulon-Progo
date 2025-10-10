@@ -31,6 +31,8 @@ import StrukturOrganisasiPage from "./pages/profile/StrukturOrganisasiPage";
 import VisiMisiPage from "./pages/profile/VisiMisiPage";
 import SiswaPage from "./pages/profile/SiswaPage";
 import AttendanceStudentPage from "./pages/admin/attendance/AttendanceStudentPage";
+import ArchiveListPage from "./pages/archive/ArchiveListPage";
+import UploadArchivePage from "./pages/archive/UploadArchivePage";
 
 const AdminLayout = () => (
   <ProtectedRoute>
@@ -75,6 +77,8 @@ function App() {
               element={<SaranaPrasaranaPage />}
             />
 
+            <Route path="/archives" element={<ArchiveListPage />} />
+
             <Route path="/atmin" element={<AdminLayout />}>
               <Route index element={<AdminDashboard />} />
 
@@ -86,6 +90,8 @@ function App() {
 
               {/* Attendance */}
               <Route path="presensi" element={<AttendanceStudentPage />} />
+
+              <Route path="uploadArchive" element={<UploadArchivePage />} />
             </Route>
             <Route path="*" element={<NotFoundPage />} />
           </Routes>

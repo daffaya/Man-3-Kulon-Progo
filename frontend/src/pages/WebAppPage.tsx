@@ -1,5 +1,4 @@
-// AppsPage.tsx
-import React, { useState } from "react";
+import React from "react";
 import Layout from "../components/layout/Layout";
 import AppCard from "../components/ui/AppCard";
 import { useNavigate } from "react-router-dom";
@@ -7,9 +6,7 @@ import { Archive, Clipboard, Users, BookOpen } from "lucide-react";
 
 const WebAppPage: React.FC = () => {
   const navigate = useNavigate();
-  const [userRole, setUserRole] = useState<string | null>(null); // Ganti dengan autentikasi real
 
-  // Contoh data aplikasi
   const apps = [
     {
       id: "archive",
@@ -17,6 +14,7 @@ const WebAppPage: React.FC = () => {
       description: "Kelola dokumen dan arsip sekolah dengan mudah",
       icon: <Archive className="w-6 h-6" />,
       requiredRole: "arsiparis",
+      to: "/archives",
     },
     {
       id: "inventory",
@@ -24,6 +22,7 @@ const WebAppPage: React.FC = () => {
       description: "Pantau dan kelola barang inventaris sekolah",
       icon: <Clipboard className="w-6 h-6" />,
       requiredRole: "pengelola_bmn",
+      to: "/atmin/inventory",
     },
     {
       id: "presensi",
@@ -39,26 +38,14 @@ const WebAppPage: React.FC = () => {
       description: "Buat dan kelola artikel untuk website sekolah",
       icon: <BookOpen className="w-6 h-6" />,
       requiredRole: "jurnalis",
-      to: "/atmin/article-management",
+      to: "/atmin/articles",
     },
   ];
 
-  const handleAppClick = (appId: string, requiredRole: string) => {
-    // Logika autentikasi dan autorisasi
-    if (!userRole) {
-      // Redirect ke login jika belum login
-      navigate("/login", { state: { redirectTo: `/atmin/${appId}` } });
-      return;
-    }
-
-    // Cek role user
-    if (userRole !== requiredRole) {
-      alert("Anda tidak memiliki akses ke aplikasi ini");
-      return;
-    }
-
-    // Arahkan ke aplikasi
-    navigate(`/atmin/${appId}`);
+  const handleAppClick = (to: string) => {
+    console.log("Navigating from WebAppPage to:", to);
+    console.log("History stack length before navigate:", window.history.length);
+    navigate(to, { replace: false }); // Pastikan push
   };
 
   return (
@@ -82,28 +69,10 @@ const WebAppPage: React.FC = () => {
                 title={app.title}
                 description={app.description}
                 icon={app.icon}
-                onClick={() => handleAppClick(app.id, app.requiredRole)}
-                disabled={userRole !== null && userRole !== app.requiredRole}
+                onClick={() => handleAppClick(app.to)}
               />
             ))}
           </div>
-
-          {!userRole && (
-            <div
-              className="mt-12 p-6 relative overflow-hidden rounded-xl border 
-        bg-background rounded-xl dark:bg-semibackground dark:border-gray-700 text-center"
-            >
-              <p className="text-muted mb-4">
-                Silakan login untuk mengakses aplikasi
-              </p>
-              <button
-                onClick={() => navigate("/login")}
-                className="btn-primary text-white font-semi-bold py-2 px-6 rounded-lg text-lg transition duration-300 transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50"
-              >
-                Login Sekarang
-              </button>
-            </div>
-          )}
         </div>
       </div>
     </Layout>
