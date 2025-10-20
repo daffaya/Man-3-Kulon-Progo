@@ -17,6 +17,7 @@
   },
   "dependencies": {
     "bcrypt": "^6.0.0",
+    "date-fns": "^4.1.0",
     "express-rate-limit": "^8.1.0",
     "react-icons": "^5.5.0"
   }

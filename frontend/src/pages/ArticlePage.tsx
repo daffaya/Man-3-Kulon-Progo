@@ -6,7 +6,7 @@ import ArticleContent from "../components/article/ArticleContent";
 import ArticleCard from "../components/article/ArticleCard";
 import { useArticles } from "../contexts/ArticleContext";
 
-import { Article } from "../types";
+import { Article } from "../types/articleTypes";
 
 const ArticlePage: React.FC = () => {
   const { slug } = useParams<{ slug: string }>();

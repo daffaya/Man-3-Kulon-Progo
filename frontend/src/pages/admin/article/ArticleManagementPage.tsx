@@ -1,12 +1,11 @@
-import React, { useContext, useEffect, useState, useCallback } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import { Link, Navigate } from "react-router-dom";
-import { Plus, RefreshCw, X, File } from "lucide-react";
-import Layout from "../../../components/layout/Layout";
+import { Plus, RefreshCw, X, ArrowLeft } from "lucide-react";
 import ArticleTable from "../../../components/admin/ArticleTable";
 
 import { useArticles } from "../../../contexts/ArticleContext";
 import { useAuth } from "../../../contexts/AuthContext";
-import { ArticleFilters } from "../../../types";
+import { ArticleFilters } from "../../../types/articleTypes";
 import AdminLayout from "../../../components/layout/AdminLayout";
 
 interface AppliedFilters {
@@ -16,6 +15,12 @@ interface AppliedFilters {
   tag?: string | string[];
   category?: string;
 }
+
+export const ALLOWED_ROLES = ["jurnalis", "super_admin"] as const;
+const hasEditAccess = (isLoggedIn: boolean, role?: string): boolean =>
+  isLoggedIn && role
+    ? ALLOWED_ROLES.includes(role as (typeof ALLOWED_ROLES)[number])
+    : false;
 
 const ArticleManagementPage: React.FC = () => {
   const {
@@ -30,6 +35,8 @@ const ArticleManagementPage: React.FC = () => {
   const [showConfirmation, setShowConfirmation] = useState(false);
   const [articleToDelete, setArticleToDelete] = useState<string | null>(null);
   const { isLoggedIn, logout, token, user } = useAuth();
+
+  const isAdminOrJurnalist = hasEditAccess(isLoggedIn, user?.role);
 
   const [keyword, setKeyword] = useState("");
   const [publishedStatus, setPublishedStatus] = useState<
@@ -260,6 +267,15 @@ const ArticleManagementPage: React.FC = () => {
   return (
     <AdminLayout>
       <div className="container mx-auto px-4 sm:px-6 py-12 fade-in">
+        {isAdminOrJurnalist && (
+          <Link
+            to="/atmin"
+            className="text-sm text-gray-600 dark:text-gray-400 hover:text-primary dark:hover:text-primary flex items-center mb-4 transition-colors"
+          >
+            <ArrowLeft className="h-4 w-4 mr-1" />
+            Kembali ke admin dashboard
+          </Link>
+        )}
         <div className="flex flex-col mx-4 sm:flex-row sm:items-center sm:justify-between mb-8">
           <h1 className="text-3xl font-serif font-bold mb-4 sm:mb-0">
             Manajemen Artikel
@@ -273,9 +289,6 @@ const ArticleManagementPage: React.FC = () => {
         </div>
         <div className="bg-white dark:bg-semibackground rounded-xl shadow-md p-6">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6">
-            <h2 className="text-xl font-bold mb-4 sm:mb-0">
-              Manajemen Artikel
-            </h2>
             {hasActiveFilters && (
               <button
                 onClick={handleRemoveFilters}
@@ -288,11 +301,13 @@ const ArticleManagementPage: React.FC = () => {
           <div className="mb-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
             <div>
               <label
-                htmlFor="keyword"
+                htmlFor="tagInput"
                 className="block text-sm font-medium mb-1"
               >
-                Cari Kata Kunci
+                Cari Kata Kunci{" "}
+                <span className="text-xs text-gray-500">(Tekan Enter)</span>
               </label>
+
               <input
                 type="text"
                 id="keyword"
@@ -354,8 +369,10 @@ const ArticleManagementPage: React.FC = () => {
                 htmlFor="tagInput"
                 className="block text-sm font-medium mb-1"
               >
-                Filter Berdasarkan Tag (Tekan Enter untuk menambah)
+                Filter Berdasarkan Tag{" "}
+                <span className="text-xs text-gray-500">(Tekan Enter)</span>
               </label>
+
               <input
                 type="text"
                 id="tagInput"

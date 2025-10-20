@@ -33,6 +33,7 @@ import SiswaPage from "./pages/profile/SiswaPage";
 import AttendanceStudentPage from "./pages/admin/attendance/AttendanceStudentPage";
 import ArchiveListPage from "./pages/archive/ArchiveListPage";
 import UploadArchivePage from "./pages/archive/UploadArchivePage";
+import EditArchivePage from "./pages/archive/EditArchivePage";
 
 const AdminLayout = () => (
   <ProtectedRoute>
@@ -87,6 +88,12 @@ function App() {
               <Route path="new" element={<NewArticlePage />} />
               <Route path="edit/:id" element={<EditArticlePage />} />
               <Route path="category" element={<AdminCategoriesPage />} />
+
+              {/*Archive*/}
+              <Route
+                path="/atmin/editArchive/:id"
+                element={<EditArchivePage />}
+              />
 
               {/* Attendance */}
               <Route path="presensi" element={<AttendanceStudentPage />} />

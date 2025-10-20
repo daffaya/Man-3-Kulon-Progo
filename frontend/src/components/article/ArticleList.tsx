@@ -1,6 +1,6 @@
 // backend/src/frontend/src/components/article/ArticleList.tsx
 import React from "react";
-import { Article } from "../../types";
+import { Article } from "../../types/articleTypes";
 import ArticleCard from "./ArticleCard";
 import { RefreshCw } from "lucide-react";
 

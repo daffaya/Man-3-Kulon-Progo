@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useCallback } from "react";
 import Layout from "../components/layout/Layout";
 import { useArticles } from "../contexts/ArticleContext";
-import { Category, CategoryFormData } from "../types";
+import { Category, CategoryFormData } from "../types/articleTypes";
 import { Plus, Edit, Trash2, RefreshCw, X } from "lucide-react";
 
 const AdminCategoriesPage: React.FC = () => {

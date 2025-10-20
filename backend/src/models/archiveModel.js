@@ -9,20 +9,20 @@ const archiveModelFactory = ({ pool }) => {
       const offset = (page - 1) * limit;
 
       let query = `
-        SELECT 
-            a.id, 
-            a.file_name, 
-            a.description, 
-            a.upload_date, 
-            a.file_size, 
-            a.document_number, 
-            a.document_date,
-            c.name as category_name,
-            c.id as category_id
-        FROM archives a 
-        LEFT JOIN archive_categories c ON a.category_id = c.id 
-        WHERE a.is_active = true
-      `;
+      SELECT 
+          a.id, 
+          a.file_name, 
+          a.description, 
+          a.upload_date, 
+          a.file_size, 
+          a.document_number, 
+          DATE_FORMAT(a.document_date, '%Y-%m-%d') AS document_date, 
+          c.name as category_name,
+          c.id as category_id
+      FROM archives a 
+      LEFT JOIN archive_categories c ON a.category_id = c.id 
+      WHERE a.is_active = true
+    `;
 
       let params = [];
 
@@ -38,7 +38,6 @@ const archiveModelFactory = ({ pool }) => {
       query += ` ORDER BY a.upload_date DESC LIMIT ? OFFSET ?`;
       params.push(parseInt(limit), offset);
 
-      console.log("[Archive Model] Pool defined:", !!pool);
       const [rows] = await pool.query(query, params);
 
       let countQuery = `SELECT COUNT(*) as total FROM archives WHERE is_active = true`;
@@ -70,14 +69,22 @@ const archiveModelFactory = ({ pool }) => {
 
   const getArchiveById = async (id) => {
     try {
-      console.log("[Archive Model] Pool defined:", !!pool);
       const [rows] = await pool.query(
         `SELECT 
-          a.*, 
-          c.name as category_name 
-         FROM archives a 
-         LEFT JOIN archive_categories c ON a.category_id = c.id 
-         WHERE a.id = ? AND a.is_active = true`,
+        a.id,
+        a.file_name,
+        a.file_path,
+        a.mime_type,
+        a.description,
+        a.category_id,
+        a.file_size,
+        a.document_number,
+        DATE_FORMAT(a.document_date, '%Y-%m-%d') AS document_date, 
+        a.upload_date,
+        c.name as category_name 
+       FROM archives a 
+       LEFT JOIN archive_categories c ON a.category_id = c.id 
+       WHERE a.id = ? AND a.is_active = true`,
         [parseInt(id)]
       );
       return rows[0] || null;
@@ -88,7 +95,6 @@ const archiveModelFactory = ({ pool }) => {
 
   const getArchiveCategories = async () => {
     try {
-      console.log("[Archive Model] Pool defined:", !!pool);
       const [rows] = await pool.query(
         `SELECT id, name, description FROM archive_categories ORDER BY name`
       );
@@ -129,7 +135,6 @@ const archiveModelFactory = ({ pool }) => {
         document_date || null,
       ];
 
-      console.log("[Archive Model] Pool defined:", !!pool);
       const [result] = await pool.query(query, values);
       return { id: result.insertId, message: "Arsip berhasil dibuat" };
     } catch (error) {
@@ -169,7 +174,6 @@ const archiveModelFactory = ({ pool }) => {
         parseInt(id),
       ];
 
-      console.log("[Archive Model] Pool defined:", !!pool);
       const [result] = await pool.query(query, values);
 
       if (result.affectedRows === 0) {
@@ -185,7 +189,6 @@ const archiveModelFactory = ({ pool }) => {
   const deleteArchive = async (id) => {
     try {
       const query = `UPDATE archives SET is_active = false WHERE id = ? AND is_active = true`;
-      console.log("[Archive Model] Pool defined:", !!pool);
       const [result] = await pool.query(query, [parseInt(id)]);
 
       if (result.affectedRows === 0) {

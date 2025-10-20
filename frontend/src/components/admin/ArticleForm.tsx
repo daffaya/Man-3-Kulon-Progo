@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { format } from "date-fns";
 
-import { Article, ArticleFormData, Category } from "../../types";
+import { Article, ArticleFormData, Category } from "../../types/articleTypes";
 import { useArticles } from "../../contexts/ArticleContext";
 import { RefreshCw, X } from "lucide-react";
 

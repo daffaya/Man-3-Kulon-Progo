@@ -1,7 +1,7 @@
 import React from "react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
-import { Article } from "../../types";
+import { Article } from "../../types/articleTypes";
 import { formatDate } from "../../lib/utils";
 import { Clock, Calendar } from "lucide-react";
 

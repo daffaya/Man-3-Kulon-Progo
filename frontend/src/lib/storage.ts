@@ -1,4 +1,4 @@
-import { Article } from "../types";
+import { Article } from "../types/articleTypes";
 
 // Sample articles data for initial state
 const SAMPLE_ARTICLES: Article[] = [];

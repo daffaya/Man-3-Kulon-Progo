@@ -2,7 +2,6 @@ import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Archive, Clipboard, Users, BookOpen } from "lucide-react";
 import AppCard from "../../components/ui/AppCard";
-import AdminHeader from "../../components/layout/AdminHeader";
 import { useAuth } from "../../contexts/AuthContext";
 import Toast from "../../components/ui/Toast";
 import AdminLayout from "../../components/layout/AdminLayout";
@@ -62,7 +61,7 @@ const AdminDashboard: React.FC = () => {
 
   const apps = [
     {
-      id: "uploadArchive",
+      id: "archives",
       title: "Manajemen Arsip",
       description: "Kelola dokumen dan arsip sekolah dengan mudah",
       icon: <Archive className="w-6 h-6" />,

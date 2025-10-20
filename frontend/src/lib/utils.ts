@@ -1,6 +1,6 @@
 import { v4 as uuidv4 } from "uuid";
 import { format } from "date-fns";
-import { Article, ArticleFormData } from "../types";
+import { Article, ArticleFormData } from "../types/articleTypes";
 
 export const generateSlug = (title: string): string => {
   return title

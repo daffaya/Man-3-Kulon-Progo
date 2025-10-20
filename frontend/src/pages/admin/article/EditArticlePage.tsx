@@ -4,25 +4,26 @@ import { useParams, useNavigate, Link } from "react-router-dom"; // Import Link
 import Layout from "../../../components/layout/Layout";
 import { useArticles } from "../../../contexts/ArticleContext";
 // Import Article dan ArticleFormData
-import { Article, ArticleFormData } from "../../../types";
+import { Article, ArticleFormData } from "../../../types/articleTypes";
 import ArticleForm from "../../../components/admin/ArticleForm"; // Import ArticleForm
-import { RefreshCw, X, ChevronLeft } from "lucide-react"; // Import icons
+import { RefreshCw, X, ChevronLeft, ArrowLeft } from "lucide-react"; // Import icons
 import AdminLayout from "../../../components/layout/AdminLayout";
+import { useAuth } from "../../../contexts/AuthContext";
+
+export const ALLOWED_ROLES = ["jurnalis", "super_admin"] as const;
+const hasEditAccess = (isLoggedIn: boolean, role?: string): boolean =>
+  isLoggedIn && role
+    ? ALLOWED_ROLES.includes(role as (typeof ALLOWED_ROLES)[number])
+    : false;
 
 const EditArticle: React.FC = () => {
-  const { id } = useParams<{ id: string }>(); // Ambil ID artikel dari URL
+  const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const {
-    fetchAdminArticleById,
-    updateExistingArticle,
-    // Tidak perlu fetch kategori di sini lagi, ArticleForm yang akan fetch
-    // adminCategories,
-    // adminCategoriesLoading,
-    // fetchAdminCategories,
-  } = useArticles();
+  const { fetchAdminArticleById, updateExistingArticle } = useArticles();
+  const [articleData, setArticleData] = useState<Article | null>(null);
+  const { isLoggedIn, logout, token, user } = useAuth();
 
-  // State untuk menyimpan data artikel yang diambil (untuk diteruskan ke ArticleForm)
-  const [articleData, setArticleData] = useState<Article | null>(null); // State ini akan menyimpan data lengkap termasuk category object
+  const isAdminOrJurnalist = hasEditAccess(isLoggedIn, user?.role);
 
   const [loading, setLoading] = useState(true); // Loading awal saat fetch data artikel
   const [saving, setSaving] = useState(false); // Loading saat menyimpan perubahan
@@ -62,25 +63,16 @@ const EditArticle: React.FC = () => {
         setArticleData(null); // Set null jika gagal
       }
 
-      // Tidak perlu memanggil fetchAdminCategories() di sini lagi
-      // ArticleForm akan memanggilnya saat ArticleForm di-render
-
       setLoading(false); // Selesai loading setelah fetch artikel
     };
 
     loadArticle();
-  }, [id, fetchAdminArticleById]); // Dependency array: id, fetchAdminArticleById
+  }, [id, fetchAdminArticleById]);
 
-  // --- Handler Submit Form ---
-  // Menerima formData dari ArticleForm
   const handleSubmit = async (formData: ArticleFormData) => {
-    // PERUBAHAN FIX: Hapus baris e.preventDefault() karena e tidak tersedia di sini.
-    // ArticleForm sudah melakukan preventDefault() sebelum memanggil onSubmit.
-    // e.preventDefault(); // <--- HAPUS BARIS INI
+    if (!id) return;
 
-    if (!id) return; // Pastikan ID ada
-
-    setSaving(true); // Gunakan state saving
+    setSaving(true);
     setError(null);
 
     console.log(
@@ -88,8 +80,6 @@ const EditArticle: React.FC = () => {
       formData
     ); // Log data yang diterima dari form
 
-    // Panggil fungsi updateExistingArticle dari context
-    // Menggunakan formData yang diterima dari ArticleForm
     const updatedArticle = await updateExistingArticle(id, formData);
 
     if (updatedArticle) {
@@ -155,19 +145,17 @@ const EditArticle: React.FC = () => {
   return (
     <AdminLayout>
       <div className="container max-w-4xl mx-auto px-4 sm:px-6 py-12 fade-in">
-        <div className="mb-8">
-          {" "}
-          <div className="flex items-center">
-            {" "}
+        {isAdminOrJurnalist && (
+          <div className="flex items-center mb-4">
             <Link
               to="/atmin/articles"
-              className="mr-4 text-gray-600 dark:text-gray-400 hover:text-accent dark:hover:text-accent transition-colors"
+              className="text-sm text-gray-600 dark:text-gray-400 hover:text-primary dark:hover:text-primary flex items-center"
             >
-              <ChevronLeft size={20} />{" "}
-            </Link>{" "}
-            <h1 className="text-3xl font-serif font-bold">Edit Article </h1>{" "}
-          </div>{" "}
-        </div>
+              <ChevronLeft className="h-4 w-4 mr-1" />
+            </Link>
+            <h1 className="text-3xl font-serif font-bold mx-4">Edit Artikel</h1>
+          </div>
+        )}
 
         <div className="bg-white dark:bg-gray-800 rounded-xl shadow-md p-6">
           {/* Error Message */}

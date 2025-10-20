@@ -7,7 +7,12 @@ import React, {
   useCallback,
 } from "react";
 
-import { Article, Category, PaginationData, ArticleFilters } from "../types";
+import {
+  Article,
+  Category,
+  PaginationData,
+  ArticleFilters,
+} from "../types/articleTypes";
 import { useAuth } from "./AuthContext";
 
 interface CategoryFormData {

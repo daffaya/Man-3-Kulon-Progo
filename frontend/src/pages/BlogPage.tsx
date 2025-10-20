@@ -12,7 +12,7 @@ import ArticleList from "../components/article/ArticleList";
 import { useArticles } from "../contexts/ArticleContext";
 import { RefreshCw, X } from "lucide-react";
 
-import { Article, ArticleFilters, Category } from "../types";
+import { Article, ArticleFilters, Category } from "../types/articleTypes";
 
 const throttle = (func: (...args: any[]) => void, limit: number) => {
   let inThrottle: boolean;

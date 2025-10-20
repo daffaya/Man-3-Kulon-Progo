@@ -5,7 +5,7 @@ import { ChevronLeft } from "lucide-react";
 import Layout from "../../../components/layout/Layout";
 import ArticleForm from "../../../components/admin/ArticleForm"; // Import ArticleForm
 import { ArticleContext, useArticles } from "../../../contexts/ArticleContext"; // Import useArticles
-import { ArticleFormData } from "../../../types"; // Import ArticleFormData
+import { ArticleFormData } from "../../../types/articleTypes"; // Import ArticleFormData
 import { generateSlug, calculateReadingTime } from "../../../lib/utils"; // Import helper functions
 import AdminLayout from "../../../components/layout/AdminLayout";
 
@@ -39,7 +39,7 @@ const NewArticlePage: React.FC = () => {
 
     if (newArticle) {
       console.log("[NewArticlePage] Article created successfully:", newArticle);
-      navigate("/atmin", { replace: true }); // Redirect ke daftar artikel admin
+      navigate("/atmin/articles", { replace: true }); // Redirect ke daftar artikel admin
     } else {
       console.error("[NewArticlePage] Failed to create new article");
       // TODO: Tampilkan pesan error ke user
@@ -52,7 +52,7 @@ const NewArticlePage: React.FC = () => {
         <div className="mb-8">
           <div className="flex items-center">
             <Link
-              to="/atmin"
+              to="/atmin/articles"
               className="mr-4 text-gray-600 dark:text-gray-400 hover:text-accent dark:hover:text-accent transition-colors"
             >
               <ChevronLeft size={20} />

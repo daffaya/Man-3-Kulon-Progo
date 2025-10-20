@@ -1,6 +1,6 @@
 import React from "react";
 import { Link } from "react-router-dom";
-import { Article } from "../../types";
+import { Article } from "../../types/articleTypes";
 import { Clock, Calendar } from "lucide-react";
 import { formatDate } from "../../lib/utils";
 

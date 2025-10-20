@@ -1,14 +1,21 @@
 import React, { useState, useEffect } from "react";
 import { useAuth } from "../../contexts/AuthContext";
-import { Upload, LogIn } from "lucide-react";
+import { Upload, LogIn, ArrowLeft, ChevronLeft } from "lucide-react";
 import Layout from "../../components/layout/Layout";
-import { Navigate, useNavigate } from "react-router-dom";
+import AdminLayout from "../../components/layout/AdminLayout";
+import { Navigate, useNavigate, Link } from "react-router-dom";
+import { Category } from "../../types/archiveTypes";
+import { fetchCategories } from "../../api/archiveApi";
+import Toast from "../../components/ui/Toast";
+import { v4 as uuidv4 } from "uuid";
 
-interface Category {
-  id: number;
-  name: string;
-  description: string | null;
-}
+export const API_URL = import.meta.env.VITE_BACKEND_API_URL;
+export const ALLOWED_ROLES = ["arsiparis", "super_admin"] as const;
+
+const hasEditAccess = (isLoggedIn: boolean, role?: string): boolean =>
+  isLoggedIn && role
+    ? ALLOWED_ROLES.includes(role as (typeof ALLOWED_ROLES)[number])
+    : false;
 
 const UploadArchivePage: React.FC = () => {
   const { isLoggedIn, user, token } = useAuth();
@@ -19,57 +26,76 @@ const UploadArchivePage: React.FC = () => {
   const [documentNumber, setDocumentNumber] = useState("");
   const [documentDate, setDocumentDate] = useState("");
   const [categories, setCategories] = useState<Category[]>([]);
-  const [error, setError] = useState<string | null>(null);
-  const [success, setSuccess] = useState<string | null>(null);
+  const [toasts, setToasts] = useState<
+    { id: string; message: string; type: "success" | "error" }[]
+  >([]);
   const [loading, setLoading] = useState(false);
+
+  const isAdminOrArsiparis = hasEditAccess(isLoggedIn, user?.role);
+
+  const addToast = (message: string, type: "success" | "error") => {
+    const id = uuidv4();
+    setToasts((prev) => [...prev, { id, message, type }]);
+  };
+
+  const removeToast = (id: string) => {
+    setToasts((prev) => prev.filter((toast) => toast.id !== id));
+  };
 
   // Fetch categories
   useEffect(() => {
-    const fetchCategories = async () => {
+    const loadCategories = async () => {
       try {
-        const response = await fetch(
-          `${import.meta.env.VITE_BACKEND_API_URL}/api/archives/categories`
-        );
-        const data = await response.json();
-        if (response.ok && data.success) {
-          setCategories(data.data);
-        } else {
-          setError(data.error || "Gagal memuat kategori");
-        }
+        const data = await fetchCategories();
+        setCategories(data);
       } catch (err) {
-        setError("Terjadi kesalahan saat memuat kategori");
+        addToast((err as Error).message, "error");
       }
     };
-    fetchCategories();
+    loadCategories();
   }, []);
 
   // Handle form submit
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
-    setError(null);
-    setSuccess(null);
+    setToasts([]);
     setLoading(true);
 
     if (!isLoggedIn) {
-      setError("Silakan login untuk mengunggah arsip");
+      addToast("Silakan login untuk mengunggah arsip", "error");
       navigate("/login", { state: { redirectTo: "/atmin/uploadArchive" } });
       setLoading(false);
       return;
     }
 
-    if (!["arsiparis", "super_admin"].includes(user?.role || "")) {
-      setError("Anda tidak memiliki akses untuk mengunggah arsip");
+    if (!isAdminOrArsiparis) {
+      addToast("Anda tidak memiliki akses untuk mengunggah arsip", "error");
       setLoading(false);
       return;
     }
 
     if (!file) {
-      setError("File diperlukan");
+      addToast("File wajib diisi", "error");
+      setLoading(false);
+      return;
+    }
+    if (!description.trim()) {
+      addToast("Deskripsi wajib diisi", "error");
       setLoading(false);
       return;
     }
     if (!categoryId) {
-      setError("Kategori diperlukan");
+      addToast("Kategori wajib diisi", "error");
+      setLoading(false);
+      return;
+    }
+    if (!documentNumber.trim()) {
+      addToast("Nomor dokumen wajib diisi", "error");
+      setLoading(false);
+      return;
+    }
+    if (!documentDate) {
+      addToast("Tanggal dokumen wajib diisi", "error");
       setLoading(false);
       return;
     }
@@ -82,176 +108,198 @@ const UploadArchivePage: React.FC = () => {
     formData.append("document_date", documentDate);
 
     try {
-      const response = await fetch(
-        `${import.meta.env.VITE_BACKEND_API_URL}/api/archives`,
-        {
-          method: "POST",
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-          body: formData,
-        }
-      );
+      const response = await fetch(`${API_URL}/api/archives`, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+        body: formData,
+      });
 
       const data = await response.json();
 
       if (response.ok && data.success) {
-        setSuccess(data.message);
+        addToast(data.message || "Arsip berhasil diunggah", "success");
         // Reset form
         setFile(null);
         setDescription("");
         setCategoryId("");
         setDocumentNumber("");
         setDocumentDate("");
-        // Reset file input
         const fileInput = document.getElementById("file") as HTMLInputElement;
         if (fileInput) fileInput.value = "";
+        // Redirect to ArchiveListPage after toast
+        setTimeout(() => {
+          navigate("/archives", { replace: true });
+        }, 1000);
       } else {
-        setError(data.error || "Gagal mengunggah arsip");
+        addToast(data.error || "Gagal mengunggah arsip", "error");
       }
     } catch (err) {
-      setError("Terjadi kesalahan saat mengunggah arsip");
+      addToast("Terjadi kesalahan saat mengunggah arsip", "error");
     } finally {
       setLoading(false);
     }
   };
 
+  const SelectedLayout = isAdminOrArsiparis ? AdminLayout : Layout;
+
+  if (!isLoggedIn) {
+    return (
+      <Navigate
+        to="/login"
+        state={{ redirectTo: "/atmin/uploadArchive" }}
+        replace
+      />
+    );
+  }
+  if (!isAdminOrArsiparis) {
+    return <Navigate to="/archives" replace />;
+  }
+
   return (
-    <Layout>
-      <div className="min-h-screen bg-background dark:bg-semibackground py-12 px-4 sm:px-6 lg:px-8">
-        <div className="max-w-md mx-auto">
-          <h1 className="text-3xl font-bold text-foreground mb-8 text-center">
-            Upload Arsip
-          </h1>
-          {!isLoggedIn && (
-            <div className="mb-6 p-4 rounded-xl bg-background dark:bg-semibackground border dark:border-gray-700 text-center">
-              <p className="text-muted mb-4">
-                Silakan login untuk mengunggah arsip
-              </p>
-              <button
-                onClick={() =>
-                  navigate("/login", {
-                    state: { redirectTo: "/atmin/uploadArchive" },
-                  })
-                }
-                className="btn-primary text-white font-semibold py-2 px-6 rounded-lg text-lg transition duration-300 transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-accent focus:ring-opacity-50"
+    <SelectedLayout>
+      <div className="container mx-auto px-4 sm:px-6 py-12 fade-in">
+        {isAdminOrArsiparis && (
+          <div className="flex items-center">
+            {" "}
+            <Link
+              to="/archives"
+              className="mr-4 text-gray-600 dark:text-gray-400 hover:text-accent dark:hover:text-accent transition-colors"
+            >
+              <ChevronLeft size={20} />{" "}
+            </Link>{" "}
+            <h1 className="text-3xl font-serif font-bold">
+              Tambahkan Arsip Baru
+            </h1>{" "}
+          </div>
+        )}
+        <div className="bg-white dark:bg-semibackground rounded-xl shadow-md p-6">
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div>
+              <label
+                htmlFor="file"
+                className="block text-sm font-medium text-foreground"
               >
-                <LogIn className="h-5 w-5 mr-2 inline" />
-                Login Sekarang
+                File (PDF/Word): <span className="text-red-500">*</span>
+              </label>
+              <input
+                type="file"
+                id="file"
+                accept=".pdf,.doc,.docx"
+                className="form-input w-full mt-1"
+                onChange={(e) => setFile(e.target.files?.[0] || null)}
+                disabled={loading}
+              />
+            </div>
+            <div>
+              <label
+                htmlFor="description"
+                className="block text-sm font-medium text-foreground"
+              >
+                Deskripsi: <span className="text-red-500">*</span>
+              </label>
+              <input
+                type="text"
+                id="description"
+                className="form-input w-full mt-1"
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+                disabled={loading}
+              />
+            </div>
+            <div>
+              <label
+                htmlFor="category"
+                className="block text-sm font-medium text-foreground"
+              >
+                Kategori: <span className="text-red-500">*</span>
+              </label>
+              <select
+                id="category"
+                className="form-input w-full mt-1"
+                value={categoryId}
+                onChange={(e) => setCategoryId(e.target.value)}
+                disabled={loading}
+              >
+                <option value="">Pilih Kategori</option>
+                {categories.map((cat) => (
+                  <option key={cat.id} value={cat.id}>
+                    {cat.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <label
+                htmlFor="documentNumber"
+                className="block text-sm font-medium text-foreground"
+              >
+                Nomor Dokumen: <span className="text-red-500">*</span>
+              </label>
+              <input
+                type="text"
+                id="documentNumber"
+                className="form-input w-full mt-1"
+                value={documentNumber}
+                onChange={(e) => setDocumentNumber(e.target.value)}
+                disabled={loading}
+              />
+            </div>
+            <div>
+              <label
+                htmlFor="documentDate"
+                className="block text-sm font-medium text-foreground"
+              >
+                Tanggal Dokumen: <span className="text-red-500">*</span>
+              </label>
+              <input
+                type="date"
+                id="documentDate"
+                className="form-input w-full mt-1"
+                value={documentDate}
+                onChange={(e) => setDocumentDate(e.target.value)}
+                disabled={loading}
+              />
+            </div>
+            <div className="flex justify-end space-x-4">
+              <button
+                type="button"
+                onClick={() => navigate("/archives", { replace: true })}
+                className="btn btn-secondary"
+                disabled={loading}
+              >
+                Batal
+              </button>
+              <button
+                type="submit"
+                className="btn btn-primary flex items-center"
+                disabled={loading}
+              >
+                {loading ? (
+                  "Uploading..."
+                ) : (
+                  <>
+                    <Upload className="h-5 w-5 mr-2" />
+                    Upload
+                  </>
+                )}
               </button>
             </div>
-          )}
-          {error && (
-            <p className="text-red-500 text-sm mb-4 text-center">{error}</p>
-          )}
-          {success && (
-            <p className="text-green-500 text-sm mb-4 text-center">{success}</p>
-          )}
-          {isLoggedIn &&
-            ["arsiparis", "super_admin"].includes(user?.role || "") && (
-              <div className="bg-white dark:bg-semibackground p-8 rounded-xl shadow-md">
-                <form onSubmit={handleSubmit} className="space-y-6">
-                  <div>
-                    <label
-                      htmlFor="file"
-                      className="block text-sm font-medium text-foreground"
-                    >
-                      File (PDF/Word):
-                    </label>
-                    <input
-                      type="file"
-                      id="file"
-                      accept=".pdf,.doc,.docx"
-                      className="mt-2 block w-full border border-gray-300 rounded-xl py-2 px-3 focus:outline-none focus:ring-2 focus:ring-accent text-foreground dark:text-black"
-                      onChange={(e) => setFile(e.target.files?.[0] || null)}
-                    />
-                  </div>
-                  <div>
-                    <label
-                      htmlFor="description"
-                      className="block text-sm font-medium text-foreground"
-                    >
-                      Deskripsi:
-                    </label>
-                    <input
-                      type="text"
-                      id="description"
-                      className="mt-2 block w-full border border-gray-300 rounded-xl py-2 px-3 focus:outline-none focus:ring-2 focus:ring-accent text-foreground dark:text-black"
-                      value={description}
-                      onChange={(e) => setDescription(e.target.value)}
-                    />
-                  </div>
-                  <div>
-                    <label
-                      htmlFor="category"
-                      className="block text-sm font-medium text-foreground"
-                    >
-                      Kategori:
-                    </label>
-                    <select
-                      id="category"
-                      className="mt-2 block w-full border border-gray-300 rounded-xl py-2 px-3 focus:outline-none focus:ring-2 focus:ring-accent text-foreground dark:text-black"
-                      value={categoryId}
-                      onChange={(e) => setCategoryId(e.target.value)}
-                    >
-                      <option value="">Pilih Kategori</option>
-                      {categories.map((cat) => (
-                        <option key={cat.id} value={cat.id}>
-                          {cat.name}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-                  <div>
-                    <label
-                      htmlFor="documentNumber"
-                      className="block text-sm font-medium text-foreground"
-                    >
-                      Nomor Dokumen:
-                    </label>
-                    <input
-                      type="text"
-                      id="documentNumber"
-                      className="mt-2 block w-full border border-gray-300 rounded-xl py-2 px-3 focus:outline-none focus:ring-2 focus:ring-accent text-foreground dark:text-black"
-                      value={documentNumber}
-                      onChange={(e) => setDocumentNumber(e.target.value)}
-                    />
-                  </div>
-                  <div>
-                    <label
-                      htmlFor="documentDate"
-                      className="block text-sm font-medium text-foreground"
-                    >
-                      Tanggal Dokumen:
-                    </label>
-                    <input
-                      type="date"
-                      id="documentDate"
-                      className="mt-2 block w-full border border-gray-300 rounded-xl py-2 px-3 focus:outline-none focus:ring-2 focus:ring-accent text-foreground dark:text-black"
-                      value={documentDate}
-                      onChange={(e) => setDocumentDate(e.target.value)}
-                    />
-                  </div>
-                  <button
-                    type="submit"
-                    className="w-full flex justify-center py-2 px-4 border border-transparent rounded-xl shadow-sm text-sm font-medium text-white bg-accent hover:bg-hover focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-accent disabled:opacity-50"
-                    disabled={loading}
-                  >
-                    {loading ? (
-                      "Uploading..."
-                    ) : (
-                      <div className="flex items-center">
-                        <Upload className="h-5 w-5 mr-2" />
-                        Upload
-                      </div>
-                    )}
-                  </button>
-                </form>
-              </div>
-            )}
+          </form>
+          {toasts.map((toast, index) => (
+            <Toast
+              key={toast.id}
+              message={toast.message}
+              type={toast.type}
+              isVisible={true}
+              onClose={() => removeToast(toast.id)}
+              index={index}
+            />
+          ))}
         </div>
       </div>
-    </Layout>
+    </SelectedLayout>
   );
 };
 

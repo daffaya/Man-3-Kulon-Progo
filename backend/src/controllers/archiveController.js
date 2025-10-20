@@ -2,6 +2,7 @@ import archiveModelFactory from "../models/ArchiveModel.js";
 import path from "path";
 import fsPromises from "fs/promises"; // Untuk operasi Promise-based
 import fs from "fs"; // Untuk streaming
+import { parse, format } from "date-fns";
 
 const archiveControllerFactory = ({ pool }) => {
   const {
@@ -168,10 +169,8 @@ const archiveControllerFactory = ({ pool }) => {
       // Parse document_date kalau ada
       let parsedDocumentDate = null;
       if (document_date) {
-        parsedDocumentDate = new Date(document_date)
-          .toISOString()
-          .split("T")[0]; // Format YYYY-MM-DD
-        if (isNaN(Date.parse(document_date))) {
+        parsedDocumentDate = String(document_date).trim();
+        if (isNaN(Date.parse(parsedDocumentDate))) {
           return res.status(400).json({
             success: false,
             error: "Format tanggal dokumen tidak valid (gunakan YYYY-MM-DD)",
@@ -189,7 +188,7 @@ const archiveControllerFactory = ({ pool }) => {
         document_number: document_number
           ? String(document_number).trim()
           : null,
-        document_date: parsedDocumentDate,
+        document_date: parsedDocumentDate || null,
       };
 
       const result = await createArchive(archiveData);
@@ -248,6 +247,14 @@ const archiveControllerFactory = ({ pool }) => {
       const { description, category_id, document_number, document_date } =
         req.body;
 
+      // 1. Ambil data arsip lama untuk mempertahankan detail file jika tidak ada upload baru
+      const existingArchive = await getArchiveById(id);
+      if (!existingArchive) {
+        return res.status(404).json({
+          success: false,
+          error: "Arsip tidak ditemukan",
+        });
+      }
       // Validasi category_id
       if (category_id) {
         const [categories] = await pool.query(
@@ -262,16 +269,43 @@ const archiveControllerFactory = ({ pool }) => {
         }
       }
 
+      let newDocumentDate = existingArchive.document_date || null;
+
+      if (
+        document_date !== undefined &&
+        document_date !== null &&
+        String(document_date).trim() !== ""
+      ) {
+        const trimmedDate = String(document_date).trim();
+        // Validasi format YYYY-MM-DD
+        if (
+          !/^\d{4}-\d{2}-\d{2}$/.test(trimmedDate) ||
+          isNaN(Date.parse(trimmedDate))
+        ) {
+          return res.status(400).json({
+            success: false,
+            error: "Format tanggal dokumen tidak valid (gunakan YYYY-MM-DD)",
+          });
+        }
+        newDocumentDate = trimmedDate;
+      }
+
       // Prepare update data
       const updateData = {
-        description: description ? String(description).trim() : null,
-        category_id: category_id ? parseInt(category_id) : null,
+        description: description
+          ? String(description).trim()
+          : existingArchive.description || null,
+        category_id: category_id
+          ? parseInt(category_id)
+          : existingArchive.category_id || null,
         document_number: document_number
           ? String(document_number).trim()
-          : null,
-        document_date: document_date
-          ? new Date(document_date).toISOString().split("T")[0]
-          : null,
+          : existingArchive.document_number || null,
+        document_date: newDocumentDate,
+        file_name: existingArchive.file_name,
+        file_path: existingArchive.file_path,
+        mime_type: existingArchive.mime_type,
+        file_size: existingArchive.file_size,
       };
 
       // Handle file re-upload (optional)
