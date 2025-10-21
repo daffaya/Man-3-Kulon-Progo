@@ -14,7 +14,7 @@ const Toast: React.FC<ToastProps> = ({
   message,
   type = "error",
   isVisible,
-  duration = 1000,
+  duration = 2000,
   onClose,
   index = 0, // Default index 0 untuk offset
 }) => {

@@ -31,7 +31,7 @@ import StrukturOrganisasiPage from "./pages/profile/StrukturOrganisasiPage";
 import VisiMisiPage from "./pages/profile/VisiMisiPage";
 import SiswaPage from "./pages/profile/SiswaPage";
 import AttendanceStudentPage from "./pages/admin/attendance/AttendanceStudentPage";
-import ArchiveListPage from "./pages/archive/ArchiveListPage";
+import ArchiveManagementPage from "./pages/archive/ArchiveManagementPage";
 import UploadArchivePage from "./pages/archive/UploadArchivePage";
 import EditArchivePage from "./pages/archive/EditArchivePage";
 
@@ -78,7 +78,7 @@ function App() {
               element={<SaranaPrasaranaPage />}
             />
 
-            <Route path="/archives" element={<ArchiveListPage />} />
+            <Route path="/archives" element={<ArchiveManagementPage />} />
 
             <Route path="/atmin" element={<AdminLayout />}>
               <Route index element={<AdminDashboard />} />

@@ -55,6 +55,50 @@ const UploadArchivePage: React.FC = () => {
     loadCategories();
   }, []);
 
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const selectedFile = e.target.files?.[0] || null;
+    setFile(selectedFile);
+
+    if (selectedFile) {
+      // Validasi jenis file
+      const allowedTypes = [
+        "application/pdf",
+        "application/msword",
+        "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+      ];
+      if (!allowedTypes.includes(selectedFile.type)) {
+        addToast(
+          "Hanya file PDF atau Word (.doc, .docx) yang diperbolehkan",
+          "error"
+        );
+        setFile(null);
+        const fileInput = e.target as HTMLInputElement;
+        fileInput.value = ""; // Reset input
+        return;
+      }
+
+      // Validasi ukuran file (10MB = 10 * 1024 * 1024 bytes)
+      const maxSize = 10 * 1024 * 1024;
+      if (selectedFile.size > maxSize) {
+        addToast("Ukuran file tidak boleh lebih dari 10MB", "error");
+        setFile(null);
+        const fileInput = e.target as HTMLInputElement;
+        fileInput.value = ""; // Reset input
+        return;
+      }
+    }
+  };
+
+  // Ganti event handler untuk input file
+  <input
+    type="file"
+    id="file"
+    accept=".pdf,.doc,.docx"
+    className="form-input w-full mt-1"
+    onChange={handleFileChange}
+    disabled={loading}
+  />;
+
   // Handle form submit
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
@@ -128,11 +172,11 @@ const UploadArchivePage: React.FC = () => {
         setDocumentDate("");
         const fileInput = document.getElementById("file") as HTMLInputElement;
         if (fileInput) fileInput.value = "";
-        // Redirect to ArchiveListPage after toast
         setTimeout(() => {
           navigate("/archives", { replace: true });
         }, 1000);
       } else {
+        // Tampilkan pesan error spesifik dari backend
         addToast(data.error || "Gagal mengunggah arsip", "error");
       }
     } catch (err) {
@@ -188,9 +232,12 @@ const UploadArchivePage: React.FC = () => {
                 id="file"
                 accept=".pdf,.doc,.docx"
                 className="form-input w-full mt-1"
-                onChange={(e) => setFile(e.target.files?.[0] || null)}
+                onChange={handleFileChange}
                 disabled={loading}
               />
+              <p className="text-sm text-gray-500 mt-1">
+                Hanya file PDF atau Word (.doc, .docx), maksimum 10MB.
+              </p>
             </div>
             <div>
               <label

@@ -10,7 +10,7 @@ import {
 import Layout from "../../components/layout/Layout";
 import { Category, Archive } from "../../types/archiveTypes";
 import { fetchCategories, updateArchive } from "../../api/archiveApi";
-import { ALLOWED_ROLES } from "./ArchiveListPage";
+import { ALLOWED_ROLES } from "./ArchiveManagementPage";
 import Toast from "../../components/ui/Toast";
 import { v4 as uuidv4 } from "uuid";
 import { ChevronLeft } from "lucide-react";
@@ -28,6 +28,7 @@ const EditArchivePage: React.FC = () => {
   const archive = location.state?.archive as Archive | undefined;
 
   const [categories, setCategories] = useState<Category[]>([]);
+  const [file, setFile] = useState<File | null>(null);
   const [editFile, setEditFile] = useState<File | null>(null);
   const [editDescription, setEditDescription] = useState("");
   const [editCategoryId, setEditCategoryId] = useState("");
@@ -87,6 +88,50 @@ const EditArchivePage: React.FC = () => {
     setEditDocumentNumber(archive.document_number || "");
     setEditDocumentDate(initialDate);
   }, [archive, categories]);
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const selectedFile = e.target.files?.[0] || null;
+    setFile(selectedFile);
+
+    if (selectedFile) {
+      // Validasi jenis file
+      const allowedTypes = [
+        "application/pdf",
+        "application/msword",
+        "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+      ];
+      if (!allowedTypes.includes(selectedFile.type)) {
+        addToast(
+          "Hanya file PDF atau Word (.doc, .docx) yang diperbolehkan",
+          "error"
+        );
+        setFile(null);
+        const fileInput = e.target as HTMLInputElement;
+        fileInput.value = ""; // Reset input
+        return;
+      }
+
+      // Validasi ukuran file (10MB = 10 * 1024 * 1024 bytes)
+      const maxSize = 10 * 1024 * 1024;
+      if (selectedFile.size > maxSize) {
+        addToast("Ukuran file tidak boleh lebih dari 10MB", "error");
+        setFile(null);
+        const fileInput = e.target as HTMLInputElement;
+        fileInput.value = ""; // Reset input
+        return;
+      }
+    }
+  };
+
+  // Ganti event handler untuk input file
+  <input
+    type="file"
+    id="file"
+    accept=".pdf,.doc,.docx"
+    className="form-input w-full mt-1"
+    onChange={handleFileChange}
+    disabled={loading}
+  />;
 
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();

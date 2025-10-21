@@ -24,7 +24,7 @@ const hasEditAccess = (isLoggedIn: boolean, role?: string): boolean =>
     ? ALLOWED_ROLES.includes(role as (typeof ALLOWED_ROLES)[number])
     : false;
 
-const ArchiveListPage: React.FC = () => {
+const ArchiveManagementPage: React.FC = () => {
   const { isLoggedIn, user, token } = useAuth();
   const navigate = useNavigate();
   const [archives, setArchives] = useState<Archive[]>([]);
@@ -231,4 +231,4 @@ const ArchiveListPage: React.FC = () => {
   );
 };
 
-export default ArchiveListPage;
+export default ArchiveManagementPage;
