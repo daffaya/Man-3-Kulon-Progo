@@ -85,8 +85,8 @@ function App() {
 
               {/* Article */}
               <Route path="articles" element={<ArticleManagementPage />} />
-              <Route path="new" element={<NewArticlePage />} />
-              <Route path="edit/:id" element={<EditArticlePage />} />
+              <Route path="newArticle" element={<NewArticlePage />} />
+              <Route path="editArticle/:id" element={<EditArticlePage />} />
               <Route path="category" element={<AdminCategoriesPage />} />
 
               {/*Archive*/}

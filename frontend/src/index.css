@@ -164,6 +164,85 @@
     @apply bg-gray-100 dark:bg-gray-800 px-1 py-0.5 rounded text-sm;
   }
 }
+/* Quill Container */
+.ql-container {
+  @apply border border-gray-300 dark:border-gray-700 bg-white dark:bg-[rgb(var(--color-semi-background))] rounded-md focus:outline-none focus:ring-2 focus:ring-accent/50 focus:border-transparent transition duration-200;
+}
+
+/* Quill Editor */
+.ql-editor {
+  @apply px-3 py-2 text-gray-900 dark:text-[rgb(var(--color-foreground))] min-h-[150px] focus:outline-none;
+}
+
+/* Focus State */
+.ql-container.ql-focus {
+  @apply ring-2 ring-[rgba(var(--color-accent),0.5)] border-transparent;
+}
+
+/* Toolbar */
+.ql-toolbar {
+  @apply bg-white dark:bg-[rgb(var(--color-semi-background))] border border-gray-300 dark:border-gray-700 rounded-t-md;
+}
+
+/* Toolbar Buttons */
+.ql-toolbar .ql-formats button {
+  @apply text-gray-900 dark:text-[rgb(var(--color-foreground))] hover:bg-gray-100 dark:hover:bg-[rgb(var(--color-secondary-hover))] transition duration-200;
+}
+
+/* Active Toolbar Buttons */
+.ql-toolbar .ql-formats .ql-active {
+  @apply bg-gray-200 dark:bg-[rgb(var(--color-secondary-hover))];
+}
+
+/* Toolbar and Editor Integration */
+.ql-toolbar + .ql-container {
+  @apply border-t-0 rounded-t-none;
+}
+
+/* Placeholder - PERBAIKI UNTUK DARK MODE */
+.ql-editor.ql-blank::before {
+  @apply text-gray-500 dark:text-gray-400 !important;
+  content: attr(data-placeholder) !important;
+}
+
+/* PERBAIKI UNTUK DROPDOWN/PICKER OPTIONS */
+.ql-snow .ql-picker {
+  @apply text-gray-900 dark:text-[rgb(var(--color-foreground))];
+}
+
+.ql-snow .ql-picker-label {
+  @apply text-gray-900 dark:text-[rgb(var(--color-foreground))];
+}
+
+.ql-snow .ql-picker-options {
+  @apply bg-white dark:bg-[rgb(var(--color-semi-background))] border-gray-300 dark:border-gray-700 !important;
+}
+
+.ql-snow .ql-picker-item {
+  @apply text-gray-900 dark:text-[rgb(var(--color-foreground))] !important;
+}
+
+.ql-snow .ql-picker-item:hover {
+  @apply bg-gray-100 dark:bg-[rgb(var(--color-secondary-hover))] !important;
+}
+
+.ql-snow .ql-picker-item.ql-selected {
+  @apply bg-gray-200 dark:bg-[rgb(var(--color-secondary-hover))] !important;
+}
+
+/* Font Consistency */
+.ql-editor {
+  @apply font-sans leading-relaxed;
+}
+
+/* Override Quill's Default Snow Theme for Dark Mode */
+.ql-snow .ql-stroke {
+  @apply stroke-gray-900 dark:stroke-[rgb(var(--color-foreground))];
+}
+
+.ql-snow .ql-fill {
+  @apply fill-gray-900 dark:fill-[rgb(var(--color-foreground))];
+}
 
 /* Animations */
 .fade-in {

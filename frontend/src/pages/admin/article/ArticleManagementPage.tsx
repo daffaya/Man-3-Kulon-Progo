@@ -246,7 +246,7 @@ const ArticleManagementPage: React.FC = () => {
             Belum ada artikel yang ditemukan.
           </p>
           <Link
-            to="/atmin/new"
+            to="/atmin/newArticle"
             className="mt-4 inline-block btn btn-primary flex items-center justify-center mx-auto w-fit"
           >
             <Plus size={18} className="mr-1" /> Buat Artikel Pertama Anda
@@ -281,7 +281,7 @@ const ArticleManagementPage: React.FC = () => {
             Manajemen Artikel
           </h1>
           <Link
-            to="/atmin/new"
+            to="/atmin/newArticle"
             className="btn btn-primary flex items-center justify-center sm:justify-start"
           >
             <Plus size={18} className="mr-1" /> Artikel Baru

@@ -46,7 +46,7 @@ const ActionButtons: React.FC<{
       <Eye size={18} />
     </Link>
     <Link
-      to={`/atmin/edit/${article.slug}`}
+      to={`/atmin/editArticle/${article.slug}`}
       className="text-blue-500 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300"
       aria-label="Edit article"
     >

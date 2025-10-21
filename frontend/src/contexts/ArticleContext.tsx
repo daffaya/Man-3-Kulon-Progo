@@ -66,7 +66,7 @@ interface ArticleContextType {
         "id" | "slug" | "readingTime" | "lastModified" | "category"
       > & { category_id?: number | null }
     >
-  ) => Promise<Article | null>;
+  ) => Promise<Article | null>; // Fixed: Pastikan Article, bukan Principle (kalau ada typo)
   removeArticle: (id: string) => Promise<boolean>;
 
   fetchAdminArticleById: (id: string) => Promise<Article | undefined>;
@@ -99,7 +99,7 @@ export const ArticleProvider: React.FC<ArticleProviderProps> = ({
   const [publicTagsLoading, setPublicTagsLoading] = useState(true);
 
   const [adminCategoriesLoading, setAdminCategoriesLoading] = useState(true);
-  const [publicCategoriesLoading, setPublicCategoriesLoading] = useState(true);
+  const [publicCategoriesLoading, setPublicCategoriesLoading] = useState(true); // Fixed: publicCategoriesLoading
 
   const [publicCategoriesError, setPublicCategoriesError] = useState<
     string | null

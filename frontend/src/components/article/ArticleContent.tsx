@@ -1,6 +1,5 @@
 import React from "react";
-import ReactMarkdown from "react-markdown";
-import remarkGfm from "remark-gfm";
+import DOMPurify from "dompurify"; // Import untuk sanitasi
 import { Article } from "../../types/articleTypes";
 import { formatDate } from "../../lib/utils";
 import { Clock, Calendar } from "lucide-react";
@@ -19,6 +18,29 @@ const ArticleContent: React.FC<ArticleContentProps> = ({ article }) => {
     readingTime,
     author,
   } = article;
+
+  // Sanitasi HTML dari Quill untuk cegah XSS
+  const sanitizedContent = DOMPurify.sanitize(content, {
+    ALLOWED_TAGS: [
+      "p",
+      "b",
+      "i",
+      "u",
+      "strong",
+      "em",
+      "h1",
+      "h2",
+      "h3",
+      "ul",
+      "ol",
+      "li",
+      "a",
+      "img",
+      "blockquote",
+      "br",
+    ],
+    ADD_ATTR: ["href", "src", "alt"], // Ganti ALLOWED_ATTR dengan ADD_ATTR
+  });
 
   return (
     <article className="fade-in">
@@ -63,9 +85,11 @@ const ArticleContent: React.FC<ArticleContentProps> = ({ article }) => {
         </div>
       </div>
 
-      <div className="article-content md:text-left text-muted font-medium">
-        <ReactMarkdown remarkPlugins={[remarkGfm]}>{content}</ReactMarkdown>
-      </div>
+      {/* Render HTML dari Quill dengan sanitasi */}
+      <div
+        className="ql-editor article-content md:text-left text-muted font-medium"
+        dangerouslySetInnerHTML={{ __html: sanitizedContent }}
+      />
 
       <div className="mt-10 pt-6 border-t border-gray-200 dark:border-gray-800">
         <h3 className="text-lg font-medium mb-3 font-sans">Tags:</h3>

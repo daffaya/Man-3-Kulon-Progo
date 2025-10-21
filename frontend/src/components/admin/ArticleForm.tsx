@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { format } from "date-fns";
-
+import ReactQuill from "react-quill";
+import "react-quill/dist/quill.snow.css";
 import { Article, ArticleFormData, Category } from "../../types/articleTypes";
 import { useArticles } from "../../contexts/ArticleContext";
 import { RefreshCw, X } from "lucide-react";
@@ -29,20 +30,29 @@ const ArticleForm: React.FC<ArticleFormProps> = ({ article, onSubmit }) => {
     featured: false,
     published: false,
     author: defaultAuthor,
-
     category_id: null,
   });
 
   const [tagInput, setTagInput] = useState("");
 
+  const quillModules = {
+    toolbar: [
+      [{ header: [1, 2, 3, false] }],
+      ["bold", "italic", "underline", "strike", "blockquote"],
+      [{ list: "ordered" }, { list: "bullet" }],
+      ["link", "image"],
+      ["clean"],
+    ],
+  };
+
   useEffect(() => {
     console.log(
-      "[ArticleForm useEffect] Initializing form and fetching categories..."
+      "[ArticleForm useEffect] Inisialisasi form dan mengambil kategori..."
     );
 
     if (article) {
       console.log(
-        "[ArticleForm useEffect] Initializing form with article data:",
+        "[ArticleForm useEffect] Inisialisasi form dengan data artikel:",
         article
       );
       setFormData({
@@ -57,13 +67,12 @@ const ArticleForm: React.FC<ArticleFormProps> = ({ article, onSubmit }) => {
         featured: article.featured ?? false,
         published: article.published ?? false,
         author: article.author || defaultAuthor,
-
         category_id: article.category_id ?? null,
       });
-      console.log("[ArticleForm useEffect] Form data state initialized.");
+      console.log("[ArticleForm useEffect] State data form diinisialisasi.");
     } else {
       console.log(
-        "[ArticleForm useEffect] Initializing form with default data."
+        "[ArticleForm useEffect] Inisialisasi form dengan data default."
       );
       setFormData({
         title: "",
@@ -75,14 +84,15 @@ const ArticleForm: React.FC<ArticleFormProps> = ({ article, onSubmit }) => {
         featured: false,
         published: false,
         author: defaultAuthor,
-
         category_id: null,
       });
-      console.log("[ArticleForm useEffect] Form data state reset to default.");
+      console.log(
+        "[ArticleForm useEffect] State data form direset ke default."
+      );
     }
 
     console.log(
-      "[ArticleForm useEffect] Fetching admin categories for form..."
+      "[ArticleForm useEffect] Mengambil kategori admin untuk form..."
     );
     fetchAdminCategories();
   }, [article, fetchAdminCategories]);
@@ -102,7 +112,7 @@ const ArticleForm: React.FC<ArticleFormProps> = ({ article, onSubmit }) => {
     } else if (name === "category_id") {
       const categoryId = value === "" ? null : parseInt(value);
       console.log(
-        `[ArticleForm] Category select changed. Value: ${value}, Parsed ID: ${categoryId}`
+        `[ArticleForm] Pilihan kategori berubah. Nilai: ${value}, ID Parsed: ${categoryId}`
       );
       setFormData((prev) => ({
         ...prev,
@@ -114,6 +124,13 @@ const ArticleForm: React.FC<ArticleFormProps> = ({ article, onSubmit }) => {
         [name]: value,
       }));
     }
+  };
+
+  const handleContentChange = (content: string) => {
+    setFormData((prev) => ({
+      ...prev,
+      content,
+    }));
   };
 
   const handleTagInputKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
@@ -138,7 +155,7 @@ const ArticleForm: React.FC<ArticleFormProps> = ({ article, onSubmit }) => {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    console.log("[ArticleForm] Submitting form with data:", formData);
+    console.log("[ArticleForm] Mengirim form dengan data:", formData);
     onSubmit(formData);
   };
 
@@ -146,19 +163,17 @@ const ArticleForm: React.FC<ArticleFormProps> = ({ article, onSubmit }) => {
     return (
       <div className="text-center p-6">
         <RefreshCw size={32} className="mx-auto animate-spin text-accent" />
-        <p className="mt-4">Loading categories...</p>
+        <p className="mt-4">Memuat kategori...</p>
       </div>
     );
   }
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
-      {" "}
       <div>
-        {" "}
         <label htmlFor="title" className="block text-sm font-medium mb-1">
-          Title <span className="text-error">*</span>{" "}
-        </label>{" "}
+          Judul <span className="text-error">*</span>
+        </label>
         <input
           type="text"
           id="title"
@@ -167,13 +182,12 @@ const ArticleForm: React.FC<ArticleFormProps> = ({ article, onSubmit }) => {
           onChange={handleInputChange}
           className="form-input"
           required
-        />{" "}
-      </div>{" "}
+        />
+      </div>
       <div>
-        {" "}
         <label htmlFor="overview" className="block text-sm font-medium mb-1">
-          Overview <span className="text-error">*</span>{" "}
-        </label>{" "}
+          Ringkasan <span className="text-error">*</span>
+        </label>
         <textarea
           id="overview"
           name="overview"
@@ -182,16 +196,15 @@ const ArticleForm: React.FC<ArticleFormProps> = ({ article, onSubmit }) => {
           className="form-input"
           rows={2}
           required
-        />{" "}
+        />
         <p className="text-xs text-gray-500 mt-1">
-          A brief summary of your article (displayed in article previews){" "}
-        </p>{" "}
-      </div>{" "}
+          Ringkasan singkat artikel (ditampilkan pada bagian preview)
+        </p>
+      </div>
       <div>
-        {" "}
         <label htmlFor="coverImage" className="block text-sm font-medium mb-1">
-          Cover Image URL <span className="text-error">*</span>{" "}
-        </label>{" "}
+          URL Cover <span className="text-error">*</span>
+        </label>
         <input
           type="url"
           id="coverImage"
@@ -200,60 +213,51 @@ const ArticleForm: React.FC<ArticleFormProps> = ({ article, onSubmit }) => {
           onChange={handleInputChange}
           className="form-input"
           required
-        />{" "}
+        />
         {formData.coverImage && (
           <div className="mt-2 aspect-[16/9] max-h-48 rounded-md overflow-hidden">
-            {" "}
             <img
               src={formData.coverImage}
-              alt="Cover preview"
+              alt="Pratinjau sampul"
               className="w-full h-full object-cover"
-            />{" "}
+            />
           </div>
-        )}{" "}
-      </div>{" "}
+        )}
+      </div>
       <div>
-        {" "}
         <label htmlFor="content" className="block text-sm font-medium mb-1">
-          Content (Markdown) <span className="text-error">*</span>{" "}
-        </label>{" "}
-        <textarea
-          id="content"
-          name="content"
+          Konten <span className="text-error">*</span>
+        </label>
+        <ReactQuill
           value={formData.content}
-          onChange={handleInputChange}
-          className="form-textarea"
-          rows={12}
-          required
-        />{" "}
-        <p className="text-xs text-gray-500 mt-1">
-          Use Markdown for formatting. Headers, lists, links, and more are
-          supported.{" "}
-        </p>{" "}
-      </div>{" "}
+          onChange={handleContentChange}
+          modules={quillModules}
+          placeholder="Tulis konten artikel di sini..."
+          className="quill-editor"
+          theme="snow"
+        />
+      </div>
       <div>
-        {" "}
         <label htmlFor="tags" className="block text-sm font-medium mb-1">
-          Tags{" "}
-        </label>{" "}
+          Tag
+        </label>
         <div className="mb-2 flex flex-wrap gap-2">
-          {" "}
           {formData.tags.map((tag) => (
             <span
               key={tag}
               className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 dark:bg-gray-800"
             >
-              {tag}{" "}
+              {tag}
               <button
                 type="button"
                 onClick={() => handleRemoveTag(tag)}
                 className="ml-1.5 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300"
               >
-                &times;{" "}
-              </button>{" "}
+                &times;
+              </button>
             </span>
-          ))}{" "}
-        </div>{" "}
+          ))}
+        </div>
         <input
           type="text"
           id="tags"
@@ -261,13 +265,12 @@ const ArticleForm: React.FC<ArticleFormProps> = ({ article, onSubmit }) => {
           onChange={(e) => setTagInput(e.target.value)}
           onKeyDown={handleTagInputKeyPress}
           className="form-input"
-          placeholder="Type a tag and press Enter"
-        />{" "}
+          placeholder="Ketik tag dan tekan Enter"
+        />
       </div>
-      {/* PERUBAHAN: Category Selection */}
       <div className="mb-4">
         <label htmlFor="category_id" className="block text-sm font-medium mb-1">
-          Category
+          Kategori
         </label>
         <select
           id="category_id"
@@ -276,31 +279,27 @@ const ArticleForm: React.FC<ArticleFormProps> = ({ article, onSubmit }) => {
           onChange={handleInputChange}
           className="form-input"
         >
-          <option value="">-- Select Category (Optional) --</option>{" "}
-          {/* Opsi untuk NULL */}
-          {/* Tampilkan daftar kategori dari context */}
+          <option value="">-- Pilih Kategori (Opsional) --</option>
           {adminCategories.map((category) => (
             <option key={category.id} value={category.id}>
               {category.name}
             </option>
           ))}
         </select>
-        {/* Indikator loading untuk kategori (jika belum dimuat) */}
         {adminCategoriesLoading && adminCategories.length === 0 && (
           <p className="mt-2 text-sm text-gray-500 dark:text-gray-400 flex items-center">
-            <RefreshCw size={14} className="animate-spin mr-1" /> Loading
-            categories...
+            <RefreshCw size={14} className="animate-spin mr-1" /> Memuat
+            kategori...
           </p>
         )}
-      </div>{" "}
+      </div>
       <div>
-        {" "}
         <label
           htmlFor="publishedDate"
           className="block text-sm font-medium mb-1"
         >
-          Publication Date{" "}
-        </label>{" "}
+          Tanggal Publikasi
+        </label>
         <input
           type="date"
           id="publishedDate"
@@ -308,26 +307,10 @@ const ArticleForm: React.FC<ArticleFormProps> = ({ article, onSubmit }) => {
           value={formData.publishedDate || ""}
           onChange={handleInputChange}
           className="form-input"
-        />{" "}
-      </div>{" "}
+        />
+      </div>
       <div className="flex flex-col sm:flex-row sm:gap-6">
-        {" "}
         <div className="flex items-center h-10">
-          {" "}
-          <input
-            type="checkbox"
-            id="featured"
-            name="featured"
-            checked={formData.featured}
-            onChange={handleInputChange}
-            className="w-4 h-4 rounded"
-          />{" "}
-          <label htmlFor="featured" className="ml-2 text-sm">
-            Featured article{" "}
-          </label>{" "}
-        </div>{" "}
-        <div className="flex items-center h-10">
-          {" "}
           <input
             type="checkbox"
             id="published"
@@ -335,18 +318,30 @@ const ArticleForm: React.FC<ArticleFormProps> = ({ article, onSubmit }) => {
             checked={formData.published}
             onChange={handleInputChange}
             className="w-4 h-4 rounded"
-          />{" "}
+          />
           <label htmlFor="published" className="ml-2 text-sm">
-            Published{" "}
-          </label>{" "}
-        </div>{" "}
-      </div>{" "}
+            Terbitkan
+          </label>
+        </div>
+        <div className="flex items-center h-10">
+          <input
+            type="checkbox"
+            id="featured"
+            name="featured"
+            checked={formData.featured}
+            onChange={handleInputChange}
+            className="w-4 h-4 rounded"
+          />
+          <label htmlFor="featured" className="ml-2 text-sm">
+            Sematkan
+          </label>
+        </div>
+      </div>
       <div className="pt-4 flex justify-end">
-        {" "}
         <button type="submit" className="btn btn-primary">
-          {article ? "Update Article" : "Create Article"}{" "}
-        </button>{" "}
-      </div>{" "}
+          {article ? "Perbarui Artikel" : "Buat Artikel"}
+        </button>
+      </div>
     </form>
   );
 };
