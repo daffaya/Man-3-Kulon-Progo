@@ -205,7 +205,7 @@ const UploadArchivePage: React.FC = () => {
     <SelectedLayout>
       <div className="container mx-auto px-4 sm:px-6 py-12 fade-in">
         {isAdminOrArsiparis && (
-          <div className="flex items-center">
+          <div className="flex items-center mb-4">
             {" "}
             <Link
               to="/archives"

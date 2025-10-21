@@ -15,12 +15,10 @@ const AdminDashboard: React.FC = () => {
   const renderLoadingState = () => (
     <div className="pt min-h-screen bg-gray-50 dark:bg-gray-900 py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-4xl mx-auto">
-        {/* Skeleton for Header */}
         <div className="mb-8 animate-pulse">
           <div className="h-8 bg-gray-300 dark:bg-gray-700 rounded w-1/2 mb-2"></div>
           <div className="h-4 bg-gray-300 dark:bg-gray-700 rounded w-1/4"></div>
         </div>
-        {/* Skeleton for App Cards */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
           {[...Array(3)].map((_, index) => (
             <div
@@ -66,6 +64,7 @@ const AdminDashboard: React.FC = () => {
       description: "Kelola dokumen dan arsip sekolah dengan mudah",
       icon: <Archive className="w-6 h-6" />,
       requiredRole: "arsiparis",
+      to: "/archives",
     },
     {
       id: "inventory",
@@ -73,6 +72,7 @@ const AdminDashboard: React.FC = () => {
       description: "Pantau dan kelola barang inventaris sekolah",
       icon: <Clipboard className="w-6 h-6" />,
       requiredRole: "pengelola_bmn",
+      to: "/atmin/inventory",
     },
     {
       id: "presensi",
@@ -88,7 +88,7 @@ const AdminDashboard: React.FC = () => {
       description: "Buat dan kelola artikel untuk website sekolah",
       icon: <BookOpen className="w-6 h-6" />,
       requiredRole: "jurnalis",
-      to: "/atmin/article-management",
+      to: "/atmin/articles",
     },
   ];
 
@@ -99,9 +99,9 @@ const AdminDashboard: React.FC = () => {
     return false;
   };
 
-  const handleAppClick = (appId: string, requiredRole: string) => {
+  const handleAppClick = (appId: string, requiredRole: string, to?: string) => {
     if (!userRole) {
-      navigate("/login", { state: { redirectTo: `/atmin/${appId}` } });
+      navigate("/login", { state: { redirectTo: to || `/atmin/${appId}` } });
       return;
     }
 
@@ -112,7 +112,9 @@ const AdminDashboard: React.FC = () => {
       });
       return;
     }
-    navigate(`/atmin/${appId}`);
+
+    // Use the specified 'to' route if provided, otherwise default to /atmin/[appId]
+    navigate(to || `/atmin/${appId}`);
   };
 
   useEffect(() => {
@@ -151,7 +153,9 @@ const AdminDashboard: React.FC = () => {
                   title={app.title}
                   description={app.description}
                   icon={app.icon}
-                  onClick={() => handleAppClick(app.id, app.requiredRole)}
+                  onClick={() =>
+                    handleAppClick(app.id, app.requiredRole, app.to)
+                  }
                 />
               ))}
             </div>
