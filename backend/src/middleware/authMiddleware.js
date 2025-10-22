@@ -2,25 +2,18 @@ import jwt from "jsonwebtoken";
 
 export const restrictTo = (roles) => (req, res, next) => {
   if (!req.user) {
-    return res.status(401).json({
-      error: "Token tidak valid atau tidak disediakan",
-    });
+    return res.status(401).json({ error: "Token tidak valid" });
   }
 
-  if (
-    req.user.role.toLowerCase() === "super_admin" ||
-    roles.includes(req.user.role.toLowerCase())
-  ) {
+  const userRole = req.user.role.toLowerCase();
+
+  if (userRole === "super_admin" || roles.includes(userRole)) {
     return next();
   }
 
-  if (!roles.includes(req.user.role)) {
-    return res.status(403).json({
-      error: "Akses ditolak: Role tidak sesuai",
-    });
-  }
-
-  next();
+  return res.status(403).json({
+    error: `Akses ditolak: Role ${userRole} tidak diizinkan`,
+  });
 };
 
 export const authenticateTokenFactory = ({ JWT_SECRET }) => {

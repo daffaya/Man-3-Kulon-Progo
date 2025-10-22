@@ -34,6 +34,9 @@ import AttendanceStudentPage from "./pages/admin/attendance/AttendanceStudentPag
 import ArchiveManagementPage from "./pages/archive/ArchiveManagementPage";
 import UploadArchivePage from "./pages/archive/UploadArchivePage";
 import EditArchivePage from "./pages/archive/EditArchivePage";
+import AttendanceInputPage from "./pages/admin/attendance/AttendanceInputPage";
+import AttendanceRecapPage from "./pages/admin/attendance/AttendanceRecapPage";
+import AttendanceHolidaysPage from "./pages/admin/attendance/AttendanceHolidaysPage";
 
 const AdminLayout = () => (
   <ProtectedRoute>
@@ -97,6 +100,12 @@ function App() {
 
               {/* Attendance */}
               <Route path="presensi" element={<AttendanceStudentPage />} />
+              <Route path="presensi/input" element={<AttendanceInputPage />} />
+              <Route path="presensi/recap" element={<AttendanceRecapPage />} />
+              <Route
+                path="presensi/holidays"
+                element={<AttendanceHolidaysPage />}
+              />
 
               <Route path="uploadArchive" element={<UploadArchivePage />} />
             </Route>

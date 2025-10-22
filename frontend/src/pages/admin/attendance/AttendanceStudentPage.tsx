@@ -1,3 +1,4 @@
+// src/pages/admin/attendance/AttendanceStudentPage.tsx
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Clipboard, BarChart, Calendar } from "lucide-react";
@@ -234,21 +235,21 @@ const AttendanceStudentPage: React.FC = () => {
       title: "Input Presensi",
       description: "Catat presensi harian siswa per kelas",
       icon: <Clipboard className="w-6 h-6" />,
-      to: "/attendance/input",
+      to: "/atmin/presensi/input",
     },
     {
       id: "recap",
       title: "Rekap Presensi",
       description: "Lihat ringkasan presensi harian, bulanan, dan semesteran",
       icon: <BarChart className="w-6 h-6" />,
-      to: "/attendance/recap",
+      to: "/atmin/presensi/recap",
     },
     {
       id: "holidays",
       title: "Hari Libur",
       description: "Kelola hari libur sekolah",
       icon: <Calendar className="w-6 h-6" />,
-      to: "/attendance/holidays",
+      to: "/atmin/presensi/holidays",
     },
   ];
 
@@ -372,7 +373,7 @@ const AttendanceStudentPage: React.FC = () => {
                           <button
                             onClick={() =>
                               navigate(
-                                `/attendance/input?classId=${classItem.id}`
+                                `/atmin/presensi/input?classId=${classItem.id}`
                               )
                             }
                             className="text-blue-600 hover:text-blue-900 dark:text-blue-400 dark:hover:text-blue-300 mr-3"
@@ -383,7 +384,7 @@ const AttendanceStudentPage: React.FC = () => {
                           <button
                             onClick={() =>
                               navigate(
-                                `/attendance/recap?classId=${classItem.id}`
+                                `/atmin/presensi/recap?classId=${classItem.id}`
                               )
                             }
                             className="text-green-600 hover:text-green-900 dark:text-green-400 dark:hover:text-green-300"

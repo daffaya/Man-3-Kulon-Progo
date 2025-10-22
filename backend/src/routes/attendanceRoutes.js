@@ -10,45 +10,35 @@ const attendanceRouterFactory = ({ pool, JWT_SECRET }) => {
 
   router.use(authenticateToken);
 
-  router.post("/", async (req, res) => {
+  router.post("/", restrictTo(["guru_bk", "super_admin"]), async (req, res) => {
     try {
-      const { classId, date, attendances } = req.body;
+      const { classId, date } = req.query;
 
-      if (!classId || !date || !attendances || !Array.isArray(attendances)) {
-        return res.status(400).json({ error: "Invalid input data" });
+      if (!classId || !date) {
+        return res.status(400).json({
+          error: "Parameter classId dan date wajib diisi",
+        });
       }
 
-      if (!isValidDate(date)) {
-        return res.status(400).json({ error: "Invalid date format" });
-      }
-
-      const [holidayCheck] = await pool.query(
-        "SELECT COUNT(*) as count FROM school_holidays WHERE date = ?",
-        [date]
+      const [attendance] = await pool.query(
+        `
+      SELECT 
+        a.student_id,
+        a.status,
+        a.notes
+      FROM attendances a
+      JOIN student_academic_history sah ON a.student_id = sah.student_id AND sah.is_current = 1
+      WHERE a.date = ? AND sah.class_id = ?
+    `,
+        [date, classId]
       );
 
-      if (holidayCheck[0].count > 0) {
-        return res.status(400).json({ error: "Tanggal ini adalah hari libur" });
-      }
-
-      const values = attendances.map((att) => [
-        att.studentId,
-        date,
-        att.status,
-        att.notes || null,
-        req.user.id,
-      ]);
-
-      // Use parameterized query for bulk insert
-      await pool.query(
-        "INSERT INTO attendances (student_id, date, status, notes, recorder_by) VALUES ? ON DUPLICATE KEY UPDATE status = VALUES(status), notes = VALUES(notes), recorder_by = VALUES(recorder_by)",
-        [values]
-      );
-
-      res.json({ success: true });
+      res.json(attendance);
     } catch (error) {
-      console.error("Error saving attendance:", error);
-      res.status(500).json({ error: error.message });
+      console.error("Error getting attendance:", error);
+      res.status(500).json({
+        error: "Gagal mengambil data presensi",
+      });
     }
   });
 
@@ -78,8 +68,9 @@ const attendanceRouterFactory = ({ pool, JWT_SECRET }) => {
             a.status,
             a.notes
           FROM students s
+          LEFT JOIN student_academic_history sah ON s.id = sah.student_id AND sah.is_current = 1
           LEFT JOIN attendances a ON s.id = a.student_id AND a.date = ?
-          WHERE s.class_id = ? AND s.is_active = TRUE
+          WHERE sah.class_id = ? AND s.is_active = TRUE
           ORDER BY s.name
         `;
           queryParams = [startDate, classId];
@@ -101,15 +92,15 @@ const attendanceRouterFactory = ({ pool, JWT_SECRET }) => {
               COUNT(a.id)) * 100, 2
             ) as persentase_kehadiran
           FROM students s
+          LEFT JOIN student_academic_history sah ON s.id = sah.student_id AND sah.is_current = 1
           LEFT JOIN attendances a ON s.id = a.student_id 
             AND a.date BETWEEN ? AND ?
-          WHERE s.class_id = ? AND s.is_active = TRUE
+          WHERE sah.class_id = ? AND s.is_active = TRUE
           GROUP BY s.id
           ORDER BY s.name
         `;
           queryParams = [startDate, endDate, classId];
           break;
-
         case "semester":
           query = `
           SELECT 
@@ -126,9 +117,10 @@ const attendanceRouterFactory = ({ pool, JWT_SECRET }) => {
               COUNT(a.id)) * 100, 2
             ) as persentase_kehadiran
           FROM students s
+          LEFT JOIN student_academic_history sah ON s.id = sah.student_id AND sah.is_current = 1
           LEFT JOIN attendances a ON s.id = a.student_id 
             AND a.date BETWEEN ? AND ?
-          WHERE s.class_id = ? AND s.is_active = TRUE
+          WHERE sah.class_id = ? AND s.is_active = TRUE
           GROUP BY s.id
           ORDER BY s.name
         `;
@@ -171,9 +163,10 @@ const attendanceRouterFactory = ({ pool, JWT_SECRET }) => {
         c.name,
         c.academic_year,
         c.semester,
-        COUNT(s.id) as total_siswa
+        COUNT(sah.student_id) as total_siswa
       FROM classes c
-      LEFT JOIN students s ON c.id = s.class_id AND s.is_active = TRUE
+      LEFT JOIN student_academic_history sah ON c.id = sah.class_id AND sah.is_current = 1
+      LEFT JOIN students s ON sah.student_id = s.id AND s.is_active = TRUE
       GROUP BY c.id
       ORDER BY c.academic_year DESC, c.name
     `);
@@ -183,6 +176,37 @@ const attendanceRouterFactory = ({ pool, JWT_SECRET }) => {
       console.error("Error getting classes:", error);
       res.status(500).json({
         error: "Gagal mengambil data kelas",
+      });
+    }
+  });
+
+  // Get students by class
+  router.get("/students", async (req, res) => {
+    try {
+      const { classId } = req.query;
+
+      if (!classId) {
+        return res.status(400).json({
+          error: "Parameter classId wajib diisi",
+        });
+      }
+
+      const [students] = await pool.query(
+        `
+      SELECT s.id, s.nisn, s.name
+      FROM students s
+      JOIN student_academic_history sah ON s.id = sah.student_id AND sah.is_current = 1
+      WHERE sah.class_id = ? AND s.is_active = TRUE
+      ORDER BY s.name
+    `,
+        [classId]
+      );
+
+      res.json(students);
+    } catch (error) {
+      console.error("Error getting students:", error);
+      res.status(500).json({
+        error: "Gagal mengambil data siswa",
       });
     }
   });
@@ -284,6 +308,194 @@ const attendanceRouterFactory = ({ pool, JWT_SECRET }) => {
       res.status(500).json({ error: "Failed to fetch today's stats" });
     }
   });
+
+  router.post(
+    "/holidays",
+    restrictTo(["guru_bk", "super_admin"]),
+    async (req, res) => {
+      try {
+        const { date, description, academicYear } = req.body;
+
+        // Validasi input
+        if (!date || !description || !academicYear) {
+          return res.status(400).json({ error: "Semua field harus diisi" });
+        }
+
+        // Cek apakah tanggal sudah ada
+        const [existingHoliday] = await pool.query(
+          "SELECT id FROM school_holidays WHERE date = ?",
+          [date]
+        );
+
+        if (existingHoliday.length > 0) {
+          return res.status(400).json({ error: "Tanggal libur sudah ada" });
+        }
+
+        // Insert hari libur
+        await pool.query(
+          "INSERT INTO school_holidays (date, description, academic_year) VALUES (?, ?, ?)",
+          [date, description, academicYear]
+        );
+
+        res.json({ success: true, message: "Hari libur berhasil ditambahkan" });
+      } catch (error) {
+        console.error("Error adding holiday:", error);
+        res.status(500).json({ error: error.message });
+      }
+    }
+  );
+
+  // Endpoint untuk mendapatkan daftar hari libur
+  router.get("/holidays", async (req, res) => {
+    try {
+      const { academicYear } = req.query;
+
+      let query = "SELECT * FROM school_holidays";
+      let params = [];
+
+      if (academicYear) {
+        query += " WHERE academic_year = ?";
+        params.push(academicYear);
+      }
+
+      query += " ORDER BY date";
+
+      const [holidays] = await pool.query(query, params);
+      res.json(holidays);
+    } catch (error) {
+      console.error("Error getting holidays:", error);
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  // Endpoint untuk menghapus hari libur
+  router.delete(
+    "/holidays/:id",
+    restrictTo(["guru_bk", "super_admin"]),
+    async (req, res) => {
+      try {
+        const { id } = req.params;
+
+        await pool.query("DELETE FROM school_holidays WHERE id = ?", [id]);
+
+        res.json({ success: true, message: "Hari libur berhasil dihapus" });
+      } catch (error) {
+        console.error("Error deleting holiday:", error);
+        res.status(500).json({ error: error.message });
+      }
+    }
+  );
+
+  // Endpoint untuk export data presensi
+  router.get(
+    "/export",
+    restrictTo(["guru_bk", "super_admin"]),
+    async (req, res) => {
+      try {
+        const { classId, period, startDate, endDate, format } = req.query;
+
+        // Validasi parameter
+        if (!classId || !period || !format) {
+          return res.status(400).json({
+            error: "Parameter classId, period, dan format wajib diisi",
+          });
+        }
+
+        if (!["excel", "pdf"].includes(format)) {
+          return res
+            .status(400)
+            .json({ error: "Format harus 'excel' atau 'pdf'" });
+        }
+
+        // Ambil data rekap presensi (gunakan query yang sama seperti endpoint /recap)
+        let query = "";
+        let queryParams = [];
+
+        // ... query berdasarkan periode (sama seperti di endpoint /recap) ...
+
+        const [recap] = await pool.query(query, queryParams);
+
+        // Generate file berdasarkan format
+        if (format === "excel") {
+          // Implementasi export ke Excel
+          // Anda bisa menggunakan library seperti exceljs
+          const workbook = new ExcelJS.Workbook();
+          const worksheet = workbook.addWorksheet("Rekap Presensi");
+
+          // Add headers
+          worksheet.addRow([
+            "NISN",
+            "Nama",
+            "Total Hari",
+            "Hadir",
+            "Izin",
+            "Sakit",
+            "Alpa",
+            "Persentase Kehadiran",
+          ]);
+
+          // Add data
+          recap.forEach((student) => {
+            worksheet.addRow([
+              student.nisn,
+              student.name,
+              student.total_hari,
+              student.hadir,
+              student.izin,
+              student.sakit,
+              student.alpa,
+              `${student.persentase_kehadiran}%`,
+            ]);
+          });
+
+          // Set response headers
+          res.setHeader(
+            "Content-Type",
+            "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+          );
+          res.setHeader(
+            "Content-Disposition",
+            `attachment; filename=rekap_presensi_${period}_${classId}.xlsx`
+          );
+
+          // Send file
+          await workbook.xlsx.write(res);
+          res.end();
+        } else if (format === "pdf") {
+          // Implementasi export ke PDF
+          // Anda bisa menggunakan library seperti pdfkit atau puppeteer
+          const doc = new PDFDocument();
+
+          // Set response headers
+          res.setHeader("Content-Type", "application/pdf");
+          res.setHeader(
+            "Content-Disposition",
+            `attachment; filename=rekap_presensi_${period}_${classId}.pdf`
+          );
+
+          // Pipe PDF to response
+          doc.pipe(res);
+
+          // Add content to PDF
+          doc.fontSize(20).text("Rekap Presensi Siswa", { align: "center" });
+          doc.moveDown();
+          doc.fontSize(12).text(`Kelas: ${classId}`);
+          doc.text(`Periode: ${period}`);
+          doc.text(`Tanggal: ${startDate} - ${endDate}`);
+          doc.moveDown();
+
+          // Add table
+          // ... implementasi tabel di PDF ...
+
+          // Finalize PDF
+          doc.end();
+        }
+      } catch (error) {
+        console.error("Error exporting attendance:", error);
+        res.status(500).json({ error: error.message });
+      }
+    }
+  );
 
   return router;
 };
