@@ -1,7 +1,7 @@
 // src/pages/admin/attendance/AttendanceStudentPage.tsx
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { Clipboard, BarChart, Calendar } from "lucide-react";
+import { Clipboard, BarChart, Calendar, Archive } from "lucide-react";
 import { useAuth } from "../../../contexts/AuthContext";
 import AppCard from "../../../components/ui/AppCard";
 import AdminLayout from "../../../components/layout/AdminLayout";
@@ -250,6 +250,13 @@ const AttendanceStudentPage: React.FC = () => {
       description: "Kelola hari libur sekolah",
       icon: <Calendar className="w-6 h-6" />,
       to: "/atmin/presensi/holidays",
+    },
+    {
+      id: "archive",
+      title: "Arsip Presensi",
+      description: "Lihat dan kelola arsip presensi per semester",
+      icon: <Archive className="w-6 h-6" />,
+      to: "/atmin/presensi/archive",
     },
   ];
 
