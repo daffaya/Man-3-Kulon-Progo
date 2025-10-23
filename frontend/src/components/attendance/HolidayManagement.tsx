@@ -1,6 +1,11 @@
-// Buat file components/HolidayManagement.tsx
+// src/components/attendance/HolidayManagement.tsx (Diperbaiki)
 import { useState, useEffect } from "react";
-import { useApi } from "../../hooks/useApi";
+import {
+  fetchHolidays,
+  addHoliday,
+  deleteHoliday,
+} from "../../api/attendanceApi";
+import { useAuth } from "../../contexts/AuthContext";
 
 interface Holiday {
   id: number;
@@ -10,7 +15,7 @@ interface Holiday {
 }
 
 const HolidayManagement = () => {
-  const { apiRequest } = useApi();
+  const { token } = useAuth();
   const [holidays, setHolidays] = useState<Holiday[]>([]);
   const [newHoliday, setNewHoliday] = useState({
     date: "",
@@ -19,20 +24,19 @@ const HolidayManagement = () => {
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    fetchHolidays();
-  }, []);
+    const loadHolidays = async () => {
+      try {
+        const data = await fetchHolidays(token || "");
+        setHolidays(data);
+      } catch (error) {
+        console.error("Error fetching holidays:", error);
+      }
+    };
 
-  const fetchHolidays = async () => {
-    try {
-      const response = await apiRequest("/api/attendance/holidays");
-      const data = await response.json();
-      setHolidays(data);
-    } catch (error) {
-      console.error("Error fetching holidays:", error);
-    }
-  };
+    if (token) loadHolidays();
+  }, [token]);
 
-  const addHoliday = async () => {
+  const handleAddHoliday = async () => {
     if (!newHoliday.date || !newHoliday.description) {
       alert("Tanggal dan keterangan harus diisi");
       return;
@@ -40,33 +44,36 @@ const HolidayManagement = () => {
 
     setLoading(true);
     try {
-      const response = await apiRequest("/api/attendance/holidays", {
-        method: "POST",
-        body: JSON.stringify(newHoliday),
-      });
-
-      if (response.ok) {
-        setNewHoliday({ date: "", description: "" });
-        fetchHolidays();
-      }
+      await addHoliday(
+        {
+          ...newHoliday,
+          academicYear: new Date().getFullYear().toString(),
+        },
+        token || ""
+      );
+      setNewHoliday({ date: "", description: "" });
+      // Refresh data
+      const updatedHolidays = await fetchHolidays(token || "");
+      setHolidays(updatedHolidays);
     } catch (error) {
       console.error("Error adding holiday:", error);
+      alert("Gagal menambah hari libur");
     } finally {
       setLoading(false);
     }
   };
 
-  const deleteHoliday = async (id: number) => {
-    try {
-      const response = await apiRequest(`/api/attendance/holidays/${id}`, {
-        method: "DELETE",
-      });
+  const handleDeleteHoliday = async (id: number) => {
+    if (!confirm("Apakah Anda yakin ingin menghapus hari libur ini?")) return;
 
-      if (response.ok) {
-        fetchHolidays();
-      }
+    try {
+      await deleteHoliday(id, token || "");
+      // Refresh data
+      const updatedHolidays = await fetchHolidays(token || "");
+      setHolidays(updatedHolidays);
     } catch (error) {
       console.error("Error deleting holiday:", error);
+      alert("Gagal menghapus hari libur");
     }
   };
 
@@ -103,7 +110,7 @@ const HolidayManagement = () => {
           </div>
           <div className="flex items-end">
             <button
-              onClick={addHoliday}
+              onClick={handleAddHoliday}
               disabled={loading}
               className="bg-blue-500 text-white px-4 py-2 rounded w-full"
             >
@@ -136,7 +143,7 @@ const HolidayManagement = () => {
                   <td className="border p-2">{holiday.academic_year}</td>
                   <td className="border p-2">
                     <button
-                      onClick={() => deleteHoliday(holiday.id)}
+                      onClick={() => handleDeleteHoliday(holiday.id)}
                       className="bg-red-500 text-white px-3 py-1 rounded text-sm"
                     >
                       Hapus

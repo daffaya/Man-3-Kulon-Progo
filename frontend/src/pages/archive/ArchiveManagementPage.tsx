@@ -5,7 +5,7 @@ import Layout from "../../components/layout/Layout";
 import AdminLayout from "../../components/layout/AdminLayout";
 import { useNavigate, Link } from "react-router-dom"; // Tambah Link
 import Filters from "../../components/archive/ArchiveFilter";
-import ArchiveTable from "../../components/archive/ArchiveTable";
+import ArchiveTable from "../../components/tables/ArchiveTable";
 import { Archive, Category } from "../../types/archiveTypes";
 import {
   fetchArchives,

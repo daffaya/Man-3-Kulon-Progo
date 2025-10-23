@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useCallback } from "react";
 import { Link, Navigate } from "react-router-dom";
 import { Plus, RefreshCw, X, ArrowLeft } from "lucide-react";
-import ArticleTable from "../../../components/admin/ArticleTable";
+import ArticleTable from "../../../components/tables/ArticleTable";
 
 import { useArticles } from "../../../contexts/ArticleContext";
 import { useAuth } from "../../../contexts/AuthContext";

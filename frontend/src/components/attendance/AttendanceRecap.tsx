@@ -1,6 +1,11 @@
-// Buat file components/AttendanceRecap.tsx
 import { useState, useEffect } from "react";
-import { useApi } from "../../hooks/useApi";
+import {
+  fetchClasses,
+  fetchAttendanceRecap,
+  exportAttendanceData,
+} from "../../api/attendanceApi";
+import { useAuth } from "../../contexts/AuthContext";
+import { useNavigate } from "react-router-dom";
 
 interface RecapData {
   id: number;
@@ -18,9 +23,12 @@ interface RecapData {
 }
 
 const AttendanceRecap = () => {
-  const { apiRequest } = useApi();
+  const { token, isLoggedIn } = useAuth();
+  const navigate = useNavigate();
   const [classId, setClassId] = useState("");
-  const [period, setPeriod] = useState("daily");
+  const [period, setPeriod] = useState<"daily" | "monthly" | "semester">(
+    "daily"
+  );
   const [startDate, setStartDate] = useState(
     new Date().toISOString().split("T")[0]
   );
@@ -31,61 +39,78 @@ const AttendanceRecap = () => {
   const [classes, setClasses] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
 
+  // Redirect jika belum login
   useEffect(() => {
-    fetchClasses();
-  }, []);
+    if (!isLoggedIn) {
+      navigate("/login");
+    }
+  }, [isLoggedIn, navigate]);
 
   useEffect(() => {
-    if (classId) {
-      fetchRecapData();
-    }
-  }, [classId, period, startDate, endDate]);
+    const loadClasses = async () => {
+      // Skip jika token null
+      if (!token) return;
 
-  const fetchClasses = async () => {
-    try {
-      const response = await apiRequest("/api/attendance/classes");
-      const data = await response.json();
-      setClasses(data);
-    } catch (error) {
-      console.error("Error fetching classes:", error);
-    }
-  };
+      try {
+        const data = await fetchClasses(token);
+        setClasses(data);
+      } catch (error) {
+        console.error("Error fetching classes:", error);
+      }
+    };
 
-  const fetchRecapData = async () => {
-    setLoading(true);
-    try {
-      const response = await apiRequest(
-        `/api/attendance/recap?classId=${classId}&period=${period}&startDate=${startDate}&endDate=${endDate}`
-      );
-      const data = await response.json();
-      setRecapData(data.data);
-    } catch (error) {
-      console.error("Error fetching recap data:", error);
-    } finally {
-      setLoading(false);
-    }
-  };
+    if (isLoggedIn) loadClasses();
+  }, [isLoggedIn, token]);
+
+  useEffect(() => {
+    const fetchRecapData = async () => {
+      // Skip jika token null atau classId kosong
+      if (!token || !classId) return;
+
+      setLoading(true);
+      try {
+        const data = await fetchAttendanceRecap(
+          {
+            classId: Number(classId),
+            period,
+            startDate,
+            endDate,
+          },
+          token
+        );
+        setRecapData(data.data);
+      } catch (error) {
+        console.error("Error fetching recap data:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchRecapData();
+  }, [classId, period, startDate, endDate, token]);
 
   const exportData = async (format: "excel" | "pdf") => {
-    try {
-      const response = await apiRequest(
-        `/api/attendance/export?classId=${classId}&period=${period}&startDate=${startDate}&endDate=${endDate}&format=${format}`
-      );
+    // Skip jika token null
+    if (!token) {
+      alert("Sesi telah berakhir. Silakan login kembali.");
+      navigate("/login");
+      return;
+    }
 
-      // Handle download
-      const blob = await response.blob();
-      const url = window.URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = `rekap-presensi-${period}-${classId}.${
-        format === "excel" ? "xlsx" : "pdf"
-      }`;
-      document.body.appendChild(a);
-      a.click();
-      window.URL.revokeObjectURL(url);
-      document.body.removeChild(a);
+    try {
+      await exportAttendanceData(
+        {
+          classId: Number(classId),
+          period,
+          startDate,
+          endDate,
+          format,
+        },
+        token
+      );
     } catch (error) {
       console.error("Error exporting data:", error);
+      alert("Gagal mengekspor data");
     }
   };
 
@@ -115,7 +140,9 @@ const AttendanceRecap = () => {
           <label className="block text-sm font-medium mb-1">Periode</label>
           <select
             value={period}
-            onChange={(e) => setPeriod(e.target.value)}
+            onChange={(e) =>
+              setPeriod(e.target.value as "daily" | "monthly" | "semester")
+            }
             className="w-full border rounded p-2"
           >
             <option value="daily">Harian</option>
@@ -136,17 +163,19 @@ const AttendanceRecap = () => {
           />
         </div>
 
-        <div>
-          <label className="block text-sm font-medium mb-1">
-            Tanggal Selesai
-          </label>
-          <input
-            type="date"
-            value={endDate}
-            onChange={(e) => setEndDate(e.target.value)}
-            className="w-full border rounded p-2"
-          />
-        </div>
+        {period !== "daily" && (
+          <div>
+            <label className="block text-sm font-medium mb-1">
+              Tanggal Selesai
+            </label>
+            <input
+              type="date"
+              value={endDate}
+              onChange={(e) => setEndDate(e.target.value)}
+              className="w-full border rounded p-2"
+            />
+          </div>
+        )}
       </div>
 
       {/* Export Buttons */}
@@ -154,12 +183,14 @@ const AttendanceRecap = () => {
         <button
           onClick={() => exportData("excel")}
           className="bg-green-500 text-white px-4 py-2 rounded"
+          disabled={!classId}
         >
           Export Excel
         </button>
         <button
           onClick={() => exportData("pdf")}
           className="bg-red-500 text-white px-4 py-2 rounded"
+          disabled={!classId}
         >
           Export PDF
         </button>

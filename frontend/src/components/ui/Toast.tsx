@@ -18,7 +18,7 @@ const Toast: React.FC<ToastProps> = ({
   onClose,
   index = 0, // Default index 0 untuk offset
 }) => {
-  const timerRef = useRef<number | null>(null);
+  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
     if (isVisible && duration > 0) {

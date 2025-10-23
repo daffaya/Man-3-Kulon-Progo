@@ -3,7 +3,7 @@ import React, { useContext } from "react"; // useContext mungkin tidak lagi dipe
 import { Link, useNavigate } from "react-router-dom";
 import { ChevronLeft } from "lucide-react";
 import Layout from "../../../components/layout/Layout";
-import ArticleForm from "../../../components/admin/ArticleForm"; // Import ArticleForm
+import ArticleForm from "../../../components/forms/ArticleForm"; // Import ArticleForm
 import { ArticleContext, useArticles } from "../../../contexts/ArticleContext"; // Import useArticles
 import { ArticleFormData } from "../../../types/articleTypes"; // Import ArticleFormData
 import { generateSlug, calculateReadingTime } from "../../../lib/utils"; // Import helper functions

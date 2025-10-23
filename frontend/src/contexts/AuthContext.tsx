@@ -1,3 +1,4 @@
+// src/contexts/AuthContext.tsx
 import React, {
   createContext,
   useState,
@@ -9,7 +10,6 @@ import React, {
 export interface User {
   username: string;
   role: string;
-  // tambahkan properti lain sesuai kebutuhan
 }
 
 interface AuthContextValue {
@@ -22,7 +22,7 @@ interface AuthContextValue {
     username: string;
     password: string;
     role: string;
-  }) => Promise<{ success: boolean; message?: string }>; // Added register function
+  }) => Promise<{ success: boolean; message?: string }>;
   isLoadingAuth: boolean;
 }
 
@@ -41,6 +41,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [isLoadingAuth, setIsLoadingAuth] = useState<boolean>(true);
 
   const login = (userData: User, authToken: string) => {
+    console.log("[AuthContext] Login with user:", userData);
     setIsLoggedIn(true);
     setUser(userData);
     setToken(authToken);
@@ -56,7 +57,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     localStorage.removeItem("user");
   };
 
-  // Added register function
   const register = async (userData: {
     username: string;
     password: string;
@@ -77,8 +77,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       const data = await response.json();
 
       if (response.ok && data.success) {
-        // Remove automatic login after registration
-        // Just return success status
         return { success: true };
       } else {
         return {
@@ -98,10 +96,30 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   useEffect(() => {
     const storedToken = localStorage.getItem("token");
     const storedUser = localStorage.getItem("user");
+
+    console.log("[AuthContext] Initializing auth state");
+    console.log(
+      "[AuthContext] Token from localStorage:",
+      storedToken ? "Present" : "Missing"
+    );
+    console.log("[AuthContext] User from localStorage:", storedUser);
+
     if (storedToken && storedUser) {
-      setIsLoggedIn(true);
-      setUser(JSON.parse(storedUser) as User);
-      setToken(storedToken);
+      try {
+        const parsedUser = JSON.parse(storedUser) as User;
+        console.log("[AuthContext] Parsed user:", parsedUser);
+
+        setIsLoggedIn(true);
+        setUser(parsedUser);
+        setToken(storedToken);
+      } catch (error) {
+        console.error(
+          "[AuthContext] Error parsing user from localStorage:",
+          error
+        );
+        localStorage.removeItem("user");
+        localStorage.removeItem("token");
+      }
     }
     setIsLoadingAuth(false);
   }, []);
@@ -112,7 +130,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     token,
     login,
     logout,
-    register, // Added register to context value
+    register,
     isLoadingAuth,
   };
 

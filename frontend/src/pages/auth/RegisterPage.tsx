@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../contexts/AuthContext";
-import RegisterForm from "../../components/auth/RegisterForm";
+import RegisterForm from "../../components/forms/auth/RegisterForm";
 import ThemeToggle from "../../components/ui/ThemeToggle";
 
 const RegisterPage: React.FC = () => {

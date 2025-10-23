@@ -9,20 +9,20 @@ const WebAppPage: React.FC = () => {
 
   const apps = [
     {
+      id: "articles",
+      title: "Artikel Sekolah",
+      description: "Buat dan kelola artikel untuk website sekolah",
+      icon: <BookOpen className="w-6 h-6" />,
+      requiredRole: "jurnalis",
+      to: "/atmin/articles",
+    },
+    {
       id: "archive",
       title: "Manajemen Arsip",
       description: "Kelola dokumen dan arsip sekolah dengan mudah",
       icon: <Archive className="w-6 h-6" />,
       requiredRole: "arsiparis",
       to: "/archives",
-    },
-    {
-      id: "inventory",
-      title: "Inventaris",
-      description: "Pantau dan kelola barang inventaris sekolah",
-      icon: <Clipboard className="w-6 h-6" />,
-      requiredRole: "pengelola_bmn",
-      to: "/atmin/inventory",
     },
     {
       id: "presensi",
@@ -33,12 +33,12 @@ const WebAppPage: React.FC = () => {
       to: "/atmin/presensi",
     },
     {
-      id: "articles",
-      title: "Artikel Sekolah",
-      description: "Buat dan kelola artikel untuk website sekolah",
-      icon: <BookOpen className="w-6 h-6" />,
-      requiredRole: "jurnalis",
-      to: "/atmin/articles",
+      id: "inventory",
+      title: "Inventaris",
+      description: "Pantau dan kelola barang inventaris sekolah",
+      icon: <Clipboard className="w-6 h-6" />,
+      requiredRole: "pengelola_bmn",
+      to: "/atmin/inventory",
     },
   ];
 

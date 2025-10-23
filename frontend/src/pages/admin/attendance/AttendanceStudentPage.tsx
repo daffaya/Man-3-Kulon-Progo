@@ -1,11 +1,26 @@
 // src/pages/admin/attendance/AttendanceStudentPage.tsx
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { Clipboard, BarChart, Calendar, Archive } from "lucide-react";
 import { useAuth } from "../../../contexts/AuthContext";
+import { fetchClasses, fetchTodayStats } from "../../../api/attendanceApi";
 import AppCard from "../../../components/ui/AppCard";
 import AdminLayout from "../../../components/layout/AdminLayout";
 import Toast from "../../../components/ui/Toast";
+import StudentForm from "../../../components/forms/StudentForm";
+import { studentService } from "../../../services/studentService";
+import AddStudentModal from "../../../components/modals/AddStudentModal";
+import QuickActionCard from "../../../components/ui/QuickActionCard";
+import StatCard from "../../../components/ui/StatCard";
+// Import icon dengan benar
+import {
+  Clipboard,
+  BarChart,
+  Calendar,
+  Archive,
+  Upload,
+  Users,
+  UserPlus,
+} from "lucide-react";
 
 interface ClassData {
   id: string;
@@ -23,25 +38,8 @@ interface TodayStats {
   totalLibur: number;
 }
 
-const StatCard: React.FC<{
-  title: string;
-  value: number;
-  color: string;
-}> = ({ title, value, color }) => (
-  <div
-    className={`bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 flex flex-col ${color}`}
-  >
-    <h4 className="text-lg font-semibold text-gray-700 dark:text-gray-300">
-      {title}
-    </h4>
-    <p className="text-3xl font-bold mt-2 text-gray-900 dark:text-white">
-      {value}
-    </p>
-  </div>
-);
-
 const AttendanceStudentPage: React.FC = () => {
-  const { user, isLoggedIn, isLoadingAuth, token, logout } = useAuth();
+  const { user, isLoggedIn, token } = useAuth();
   const navigate = useNavigate();
   const [classes, setClasses] = useState<ClassData[]>([]);
   const [todayStats, setTodayStats] = useState<TodayStats>({
@@ -52,182 +50,90 @@ const AttendanceStudentPage: React.FC = () => {
     totalLibur: 0,
   });
   const [loading, setLoading] = useState(true);
-  const [toast, setToast] = useState({ isVisible: false, message: "" });
+  // Perbaiki type toast
+  const [toast, setToast] = useState({
+    isVisible: false,
+    message: "",
+    type: "success" as "success" | "error",
+  });
+  const [showAddStudentModal, setShowAddStudentModal] = useState(false);
 
-  const handleAuthError = () => {
-    setToast({
-      isVisible: true,
-      message: "Sesi telah berakhir. Silakan login kembali.",
-    });
-    logout();
-    navigate("/login");
-  };
+  const hasEditAccess =
+    isLoggedIn && ["guru_bk", "super_admin"].includes(user?.role || "");
 
-  const fetchDashboardData = async () => {
-    const controller = new AbortController();
-
-    try {
-      // Fetch classes
-      const classesResponse = await fetch("/api/attendance/classes", {
-        headers: { Authorization: `Bearer ${token}` },
-        signal: controller.signal,
-      });
-
-      // Handle non-JSON responses
-      const contentType = classesResponse.headers.get("content-type");
-      if (!contentType?.includes("application/json")) {
-        throw new Error(
-          `Invalid response format. Expected JSON, got ${contentType}`
-        );
-      }
-
-      if (!classesResponse.ok) {
-        if (classesResponse.status === 401) {
-          handleAuthError();
-          return;
-        }
-        const errorData = await classesResponse.json();
-        throw new Error(
-          errorData.message || `HTTP error! status: ${classesResponse.status}`
-        );
-      }
-
-      const classesData = await classesResponse.json();
-      setClasses(classesData);
-
-      // Fetch stats
-      const today = new Date().toISOString().split("T")[0];
-      const statsResponse = await fetch(
-        `/api/attendance/today-stats?date=${today}`,
-        {
-          headers: { Authorization: `Bearer ${token}` },
-          signal: controller.signal,
-        }
-      );
-
-      const statsContentType = statsResponse.headers.get("content-type");
-      if (!statsContentType?.includes("application/json")) {
-        throw new Error(
-          `Invalid response format. Expected JSON, got ${statsContentType}`
-        );
-      }
-
-      if (!statsResponse.ok) {
-        if (statsResponse.status === 401) {
-          handleAuthError();
-          return;
-        }
-        const errorData = await statsResponse.json();
-        throw new Error(
-          errorData.message || `HTTP error! status: ${statsResponse.status}`
-        );
-      }
-
-      const statsData = await statsResponse.json();
-      setTodayStats(statsData);
-    } catch (error: any) {
-      if (error.name !== "AbortError") {
-        console.error("Fetch error:", error);
-        setToast({
-          isVisible: true,
-          message:
-            error.message ||
-            "Gagal memuat data. Periksa koneksi internet Anda.",
-        });
-      }
-    } finally {
-      setLoading(false);
-    }
-
-    return () => controller.abort();
+  const addToast = (message: string, type: "success" | "error" = "success") => {
+    setToast({ isVisible: true, message, type });
   };
 
   useEffect(() => {
-    let isMounted = true;
+    const fetchData = async () => {
+      if (!token) return;
+
+      try {
+        const [classesData, statsData] = await Promise.all([
+          fetchClasses(token),
+          fetchTodayStats(new Date().toISOString().split("T")[0], token),
+        ]);
+
+        setClasses(classesData);
+        setTodayStats(statsData);
+      } catch (error) {
+        addToast("Gagal memuat data", "error");
+      } finally {
+        setLoading(false);
+      }
+    };
 
     if (isLoggedIn && token) {
-      fetchDashboardData().finally(() => {
-        if (isMounted) setLoading(false);
-      });
+      fetchData();
     }
-
-    return () => {
-      isMounted = false;
-    };
   }, [isLoggedIn, token]);
 
-  useEffect(() => {
-    if (toast.isVisible) {
-      const timer = setTimeout(() => {
-        setToast({ ...toast, isVisible: false });
-      }, 3000);
-      return () => clearTimeout(timer);
+  const handleAddStudent = async (studentData: any) => {
+    try {
+      if (!token) {
+        throw new Error("Token tidak tersedia");
+      }
+      await studentService.createStudent(studentData, token);
+      addToast("Siswa berhasil ditambahkan", "success");
+      setShowAddStudentModal(false);
+      // Refresh data
+      const classesData = await fetchClasses(token);
+      setClasses(classesData);
+    } catch (error) {
+      addToast(
+        error instanceof Error ? error.message : "Gagal menambah siswa",
+        "error"
+      );
     }
-  }, [toast]);
-
-  const renderLoadingState = () => (
-    <div className="pt-24 min-h-screen bg-gray-50 dark:bg-gray-900 py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-6xl mx-auto">
-        {/* Skeleton for Header */}
-        <div className="mb-8 animate-pulse">
-          <div className="h-8 bg-gray-300 dark:bg-gray-700 rounded w-1/2 mb-2"></div>
-          <div className="h-4 bg-gray-300 dark:bg-gray-700 rounded w-1/4"></div>
-        </div>
-        {/* Skeleton for Stat Cards */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-6 mb-8">
-          {[...Array(5)].map((_, index) => (
-            <div
-              key={index}
-              className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 animate-pulse"
-            >
-              <div className="h-6 bg-gray-300 dark:bg-gray-700 rounded w-3/4 mb-2"></div>
-              <div className="h-8 bg-gray-300 dark:bg-gray-700 rounded w-1/2"></div>
-            </div>
-          ))}
-        </div>
-        {/* Skeleton for Feature Cards */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
-          {[...Array(3)].map((_, index) => (
-            <div
-              key={index}
-              className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 flex flex-col items-center animate-pulse"
-            >
-              <div className="w-12 h-12 rounded-full bg-gray-300 dark:bg-gray-700 mb-4"></div>
-              <div className="h-6 bg-gray-300 dark:bg-gray-700 rounded w-3/4 mb-2"></div>
-              <div className="h-4 bg-gray-300 dark:bg-gray-700 rounded w-full"></div>
-            </div>
-          ))}
-        </div>
-        {/* Skeleton for Table */}
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 animate-pulse">
-          <div className="h-6 bg-gray-300 dark:bg-gray-700 rounded w-1/4 mb-4"></div>
-          <div className="h-10 bg-gray-300 dark:bg-gray-700 rounded mb-2"></div>
-          {[...Array(3)].map((_, index) => (
-            <div
-              key={index}
-              className="h-12 bg-gray-300 dark:bg-gray-700 rounded mb-1"
-            ></div>
-          ))}
-        </div>
-      </div>
-    </div>
-  );
-
-  if (isLoadingAuth || loading) {
-    return renderLoadingState();
-  }
-
-  if (!isLoggedIn) {
-    navigate("/login");
-    return null;
-  }
-
-  const getUsername = () => {
-    if (!user || !user.username) return "Guru BK";
-    return typeof user.username === "string" ? user.username : "Guru BK";
   };
 
-  const username = getUsername();
+  const quickActions = [
+    {
+      id: "view-students",
+      title: "Lihat Daftar Siswa",
+      description: "Kelola data siswa per kelas",
+      icon: <Users className="w-6 h-6" />,
+      to: "/atmin/manajemen-siswa",
+      color: "blue" as const,
+    },
+    {
+      id: "add-student",
+      title: "Tambah Siswa",
+      description: "Tambah siswa baru secara individual",
+      icon: <UserPlus className="w-6 h-6" />,
+      action: () => setShowAddStudentModal(true),
+      color: "green" as const,
+    },
+    {
+      id: "import-students",
+      title: "Import Siswa",
+      description: "Import data siswa dari Excel/CSV",
+      icon: <Upload className="w-6 h-6" />,
+      to: "/atmin/import-siswa",
+      color: "purple" as const,
+    },
+  ];
 
   const features = [
     {
@@ -259,6 +165,18 @@ const AttendanceStudentPage: React.FC = () => {
       to: "/atmin/presensi/archive",
     },
   ];
+
+  if (!isLoggedIn) {
+    navigate("/login");
+    return null;
+  }
+
+  const getUsername = () => {
+    if (!user || !user.username) return "Guru BK";
+    return typeof user.username === "string" ? user.username : "Guru BK";
+  };
+
+  const username = getUsername();
 
   return (
     <AdminLayout>
@@ -325,6 +243,28 @@ const AttendanceStudentPage: React.FC = () => {
             </div>
           </div>
 
+          {/* Quick Actions */}
+          {hasEditAccess && (
+            <div className="mb-8">
+              <h2 className="text-xl font-semibold text-gray-700 dark:text-gray-300 mb-4">
+                Quick Actions - Manajemen Siswa
+              </h2>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                {quickActions.map((action) => (
+                  <QuickActionCard
+                    key={action.id}
+                    title={action.title}
+                    description={action.description}
+                    icon={action.icon}
+                    onClick={action.action}
+                    to={action.to}
+                    color={action.color}
+                  />
+                ))}
+              </div>
+            </div>
+          )}
+
           {/* Daftar Kelas */}
           <div>
             <h2 className="text-xl font-semibold text-gray-700 dark:text-gray-300 mb-4">
@@ -384,7 +324,6 @@ const AttendanceStudentPage: React.FC = () => {
                               )
                             }
                             className="text-blue-600 hover:text-blue-900 dark:text-blue-400 dark:hover:text-blue-300 mr-3"
-                            aria-label={`Input presensi untuk kelas ${classItem.name}`}
                           >
                             Input
                           </button>
@@ -395,7 +334,6 @@ const AttendanceStudentPage: React.FC = () => {
                               )
                             }
                             className="text-green-600 hover:text-green-900 dark:text-green-400 dark:hover:text-green-300"
-                            aria-label={`Lihat rekap presensi untuk kelas ${classItem.name}`}
                           >
                             Rekap
                           </button>
@@ -409,7 +347,24 @@ const AttendanceStudentPage: React.FC = () => {
           </div>
         </div>
       </div>
-      <Toast message={toast.message} isVisible={toast.isVisible} />
+      <Toast
+        message={toast.message}
+        type={toast.type}
+        isVisible={toast.isVisible}
+        onClose={() => setToast({ ...toast, isVisible: false })}
+      />
+
+      {/* Add Student Modal */}
+      <AddStudentModal
+        isOpen={showAddStudentModal}
+        onClose={() => setShowAddStudentModal(false)}
+        onSuccess={() => {
+          // Refresh data setelah berhasil tambah siswa
+          if (token) {
+            fetchClasses(token).then(setClasses);
+          }
+        }}
+      />
     </AdminLayout>
   );
 };

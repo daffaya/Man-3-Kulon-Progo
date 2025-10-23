@@ -114,6 +114,23 @@ export const fetchClasses = async (token: string) => {
   return response.json();
 };
 
+export const fetchTodayStats = async (date: string, token: string) => {
+  const response = await fetch(
+    `${API_URL}/api/attendance/today-stats?date=${date}`,
+    {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    }
+  );
+
+  if (!response.ok) {
+    throw new Error("Failed to fetch today's stats");
+  }
+
+  return response.json();
+};
+
 // Get holidays
 export const fetchHolidays = async (token: string) => {
   const response = await fetch(`${API_URL}/api/attendance/holidays`, {

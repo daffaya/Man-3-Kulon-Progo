@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { useNavigate, useLocation, Navigate } from "react-router-dom";
 import { useAuth } from "../../contexts/AuthContext";
-import LoginForm from "../../components/auth/LoginForm";
+import LoginForm from "../../components/forms/auth/LoginForm";
 import ThemeToggle from "../../components/ui/ThemeToggle";
 
 const LoginPage: React.FC = () => {

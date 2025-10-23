@@ -5,7 +5,7 @@ import Layout from "../../../components/layout/Layout";
 import { useArticles } from "../../../contexts/ArticleContext";
 // Import Article dan ArticleFormData
 import { Article, ArticleFormData } from "../../../types/articleTypes";
-import ArticleForm from "../../../components/admin/ArticleForm"; // Import ArticleForm
+import ArticleForm from "../../../components/forms/ArticleForm"; // Import ArticleForm
 import { RefreshCw, X, ChevronLeft, ArrowLeft } from "lucide-react"; // Import icons
 import AdminLayout from "../../../components/layout/AdminLayout";
 import { useAuth } from "../../../contexts/AuthContext";

@@ -3,8 +3,6 @@ import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import { ThemeProvider } from "./contexts/ThemeContext";
 import { ArticleProvider } from "./contexts/ArticleContext";
 import { Outlet } from "react-router-dom";
-// import "./i18n";
-
 // Pages
 import HomePage from "./pages/HomePage";
 import BlogPage from "./pages/BlogPage";
@@ -38,6 +36,7 @@ import AttendanceInputPage from "./pages/admin/attendance/AttendanceInputPage";
 import AttendanceRecapPage from "./pages/admin/attendance/AttendanceRecapPage";
 import AttendanceHolidaysPage from "./pages/admin/attendance/AttendanceHolidaysPage";
 import AttendanceArchivePage from "./pages/admin/attendance/AttendanceArchivePage";
+import ManajemenStudentPage from "./pages/admin/student-management/ManagementStudentPage";
 
 const AdminLayout = () => (
   <ProtectedRoute>
@@ -112,7 +111,14 @@ function App() {
                 element={<AttendanceArchivePage />}
               />
               <Route path="uploadArchive" element={<UploadArchivePage />} />
+
+              {/* Student Management - PINDAH KE SINI */}
+              <Route
+                path="manajemen-siswa"
+                element={<ManajemenStudentPage />}
+              />
             </Route>
+
             <Route path="*" element={<NotFoundPage />} />
           </Routes>
         </Router>
