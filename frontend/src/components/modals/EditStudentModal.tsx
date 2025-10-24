@@ -3,27 +3,39 @@ import React from "react";
 import StudentForm from "../forms/StudentForm";
 import { StudentFormData } from "../../types/studentTypes";
 import { studentService } from "../../services/studentService";
+import { useAuth } from "../../contexts/AuthContext"; // TAMBAH INI
 import { useClasses } from "../../hooks/useClasses";
 
 interface EditStudentModalProps {
   student: any;
   onClose: () => void;
   onSuccess: () => void;
+  showToast?: (message: string, type?: "success" | "error" | "warning") => void;
 }
 
 const EditStudentModal: React.FC<EditStudentModalProps> = ({
   student,
   onClose,
   onSuccess,
+  showToast,
 }) => {
+  const { token } = useAuth(); // TAMBAH INI
   const { classes } = useClasses();
 
   const handleSubmit = async (data: StudentFormData) => {
+    if (!token) {
+      showToast?.("Token tidak tersedia. Silakan login ulang.", "error");
+      return;
+    }
+
     try {
-      await studentService.updateStudent(student.id, data);
+      await studentService.updateStudent(student.id, data, token);
+      showToast?.("Data siswa berhasil diupdate!", "success"); // TOAST SUKSES
       onSuccess();
-    } catch (error) {
-      throw error;
+    } catch (error: any) {
+      console.error("Error updating student:", error);
+      showToast?.(`${error.message || "Gagal mengupdate siswa"}`, "error"); // TOAST ERROR
+      throw error; // Re-throw untuk handle di parent
     }
   };
 

@@ -2,17 +2,21 @@
 import React from "react";
 import StudentForm from "../forms/StudentForm";
 import { useAuth } from "../../contexts/AuthContext";
+import { studentService } from "../../services/studentService";
+// HAPUS useToast import
 
 interface AddStudentModalProps {
   isOpen: boolean;
   onClose: () => void;
   onSuccess: () => void;
+  showToast?: (message: string, type?: "success" | "error" | "warning") => void;
 }
 
 const AddStudentModal: React.FC<AddStudentModalProps> = ({
   isOpen,
   onClose,
   onSuccess,
+  showToast,
 }) => {
   const { token } = useAuth();
 
@@ -34,14 +38,16 @@ const AddStudentModal: React.FC<AddStudentModalProps> = ({
         <StudentForm
           onSubmit={async (data) => {
             try {
-              const { studentService } = await import(
-                "../../services/studentService"
-              );
               await studentService.createStudent(data, token);
+              showToast?.("Siswa berhasil ditambahkan!"); // PAKAI TOAST YANG UDAH ADA
               onSuccess();
               onClose();
-            } catch (error) {
+            } catch (error: any) {
               console.error("Error creating student:", error);
+              showToast?.(
+                `${error.message || "Gagal menambah siswa"}`,
+                "error"
+              );
             }
           }}
           onCancel={onClose}

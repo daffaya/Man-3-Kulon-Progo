@@ -17,6 +17,13 @@ const ManagementStudentPage: React.FC = () => {
   const navigate = useNavigate();
   const { user, isLoggedIn, token, isLoadingAuth } = useAuth();
 
+  // TOAST STATE (TAMBAH INI)
+  const [toastMessage, setToastMessage] = useState("");
+  const [toastType, setToastType] = useState<"success" | "error" | "warning">(
+    "success"
+  );
+  const [showToast, setShowToast] = useState(false);
+
   const [selectedClass, setSelectedClass] = useState<number>(0);
   const [searchTerm, setSearchTerm] = useState("");
   const [showAddModal, setShowAddModal] = useState(false);
@@ -28,9 +35,9 @@ const ManagementStudentPage: React.FC = () => {
     students,
     loading,
     error,
-    addStudent,
-    updateStudent,
-    deleteStudent,
+    addStudent: _addStudent,
+    updateStudent: _updateStudent,
+    deleteStudent: _deleteStudent,
     refetch,
   } = useStudents({
     classId: selectedClass || undefined,
@@ -39,23 +46,66 @@ const ManagementStudentPage: React.FC = () => {
 
   const { classes } = useClasses();
 
-  const hasEditAccess =
-    isLoggedIn && ["guru_bk", "super_admin"].includes(user?.role || "");
-  const canEditClasses = isLoggedIn && user?.role === "super_admin";
+  // TOAST FUNCTION (TAMBAH INI)
+  const showToastHandler = (
+    message: string,
+    type: "success" | "error" | "warning" = "success"
+  ) => {
+    setToastMessage(message);
+    setToastType(type);
+    setShowToast(true);
+    setTimeout(() => setShowToast(false), 5000);
+  };
 
+  // WRAPPER FUNCTIONS DENGAN TOAST (TAMBAH INI)
+  const addStudent = async (data: any) => {
+    try {
+      await _addStudent(data);
+      showToastHandler("✅ Siswa berhasil ditambahkan!", "success");
+    } catch (error: any) {
+      showToastHandler(
+        `❌ ${error.message || "Gagal menambah siswa"}`,
+        "error"
+      );
+      throw error;
+    }
+  };
+
+  const updateStudent = async (id: number, data: any) => {
+    try {
+      await _updateStudent(id, data);
+      showToastHandler("✅ Data siswa berhasil diupdate!", "success");
+    } catch (error: any) {
+      showToastHandler(
+        `❌ ${error.message || "Gagal mengupdate siswa"}`,
+        "error"
+      );
+      throw error;
+    }
+  };
+
+  const deleteStudent = async (id: number) => {
+    try {
+      await _deleteStudent(id);
+      showToastHandler("✅ Siswa berhasil dihapus!", "success");
+    } catch (error: any) {
+      showToastHandler(
+        `❌ ${error.message || "Gagal menghapus siswa"}`,
+        "error"
+      );
+      throw error;
+    }
+  };
+
+  // UPDATED handleDeleteStudent
   const handleDeleteStudent = async (id: number) => {
     if (!window.confirm("Apakah Anda yakin ingin menghapus siswa ini?")) {
       return;
     }
-
-    try {
-      await deleteStudent(id);
-    } catch (error) {
-      console.error("Error deleting student:", error);
-    }
+    await deleteStudent(id);
   };
 
-  // Tunggu hingga auth selesai loading
+  // Auth checks (sama)
   if (isLoadingAuth) {
     return (
       <AdminLayout>
@@ -71,13 +121,15 @@ const ManagementStudentPage: React.FC = () => {
     );
   }
 
-  // Jika belum login, redirect ke login
   if (!isLoggedIn) {
     navigate("/login");
     return null;
   }
 
-  // Jika tidak memiliki akses
+  const hasEditAccess =
+    isLoggedIn && ["guru_bk", "super_admin"].includes(user?.role || "");
+  const canEditClasses = isLoggedIn && user?.role === "super_admin";
+
   if (!hasEditAccess) {
     return (
       <AdminLayout>
@@ -98,6 +150,7 @@ const ManagementStudentPage: React.FC = () => {
   return (
     <AdminLayout>
       <div className="container mx-auto px-4 sm:px-6 py-12">
+        {/* Header - sama */}
         <div className="flex items-center justify-between mb-6">
           <div className="flex items-center">
             <button
@@ -127,7 +180,7 @@ const ManagementStudentPage: React.FC = () => {
           </div>
         </div>
 
-        {/* Filters */}
+        {/* Filters - sama */}
         <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-4 mb-6">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div className="relative">
@@ -171,7 +224,7 @@ const ManagementStudentPage: React.FC = () => {
           </div>
         </div>
 
-        {/* Error Display */}
+        {/* Error Display - sama */}
         {error && (
           <div className="mb-6 p-4 bg-red-50 dark:bg-red-900/20 rounded-lg">
             <h3 className="font-medium text-red-800 dark:text-red-300 mb-2">
@@ -192,7 +245,7 @@ const ManagementStudentPage: React.FC = () => {
           </div>
         )}
 
-        {/* Students Table */}
+        {/* Students Table - sama */}
         {loading ? (
           <div className="text-center py-8">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
@@ -210,7 +263,7 @@ const ManagementStudentPage: React.FC = () => {
           />
         )}
 
-        {/* Modals */}
+        {/* UPDATED MODALS - PASS showToastHandler */}
         <AddStudentModal
           isOpen={showAddModal}
           onClose={() => setShowAddModal(false)}
@@ -218,6 +271,7 @@ const ManagementStudentPage: React.FC = () => {
             setShowAddModal(false);
             refetch();
           }}
+          showToast={showToastHandler} // ✅ PASS TOAST
         />
 
         <ImportStudentPage
@@ -237,6 +291,7 @@ const ManagementStudentPage: React.FC = () => {
               setEditStudent(null);
               refetch();
             }}
+            showToast={showToastHandler} // ✅ PASS TOAST
           />
         )}
 
@@ -248,9 +303,18 @@ const ManagementStudentPage: React.FC = () => {
               setMoveStudent(null);
               refetch();
             }}
+            showToast={showToastHandler} // ✅ PASS TOAST
           />
         )}
       </div>
+
+      {/* TOAST CONTAINER - TAMBAH INI */}
+      <Toast
+        message={toastMessage}
+        type={toastType}
+        isVisible={showToast}
+        onClose={() => setShowToast(false)}
+      />
     </AdminLayout>
   );
 };

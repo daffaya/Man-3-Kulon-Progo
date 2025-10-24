@@ -97,8 +97,16 @@ export const studentService = {
     });
 
     if (!response.ok) {
-      const error = await response.json();
-      throw new Error(error.message || "Failed to create student");
+      let errorMessage = "Failed to create student";
+
+      try {
+        const errorData = await response.json();
+        errorMessage = errorData.error || errorData.message || errorMessage;
+      } catch (e) {
+        errorMessage = "Server error";
+      }
+
+      throw new Error(errorMessage);
     }
 
     return response.json();
@@ -123,9 +131,14 @@ export const studentService = {
     });
 
     if (!response.ok) {
-      const error = await response.json();
-      throw new Error(error.message || "Failed to update student");
+      let errorMessage = "Failed to update student";
+      try {
+        const errorData = await response.json();
+        errorMessage = errorData.error || errorData.message || errorMessage;
+      } catch (e) {}
+      throw new Error(errorMessage);
     }
+    return response.json();
 
     return response.json();
   },
@@ -143,8 +156,39 @@ export const studentService = {
     });
 
     if (!response.ok) {
+      let errorMessage = "Failed to delete student";
+      try {
+        const errorData = await response.json();
+        errorMessage = errorData.error || errorData.message || errorMessage;
+      } catch (e) {}
+      throw new Error(errorMessage);
+    }
+  },
+
+  moveStudentClass: async (
+    studentId: number,
+    classId: number,
+    token: string
+  ): Promise<void> => {
+    if (!token) {
+      throw new Error("Token is required");
+    }
+
+    const response = await fetch(
+      `${API_URL}/api/students/${studentId}/move-class`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ classId }),
+      }
+    );
+
+    if (!response.ok) {
       const error = await response.json();
-      throw new Error(error.message || "Failed to delete student");
+      throw new Error(error.message || "Failed to move student class");
     }
   },
 };

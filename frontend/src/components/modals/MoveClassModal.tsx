@@ -1,6 +1,8 @@
+// src/components/modals/MoveClassModal.tsx
 import React, { useState } from "react";
 import { studentService } from "../../services/studentService";
 import { useClasses } from "../../hooks/useClasses";
+import { useAuth } from "../../contexts/AuthContext"; // TAMBAH INI
 import { Users } from "lucide-react";
 import { Student } from "../../types/studentTypes";
 
@@ -8,30 +10,43 @@ interface MoveClassModalProps {
   student: Student;
   onClose: () => void;
   onSuccess: () => void;
+  showToast?: (message: string, type?: "success" | "error" | "warning") => void;
 }
 
 const MoveClassModal: React.FC<MoveClassModalProps> = ({
   student,
   onClose,
   onSuccess,
+  showToast,
 }) => {
   const [selectedClass, setSelectedClass] = useState<number>(0);
   const [loading, setLoading] = useState(false);
   const { classes } = useClasses();
+  const { token } = useAuth(); // TAMBAH INI
 
   const handleSubmit = async () => {
     if (!selectedClass) {
-      alert("Silakan pilih kelas tujuan");
+      showToast?.("⚠️ Silakan pilih kelas tujuan", "warning");
+      return;
+    }
+
+    if (!token) {
+      showToast?.("❌ Token tidak tersedia. Silakan login ulang.", "error");
       return;
     }
 
     setLoading(true);
     try {
-      await studentService.moveStudentClass(student.id, selectedClass);
+      // ✅ FIX: Pass token ke studentService
+      await studentService.moveStudentClass(student.id, selectedClass, token);
+      showToast?.("✅ Siswa berhasil dipindah kelas!", "success"); // TOAST SUKSES
       onSuccess();
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error moving student class:", error);
-      alert("Gagal memindahkan kelas siswa");
+      showToast?.(
+        `❌ ${error.message || "Gagal memindahkan kelas siswa"}`,
+        "error"
+      ); // TOAST ERROR
     } finally {
       setLoading(false);
     }
@@ -80,6 +95,7 @@ const MoveClassModal: React.FC<MoveClassModalProps> = ({
             value={selectedClass}
             onChange={(e) => setSelectedClass(Number(e.target.value))}
             className="form-input w-full"
+            disabled={loading}
           >
             <option value={0}>Pilih Kelas</option>
             {classes
