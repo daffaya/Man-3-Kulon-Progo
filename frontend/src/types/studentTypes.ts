@@ -8,7 +8,9 @@ export interface Student {
   is_deleted: boolean;
   class_name?: string;
   class_id?: number;
-  // Kolom baru
+  angkatan: string;
+
+  jenis_kelamin: string;
   nik?: string;
   birth_place?: string;
   birth_date?: string;
@@ -44,4 +46,33 @@ export interface Class {
   academic_year: string;
   semester: string;
   total_siswa?: number;
+}
+
+// Tambahkan interface ini
+export interface BulkMoveClassResponse {
+  success: boolean;
+  message: string;
+  totalInAngkatan: number;
+  studentsMoved: number;
+  angkatan: string;
+  movedTo: string;
+  fromClassName: string;
+  toClassName: string;
+}
+
+export interface GraduateStudentsResponse {
+  success: boolean;
+  message: string;
+  count: number;
+  angkatan: string;
+}
+
+// Tipe union untuk response
+export type BulkMoveOrGraduateResponse =
+  | BulkMoveClassResponse
+  | GraduateStudentsResponse;
+
+export interface Angkatan {
+  angkatan: string;
+  count: number;
 }

@@ -4,22 +4,29 @@ import { useAuth } from "../contexts/AuthContext";
 import { Student } from "../types/studentTypes";
 import { studentService } from "../services/studentService";
 
-export const useStudents = (filters?: {
+// Tambahkan interface untuk filters
+interface StudentFilters {
+  token: string;
   classId?: number;
   search?: string;
   academicYear?: string;
-}) => {
-  const { token } = useAuth();
+  angkatan?: string; // Tambahkan ini
+}
+
+export const useStudents = (filters?: StudentFilters) => {
+  const { token: authToken } = useAuth();
   const [students, setStudents] = useState<Student[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const fetchStudents = async () => {
-    if (!token) {
+    const currentToken = filters?.token || authToken;
+
+    if (!currentToken) {
       const errorMessage = "Token tidak tersedia. Silakan login kembali.";
       setError(errorMessage);
       console.error(errorMessage);
-      return; // Hapus auto redirect di sini
+      return;
     }
 
     setLoading(true);
@@ -27,13 +34,18 @@ export const useStudents = (filters?: {
 
     try {
       console.log(
-        "Fetching students with token:",
-        token.substring(0, 20) + "..."
+        "Fetching students with filters:",
+        JSON.stringify(filters, null, 2)
       );
+
       const data = await studentService.getStudents({
-        ...filters,
-        token,
+        classId: filters?.classId,
+        search: filters?.search,
+        academicYear: filters?.academicYear,
+        angkatan: filters?.angkatan,
+        token: currentToken,
       });
+
       console.log("Students fetched successfully:", data.length);
       setStudents(data);
     } catch (err: any) {
@@ -41,8 +53,6 @@ export const useStudents = (filters?: {
       setError(errorMessage);
       console.error("Error fetching students:", errorMessage);
 
-      // Hapus auto redirect, biarkan komponen yang menangani
-      // Cek jika error karena token expired
       if (
         errorMessage.includes("token") ||
         errorMessage.includes("authenticated") ||
@@ -50,7 +60,6 @@ export const useStudents = (filters?: {
         errorMessage.includes("HTML")
       ) {
         console.log("Authentication error detected");
-        // Tidak auto redirect, biarkan user melihat error message
       }
     } finally {
       setLoading(false);
@@ -58,13 +67,15 @@ export const useStudents = (filters?: {
   };
 
   const addStudent = async (data: any) => {
-    if (!token) {
+    const currentToken = filters?.token || authToken;
+
+    if (!currentToken) {
       setError("Token tidak tersedia. Silakan login kembali.");
       throw new Error("Token tidak tersedia");
     }
 
     try {
-      const newStudent = await studentService.createStudent(data, token);
+      const newStudent = await studentService.createStudent(data, currentToken);
       setStudents((prev) => [...prev, newStudent]);
       return newStudent;
     } catch (err) {
@@ -74,7 +85,9 @@ export const useStudents = (filters?: {
   };
 
   const updateStudent = async (id: number, data: any) => {
-    if (!token) {
+    const currentToken = filters?.token || authToken;
+
+    if (!currentToken) {
       setError("Token tidak tersedia. Silakan login kembali.");
       throw new Error("Token tidak tersedia");
     }
@@ -83,7 +96,7 @@ export const useStudents = (filters?: {
       const updatedStudent = await studentService.updateStudent(
         id,
         data,
-        token
+        currentToken
       );
       setStudents((prev) =>
         prev.map((student) => (student.id === id ? updatedStudent : student))
@@ -96,13 +109,15 @@ export const useStudents = (filters?: {
   };
 
   const deleteStudent = async (id: number) => {
-    if (!token) {
+    const currentToken = filters?.token || authToken;
+
+    if (!currentToken) {
       setError("Token tidak tersedia. Silakan login kembali.");
       throw new Error("Token tidak tersedia");
     }
 
     try {
-      await studentService.deleteStudent(id, token);
+      await studentService.deleteStudent(id, currentToken);
       setStudents((prev) => prev.filter((student) => student.id !== id));
     } catch (err) {
       setError(err instanceof Error ? err.message : "Unknown error");
@@ -112,7 +127,7 @@ export const useStudents = (filters?: {
 
   useEffect(() => {
     fetchStudents();
-  }, [token, JSON.stringify(filters)]);
+  }, [authToken, JSON.stringify(filters)]);
 
   return {
     students,

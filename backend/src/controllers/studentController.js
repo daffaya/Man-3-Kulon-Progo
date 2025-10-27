@@ -16,17 +16,17 @@ const studentControllerFactory = ({ pool, importStudentService }) => {
 
       const [students] = await pool.execute(
         `SELECT 
-          s.id, s.nisn, s.name, s.jenisKelamin, s.status,
-          c.name as className, c.level, c.rombel,
-          sah.academicYear
-         FROM students s
-         LEFT JOIN student_academic_history sah ON s.id = sah.studentId
-         LEFT JOIN classes c ON sah.classId = c.id
-         WHERE s.name LIKE ? OR s.nisn LIKE ?
-           ${classId ? "AND sah.classId = ?" : ""}
-           ${academicYear ? "AND sah.academicYear = ?" : ""}
-         ORDER BY s.name
-         LIMIT ? OFFSET ?`,
+        s.id, s.nisn, s.name, s.jenis_kelamin, s.status, 
+        .name as className, c.level, c.rombel,
+        sah.academicYear
+       FROM students s
+       LEFT JOIN student_academic_history sah ON s.id = sah.studentId
+       LEFT JOIN classes c ON sah.classId = c.id
+       WHERE s.name LIKE ? OR s.nisn LIKE ?
+         ${classId ? "AND sah.classId = ?" : ""}
+         ${academicYear ? "AND sah.academicYear = ?" : ""}
+       ORDER BY s.name
+       LIMIT ? OFFSET ?`,
         [`%${search}%`, `%${search}%`, classId, academicYear, limit, offset]
       );
 
@@ -97,7 +97,7 @@ const studentControllerFactory = ({ pool, importStudentService }) => {
 
       // Create student
       const [result] = await pool.execute(
-        `INSERT INTO students (nisn, name, jenisKelamin, nik, birthPlace, 
+        `INSERT INTO students (nisn, name, jenis_kelamin, nik, birthPlace, 
           birthDate, address, phone, parentName, status) 
          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'Aktif')`,
         [
@@ -184,7 +184,7 @@ const studentControllerFactory = ({ pool, importStudentService }) => {
         values.push(updates.name);
       }
       if (updates.jenisKelamin) {
-        fields.push("jenisKelamin = ?");
+        fields.push("jenis_kelamin, = ?");
         values.push(updates.jenisKelamin);
       }
       if (updates.nik) {

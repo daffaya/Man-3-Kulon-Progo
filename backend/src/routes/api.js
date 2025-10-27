@@ -8,6 +8,7 @@ import publicCategoryRouterFactory from "./publicCategoryRoutes.js";
 import attendanceRouterFactory from "./attendanceRoutes.js";
 import archiveRouterFactory from "./archiveRoutes.js";
 import studentRouterFactory from "./studentRoutes.js";
+import alumniRouterFactory from "./alumniRoutes.js";
 
 const apiRouterFactory = ({
   pool,
@@ -45,6 +46,8 @@ const apiRouterFactory = ({
   apiRouter.use("/archives", archiveRouterFactory({ pool, JWT_SECRET }));
 
   apiRouter.use("/students", studentRouterFactory({ pool, JWT_SECRET }));
+
+  apiRouter.use("/alumni", alumniRouterFactory({ pool, JWT_SECRET }));
 
   return apiRouter;
 };

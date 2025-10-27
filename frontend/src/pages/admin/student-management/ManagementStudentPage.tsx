@@ -11,7 +11,9 @@ import AddStudentModal from "../../../components/modals/AddStudentModal";
 import EditStudentModal from "../../../components/modals/EditStudentModal";
 import MoveClassModal from "../../../components/modals/MoveClassModal";
 import ImportStudentPage from "../../../components/modals/ImportStudentPage";
-import { Search, Plus, Filter, Upload } from "lucide-react";
+import BulkMoveClassModal from "../../../components/modals/BulkMoveClassModal";
+import { Search, Plus, Filter, Upload, Users } from "lucide-react";
+import { useAngkatans } from "../../../hooks/useAngkatans";
 
 const ManagementStudentPage: React.FC = () => {
   const navigate = useNavigate();
@@ -25,11 +27,15 @@ const ManagementStudentPage: React.FC = () => {
   const [showToast, setShowToast] = useState(false);
 
   const [selectedClass, setSelectedClass] = useState<number>(0);
+
+  const [selectedAngkatan, setSelectedAngkatan] = useState<string>("");
   const [searchTerm, setSearchTerm] = useState("");
   const [showAddModal, setShowAddModal] = useState(false);
   const [showImportModal, setShowImportModal] = useState(false);
   const [editStudent, setEditStudent] = useState<any>(null);
   const [moveStudent, setMoveStudent] = useState<any>(null);
+
+  const [showBulkMoveModal, setShowBulkMoveModal] = useState(false);
 
   const {
     students,
@@ -40,11 +46,14 @@ const ManagementStudentPage: React.FC = () => {
     deleteStudent: _deleteStudent,
     refetch,
   } = useStudents({
+    token: token || "",
     classId: selectedClass || undefined,
     search: searchTerm || undefined,
+    angkatan: selectedAngkatan || undefined,
   });
 
   const { classes } = useClasses();
+  const { angkatans, loading: angkatansLoading } = useAngkatans();
 
   // TOAST FUNCTION (TAMBAH INI)
   const showToastHandler = (
@@ -169,6 +178,13 @@ const ManagementStudentPage: React.FC = () => {
             >
               <Upload className="mr-2 h-5 w-5" />
               Import Data
+            </button>
+            <button
+              onClick={() => setShowBulkMoveModal(true)}
+              className="btn btn-secondary flex items-center"
+            >
+              <Users className="mr-2 h-5 w-5" />
+              Naik Kelas
             </button>
             <button
               onClick={() => setShowAddModal(true)}
@@ -304,6 +320,19 @@ const ManagementStudentPage: React.FC = () => {
               refetch();
             }}
             showToast={showToastHandler} // ✅ PASS TOAST
+          />
+        )}
+        {showBulkMoveModal && (
+          <BulkMoveClassModal
+            isOpen={true}
+            onClose={() => setShowBulkMoveModal(false)}
+            onSuccess={() => {
+              setShowBulkMoveModal(false);
+              refetch();
+            }}
+            showToast={showToastHandler}
+            classes={classes}
+            angkatans={angkatans}
           />
         )}
       </div>

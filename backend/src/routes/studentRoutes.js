@@ -10,7 +10,7 @@ import {
 } from "../middleware/authMiddleware.js";
 import studentModelFactory from "../models/studentModel.js";
 import importStudentServiceFactory from "../services/importStudentService.js";
-import studentControllerFactory from "../controllers/studentController.js";
+import rateLimiter from "../middleware/rateLimiter.js";
 
 // Helper untuk mendapatkan __dirname di ES Module
 const __filename = fileURLToPath(import.meta.url);
@@ -56,12 +56,20 @@ const studentRouterFactory = ({ pool, JWT_SECRET }) => {
   const router = Router();
   const authenticateToken = authenticateTokenFactory({ JWT_SECRET });
 
+  const limiter = rateLimiter({
+    windowMs: 15 * 60 * 1000, // 15 menit
+    max: 100, // 100 request per IP
+    message: { error: "Terlalu banyak permintaan. Coba lagi nanti" },
+  });
+
   // Initialize dependencies
   const studentModel = studentModelFactory({ pool });
   const importStudentService = importStudentServiceFactory({ studentModel });
-  const studentController = studentControllerFactory({
-    pool,
-    importStudentService,
+
+  // Logging middleware untuk debugging
+  router.use((req, res, next) => {
+    console.log(`[Student Routes] ${req.method} ${req.url}`, req.query);
+    next();
   });
 
   // Template download route (no authentication required)
@@ -85,29 +93,136 @@ const studentRouterFactory = ({ pool, JWT_SECRET }) => {
   // Apply authentication middleware to all routes below
   router.use(authenticateToken);
 
-  // GET / - Get all students (perbaikan path dari /students menjadi /)
+  // GET / - Get all students with support for special parameters
   router.get(
     "/",
     asyncHandler(async (req, res) => {
+      const {
+        classId,
+        search,
+        academicYear,
+        angkatan,
+        getAngkatans,
+        getClassesByAngkatan,
+        getClassesByLevel,
+      } = req.query;
+
+      // Jika parameter getAngkatans ada, kembalikan data angkatan
+      if (getAngkatans === "true") {
+        try {
+          console.log("[Students Route] Fetching angkatans...");
+          const [angkatansData] = await pool.query(
+            `SELECT 
+        CAST(s.angkatan AS CHAR) as angkatan,
+        COUNT(*) as count
+      FROM students s
+        WHERE s.is_deleted = 0 AND s.is_active = 1
+          AND s.angkatan IS NOT NULL
+          AND s.angkatan != ''
+        GROUP BY s.angkatan
+        ORDER BY s.angkatan DESC`
+          );
+          console.log("[Students Route] Found angkatans:", angkatansData);
+          return res.json(angkatansData);
+        } catch (error) {
+          console.error("[Students Route] Error fetching angkatans:", error);
+          return res.status(500).json({ error: "Failed to fetch angkatans" });
+        }
+      }
+
+      // Jika parameter getClassesByAngkatan ada, kembalikan kelas berdasarkan angkatan
+      // Di dalam route GET / dengan parameter getClassesByAngkatan
+      if (getClassesByAngkatan) {
+        try {
+          console.log(
+            `[Students Route] Fetching classes for angkatan: ${angkatan}`
+          );
+
+          // Debug: Check if angkatan exists in database
+          const [angkatanCheck] = await pool.query(
+            `SELECT DISTINCT angkatan FROM student_academic_history WHERE angkatan = ? LIMIT 1`,
+            [angkatan]
+          );
+
+          if (angkatanCheck.length === 0) {
+            console.log(
+              `[Students Route] Angkatan ${angkatan} not found in database`
+            );
+            return res.status(404).json({ error: "Angkatan tidak ditemukan" });
+          }
+
+          // Get all classes that have ACTIVE students with the specified angkatan
+          const [classes] = await pool.query(
+            `SELECT DISTINCT c.id, c.name, c.academic_year, c.semester
+              FROM classes c
+              JOIN student_academic_history sah ON c.id = sah.class_id
+              JOIN students s ON sah.student_id = s.id
+              WHERE sah.angkatan = ? 
+                AND s.is_deleted = 0 
+                AND s.is_active = 1
+                AND sah.is_current = 1  -- Tambahkan kondisi ini
+              ORDER BY c.name`,
+            [angkatan]
+          );
+
+          console.log(
+            `[Students Route] Found ${classes.length} classes for angkatan ${angkatan}`
+          );
+          console.log(`[Students Route] Classes data:`, classes);
+
+          return res.json(classes);
+        } catch (error) {
+          console.error("Error fetching classes by angkatan:", error);
+          return res.status(500).json({ error: "Failed to fetch classes" });
+        }
+      }
+
+      // Jika parameter getClassesByLevel ada, kembalikan kelas berdasarkan level
+      if (getClassesByLevel) {
+        try {
+          const level = getClassesByLevel;
+          console.log(`[Students Route] Fetching classes for level: ${level}`);
+
+          // Get classes based on level (assuming class names start with level)
+          const [classes] = await pool.query(
+            `SELECT id, name, academic_year, semester
+             FROM classes
+             WHERE name LIKE ?
+             ORDER BY name`,
+            [`${level}-%`]
+          );
+
+          console.log(
+            `[Students Route] Found ${classes.length} classes for level ${level}`
+          );
+          console.log(`[Students Route] Classes data:`, classes);
+
+          return res.json(classes);
+        } catch (error) {
+          console.error("Error fetching classes by level:", error);
+          return res.status(500).json({ error: "Failed to fetch classes" });
+        }
+      }
+
+      // Kode normal untuk get students
       console.log("[Students Route] Fetching students with query:", req.query);
 
-      const { classId, search, academicYear } = req.query;
-
       let query = `
-    SELECT 
-      s.id,
-      s.nisn,
-      s.name,
-      s.academic_year,
-      s.is_active,
-      s.is_deleted,
-      c.name as class_name,
-      c.id as class_id
-    FROM students s
-    LEFT JOIN student_academic_history sah ON s.id = sah.student_id AND sah.is_current = 1
-    LEFT JOIN classes c ON sah.class_id = c.id
-    WHERE s.is_deleted = 0
-  `;
+      SELECT 
+        s.id,
+        s.nisn,
+        s.name,
+        s.academic_year,
+        s.is_active,
+        s.is_deleted,
+        COALESCE(sah.angkatan, s.angkatan) as angkatan,
+        c.name as class_name,
+        c.id as class_id
+      FROM students s
+      LEFT JOIN student_academic_history sah ON s.id = sah.student_id AND sah.is_current = 1
+      LEFT JOIN classes c ON sah.class_id = c.id
+      WHERE s.is_deleted = 0
+    `;
 
       const queryParams = [];
 
@@ -124,6 +239,11 @@ const studentRouterFactory = ({ pool, JWT_SECRET }) => {
       if (academicYear) {
         query += " AND s.academic_year = ?";
         queryParams.push(academicYear);
+      }
+
+      if (angkatan) {
+        query += " AND COALESCE(sah.angkatan, s.angkatan) = ?";
+        queryParams.push(angkatan);
       }
 
       query += " ORDER BY c.name, s.name";
@@ -168,24 +288,67 @@ const studentRouterFactory = ({ pool, JWT_SECRET }) => {
     asyncHandler(async (req, res) => {
       const { academicYear } = req.query;
 
-      const [classes] = await pool.query(
-        `SELECT id, name, level, rombel 
-       FROM classes 
-       WHERE academic_year = ? OR ? IS NULL
-       ORDER BY level, rombel`,
-        [academicYear, academicYear]
-      );
+      try {
+        let query = `SELECT id, name, academic_year, semester FROM classes`;
+        const queryParams = [];
 
-      res.json(classes);
+        if (academicYear) {
+          query += ` WHERE academic_year = ?`;
+          queryParams.push(academicYear);
+        }
+
+        query += ` ORDER BY name`;
+
+        const [classes] = await pool.query(query, queryParams);
+        res.json(classes);
+      } catch (error) {
+        console.error("Error fetching classes:", error);
+        res.status(500).json({ error: "Failed to fetch classes" });
+      }
     })
   );
 
-  // POST / - Create new student (perbaikan path dari /students menjadi /)
+  // Di studentRoutes.js, tambahkan endpoint ini
+  router.get(
+    "/classes-by-level",
+    asyncHandler(async (req, res) => {
+      const { level } = req.query; // level: 'X', 'XI', 'XII'
+
+      if (!level) {
+        return res.status(400).json({ error: "Level is required" });
+      }
+
+      try {
+        console.log(`[Classes By Level] Fetching classes for level: ${level}`);
+
+        // Get classes based on level (assuming class names start with level)
+        const [classes] = await pool.query(
+          `SELECT id, name, academic_year, semester
+         FROM classes
+         WHERE name LIKE ?
+         ORDER BY name`,
+          [`${level}-%`]
+        );
+
+        console.log(
+          `[Classes By Level] Found ${classes.length} classes for level ${level}`
+        );
+        console.log(`[Classes By Level] Classes data:`, classes);
+
+        res.json(classes);
+      } catch (error) {
+        console.error("Error fetching classes by level:", error);
+        res.status(500).json({ error: "Failed to fetch classes" });
+      }
+    })
+  );
+
+  // POST / - Create new student
   router.post(
     "/",
     restrictTo(["guru_bk", "super_admin"]),
     asyncHandler(async (req, res) => {
-      const { nisn, name, class_id, academic_year = "2025/2026" } = req.body; // ✅ DEFAULT VALUE
+      const { nisn, name, class_id, academic_year = "2025/2026" } = req.body;
 
       // Check if NISN already exists
       const [existingStudent] = await pool.query(
@@ -220,7 +383,7 @@ const studentRouterFactory = ({ pool, JWT_SECRET }) => {
     })
   );
 
-  // PUT /:id - Update student (perbaikan path dari /students/:id menjadi /:id)
+  // PUT /:id - Update student
   router.put(
     "/:id",
     restrictTo(["guru_bk", "super_admin"]),
@@ -252,12 +415,12 @@ const studentRouterFactory = ({ pool, JWT_SECRET }) => {
       // Update student basic info
       await pool.query(
         "UPDATE students SET nisn = ?, name = ?, academic_year = ? WHERE id = ?",
-        [nisn, name, academic_year || existingStudent[0].academic_year, id]
+        [nisn, name, academicYear || existingStudent[0].academic_year, id]
       );
 
-      // **FIX: Handle academic history CORRECTLY**
+      // Handle academic history
       if (class_id) {
-        // 1. Get current academic history
+        // Get current academic history
         const [currentHistory] = await pool.query(
           `SELECT class_id, academic_year FROM student_academic_history 
          WHERE student_id = ? AND is_current = 1`,
@@ -268,23 +431,23 @@ const studentRouterFactory = ({ pool, JWT_SECRET }) => {
           const currentClassId = currentHistory[0].class_id;
 
           if (currentClassId != class_id) {
-            // 2. Deactivate current record
+            // Deactivate current record
             await pool.query(
               "UPDATE student_academic_history SET is_current = 0 WHERE student_id = ? AND is_current = 1",
               [id]
             );
 
-            // 3. Insert NEW record
+            // Insert new record
             await pool.query(
               "INSERT INTO student_academic_history (student_id, class_id, academic_year, is_current) VALUES (?, ?, ?, 1)",
-              [id, class_id, academic_year || currentHistory[0].academic_year]
+              [id, class_id, academicYear || currentHistory[0].academic_year]
             );
           }
         } else {
           // No current history - create new
           await pool.query(
             "INSERT INTO student_academic_history (student_id, class_id, academic_year, is_current) VALUES (?, ?, ?, 1)",
-            [id, class_id, academic_year || "2025/2026"]
+            [id, class_id, academicYear || "2025/2026"]
           );
         }
       }
@@ -293,13 +456,13 @@ const studentRouterFactory = ({ pool, JWT_SECRET }) => {
         id: parseInt(id),
         nisn,
         name,
-        academic_year: academic_year || existingStudent[0].academic_year,
+        academic_year: academicYear || existingStudent[0].academic_year,
         is_active: existingStudent[0].is_active,
       });
     })
   );
 
-  // DELETE /:id - Delete student (perbaikan path dari /students/:id menjadi /:id)
+  // DELETE /:id - Delete student
   router.delete(
     "/:id",
     restrictTo(["guru_bk", "super_admin"]),
@@ -319,9 +482,7 @@ const studentRouterFactory = ({ pool, JWT_SECRET }) => {
     })
   );
 
-  // POST /:id/move-class - Move student to different class (perbaikan path dari /students/:id/move-class menjadi /:id/move-class)
-  // src/routes/studentRoutes.js - UPDATE POST /:id/move-class route
-  // src/routes/studentRoutes.js - UPDATE POST /:id/move-class
+  // POST /:id/move-class - Move student to different class
   router.post(
     "/:id/move-class",
     restrictTo(["guru_bk", "super_admin"]),
@@ -349,7 +510,7 @@ const studentRouterFactory = ({ pool, JWT_SECRET }) => {
         return res.status(400).json({ error: "Kelas tujuan tidak ditemukan" });
       }
 
-      // **FIX: Cek apakah sudah ada history untuk student_id dan academic_year**
+      // Check if already has history for this academic year
       const [existingHistory] = await pool.query(
         `SELECT * FROM student_academic_history 
        WHERE student_id = ? AND academic_year = ?`,
@@ -357,7 +518,7 @@ const studentRouterFactory = ({ pool, JWT_SECRET }) => {
       );
 
       if (existingHistory.length > 0) {
-        // Jika sudah ada history untuk academic_year ini
+        // If already has history for this academic year
         if (existingHistory[0].class_id == classId) {
           return res.status(400).json({ error: "Siswa sudah di kelas ini" });
         }
@@ -421,7 +582,6 @@ const studentRouterFactory = ({ pool, JWT_SECRET }) => {
         console.log("[Import Route] Import completed successfully");
         console.log("[Import Route] Results:", results);
 
-        // Response dengan struktur yang benar
         res.json({
           success: true,
           results: results,
@@ -432,6 +592,242 @@ const studentRouterFactory = ({ pool, JWT_SECRET }) => {
           success: false,
           error: error.message || "Terjadi kesalahan saat import data siswa",
         });
+      }
+    })
+  );
+
+  // === BULK MOVE CLASS ===
+  router.post(
+    "/bulk-move-class",
+    limiter,
+    authenticateTokenFactory({ JWT_SECRET }),
+    restrictTo(["guru_bk", "super_admin"]),
+    asyncHandler(async (req, res) => {
+      const { classIdFrom, classIdTo, academicYear, angkatan } = req.body;
+
+      if (!classIdFrom || !classIdTo || !academicYear || !angkatan) {
+        return res.status(400).json({
+          error: "Kelas asal, tujuan, tahun ajaran, dan angkatan wajib diisi",
+        });
+      }
+
+      // Validasi format tahun ajaran
+      if (!academicYear.match(/^\d{4}\/\d{4}$/)) {
+        return res
+          .status(400)
+          .json({ error: "Format tahun ajaran harus YYYY/YYYY" });
+      }
+      const [year1, year2] = academicYear.split("/");
+      if (Number(year2) !== Number(year1) + 1) {
+        return res.status(400).json({ error: "Tahun ajaran tidak valid" });
+      }
+
+      // Pastikan kelas asal dan tujuan ada
+      const [fromClass] = await pool.query(
+        "SELECT * FROM classes WHERE id = ?",
+        [classIdFrom]
+      );
+      const [toClass] = await pool.query("SELECT * FROM classes WHERE id = ?", [
+        classIdTo,
+      ]);
+
+      if (fromClass.length === 0 || toClass.length === 0) {
+        return res.status(400).json({
+          error: "Kelas asal atau tujuan tidak ditemukan",
+        });
+      }
+
+      // Ambil siswa di kelas asal sesuai angkatan
+      const [studentsToMove] = await pool.query(
+        `SELECT s.id, s.nisn, s.name, s.angkatan 
+       FROM students s 
+       JOIN student_academic_history sah ON s.id = sah.student_id 
+       WHERE sah.class_id = ? 
+         AND sah.is_current = 1 
+         AND s.is_active = 1
+         AND s.angkatan = ?`,
+        [classIdFrom, angkatan]
+      );
+
+      if (studentsToMove.length === 0) {
+        return res.status(400).json({
+          error: "Tidak ada siswa di kelas asal untuk angkatan ini",
+        });
+      }
+
+      console.log("Moving students:", studentsToMove);
+      console.log(
+        "Student angkatan data:",
+        studentsToMove.map((s) => ({
+          id: s.id,
+          name: s.name,
+          angkatan: s.angkatan,
+        }))
+      );
+
+      const connection = await pool.getConnection();
+      try {
+        await connection.beginTransaction();
+
+        // Set semua siswa di kelas asal jadi tidak current lagi
+        await connection.query(
+          "UPDATE student_academic_history SET is_current = 0 WHERE class_id = ? AND is_current = 1",
+          [classIdFrom]
+        );
+
+        // Tambahkan history baru untuk siswa yang dipindahkan
+        const values = studentsToMove.map((student) => [
+          student.id,
+          classIdTo,
+          academicYear,
+          1, // is_current
+          student.angkatan, // Ambil dari data siswa
+        ]);
+        await connection.query(
+          "INSERT INTO student_academic_history (student_id, class_id, academic_year, is_current, angkatan) VALUES ?",
+          [values]
+        );
+
+        await connection.commit();
+
+        res.json({
+          success: true,
+          message: `${studentsToMove.length} siswa Angkatan ${angkatan} dipindah ke ${toClass[0].name}`,
+          studentsMoved: studentsToMove.length,
+          angkatan,
+          fromClassName: fromClass[0].name,
+          toClassName: toClass[0].name,
+        });
+      } catch (error) {
+        await connection.rollback();
+        console.error("Error bulk-move-class:", error);
+        res.status(500).json({
+          error: error.message || "Gagal memindahkan siswa",
+        });
+      } finally {
+        connection.release();
+      }
+    })
+  );
+
+  // === GRADUATE ===
+  router.post(
+    "/graduate",
+    limiter,
+    authenticateTokenFactory({ JWT_SECRET }),
+    restrictTo(["guru_bk", "super_admin"]),
+    asyncHandler(async (req, res) => {
+      const { classIdFrom, academicYear, angkatan } = req.body;
+
+      if (!classIdFrom || !academicYear || !angkatan) {
+        return res.status(400).json({
+          error: "Kelas asal, tahun ajaran, dan angkatan wajib diisi",
+        });
+      }
+
+      // Validasi format tahun ajaran
+      if (!academicYear.match(/^\d{4}\/\d{4}$/)) {
+        return res
+          .status(400)
+          .json({ error: "Format tahun ajaran harus YYYY/YYYY" });
+      }
+      const [year1, year2] = academicYear.split("/");
+      if (Number(year2) !== Number(year1) + 1) {
+        return res.status(400).json({ error: "Tahun ajaran tidak valid" });
+      }
+
+      const [fromClass] = await pool.query(
+        "SELECT * FROM classes WHERE id = ?",
+        [classIdFrom]
+      );
+      if (fromClass.length === 0) {
+        return res.status(400).json({ error: "Kelas asal tidak ditemukan" });
+      }
+
+      // Hanya ambil siswa dari angkatan yang dipilih
+      const [students] = await pool.query(
+        `SELECT s.id, s.nisn, s.name, s.angkatan
+       FROM students s 
+       JOIN student_academic_history sah ON s.id = sah.student_id 
+       WHERE sah.class_id = ? 
+         AND sah.is_current = 1 
+         AND s.is_active = 1
+         AND s.angkatan = ?`,
+        [classIdFrom, angkatan]
+      );
+
+      if (students.length === 0) {
+        return res
+          .status(400)
+          .json({ error: "Tidak ada siswa di kelas asal untuk angkatan ini" });
+      }
+
+      const connection = await pool.getConnection();
+      try {
+        await connection.beginTransaction();
+
+        await connection.query(
+          "UPDATE student_academic_history SET is_current = 0 WHERE class_id = ? AND is_current = 1",
+          [classIdFrom]
+        );
+
+        await connection.query(
+          `UPDATE students SET is_active = 0 WHERE id IN (?)`,
+          [students.map((s) => s.id)]
+        );
+
+        const alumniValues = students.map((student) => [
+          student.id,
+          student.nisn,
+          student.name,
+          academicYear.split("/")[0],
+          classIdFrom,
+          fromClass[0].name,
+          academicYear,
+        ]);
+        await connection.query(
+          `INSERT INTO alumni (student_id, nisn, name, graduation_year, last_class_id, last_class_name, last_academic_year) 
+         VALUES ?`,
+          [alumniValues]
+        );
+
+        await connection.commit();
+        res.json({
+          success: true,
+          message: `${students.length} siswa Angkatan ${angkatan} ditandai lulus`,
+          count: students.length,
+          angkatan: angkatan,
+        });
+      } catch (error) {
+        await connection.rollback();
+        throw new Error(error.message || "Gagal menandai lulus");
+      } finally {
+        connection.release();
+      }
+    })
+  );
+
+  router.get(
+    "/angkatans",
+    asyncHandler(async (req, res) => {
+      console.log("[Angkatans Route] Fetching angkatans...");
+      try {
+        const [angkatans] = await pool.query(
+          `SELECT 
+          CAST(s.angkatan AS CHAR) as angkatan,
+          COUNT(*) as count
+        FROM students s
+        WHERE s.is_deleted = 0 AND s.is_active = 1
+          AND s.angkatan IS NOT NULL
+          AND s.angkatan != ''
+        GROUP BY s.angkatan
+        ORDER BY s.angkatan DESC`
+        );
+        console.log("[Angkatans Route] Found angkatans:", angkatans);
+        res.json(angkatans);
+      } catch (error) {
+        console.error("[Angkatans Route] Error:", error);
+        res.status(500).json({ error: "Failed to fetch angkatans" });
       }
     })
   );
