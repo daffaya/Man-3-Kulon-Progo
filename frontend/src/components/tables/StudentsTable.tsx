@@ -1,7 +1,7 @@
 // src/components/tables/StudentsTable.tsx
 import React from "react";
 import { Student } from "../../types/studentTypes";
-import { Edit, Trash2, Users } from "lucide-react";
+import { Edit, Trash2, Users, RefreshCw } from "lucide-react";
 
 interface StudentsTableProps {
   students: Student[];
@@ -9,6 +9,9 @@ interface StudentsTableProps {
   onDelete: (id: number) => void;
   onMoveClass: (student: Student) => void;
   canEditClasses: boolean;
+  loading?: boolean;
+  currentPage?: number;
+  itemsPerPage?: number;
 }
 
 const StudentsTable: React.FC<StudentsTableProps> = ({
@@ -17,6 +20,9 @@ const StudentsTable: React.FC<StudentsTableProps> = ({
   onDelete,
   onMoveClass,
   canEditClasses,
+  loading = false,
+  currentPage = 1,
+  itemsPerPage = 30,
 }) => {
   const getStatusBadge = (isActive: boolean) => (
     <span
@@ -28,11 +34,25 @@ const StudentsTable: React.FC<StudentsTableProps> = ({
     </span>
   );
 
+  if (loading) {
+    return (
+      <div className="overflow-x-auto rounded-lg border border-gray-200 dark:border-gray-800 relative min-h-[200px] flex items-center justify-center">
+        <RefreshCw size={40} className="animate-spin text-accent" />
+        <p className="mt-4 text-gray-600 dark:text-gray-400 absolute bottom-4">
+          Memuat data siswa...
+        </p>
+      </div>
+    );
+  }
+
   return (
-    <div className="overflow-x-auto">
+    <div className="overflow-x-auto rounded-lg border border-gray-200 dark:border-gray-800 relative">
       <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
         <thead className="bg-gray-50 dark:bg-gray-800">
           <tr>
+            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+              No
+            </th>
             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
               NISN
             </th>
@@ -43,7 +63,7 @@ const StudentsTable: React.FC<StudentsTableProps> = ({
               Kelas
             </th>
             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-              Tahun Ajaran
+              Angkatan
             </th>
             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
               Status
@@ -57,18 +77,21 @@ const StudentsTable: React.FC<StudentsTableProps> = ({
           {students.length === 0 ? (
             <tr>
               <td
-                colSpan={6}
+                colSpan={7} // Perbarui colSpan karena ada tambahan kolom
                 className="px-6 py-4 text-center text-gray-500 dark:text-gray-400"
               >
                 Tidak ada data siswa
               </td>
             </tr>
           ) : (
-            students.map((student) => (
+            students.map((student, index) => (
               <tr
                 key={student.id}
                 className="hover:bg-gray-50 dark:hover:bg-gray-800"
               >
+                <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-white">
+                  {(currentPage - 1) * itemsPerPage + index + 1}
+                </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-white">
                   {student.nisn}
                 </td>
@@ -79,7 +102,7 @@ const StudentsTable: React.FC<StudentsTableProps> = ({
                   {student.class_name || "-"}
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
-                  {student.academic_year}
+                  {student.angkatan || "-"}
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm">
                   {getStatusBadge(student.is_active)}

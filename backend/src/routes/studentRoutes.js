@@ -105,6 +105,8 @@ const studentRouterFactory = ({ pool, JWT_SECRET }) => {
         getAngkatans,
         getClassesByAngkatan,
         getClassesByLevel,
+        page = 1,
+        limit = 30, // Default limit 30 siswa per halaman
       } = req.query;
 
       // Jika parameter getAngkatans ada, kembalikan data angkatan
@@ -131,7 +133,6 @@ const studentRouterFactory = ({ pool, JWT_SECRET }) => {
       }
 
       // Jika parameter getClassesByAngkatan ada, kembalikan kelas berdasarkan angkatan
-      // Di dalam route GET / dengan parameter getClassesByAngkatan
       if (getClassesByAngkatan) {
         try {
           console.log(
@@ -204,57 +205,108 @@ const studentRouterFactory = ({ pool, JWT_SECRET }) => {
         }
       }
 
-      // Kode normal untuk get students
+      // Kode normal untuk get students dengan pagination
       console.log("[Students Route] Fetching students with query:", req.query);
 
-      let query = `
-      SELECT 
-        s.id,
-        s.nisn,
-        s.name,
-        s.academic_year,
-        s.is_active,
-        s.is_deleted,
-        COALESCE(sah.angkatan, s.angkatan) as angkatan,
-        c.name as class_name,
-        c.id as class_id
-      FROM students s
-      LEFT JOIN student_academic_history sah ON s.id = sah.student_id AND sah.is_current = 1
-      LEFT JOIN classes c ON sah.class_id = c.id
-      WHERE s.is_deleted = 0
-    `;
+      // Hitung offset berdasarkan page dan limit
+      const offset = (parseInt(page) - 1) * parseInt(limit);
 
-      const queryParams = [];
+      // Query untuk menghitung total data
+      let countQuery = `
+          SELECT COUNT(*) as total
+          FROM students s
+          LEFT JOIN student_academic_history sah ON s.id = sah.student_id AND sah.is_current = 1
+          LEFT JOIN classes c ON sah.class_id = c.id
+          WHERE s.is_deleted = 0 AND s.is_active = 1 
+        `;
+
+      const countParams = [];
 
       if (classId) {
-        query += " AND sah.class_id = ?";
-        queryParams.push(classId);
+        countQuery += " AND sah.class_id = ?";
+        countParams.push(classId);
       }
 
       if (search) {
-        query += " AND (s.nisn LIKE ? OR s.name LIKE ?)";
-        queryParams.push(`%${search}%`, `%${search}%`);
+        countQuery += " AND (s.nisn LIKE ? OR s.name LIKE ?)";
+        countParams.push(`%${search}%`, `%${search}%`);
       }
 
       if (academicYear) {
-        query += " AND s.academic_year = ?";
-        queryParams.push(academicYear);
+        countQuery += " AND s.academic_year = ?";
+        countParams.push(academicYear);
       }
 
       if (angkatan) {
-        query += " AND COALESCE(sah.angkatan, s.angkatan) = ?";
-        queryParams.push(angkatan);
+        countQuery += " AND COALESCE(sah.angkatan, s.angkatan) = ?";
+        countParams.push(angkatan);
       }
 
-      query += " ORDER BY c.name, s.name";
+      // Eksekusi query count
+      const [countResult] = await pool.query(countQuery, countParams);
+      const totalItems = countResult[0].total;
 
-      console.log("[Students Route] Executing query:", query);
-      console.log("[Students Route] With params:", queryParams);
+      // Query untuk mengambil data dengan pagination
+      let dataQuery = `
+          SELECT 
+            s.id,
+            s.nisn,
+            s.name,
+            s.academic_year,
+            s.is_active,
+            s.is_deleted,
+            COALESCE(sah.angkatan, s.angkatan) as angkatan,
+            c.name as class_name,
+            c.id as class_id
+          FROM students s
+          LEFT JOIN student_academic_history sah ON s.id = sah.student_id AND sah.is_current = 1
+          LEFT JOIN classes c ON sah.class_id = c.id
+          WHERE s.is_deleted = 0 AND s.is_active = 1
+        `;
+      const dataParams = [];
 
-      const [students] = await pool.query(query, queryParams);
+      if (classId) {
+        dataQuery += " AND sah.class_id = ?";
+        dataParams.push(classId);
+      }
+
+      if (search) {
+        dataQuery += " AND (s.nisn LIKE ? OR s.name LIKE ?)";
+        dataParams.push(`%${search}%`, `%${search}%`);
+      }
+
+      if (academicYear) {
+        dataQuery += " AND s.academic_year = ?";
+        dataParams.push(academicYear);
+      }
+
+      if (angkatan) {
+        dataQuery += " AND COALESCE(sah.angkatan, s.angkatan) = ?";
+        dataParams.push(angkatan);
+      }
+
+      dataQuery += " ORDER BY c.name, s.name LIMIT ? OFFSET ?";
+      dataParams.push(parseInt(limit), offset);
+
+      console.log("[Students Route] Executing query:", dataQuery);
+      console.log("[Students Route] With params:", dataParams);
+
+      const [students] = await pool.query(dataQuery, dataParams);
       console.log("[Students Route] Found", students.length, "students");
 
-      res.json(students);
+      // Hitung total halaman
+      const totalPages = Math.ceil(totalItems / parseInt(limit));
+
+      // Kembalikan response dengan struktur pagination
+      res.json({
+        data: students,
+        pagination: {
+          currentPage: parseInt(page),
+          totalPages,
+          totalItems,
+          itemsPerPage: parseInt(limit),
+        },
+      });
     })
   );
 
@@ -308,7 +360,6 @@ const studentRouterFactory = ({ pool, JWT_SECRET }) => {
     })
   );
 
-  // Di studentRoutes.js, tambahkan endpoint ini
   router.get(
     "/classes-by-level",
     asyncHandler(async (req, res) => {
@@ -675,18 +726,41 @@ const studentRouterFactory = ({ pool, JWT_SECRET }) => {
           [classIdFrom]
         );
 
-        // Tambahkan history baru untuk siswa yang dipindahkan
-        const values = studentsToMove.map((student) => [
-          student.id,
-          classIdTo,
-          academicYear,
-          1, // is_current
-          student.angkatan, // Ambil dari data siswa
-        ]);
-        await connection.query(
-          "INSERT INTO student_academic_history (student_id, class_id, academic_year, is_current, angkatan) VALUES ?",
-          [values]
-        );
+        // Untuk setiap siswa, periksa apakah sudah ada riwayat untuk tahun ajaran ini
+        for (const student of studentsToMove) {
+          // Cek apakah siswa sudah memiliki riwayat untuk tahun ajaran ini
+          const [existingHistory] = await connection.query(
+            `SELECT * FROM student_academic_history 
+           WHERE student_id = ? AND academic_year = ?`,
+            [student.id, academicYear]
+          );
+
+          if (existingHistory.length > 0) {
+            // Jika sudah ada, update record yang ada
+            await connection.query(
+              `UPDATE student_academic_history 
+             SET class_id = ?, is_current = 1, angkatan = ?
+             WHERE student_id = ? AND academic_year = ?`,
+              [classIdTo, student.angkatan, student.id, academicYear]
+            );
+
+            console.log(
+              `Updated existing history for student ${student.id} in academic year ${academicYear}`
+            );
+          } else {
+            // Jika belum ada, insert record baru
+            await connection.query(
+              `INSERT INTO student_academic_history 
+             (student_id, class_id, academic_year, is_current, angkatan) 
+             VALUES (?, ?, ?, 1, ?)`,
+              [student.id, classIdTo, academicYear, student.angkatan]
+            );
+
+            console.log(
+              `Created new history for student ${student.id} in academic year ${academicYear}`
+            );
+          }
+        }
 
         await connection.commit();
 
@@ -766,30 +840,53 @@ const studentRouterFactory = ({ pool, JWT_SECRET }) => {
       try {
         await connection.beginTransaction();
 
+        // Set semua siswa di kelas asal jadi tidak current lagi
         await connection.query(
           "UPDATE student_academic_history SET is_current = 0 WHERE class_id = ? AND is_current = 1",
           [classIdFrom]
         );
 
+        // Update status siswa menjadi tidak aktif
         await connection.query(
           `UPDATE students SET is_active = 0 WHERE id IN (?)`,
           [students.map((s) => s.id)]
         );
 
+        // Insert data ke tabel alumni
         const alumniValues = students.map((student) => [
           student.id,
           student.nisn,
           student.name,
-          academicYear.split("/")[0],
+          academicYear.split("/")[0], // Tahun kelulusan
           classIdFrom,
           fromClass[0].name,
           academicYear,
         ]);
-        await connection.query(
-          `INSERT INTO alumni (student_id, nisn, name, graduation_year, last_class_id, last_class_name, last_academic_year) 
-         VALUES ?`,
-          [alumniValues]
-        );
+
+        // Cek apakah siswa sudah ada di tabel alumni
+        for (const student of students) {
+          const [existingAlumni] = await connection.query(
+            "SELECT * FROM alumni WHERE student_id = ?",
+            [student.id]
+          );
+
+          if (existingAlumni.length === 0) {
+            // Hanya insert jika belum ada di tabel alumni
+            await connection.query(
+              `INSERT INTO alumni (student_id, nisn, name, graduation_year, last_class_id, last_class_name, last_academic_year) 
+             VALUES (?, ?, ?, ?, ?, ?, ?)`,
+              [
+                student.id,
+                student.nisn,
+                student.name,
+                academicYear.split("/")[0],
+                classIdFrom,
+                fromClass[0].name,
+                academicYear,
+              ]
+            );
+          }
+        }
 
         await connection.commit();
         res.json({

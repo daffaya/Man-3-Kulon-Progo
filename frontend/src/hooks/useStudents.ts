@@ -4,13 +4,26 @@ import { useAuth } from "../contexts/AuthContext";
 import { Student } from "../types/studentTypes";
 import { studentService } from "../services/studentService";
 
-// Tambahkan interface untuk filters
+// Tambahkan interface untuk filters dan pagination
 interface StudentFilters {
   token: string;
   classId?: number;
   search?: string;
   academicYear?: string;
-  angkatan?: string; // Tambahkan ini
+  angkatan?: string;
+  page?: number;
+  limit?: number;
+}
+
+// Tambahkan interface untuk response pagination
+interface StudentsResponse {
+  data: Student[];
+  pagination: {
+    currentPage: number;
+    totalPages: number;
+    totalItems: number;
+    itemsPerPage: number;
+  };
 }
 
 export const useStudents = (filters?: StudentFilters) => {
@@ -18,6 +31,12 @@ export const useStudents = (filters?: StudentFilters) => {
   const [students, setStudents] = useState<Student[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [pagination, setPagination] = useState<{
+    currentPage: number;
+    totalPages: number;
+    totalItems: number;
+    itemsPerPage: number;
+  } | null>(null);
 
   const fetchStudents = async () => {
     const currentToken = filters?.token || authToken;
@@ -38,16 +57,42 @@ export const useStudents = (filters?: StudentFilters) => {
         JSON.stringify(filters, null, 2)
       );
 
-      const data = await studentService.getStudents({
-        classId: filters?.classId,
-        search: filters?.search,
-        academicYear: filters?.academicYear,
-        angkatan: filters?.angkatan,
-        token: currentToken,
-      });
+      // Tambahkan parameter page dan limit ke request
+      const response = await fetch(
+        `${
+          import.meta.env.VITE_BACKEND_API_URL || "http://localhost:3000"
+        }/api/students?${new URLSearchParams({
+          ...(filters?.classId && { classId: String(filters.classId) }),
+          ...(filters?.search && { search: filters.search }),
+          ...(filters?.academicYear && { academicYear: filters.academicYear }),
+          ...(filters?.angkatan && { angkatan: filters.angkatan }),
+          ...(filters?.page && { page: String(filters.page) }),
+          ...(filters?.limit && { limit: String(filters.limit) }),
+        })}`,
+        {
+          headers: {
+            Authorization: `Bearer ${currentToken}`,
+          },
+        }
+      );
 
-      console.log("Students fetched successfully:", data.length);
-      setStudents(data);
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const data: StudentsResponse = await response.json();
+
+      console.log("Students fetched successfully:", data.data.length);
+
+      // Jika backend mengembalikan struktur dengan pagination
+      if (data.pagination) {
+        setStudents(data.data);
+        setPagination(data.pagination);
+      } else {
+        // Fallback jika backend belum mendukung pagination
+        setStudents(data as any);
+        setPagination(null);
+      }
     } catch (err: any) {
       const errorMessage = err instanceof Error ? err.message : "Unknown error";
       setError(errorMessage);
@@ -133,6 +178,7 @@ export const useStudents = (filters?: StudentFilters) => {
     students,
     loading,
     error,
+    pagination,
     addStudent,
     updateStudent,
     deleteStudent,

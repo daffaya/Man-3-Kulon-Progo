@@ -12,14 +12,14 @@ import EditStudentModal from "../../../components/modals/EditStudentModal";
 import MoveClassModal from "../../../components/modals/MoveClassModal";
 import ImportStudentPage from "../../../components/modals/ImportStudentPage";
 import BulkMoveClassModal from "../../../components/modals/BulkMoveClassModal";
-import { Search, Plus, Filter, Upload, Users } from "lucide-react";
+import { Search, Plus, Filter, Upload, Users, RefreshCw } from "lucide-react";
 import { useAngkatans } from "../../../hooks/useAngkatans";
 
 const ManagementStudentPage: React.FC = () => {
   const navigate = useNavigate();
   const { user, isLoggedIn, token, isLoadingAuth } = useAuth();
 
-  // TOAST STATE (TAMBAH INI)
+  // TOAST STATE
   const [toastMessage, setToastMessage] = useState("");
   const [toastType, setToastType] = useState<"success" | "error" | "warning">(
     "success"
@@ -27,20 +27,23 @@ const ManagementStudentPage: React.FC = () => {
   const [showToast, setShowToast] = useState(false);
 
   const [selectedClass, setSelectedClass] = useState<number>(0);
-
   const [selectedAngkatan, setSelectedAngkatan] = useState<string>("");
   const [searchTerm, setSearchTerm] = useState("");
   const [showAddModal, setShowAddModal] = useState(false);
   const [showImportModal, setShowImportModal] = useState(false);
   const [editStudent, setEditStudent] = useState<any>(null);
   const [moveStudent, setMoveStudent] = useState<any>(null);
-
   const [showBulkMoveModal, setShowBulkMoveModal] = useState(false);
+
+  // PAGINATION STATE
+  const [currentPage, setCurrentPage] = useState(1);
+  const studentsPerPage = 30; // Maksimal 30 siswa per halaman
 
   const {
     students,
     loading,
     error,
+    pagination,
     addStudent: _addStudent,
     updateStudent: _updateStudent,
     deleteStudent: _deleteStudent,
@@ -50,12 +53,14 @@ const ManagementStudentPage: React.FC = () => {
     classId: selectedClass || undefined,
     search: searchTerm || undefined,
     angkatan: selectedAngkatan || undefined,
+    page: currentPage,
+    limit: studentsPerPage,
   });
 
   const { classes } = useClasses();
   const { angkatans, loading: angkatansLoading } = useAngkatans();
 
-  // TOAST FUNCTION (TAMBAH INI)
+  // TOAST FUNCTION
   const showToastHandler = (
     message: string,
     type: "success" | "error" | "warning" = "success"
@@ -66,7 +71,7 @@ const ManagementStudentPage: React.FC = () => {
     setTimeout(() => setShowToast(false), 5000);
   };
 
-  // WRAPPER FUNCTIONS DENGAN TOAST (TAMBAH INI)
+  // WRAPPER FUNCTIONS DENGAN TOAST
   const addStudent = async (data: any) => {
     try {
       await _addStudent(data);
@@ -113,6 +118,24 @@ const ManagementStudentPage: React.FC = () => {
     }
     await deleteStudent(id);
   };
+
+  // PAGINATION HANDLERS
+  const handlePreviousPage = () => {
+    if (currentPage > 1) {
+      setCurrentPage(currentPage - 1);
+    }
+  };
+
+  const handleNextPage = () => {
+    if (pagination && currentPage < pagination.totalPages) {
+      setCurrentPage(currentPage + 1);
+    }
+  };
+
+  // Reset to page 1 when filters change
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [selectedClass, selectedAngkatan, searchTerm]);
 
   // Auth checks (sama)
   if (isLoadingAuth) {
@@ -228,12 +251,13 @@ const ManagementStudentPage: React.FC = () => {
 
             <div className="flex items-center justify-between">
               <span className="text-sm text-gray-600 dark:text-gray-400">
-                Total: {students.length} siswa
+                Total: {pagination?.totalItems || students.length} siswa
               </span>
               <button
                 onClick={refetch}
-                className="text-sm text-blue-600 hover:text-blue-800"
+                className="text-sm text-blue-600 hover:text-blue-800 flex items-center"
               >
+                <RefreshCw className="h-4 w-4 mr-1" />
                 Refresh
               </button>
             </div>
@@ -261,23 +285,63 @@ const ManagementStudentPage: React.FC = () => {
           </div>
         )}
 
-        {/* Students Table - sama */}
-        {loading ? (
-          <div className="text-center py-8">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
-            <p className="mt-4 text-gray-600 dark:text-gray-400">
-              Memuat data siswa...
-            </p>
-          </div>
-        ) : (
-          <StudentTable
-            students={students}
-            onEdit={(student) => setEditStudent(student)}
-            onDelete={handleDeleteStudent}
-            onMoveClass={(student) => setMoveStudent(student)}
-            canEditClasses={canEditClasses}
-          />
-        )}
+        {/* Students Table with Pagination */}
+        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-md p-6">
+          {loading ? (
+            <div className="text-center py-12">
+              <RefreshCw
+                size={32}
+                className="mx-auto animate-spin text-accent"
+              />
+              <p className="mt-4">Memuat data siswa...</p>
+            </div>
+          ) : (
+            <>
+              <StudentTable
+                students={students}
+                onEdit={(student) => setEditStudent(student)}
+                onDelete={handleDeleteStudent}
+                onMoveClass={(student) => setMoveStudent(student)}
+                canEditClasses={canEditClasses}
+                loading={loading}
+                currentPage={currentPage}
+                itemsPerPage={studentsPerPage}
+              />
+
+              {/* Pagination Controls */}
+              {pagination && pagination.totalPages > 1 && (
+                <div className="flex justify-center items-center mt-6 space-x-4">
+                  <button
+                    onClick={handlePreviousPage}
+                    disabled={currentPage <= 1}
+                    className={`px-4 py-2 rounded-md transition-colors ${
+                      currentPage <= 1
+                        ? "bg-gray-200 dark:bg-gray-700 text-gray-500 cursor-not-allowed"
+                        : "bg-accent text-white hover:bg-accent-dark"
+                    }`}
+                  >
+                    Sebelumnya
+                  </button>
+                  <span className="text-gray-700 dark:text-gray-300">
+                    Halaman {pagination.currentPage} dari{" "}
+                    {pagination.totalPages}
+                  </span>
+                  <button
+                    onClick={handleNextPage}
+                    disabled={currentPage >= pagination.totalPages}
+                    className={`px-4 py-2 rounded-md transition-colors ${
+                      currentPage >= pagination.totalPages
+                        ? "bg-gray-200 dark:bg-gray-700 text-gray-500 cursor-not-allowed"
+                        : "bg-accent text-white hover:bg-accent-dark"
+                    }`}
+                  >
+                    Berikutnya
+                  </button>
+                </div>
+              )}
+            </>
+          )}
+        </div>
 
         {/* UPDATED MODALS - PASS showToastHandler */}
         <AddStudentModal
@@ -287,7 +351,7 @@ const ManagementStudentPage: React.FC = () => {
             setShowAddModal(false);
             refetch();
           }}
-          showToast={showToastHandler} // ✅ PASS TOAST
+          showToast={showToastHandler}
         />
 
         <ImportStudentPage
@@ -307,7 +371,7 @@ const ManagementStudentPage: React.FC = () => {
               setEditStudent(null);
               refetch();
             }}
-            showToast={showToastHandler} // ✅ PASS TOAST
+            showToast={showToastHandler}
           />
         )}
 
@@ -319,9 +383,10 @@ const ManagementStudentPage: React.FC = () => {
               setMoveStudent(null);
               refetch();
             }}
-            showToast={showToastHandler} // ✅ PASS TOAST
+            showToast={showToastHandler}
           />
         )}
+
         {showBulkMoveModal && (
           <BulkMoveClassModal
             isOpen={true}
@@ -337,7 +402,7 @@ const ManagementStudentPage: React.FC = () => {
         )}
       </div>
 
-      {/* TOAST CONTAINER - TAMBAH INI */}
+      {/* TOAST CONTAINER */}
       <Toast
         message={toastMessage}
         type={toastType}

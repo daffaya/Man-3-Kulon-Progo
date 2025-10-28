@@ -33,7 +33,7 @@ const BulkMoveClassModal: React.FC<BulkMoveClassModalProps> = ({
   });
   const [showConfirmation, setShowConfirmation] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [studentsToMoveCount, setStudentsToMoveCount] = useState(0);
+  const [studentsToMoveCount, setStudentsToMoveCount] = useState<number>(0);
   const [fromClassLevel, setFromClassLevel] = useState<string>("");
 
   // State untuk kelas yang difilter
@@ -194,6 +194,7 @@ const BulkMoveClassModal: React.FC<BulkMoveClassModalProps> = ({
     showToast,
   ]);
 
+  // useEffect untuk fromClassLevel (pisah)
   useEffect(() => {
     if (formData.classIdFrom && filteredClasses.from.length > 0) {
       const fromClass = filteredClasses.from.find(
@@ -217,9 +218,8 @@ const BulkMoveClassModal: React.FC<BulkMoveClassModalProps> = ({
     } else {
       setFromClassLevel("");
     }
-  }, [formData.classIdFrom, filteredClasses.from]);
+  }, [formData.classIdFrom, filteredClasses.from]); // Ini hanya untuk fromClassLevel
 
-  // Di bagian pemilihan aksi
   {
     formData.classIdFrom && (
       <div className="mb-4">
@@ -248,29 +248,38 @@ const BulkMoveClassModal: React.FC<BulkMoveClassModalProps> = ({
 
   // Fetch count of students to move when class or angkatan changes
   useEffect(() => {
+    console.log("🔍 useEffect for fetchStudentsToMoveCount triggered");
+    console.log("📋 formData:", formData);
+    console.log("🔑 token:", token ? "exists" : "not exists");
+
+    // Di dalam useEffect kamu
     const fetchStudentsToMoveCount = async () => {
-      if (!formData.classIdFrom || !formData.angkatan || !token) return;
+      if (!formData.classIdFrom || !formData.angkatan || !token) {
+        // ... log skipping
+        return;
+      }
 
       try {
         setLoading(true);
         console.log(
-          "Counting students for class:",
-          formData.classIdFrom,
-          "angkatan:",
-          formData.angkatan
+          `🔄 Counting students for class: ${formData.classIdFrom}, angkatan: ${formData.angkatan}`
         );
 
-        // Gunakan endpoint getStudents dengan filter
-        const students = await studentService.getStudents({
+        const response = await studentService.getStudents({
           token,
           classId: Number(formData.classIdFrom),
           angkatan: formData.angkatan,
         });
 
-        console.log("Students count result:", students.length);
-        setStudentsToMoveCount(students.length);
+        const students =
+          (response as any).data || (response as any).students || response;
+
+        const count = Array.isArray(students) ? students.length : 0;
+
+        console.log(`✅ Students count result: ${count}`);
+        setStudentsToMoveCount(count);
       } catch (error) {
-        console.error("Error fetching students count:", error);
+        console.error("❌ Error fetching students count:", error);
         setStudentsToMoveCount(0);
       } finally {
         setLoading(false);
@@ -278,7 +287,7 @@ const BulkMoveClassModal: React.FC<BulkMoveClassModalProps> = ({
     };
 
     fetchStudentsToMoveCount();
-  }, [formData.classIdFrom, formData.angkatan, token]);
+  }, [formData.classIdFrom, formData.angkatan, token, showToast]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
