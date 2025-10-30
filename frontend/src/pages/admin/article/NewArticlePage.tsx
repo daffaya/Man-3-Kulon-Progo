@@ -1,48 +1,65 @@
-// backend/src/frontend/src/pages/NewArticlePage.tsx
-import React, { useContext } from "react"; // useContext mungkin tidak lagi diperlukan jika hanya pakai useArticles
+// frontend/src/pages/NewArticlePage.tsx
+import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { ChevronLeft } from "lucide-react";
-import Layout from "../../../components/layout/Layout";
-import ArticleForm from "../../../components/forms/ArticleForm"; // Import ArticleForm
-import { ArticleContext, useArticles } from "../../../contexts/ArticleContext"; // Import useArticles
-import { ArticleFormData } from "../../../types/articleTypes"; // Import ArticleFormData
-import { generateSlug, calculateReadingTime } from "../../../lib/utils"; // Import helper functions
 import AdminLayout from "../../../components/layout/AdminLayout";
+import ArticleForm from "../../../components/forms/ArticleForm";
+import { useArticles } from "../../../contexts/ArticleContext";
+import { ArticleFormData } from "../../../types/articleTypes";
+import Toast from "../../../components/ui/Toast";
 
+/**
+ * Page component for creating a new article.
+ * Handles article submission and displays toast notifications for success or error.
+ */
 const NewArticlePage: React.FC = () => {
-  const { createNewArticle } = useArticles(); // Gunakan useArticles hook
+  const { createArticle } = useArticles();
   const navigate = useNavigate();
+  const [isLoading, setIsLoading] = useState(false);
 
-  // Fungsi handleSubmit menerima formData dari ArticleForm
-  const handleSubmit = async (formData: ArticleFormData) => {
-    console.log(
-      "[NewArticlePage] Handling form submission. Received formData:",
-      formData
-    ); // Log data yang diterima dari form
+  const [toast, setToast] = useState<{
+    message: string;
+    type: "success" | "error" | "warning" | "info";
+    isVisible: boolean;
+  }>({
+    message: "",
+    type: "success",
+    isVisible: false,
+  });
 
-    // Slug dan ReadingTime dihitung di frontend sebelum dikirim
-    const slug = generateSlug(formData.title);
-    const readingTime = calculateReadingTime(formData.content);
+  /**
+   * Show a toast notification.
+   * @param message The message to display
+   * @param type Type of the toast (default: "success")
+   */
+  const showToast = (
+    message: string,
+    type: "success" | "error" | "warning" | "info" = "success"
+  ) => setToast({ message, type, isVisible: true });
 
-    const articleDataToSend = {
-      ...formData, // formData sudah termasuk category_id yang dipilih dari form
-      slug, // Timpa slug yang mungkin ada di formData (meskipun ArticleFormData Omit slug)
-      readingTime, // Timpa readingTime yang mungkin ada di formData (meskipun ArticleFormData Omit readingTime)
-    };
+  /**
+   * Hide the currently visible toast notification.
+   */
+  const hideToast = () => setToast((prev) => ({ ...prev, isVisible: false }));
 
-    console.log(
-      "[NewArticlePage] Sending data to createNewArticle:",
-      articleDataToSend
-    ); // Log data yang akan dikirim ke context
+  /**
+   * Handle article form submission.
+   * @param formData Data from the article form
+   * @param file Optional file attachment
+   */
+  const handleSubmit = async (formData: ArticleFormData, file?: File) => {
+    setIsLoading(true);
 
-    const newArticle = await createNewArticle(articleDataToSend);
-
-    if (newArticle) {
-      console.log("[NewArticlePage] Article created successfully:", newArticle);
-      navigate("/atmin/articles", { replace: true }); // Redirect ke daftar artikel admin
-    } else {
-      console.error("[NewArticlePage] Failed to create new article");
-      // TODO: Tampilkan pesan error ke user
+    try {
+      await createArticle(formData, file);
+      showToast("Artikel berhasil dibuat!", "success");
+      setTimeout(() => navigate("/atmin/articles", { replace: true }), 1500);
+    } catch (err) {
+      const message =
+        err instanceof Error ? err.message : "Gagal membuat artikel";
+      showToast(message, "error");
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -64,10 +81,17 @@ const NewArticlePage: React.FC = () => {
         </div>
 
         <div className="bg-white dark:bg-gray-800 rounded-xl shadow-md p-6">
-          {/* Render ArticleForm component dan teruskan handler submit */}
-          <ArticleForm onSubmit={handleSubmit} />
+          <ArticleForm onSubmit={handleSubmit} isLoading={isLoading} />
         </div>
       </div>
+
+      <Toast
+        message={toast.message}
+        type={toast.type}
+        isVisible={toast.isVisible}
+        duration={3000}
+        onClose={hideToast}
+      />
     </AdminLayout>
   );
 };

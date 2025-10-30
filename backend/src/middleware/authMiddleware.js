@@ -1,53 +1,46 @@
 // src/middleware/authMiddleware.js
 import jwt from "jsonwebtoken";
 
+/**
+ * Creates a middleware function to restrict access to specific user roles.
+ * This is a higher-order function that returns the actual middleware.
+ * @param {string[]} roles - An array of roles (e.g., ['jurnalis', 'admin']) that are allowed to access the route.
+ * @returns {Function} An Express middleware function that checks the user's role.
+ */
 export const restrictTo = (roles) => (req, res, next) => {
   if (!req.user) {
-    console.warn("[RestrictTo] User not found in request");
     return res.status(401).json({ error: "Token tidak valid" });
   }
 
   const userRole = req.user.role.toLowerCase();
-  console.log(
-    `[RestrictTo] Checking role: ${userRole} against allowed roles:`,
-    roles
-  );
 
   if (userRole === "super_admin" || roles.includes(userRole)) {
     return next();
   }
 
-  console.warn(`[RestrictTo] Access denied for role: ${userRole}`);
   return res.status(403).json({
     error: `Akses ditolak: Role ${userRole} tidak diizinkan`,
   });
 };
 
+/**
+ * Creates a middleware function to authenticate a JSON Web Token (JWT).
+ * This is a factory function that configures the middleware with a JWT secret.
+ * @param {object} options - Configuration options.
+ * @param {string} options.JWT_SECRET - The secret key used to verify the JWT.
+ * @returns {Function} An Express middleware function that authenticates the request.
+ */
 export const authenticateTokenFactory = ({ JWT_SECRET }) => {
   return (req, res, next) => {
     const authHeader = req.headers["authorization"];
-    console.log(
-      "[Auth Middleware] Authorization header:",
-      authHeader ? "Present" : "Missing"
-    );
-
     const token = authHeader && authHeader.split(" ")[1];
-    console.log(
-      "[Auth Middleware] Token extracted:",
-      token ? "Present" : "Missing"
-    );
 
     if (token == null) {
-      console.warn(
-        "[Auth Middleware] Tidak ada token disediakan. Akses ditolak."
-      );
       return res.status(401).json({ error: "Tidak ada token disediakan" });
     }
 
     jwt.verify(token, JWT_SECRET, (err, user) => {
       if (err) {
-        console.error("[Auth Middleware] Verifikasi JWT gagal:", err.message);
-
         if (err.name === "TokenExpiredError") {
           return res.status(401).json({ error: "Token telah kadaluarsa" });
         }
@@ -56,12 +49,6 @@ export const authenticateTokenFactory = ({ JWT_SECRET }) => {
       }
 
       req.user = user;
-      console.log(
-        "[Auth Middleware] Token valid. User:",
-        user.username,
-        "Role:",
-        user.role
-      );
       next();
     });
   };

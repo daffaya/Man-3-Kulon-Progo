@@ -1,17 +1,23 @@
+// frontend/src/components/tables/ArticleTable.tsx
 import React from "react";
 import { Link } from "react-router-dom";
 import { Edit, Trash2, Eye, ArrowUp, RefreshCw } from "lucide-react";
-
 import { Article } from "../../types/articleTypes";
 import { formatDate, truncateText } from "../../lib/utils";
+import ImageWithFallback from "../ui/ImageWithFallback";
 
 interface ArticleTableProps {
+  /** Daftar artikel yang akan ditampilkan dalam tabel */
   articles: Article[];
+  /** Callback ketika artikel dihapus */
   onDelete: (id: string) => void;
+  /** Status loading data */
   loading: boolean;
 }
 
-// Extracted status badge component for better readability
+/**
+ * Badge untuk menampilkan status publikasi dan status featured artikel.
+ */
 const StatusBadge: React.FC<{ article: Article }> = ({ article }) => (
   <div className="flex items-center">
     {article.published ? (
@@ -32,36 +38,58 @@ const StatusBadge: React.FC<{ article: Article }> = ({ article }) => (
   </div>
 );
 
-// Extracted action buttons component
+/**
+ * Tombol aksi untuk setiap artikel (View, Edit, Delete).
+ */
 const ActionButtons: React.FC<{
   article: Article;
   onDelete: (id: string) => void;
-}> = ({ article, onDelete }) => (
-  <div className="flex justify-end space-x-2">
-    <Link
-      to={`/blog/${article.slug}`}
-      className="text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-100"
-      aria-label="View article"
-    >
-      <Eye size={18} />
-    </Link>
-    <Link
-      to={`/atmin/editArticle/${article.slug}`}
-      className="text-blue-500 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300"
-      aria-label="Edit article"
-    >
-      <Edit size={18} />
-    </Link>
-    <button
-      onClick={() => onDelete(article.id)}
-      className="text-red-500 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300"
-      aria-label="Delete article"
-    >
-      <Trash2 size={18} />
-    </button>
-  </div>
-);
+}> = ({ article, onDelete }) => {
+  // Tampilkan fallback bila ID artikel tidak valid
+  if (!article.id) {
+    return (
+      <div className="flex justify-end space-x-2">
+        <span className="text-red-500 text-xs">ID Missing</span>
+      </div>
+    );
+  }
 
+  return (
+    <div className="flex justify-end space-x-2">
+      <Link
+        to={`/berita/${article.slug}`}
+        className="text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-100"
+        aria-label="View article"
+        title="View article"
+      >
+        <Eye size={18} />
+      </Link>
+
+      <Link
+        to={`/atmin/articles/${article.id}/edit`}
+        className="text-blue-500 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300"
+        aria-label="Edit article"
+        title="Edit article"
+      >
+        <Edit size={18} />
+      </Link>
+
+      <button
+        onClick={() => onDelete(article.id)}
+        className="text-red-500 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300"
+        aria-label="Delete article"
+        title="Delete article"
+      >
+        <Trash2 size={18} />
+      </button>
+    </div>
+  );
+};
+
+/**
+ * Tabel daftar artikel untuk halaman admin.
+ * Menampilkan status publikasi, kategori, tag, serta aksi untuk mengedit atau menghapus artikel.
+ */
 const ArticleTable: React.FC<ArticleTableProps> = ({
   articles,
   onDelete,
@@ -108,7 +136,7 @@ const ArticleTable: React.FC<ArticleTableProps> = ({
             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
               Date
             </th>
-            <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+            <th className="px-6 py-4 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
               Actions
             </th>
           </tr>
@@ -122,10 +150,10 @@ const ArticleTable: React.FC<ArticleTableProps> = ({
               <td className="px-6 py-4 whitespace-nowrap">
                 <div className="flex items-center">
                   <div className="flex-shrink-0 h-10 w-10">
-                    <img
-                      className="h-10 w-10 rounded-md object-cover"
+                    <ImageWithFallback
                       src={article.coverImage}
                       alt={article.title}
+                      className="h-10 w-10 rounded-md object-cover"
                     />
                   </div>
                   <div className="ml-4">
@@ -138,24 +166,36 @@ const ArticleTable: React.FC<ArticleTableProps> = ({
                   </div>
                 </div>
               </td>
+
               <td className="px-6 py-4 whitespace-nowrap">
                 <StatusBadge article={article} />
               </td>
+
               <td className="px-6 py-4 whitespace-nowrap">
-                <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-300">
-                  {article.tags &&
-                  Array.isArray(article.tags) &&
-                  article.tags.length > 0
-                    ? article.tags.join(", ")
-                    : "-"}
-                </span>
+                <div className="flex flex-wrap gap-1 max-w-xs">
+                  {Array.isArray(article.tags) && article.tags.length > 0 ? (
+                    article.tags.map((tag, index) => (
+                      <span
+                        key={index}
+                        className="px-2 py-1 text-xs bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 rounded-full"
+                      >
+                        {tag}
+                      </span>
+                    ))
+                  ) : (
+                    <span className="text-gray-500 text-sm">No tags</span>
+                  )}
+                </div>
               </td>
+
               <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
                 {article.category ? article.category.name : "-"}
               </td>
+
               <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
                 {formatDate(article.publishedDate)}
               </td>
+
               <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                 <ActionButtons article={article} onDelete={onDelete} />
               </td>

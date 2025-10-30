@@ -7,7 +7,6 @@ import {
   Home,
   User,
   Mail,
-  Settings,
   AppWindow,
   ChevronDown,
 } from "lucide-react";
@@ -17,25 +16,23 @@ const Header: React.FC = () => {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isProfileDropdownOpen, setIsProfileDropdownOpen] = useState(false);
+  const [isProfileMobileDropdownOpen, setIsProfileMobileDropdownOpen] =
+    useState(false);
   const location = useLocation();
   const dropdownRef = useRef<HTMLDivElement>(null);
 
-  // Handle scroll event to change header style
   useEffect(() => {
-    const handleScroll = () => {
-      setIsScrolled(window.scrollY > 20);
-    };
+    const handleScroll = () => setIsScrolled(window.scrollY > 20);
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
-  // Close mobile menu when route changes
   useEffect(() => {
     setIsMenuOpen(false);
     setIsProfileDropdownOpen(false);
+    setIsProfileMobileDropdownOpen(false);
   }, [location.pathname]);
 
-  // Close dropdown when clicking outside
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (
@@ -45,12 +42,10 @@ const Header: React.FC = () => {
         setIsProfileDropdownOpen(false);
       }
     };
-
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  // Profile dropdown items
   const profileDropdownItems = [
     { to: "/profile/sejarah", label: "Sejarah" },
     { to: "/profile/visi-misi", label: "Visi Misi" },
@@ -72,54 +67,23 @@ const Header: React.FC = () => {
       }`}
     >
       <div className="container max-w-6xl mx-auto px-4 sm:px-6 flex justify-between items-center">
+        {/* Logo */}
         <Link to="/" className="flex items-center space-x-2">
-          <img
-            src="/logo.png"
-            alt="logo_man3kp"
-            className="w-12 h-12 text-accent"
-          />
+          <img src="/logo.png" alt="logo_man3kp" className="w-12 h-12" />
         </Link>
 
         {/* Desktop Navigation */}
         <nav className="hidden md:flex items-center space-x-8">
           <NavLink to="/" label="Home" icon={<Home size={18} />} />
-          <NavLink to="/blog" label="Blog" icon={<FileText size={18} />} />
+          <NavLink to="/berita" label="Berita" icon={<FileText size={18} />} />
 
           {/* Profile Dropdown */}
-          <div className="relative" ref={dropdownRef}>
-            <button
-              onClick={() => setIsProfileDropdownOpen(!isProfileDropdownOpen)}
-              className={`flex items-center space-x-1 font-medium transition-colors ${
-                location.pathname.startsWith("/profile")
-                  ? "text-accent"
-                  : "text-gray-700 dark:text-gray-200 hover:text-accent dark:hover:text-accent"
-              }`}
-            >
-              <User size={18} />
-              <span>Profil</span>
-              <ChevronDown
-                size={16}
-                className={`transition-transform ${
-                  isProfileDropdownOpen ? "rotate-180" : ""
-                }`}
-              />
-            </button>
-
-            {isProfileDropdownOpen && (
-              <div className="absolute top-full left-0 mt-2 w-56 bg-white dark:bg-gray-900 rounded-md shadow-lg py-1 z-50">
-                {profileDropdownItems.map((item) => (
-                  <Link
-                    key={item.to}
-                    to={item.to}
-                    className="block px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800"
-                    onClick={() => setIsProfileDropdownOpen(false)}
-                  >
-                    {item.label}
-                  </Link>
-                ))}
-              </div>
-            )}
-          </div>
+          <ProfileDropdown
+            dropdownRef={dropdownRef}
+            isOpen={isProfileDropdownOpen}
+            toggle={() => setIsProfileDropdownOpen(!isProfileDropdownOpen)}
+            items={profileDropdownItems}
+          />
 
           <NavLink
             to="/webApp"
@@ -130,7 +94,7 @@ const Header: React.FC = () => {
           <ThemeToggle />
         </nav>
 
-        {/* Mobile Navigation Toggle */}
+        {/* Mobile Toggle */}
         <div className="flex items-center md:hidden space-x-4">
           <ThemeToggle />
           <button
@@ -145,110 +109,162 @@ const Header: React.FC = () => {
 
       {/* Mobile Menu */}
       {isMenuOpen && (
-        <div className="md:hidden bg-white dark:bg-gray-900 shadow-lg">
-          <nav className="container mx-auto px-4 py-4 flex flex-col space-y-4">
-            <MobileNavLink to="/" label="Home" icon={<Home size={18} />} />
-            <MobileNavLink
-              to="/blog"
-              label="Blog"
-              icon={<FileText size={18} />}
-            />
-
-            {/* Mobile Profile Dropdown */}
-            <div>
-              <button
-                onClick={() => setIsProfileDropdownOpen(!isProfileDropdownOpen)}
-                className="flex items-center justify-between w-full p-2 text-left text-gray-700 dark:text-gray-200"
-              >
-                <div className="flex items-center space-x-2">
-                  <User size={18} />
-                  <span>Profil</span>
-                </div>
-                <ChevronDown
-                  size={16}
-                  className={`transition-transform ${
-                    isProfileDropdownOpen ? "rotate-180" : ""
-                  }`}
-                />
-              </button>
-
-              {isProfileDropdownOpen && (
-                <div className="pl-6 mt-1 space-y-1">
-                  {profileDropdownItems.map((item) => (
-                    <Link
-                      key={item.to}
-                      to={item.to}
-                      className="block py-2 px-4 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800 rounded"
-                      onClick={() => setIsProfileDropdownOpen(false)}
-                    >
-                      {item.label}
-                    </Link>
-                  ))}
-                </div>
-              )}
-            </div>
-
-            <MobileNavLink
-              to="/contact"
-              label="Kontak"
-              icon={<Mail size={18} />}
-            />
-            <MobileNavLink
-              to="/webApp"
-              label="Web App"
-              icon={<AppWindow size={18} />}
-            />
-          </nav>
-        </div>
+        <MobileMenu
+          profileItems={profileDropdownItems}
+          isProfileOpen={isProfileMobileDropdownOpen}
+          toggleProfile={() =>
+            setIsProfileMobileDropdownOpen(!isProfileMobileDropdownOpen)
+          }
+        />
       )}
     </header>
   );
 };
 
+/* ===================== COMPONENTS ===================== */
+
 interface NavLinkProps {
   to: string;
   label: string;
   icon?: React.ReactNode;
+  isMobile?: boolean;
 }
 
-const NavLink: React.FC<NavLinkProps> = ({ to, label, icon }) => {
+const NavLink: React.FC<NavLinkProps> = ({ to, label, icon, isMobile }) => {
   const location = useLocation();
   const isActive =
     location.pathname === to ||
     (to !== "/" && location.pathname.startsWith(to));
+
+  const baseClasses =
+    "flex items-center space-x-2 font-medium transition-colors";
+  const activeClasses = isActive
+    ? "text-accent"
+    : "text-gray-700 dark:text-gray-200 hover:text-accent dark:hover:text-accent";
+
+  const mobileClasses = isMobile
+    ? "p-2 rounded-md hover:bg-gray-100 dark:hover:bg-gray-800"
+    : "";
+
   return (
     <Link
       to={to}
-      className={`flex items-center space-x-1 font-medium transition-colors ${
-        isActive
-          ? "text-accent"
-          : "text-gray-700 dark:text-gray-200 hover:text-accent dark:hover:text-accent"
-      }`}
+      className={`${baseClasses} ${activeClasses} ${mobileClasses}`}
     >
-      {icon}
-      <span>{label}</span>
+      {icon} <span>{label}</span>
     </Link>
   );
 };
 
-const MobileNavLink: React.FC<NavLinkProps> = ({ to, label, icon }) => {
-  const location = useLocation();
-  const isActive =
-    location.pathname === to ||
-    (to !== "/" && location.pathname.startsWith(to));
-  return (
-    <Link
-      to={to}
-      className={`flex items-center space-x-2 p-2 rounded-md ${
-        isActive
-          ? "bg-gray-100 dark:bg-gray-800 text-accent"
-          : "text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800"
-      }`}
+interface ProfileDropdownProps {
+  dropdownRef: React.RefObject<HTMLDivElement>;
+  isOpen: boolean;
+  toggle: () => void;
+  items: { to: string; label: string }[];
+}
+
+const ProfileDropdown: React.FC<ProfileDropdownProps> = ({
+  dropdownRef,
+  isOpen,
+  toggle,
+  items,
+}) => (
+  <div className="relative" ref={dropdownRef}>
+    <button
+      onClick={toggle}
+      className={`flex items-center space-x-1 font-medium transition-colors text-gray-700 dark:text-gray-200 hover:text-accent dark:hover:text-accent`}
     >
-      {icon}
-      <span>{label}</span>
-    </Link>
-  );
-};
+      <User size={18} />
+      <span>Profil</span>
+      <ChevronDown
+        size={16}
+        className={`transition-transform ${isOpen ? "rotate-180" : ""}`}
+      />
+    </button>
+
+    {isOpen && (
+      <div className="absolute top-full left-0 mt-2 w-56 bg-white dark:bg-gray-900 rounded-md shadow-lg py-1 z-50">
+        {items.map((item) => (
+          <Link
+            key={item.to}
+            to={item.to}
+            className="block px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800"
+          >
+            {item.label}
+          </Link>
+        ))}
+      </div>
+    )}
+  </div>
+);
+
+interface MobileMenuProps {
+  profileItems: { to: string; label: string }[];
+  isProfileOpen: boolean;
+  toggleProfile: () => void;
+}
+
+const MobileMenu: React.FC<MobileMenuProps> = ({
+  profileItems,
+  isProfileOpen,
+  toggleProfile,
+}) => (
+  <div className="md:hidden bg-white dark:bg-gray-900 shadow-lg">
+    <nav className="container mx-auto px-4 py-4 flex flex-col space-y-4">
+      <NavLink to="/" label="Home" icon={<Home size={18} />} isMobile />
+      <NavLink
+        to="/berita"
+        label="Berita"
+        icon={<FileText size={18} />}
+        isMobile
+      />
+
+      {/* Profile Dropdown Mobile */}
+      <div>
+        <button
+          onClick={toggleProfile}
+          className="flex items-center justify-between w-full p-2 text-left text-gray-700 dark:text-gray-200"
+        >
+          <div className="flex items-center space-x-2">
+            <User size={18} />
+            <span>Profil</span>
+          </div>
+          <ChevronDown
+            size={16}
+            className={`transition-transform ${
+              isProfileOpen ? "rotate-180" : ""
+            }`}
+          />
+        </button>
+        {isProfileOpen && (
+          <div className="pl-6 mt-1 space-y-1">
+            {profileItems.map((item) => (
+              <Link
+                key={item.to}
+                to={item.to}
+                className="block py-2 px-4 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800 rounded"
+              >
+                {item.label}
+              </Link>
+            ))}
+          </div>
+        )}
+      </div>
+
+      <NavLink
+        to="/contact"
+        label="Kontak"
+        icon={<Mail size={18} />}
+        isMobile
+      />
+      <NavLink
+        to="/webApp"
+        label="Web App"
+        icon={<AppWindow size={18} />}
+        isMobile
+      />
+    </nav>
+  </div>
+);
 
 export default Header;

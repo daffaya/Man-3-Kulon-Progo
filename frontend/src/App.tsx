@@ -5,7 +5,7 @@ import { ArticleProvider } from "./contexts/ArticleContext";
 import { Outlet } from "react-router-dom";
 // Pages
 import HomePage from "./pages/HomePage";
-import BlogPage from "./pages/BlogPage";
+import NewsPage from "./pages/NewsPage";
 import ArticlePage from "./pages/ArticlePage";
 import ProfilePage from "./pages/ProfilePage";
 import ContactPage from "./pages/ContactPage";
@@ -53,8 +53,8 @@ function App() {
         <Router>
           <Routes>
             <Route path="/" element={<HomePage />} />
-            <Route path="/blog" element={<BlogPage />} />
-            <Route path="/blog/:slug" element={<ArticlePage />} />
+            <Route path="/berita" element={<NewsPage />} />
+            <Route path="/berita/:slug" element={<ArticlePage />} />
             <Route path="/Profile" element={<ProfilePage />} />
             <Route path="/contact" element={<ContactPage />} />
             <Route path="/webApp" element={<WebAppPage />} />
@@ -92,15 +92,12 @@ function App() {
 
               {/* Article */}
               <Route path="articles" element={<ArticleManagementPage />} />
-              <Route path="newArticle" element={<NewArticlePage />} />
-              <Route path="editArticle/:id" element={<EditArticlePage />} />
+              <Route path="articles/new" element={<NewArticlePage />} />
+              <Route path="articles/:id/edit" element={<EditArticlePage />} />
               <Route path="category" element={<AdminCategoriesPage />} />
 
               {/*Archive*/}
-              <Route
-                path="/atmin/editArchive/:id"
-                element={<EditArchivePage />}
-              />
+              <Route path="archives/:id/edit" element={<EditArchivePage />} />
 
               {/* Attendance */}
               <Route path="presensi" element={<AttendanceStudentPage />} />

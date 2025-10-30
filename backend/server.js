@@ -1,3 +1,4 @@
+// backend/server.js
 import express from "express";
 import cors from "cors";
 import path from "path";
@@ -9,36 +10,43 @@ import apiRouterFactory from "./src/routes/api.js";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
-console.log("[Server] Starting application...");
-
 (async () => {
   try {
-    console.log("[Server] Calling initializeApplication...");
     const { pool, JWT_SECRET, JWT_EXPIRATION, FRONTEND_URL } =
       await initializeApplication();
-    console.log("[Server] initializeApplication completed.");
 
     const app = express();
     const PORT = process.env.PORT || 3001;
 
+    // Middleware
     app.use(cors());
     app.use(express.json());
-    console.log("Global middleware configured.");
 
+    // Serve uploads dengan header CORS yang aman
+    const uploadsPath = path.join(__dirname, "uploads");
+    app.use(
+      "/uploads",
+      (req, res, next) => {
+        res.setHeader("Cross-Origin-Resource-Policy", "cross-origin");
+        next();
+      },
+      express.static(uploadsPath)
+    );
+
+    // API routes
     const apiRoutes = apiRouterFactory({
       pool,
       JWT_SECRET,
       JWT_EXPIRATION,
       FRONTEND_URL,
     });
-    console.log("API router created using factory function.");
+    app.use("/api", apiRoutes);
 
+    // Serve frontend build
     const buildPath = path.join(__dirname, "..", "frontend", "dist");
     app.use(express.static(buildPath));
 
-    app.use("/api", apiRoutes);
-
-    app.get("/{*any}", (req, res) => {
+    app.get(/.*/, (req, res) => {
       res.sendFile(path.join(buildPath, "index.html"));
     });
 
@@ -46,7 +54,7 @@ console.log("[Server] Starting application...");
       console.log(`Server berjalan di http://localhost:${PORT}`);
     });
   } catch (error) {
-    console.error("\nFATAL ERROR during application startup:", error);
+    console.error("❌ FATAL ERROR during application startup:", error);
     process.exit(1);
   }
 })();

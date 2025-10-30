@@ -1,7 +1,7 @@
 {
   "name": "backend",
   "version": "1.0.0",
-  "description": "Backend server for my personal blog",
+  "description": "Backend server for MAN 3 Kulon Progo",
   "main": "server.js",
   "type": "module",
   "scripts": {

@@ -7,11 +7,17 @@ import React, {
   useContext,
 } from "react";
 
+/**
+ * Represents a user object in the authentication context.
+ */
 export interface User {
   username: string;
   role: string;
 }
 
+/**
+ * Defines the shape of the AuthContext value.
+ */
 interface AuthContextValue {
   isLoggedIn: boolean;
   user: User | null;
@@ -34,14 +40,19 @@ interface AuthProviderProps {
   children: ReactNode;
 }
 
+/**
+ * Provides authentication state and methods to its children.
+ */
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [isLoggedIn, setIsLoggedIn] = useState<boolean>(false);
   const [user, setUser] = useState<User | null>(null);
   const [token, setToken] = useState<string | null>(null);
   const [isLoadingAuth, setIsLoadingAuth] = useState<boolean>(true);
 
+  /**
+   * Logs in a user by saving credentials in state and localStorage.
+   */
   const login = (userData: User, authToken: string) => {
-    console.log("[AuthContext] Login with user:", userData);
     setIsLoggedIn(true);
     setUser(userData);
     setToken(authToken);
@@ -49,6 +60,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     localStorage.setItem("user", JSON.stringify(userData));
   };
 
+  /**
+   * Logs out the current user and clears state and localStorage.
+   */
   const logout = () => {
     setIsLoggedIn(false);
     setUser(null);
@@ -57,6 +71,11 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     localStorage.removeItem("user");
   };
 
+  /**
+   * Registers a new user by calling the backend API.
+   * @param userData - The registration details for the new user.
+   * @returns An object indicating success and an optional message.
+   */
   const register = async (userData: {
     username: string;
     password: string;
@@ -68,9 +87,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     try {
       const response = await fetch(`${BACKEND_API_URL}/api/auth/register`, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify(userData),
       });
 
@@ -84,8 +101,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           message: data.message || "Registration failed",
         };
       }
-    } catch (error: any) {
-      console.error("Error during registration:", error);
+    } catch {
       return {
         success: false,
         message: "Terjadi kesalahan saat menghubungi server.",
@@ -93,30 +109,20 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }
   };
 
+  /**
+   * Initializes authentication state from localStorage on mount.
+   */
   useEffect(() => {
     const storedToken = localStorage.getItem("token");
     const storedUser = localStorage.getItem("user");
 
-    console.log("[AuthContext] Initializing auth state");
-    console.log(
-      "[AuthContext] Token from localStorage:",
-      storedToken ? "Present" : "Missing"
-    );
-    console.log("[AuthContext] User from localStorage:", storedUser);
-
     if (storedToken && storedUser) {
       try {
         const parsedUser = JSON.parse(storedUser) as User;
-        console.log("[AuthContext] Parsed user:", parsedUser);
-
         setIsLoggedIn(true);
         setUser(parsedUser);
         setToken(storedToken);
-      } catch (error) {
-        console.error(
-          "[AuthContext] Error parsing user from localStorage:",
-          error
-        );
+      } catch {
         localStorage.removeItem("user");
         localStorage.removeItem("token");
       }
@@ -141,6 +147,10 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   );
 };
 
+/**
+ * Custom hook to access authentication context.
+ * @throws If used outside of AuthProvider.
+ */
 export const useAuth = () => {
   const context = useContext(AuthContext);
   if (!context) {

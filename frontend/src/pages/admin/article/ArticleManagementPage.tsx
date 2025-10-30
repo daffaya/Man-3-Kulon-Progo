@@ -1,13 +1,15 @@
+// frontend/src/pages/admin/article/ArticleManagementPage.tsx
+
 import React, { useEffect, useState, useCallback } from "react";
 import { Link, Navigate } from "react-router-dom";
 import { Plus, RefreshCw, X, ArrowLeft } from "lucide-react";
 import ArticleTable from "../../../components/tables/ArticleTable";
-
 import { useArticles } from "../../../contexts/ArticleContext";
 import { useAuth } from "../../../contexts/AuthContext";
 import { ArticleFilters } from "../../../types/articleTypes";
 import AdminLayout from "../../../components/layout/AdminLayout";
 
+/** Represents the filters currently applied to the article list. */
 interface AppliedFilters {
   keyword?: string;
   published?: boolean;
@@ -16,25 +18,32 @@ interface AppliedFilters {
   category?: string;
 }
 
+/** Roles that are permitted to access article management. */
 export const ALLOWED_ROLES = ["jurnalis", "super_admin"] as const;
+
+/**
+ * Checks if a user has permission to manage articles based on their login status and role.
+ * @param isLoggedIn - The user's login status.
+ * @param role - The user's role.
+ * @returns True if the user has management access, otherwise false.
+ */
 const hasEditAccess = (isLoggedIn: boolean, role?: string): boolean =>
   isLoggedIn && role
     ? ALLOWED_ROLES.includes(role as (typeof ALLOWED_ROLES)[number])
     : false;
 
+/**
+ * A page component for managing articles in the admin panel.
+ * It provides functionality to view, filter, paginate, and delete articles.
+ */
 const ArticleManagementPage: React.FC = () => {
-  const {
-    adminArticlesData,
-    adminLoading,
-    removeArticle,
-    fetchAdminArticles,
-    adminCategories,
-    adminCategoriesLoading,
-  } = useArticles();
+  const { state, deleteArticle, fetchAdminArticles, fetchAdminCategories } =
+    useArticles();
+  const { adminCategoriesLoading } = state;
 
   const [showConfirmation, setShowConfirmation] = useState(false);
   const [articleToDelete, setArticleToDelete] = useState<string | null>(null);
-  const { isLoggedIn, logout, token, user } = useAuth();
+  const { isLoggedIn, user } = useAuth();
 
   const isAdminOrJurnalist = hasEditAccess(isLoggedIn, user?.role);
 
@@ -51,6 +60,7 @@ const ArticleManagementPage: React.FC = () => {
   const articlesPerPage = 10;
   const [debouncedKeyword, setDebouncedKeyword] = useState("");
 
+  // Effect for debouncing the keyword input to reduce API calls
   useEffect(() => {
     const handler = setTimeout(() => {
       setDebouncedKeyword(keyword);
@@ -61,8 +71,9 @@ const ArticleManagementPage: React.FC = () => {
     };
   }, [keyword]);
 
+  // Effect to fetch articles and categories when filters or pagination change
   useEffect(() => {
-    if (isLoggedIn && token) {
+    if (isLoggedIn) {
       const filtersWithPagination: ArticleFilters = {
         ...appliedFilters,
         page: currentPage,
@@ -70,32 +81,40 @@ const ArticleManagementPage: React.FC = () => {
       };
 
       fetchAdminArticles(filtersWithPagination);
+      fetchAdminCategories();
     }
   }, [
     appliedFilters,
     currentPage,
     articlesPerPage,
     isLoggedIn,
-    token,
     fetchAdminArticles,
+    fetchAdminCategories,
   ]);
 
+  // Effect to automatically apply filters when any filter input changes
   useEffect(() => {
     handleApplyFilters();
   }, [debouncedKeyword, publishedStatus, selectedTags, selectedCategorySlug]);
 
+  /** Navigates to the previous page of articles. */
   const handlePreviousPage = () => {
     if (currentPage > 1) {
       setCurrentPage(currentPage - 1);
     }
   };
 
+  /** Navigates to the next page of articles. */
   const handleNextPage = () => {
-    if (adminArticlesData && currentPage < adminArticlesData.totalPages) {
+    if (
+      state.adminPagination &&
+      currentPage < state.adminPagination.totalPages
+    ) {
       setCurrentPage(currentPage + 1);
     }
   };
 
+  /** Constructs the filter object from input states and triggers a new search. */
   const handleApplyFilters = useCallback(() => {
     const filtersToApply: AppliedFilters = {
       keyword:
@@ -116,6 +135,7 @@ const ArticleManagementPage: React.FC = () => {
     setCurrentPage(1);
   }, [debouncedKeyword, publishedStatus, selectedTags, selectedCategorySlug]);
 
+  /** Resets all filter inputs to their default values. */
   const handleRemoveFilters = useCallback(() => {
     setKeyword("");
     setPublishedStatus("all");
@@ -124,10 +144,12 @@ const ArticleManagementPage: React.FC = () => {
     setSelectedCategorySlug("all");
   }, []);
 
+  /** Updates the keyword state on input change. */
   const handleKeywordInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setKeyword(e.target.value);
   };
 
+  /** Triggers filter application on Enter key press in the keyword input. */
   const handleKeywordInputKeyPress = (
     e: React.KeyboardEvent<HTMLInputElement>
   ) => {
@@ -137,6 +159,7 @@ const ArticleManagementPage: React.FC = () => {
     }
   };
 
+  /** Updates the published status state on selection change. */
   const handlePublishedStatusChange = (
     e: React.ChangeEvent<HTMLSelectElement>
   ) => {
@@ -148,10 +171,12 @@ const ArticleManagementPage: React.FC = () => {
     setPublishedStatus(newStatus);
   };
 
+  /** Updates the tag input state on change. */
   const handleTagInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setTagInput(e.target.value);
   };
 
+  /** Adds a tag to the selected list on Enter key press. */
   const handleTagInputKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === "Enter" && tagInput.trim() !== "") {
       e.preventDefault();
@@ -163,44 +188,51 @@ const ArticleManagementPage: React.FC = () => {
     }
   };
 
+  /** Removes a tag from the selected list. */
   const handleRemoveTag = (tagToRemove: string) => {
     const updatedTags = selectedTags.filter((tag) => tag !== tagToRemove);
     setSelectedTags(updatedTags);
   };
 
+  /** Updates the selected category state on selection change. */
   const handleCategoryChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const newCategorySlug = e.target.value;
     setSelectedCategorySlug(newCategorySlug);
   };
 
+  /** Sets the article to be deleted and shows the confirmation modal. */
   const handleDeleteClick = (id: string) => {
     setArticleToDelete(id);
     setShowConfirmation(true);
   };
 
+  /** Deletes the selected article and refreshes the list. */
   const confirmDelete = useCallback(async () => {
     if (articleToDelete) {
-      const success = await removeArticle(articleToDelete);
-      if (success) {
+      try {
+        await deleteArticle(articleToDelete);
         const filtersWithPagination = {
           ...appliedFilters,
           page: currentPage,
           limit: articlesPerPage,
         };
         fetchAdminArticles(filtersWithPagination);
+        setShowConfirmation(false);
+        setArticleToDelete(null);
+      } catch (error) {
+        // Error handling can be implemented here if needed
       }
-      setShowConfirmation(false);
-      setArticleToDelete(null);
     }
   }, [
     articleToDelete,
-    removeArticle,
+    deleteArticle,
     fetchAdminArticles,
     appliedFilters,
     currentPage,
     articlesPerPage,
   ]);
 
+  /** Hides the delete confirmation modal. */
   const cancelDelete = () => {
     setShowConfirmation(false);
     setArticleToDelete(null);
@@ -210,7 +242,7 @@ const ArticleManagementPage: React.FC = () => {
     return <Navigate to="/atmin/login" />;
   }
 
-  const articlesToDisplay = adminArticlesData?.articles || [];
+  const articlesToDisplay = state.adminArticles;
   const hasActiveFilters =
     appliedFilters.keyword ||
     appliedFilters.published !== undefined ||
@@ -218,7 +250,11 @@ const ArticleManagementPage: React.FC = () => {
     (Array.isArray(appliedFilters.tag) && appliedFilters.tag.length > 0) ||
     appliedFilters.category;
 
-  if (!adminLoading && articlesToDisplay.length === 0 && hasActiveFilters) {
+  if (
+    !state.adminLoading &&
+    articlesToDisplay.length === 0 &&
+    hasActiveFilters
+  ) {
     return (
       <AdminLayout>
         <div className="container mx-auto px-4 sm:px-6 py-12 text-center">
@@ -238,7 +274,11 @@ const ArticleManagementPage: React.FC = () => {
     );
   }
 
-  if (!adminLoading && articlesToDisplay.length === 0 && !hasActiveFilters) {
+  if (
+    !state.adminLoading &&
+    articlesToDisplay.length === 0 &&
+    !hasActiveFilters
+  ) {
     return (
       <AdminLayout>
         <div className="container mx-auto px-4 sm:px-6 py-12 text-center">
@@ -246,7 +286,7 @@ const ArticleManagementPage: React.FC = () => {
             Belum ada artikel yang ditemukan.
           </p>
           <Link
-            to="/atmin/newArticle"
+            to="/atmin/articles/new"
             className="mt-4 inline-block btn btn-primary flex items-center justify-center mx-auto w-fit"
           >
             <Plus size={18} className="mr-1" /> Buat Artikel Pertama Anda
@@ -257,12 +297,10 @@ const ArticleManagementPage: React.FC = () => {
   }
 
   const isPreviousDisabled =
-    adminLoading || (adminArticlesData?.currentPage ?? 0) <= 1;
+    state.adminLoading || state.adminPagination.currentPage <= 1;
   const isNextDisabled =
-    adminLoading ||
-    (adminArticlesData
-      ? adminArticlesData.currentPage >= adminArticlesData.totalPages
-      : undefined);
+    state.adminLoading ||
+    state.adminPagination.currentPage >= state.adminPagination.totalPages;
 
   return (
     <AdminLayout>
@@ -281,7 +319,7 @@ const ArticleManagementPage: React.FC = () => {
             Manajemen Artikel
           </h1>
           <Link
-            to="/atmin/newArticle"
+            to="/atmin/articles/new"
             className="btn btn-primary flex items-center justify-center sm:justify-start"
           >
             <Plus size={18} className="mr-1" /> Artikel Baru
@@ -351,13 +389,13 @@ const ArticleManagementPage: React.FC = () => {
                 className="form-input w-full"
               >
                 <option value="all">Semua Kategori</option>
-                {adminCategories.map((category) => (
+                {state.adminCategories.map((category) => (
                   <option key={category.id} value={category.slug}>
                     {category.name}
                   </option>
                 ))}
               </select>
-              {adminCategoriesLoading && adminCategories.length === 0 && (
+              {adminCategoriesLoading && state.adminCategories.length === 0 && (
                 <p className="mt-2 text-sm text-gray-500 dark:text-gray-400 flex items-center">
                   <RefreshCw size={14} className="animate-spin mr-1" /> Memuat
                   kategori...
@@ -402,7 +440,7 @@ const ArticleManagementPage: React.FC = () => {
               </div>
             </div>
           </div>
-          {adminLoading ? (
+          {state.adminLoading ? (
             <div className="text-center py-12">
               <RefreshCw
                 size={32}
@@ -414,10 +452,10 @@ const ArticleManagementPage: React.FC = () => {
             <ArticleTable
               articles={articlesToDisplay}
               onDelete={handleDeleteClick}
-              loading={adminLoading}
+              loading={state.adminLoading}
             />
           )}
-          {adminArticlesData && adminArticlesData.totalPages > 1 && (
+          {state.adminPagination.totalPages > 1 && (
             <div className="flex justify-center items-center mt-6 space-x-4">
               <button
                 onClick={handlePreviousPage}
@@ -431,8 +469,8 @@ const ArticleManagementPage: React.FC = () => {
                 Sebelumnya
               </button>
               <span className="text-gray-700 dark:text-gray-300">
-                Halaman {adminArticlesData.currentPage} dari{" "}
-                {adminArticlesData.totalPages}
+                Halaman {state.adminPagination.currentPage} dari{" "}
+                {state.adminPagination.totalPages}
               </span>
               <button
                 onClick={handleNextPage}

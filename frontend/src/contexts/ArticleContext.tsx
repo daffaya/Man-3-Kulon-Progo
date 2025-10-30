@@ -1,852 +1,681 @@
+// frontend/src/contexts/ArticleContext.tsx
+
 import React, {
   createContext,
-  useState,
-  useEffect,
-  ReactNode,
   useContext,
+  useReducer,
+  useEffect,
   useCallback,
 } from "react";
-
+import articleApi from "../api/articleApi";
+import categoryApi from "../api/categoryApi";
 import {
   Article,
+  ArticleFormData,
   Category,
-  PaginationData,
+  CategoryFormData,
   ArticleFilters,
+  PaginationData,
 } from "../types/articleTypes";
-import { useAuth } from "./AuthContext";
 
-interface CategoryFormData {
-  name: string;
-  description?: string | null;
+/**
+ * Represents the state structure for articles, categories, tags, loading states, errors, and pagination.
+ */
+interface ArticleState {
+  articles: Article[];
+  adminArticles: Article[];
+  currentArticle: Article | null;
+  categories: Category[];
+  adminCategories: Category[];
+  tags: string[];
+  loading: boolean;
+  adminLoading: boolean;
+  categoriesLoading: boolean;
+  adminCategoriesLoading: boolean;
+  tagsLoading: boolean;
+  error: string | null;
+  adminError: string | null;
+  pagination: {
+    totalArticles: number;
+    totalPages: number;
+    currentPage: number;
+    articlesPerPage: number;
+  };
+  adminPagination: {
+    totalArticles: number;
+    totalPages: number;
+    currentPage: number;
+    articlesPerPage: number;
+  };
 }
 
+/**
+ * Defines all possible actions that can be dispatched to the articleReducer.
+ */
+type ArticleAction =
+  | { type: "FETCH_ARTICLES_REQUEST" }
+  | {
+      type: "FETCH_ARTICLES_SUCCESS";
+      payload: { articles: Article[]; pagination: any };
+    }
+  | { type: "FETCH_ARTICLES_FAILURE"; payload: string }
+  | { type: "FETCH_ADMIN_ARTICLES_REQUEST" }
+  | { type: "FETCH_ARTICLE_BY_SLUG_REQUEST" }
+  | { type: "FETCH_ARTICLE_BY_SLUG_SUCCESS"; payload: Article }
+  | { type: "FETCH_ARTICLE_BY_SLUG_FAILURE"; payload: string }
+  | {
+      type: "FETCH_ADMIN_ARTICLES_SUCCESS";
+      payload: { articles: Article[]; pagination: any };
+    }
+  | { type: "FETCH_ADMIN_ARTICLES_FAILURE"; payload: string }
+  | { type: "FETCH_CATEGORIES_REQUEST" }
+  | { type: "FETCH_CATEGORIES_SUCCESS"; payload: Category[] }
+  | { type: "FETCH_CATEGORIES_FAILURE"; payload: string }
+  | { type: "FETCH_ADMIN_CATEGORIES_REQUEST" }
+  | { type: "FETCH_ADMIN_CATEGORIES_SUCCESS"; payload: Category[] }
+  | { type: "FETCH_ADMIN_CATEGORIES_FAILURE"; payload: string }
+  | { type: "FETCH_TAGS_REQUEST" }
+  | { type: "FETCH_TAGS_SUCCESS"; payload: string[] }
+  | { type: "FETCH_TAGS_FAILURE"; payload: string }
+  | { type: "FETCH_ARTICLE_BY_ID_SUCCESS"; payload: Article }
+  | { type: "CREATE_ARTICLE_SUCCESS"; payload: Article }
+  | { type: "UPDATE_ARTICLE_SUCCESS"; payload: Article }
+  | { type: "DELETE_ARTICLE_SUCCESS"; payload: string }
+  | { type: "CREATE_CATEGORY_SUCCESS"; payload: Category }
+  | { type: "UPDATE_CATEGORY_SUCCESS"; payload: Category }
+  | { type: "DELETE_CATEGORY_SUCCESS"; payload: number };
+
+const initialState: ArticleState = {
+  articles: [],
+  adminArticles: [],
+  currentArticle: null,
+  categories: [],
+  adminCategories: [],
+  tags: [],
+  loading: false,
+  adminLoading: false,
+  categoriesLoading: false,
+  adminCategoriesLoading: false,
+  tagsLoading: false,
+  error: null,
+  adminError: null,
+  pagination: {
+    totalArticles: 0,
+    totalPages: 0,
+    currentPage: 1,
+    articlesPerPage: 10,
+  },
+  adminPagination: {
+    totalArticles: 0,
+    totalPages: 0,
+    currentPage: 1,
+    articlesPerPage: 10,
+  },
+};
+
+/**
+ * Reducer function to manage article-related state based on dispatched actions.
+ * @param state - The current state.
+ * @param action - The action to be performed.
+ * @returns The new state after applying the action.
+ */
+const articleReducer = (
+  state: ArticleState,
+  action: ArticleAction
+): ArticleState => {
+  switch (action.type) {
+    case "FETCH_ARTICLES_REQUEST":
+      return { ...state, loading: true, error: null };
+    case "FETCH_ARTICLES_SUCCESS":
+      return {
+        ...state,
+        loading: false,
+        articles: action.payload.articles,
+        pagination: action.payload.pagination,
+      };
+    case "FETCH_ARTICLES_FAILURE":
+      return { ...state, loading: false, error: action.payload };
+    case "FETCH_ADMIN_ARTICLES_REQUEST":
+      return { ...state, adminLoading: true, adminError: null };
+    case "FETCH_ADMIN_ARTICLES_SUCCESS":
+      return {
+        ...state,
+        adminLoading: false,
+        adminArticles: action.payload.articles,
+        adminPagination: action.payload.pagination,
+      };
+    case "FETCH_ADMIN_ARTICLES_FAILURE":
+      return { ...state, adminLoading: false, adminError: action.payload };
+    case "FETCH_CATEGORIES_REQUEST":
+      return { ...state, categoriesLoading: true, error: null };
+    case "FETCH_CATEGORIES_SUCCESS":
+      return { ...state, categoriesLoading: false, categories: action.payload };
+    case "FETCH_CATEGORIES_FAILURE":
+      return { ...state, categoriesLoading: false, error: action.payload };
+    case "FETCH_ADMIN_CATEGORIES_REQUEST":
+      return { ...state, adminCategoriesLoading: true, adminError: null };
+    case "FETCH_ADMIN_CATEGORIES_SUCCESS":
+      return {
+        ...state,
+        adminCategoriesLoading: false,
+        adminCategories: action.payload,
+      };
+    case "FETCH_ADMIN_CATEGORIES_FAILURE":
+      return {
+        ...state,
+        adminCategoriesLoading: false,
+        adminError: action.payload,
+      };
+    case "FETCH_TAGS_REQUEST":
+      return { ...state, tagsLoading: true, error: null };
+    case "FETCH_TAGS_SUCCESS":
+      return { ...state, tagsLoading: false, tags: action.payload };
+    case "FETCH_TAGS_FAILURE":
+      return { ...state, tagsLoading: false, error: action.payload };
+    case "FETCH_ARTICLE_BY_ID_SUCCESS":
+      return { ...state, currentArticle: action.payload };
+    case "FETCH_ARTICLE_BY_SLUG_SUCCESS":
+      return { ...state, currentArticle: action.payload };
+    case "CREATE_ARTICLE_SUCCESS":
+      return {
+        ...state,
+        adminArticles: [action.payload, ...state.adminArticles],
+      };
+    case "UPDATE_ARTICLE_SUCCESS":
+      return {
+        ...state,
+        adminArticles: state.adminArticles.map((article) =>
+          article.id === action.payload.id ? action.payload : article
+        ),
+        currentArticle: action.payload,
+      };
+    case "DELETE_ARTICLE_SUCCESS":
+      return {
+        ...state,
+        adminArticles: state.adminArticles.filter(
+          (article) => article.id !== action.payload
+        ),
+      };
+    case "CREATE_CATEGORY_SUCCESS":
+      return {
+        ...state,
+        adminCategories: [...state.adminCategories, action.payload],
+      };
+    case "UPDATE_CATEGORY_SUCCESS":
+      return {
+        ...state,
+        adminCategories: state.adminCategories.map((category) =>
+          category.id === action.payload.id ? action.payload : category
+        ),
+      };
+    case "DELETE_CATEGORY_SUCCESS":
+      return {
+        ...state,
+        adminCategories: state.adminCategories.filter(
+          (category) => category.id !== action.payload
+        ),
+      };
+    default:
+      return state;
+  }
+};
+
+/**
+ * Defines the shape of the context value, including the state and all action functions.
+ */
 interface ArticleContextType {
-  publicArticlesData: PaginationData<Article> | null;
-  publicTags: string[];
-  publicCategories: Category[];
-  publicTagsLoading: boolean;
-  publicCategoriesLoading: boolean;
-  publicCategoriesError: string | null;
-  fetchPublicArticles: (filters?: ArticleFilters) => Promise<void>;
-  fetchPublicCategories: () => Promise<void>;
-
-  adminArticlesData: PaginationData<Article> | null;
-  adminLoading: boolean;
-  adminCategories: Category[];
-  adminCategoriesLoading: boolean;
+  state: ArticleState;
+  fetchArticles: (filters?: ArticleFilters) => Promise<void>;
+  fetchArticleBySlug: (slug: string) => Promise<Article | null>;
   fetchAdminArticles: (filters?: ArticleFilters) => Promise<void>;
+  fetchCategories: () => Promise<void>;
   fetchAdminCategories: () => Promise<void>;
-
-  loading: boolean;
-
-  createCategory: (categoryData: CategoryFormData) => Promise<Category | null>;
+  fetchTags: () => Promise<void>;
+  fetchArticleById: (id: string) => Promise<Article | undefined>;
+  createArticle: (formData: ArticleFormData, file?: File) => Promise<void>;
+  updateArticle: (
+    id: string,
+    formData: ArticleFormData,
+    file?: File
+  ) => Promise<Article>;
+  deleteArticle: (id: string) => Promise<void>;
+  createCategory: (categoryData: CategoryFormData) => Promise<Category>;
   updateCategory: (
     id: number,
-    updates: Partial<CategoryFormData>
-  ) => Promise<Category | null>;
-  deleteCategory: (id: number) => Promise<boolean>;
-
-  getPublicArticleBySlug: (slug: string) => Article | undefined;
-  getAdminArticleById: (id: string) => Article | undefined;
-
-  getFeaturedArticles: () => Article[];
-  getPublishedArticles: () => Article[];
-
-  createNewArticle: (
-    articleData: Omit<
-      Article,
-      "id" | "slug" | "readingTime" | "lastModified" | "category"
-    > & { category_id?: number | null }
-  ) => Promise<Article | null>;
-  updateExistingArticle: (
-    id: string,
-    updates: Partial<
-      Omit<
-        Article,
-        "id" | "slug" | "readingTime" | "lastModified" | "category"
-      > & { category_id?: number | null }
-    >
-  ) => Promise<Article | null>; // Fixed: Pastikan Article, bukan Principle (kalau ada typo)
-  removeArticle: (id: string) => Promise<boolean>;
-
-  fetchAdminArticleById: (id: string) => Promise<Article | undefined>;
+    categoryData: Partial<CategoryFormData>
+  ) => Promise<Category>;
+  deleteCategory: (id: number) => Promise<void>;
 }
 
-export const ArticleContext = createContext<ArticleContextType | undefined>(
-  undefined
-);
+const ArticleContext = createContext<ArticleContextType | undefined>(undefined);
 
-interface ArticleProviderProps {
-  children: ReactNode;
-}
+/**
+ * Normalizes tag data from various formats (string, array, object) into a clean array of strings.
+ * @param tags - The tag data to normalize.
+ * @returns An array of normalized tag strings.
+ */
+const normalizeTags = (tags: any): string[] => {
+  if (!tags) {
+    return [];
+  }
 
-export const ArticleProvider: React.FC<ArticleProviderProps> = ({
+  if (Array.isArray(tags)) {
+    return tags
+      .map((tag) => String(tag).trim())
+      .filter((tag) => tag.length > 0);
+  }
+
+  if (typeof tags === "string") {
+    try {
+      const parsed = JSON.parse(tags);
+      if (Array.isArray(parsed)) {
+        return parsed
+          .map((tag) => String(tag).trim())
+          .filter((tag) => tag.length > 0);
+      }
+    } catch (e) {
+      // If not valid JSON, split by comma
+      return tags
+        .split(",")
+        .map((tag) => tag.trim())
+        .filter((tag) => tag.length > 0);
+    }
+  }
+
+  // If object, convert its values to an array
+  if (typeof tags === "object" && tags !== null) {
+    return Object.values(tags)
+      .map((tag) => String(tag).trim())
+      .filter((tag) => tag.length > 0);
+  }
+
+  return [];
+};
+
+/**
+ * Provider component that manages the article state and provides functions to interact with it.
+ * @param children - The child components that will have access to the context.
+ */
+export const ArticleProvider: React.FC<{ children: React.ReactNode }> = ({
   children,
 }) => {
-  const [publicArticlesData, setPublicArticlesData] =
-    useState<PaginationData<Article> | null>(null);
+  const [state, dispatch] = useReducer(articleReducer, initialState);
 
-  const [adminArticlesData, setAdminArticlesData] =
-    useState<PaginationData<Article> | null>(null);
-
-  const [publicTags, setPublicTags] = useState<string[]>([]);
-
-  const [adminCategories, setAdminCategories] = useState<Category[]>([]);
-  const [publicCategories, setPublicCategories] = useState<Category[]>([]);
-
-  const [loading, setLoading] = useState(true);
-  const [adminLoading, setAdminLoading] = useState(true);
-  const [publicTagsLoading, setPublicTagsLoading] = useState(true);
-
-  const [adminCategoriesLoading, setAdminCategoriesLoading] = useState(true);
-  const [publicCategoriesLoading, setPublicCategoriesLoading] = useState(true); // Fixed: publicCategoriesLoading
-
-  const [publicCategoriesError, setPublicCategoriesError] = useState<
-    string | null
-  >(null);
-
-  const { token, isLoggedIn, logout } = useAuth();
-
-  const handleAuthError = useCallback(() => {
-    console.error(
-      "[ArticleContext] Authentication failed or token expired. Logging out."
-    );
-    logout();
-  }, [logout]);
-
-  const fetchAdminCategories = useCallback(async () => {
-    setAdminCategoriesLoading(true);
-
-    if (!isLoggedIn || !token) {
-      console.warn(
-        "[ArticleContext] User not logged in or token not available for fetching admin categories. Skipping fetch."
-      );
-      setAdminCategories([]);
-      setAdminCategoriesLoading(false);
-      return;
-    }
-
+  /**
+   * Fetches public articles from the API with optional filters.
+   * @param filters - Optional filters to apply to the query.
+   */
+  const fetchArticles = useCallback(async (filters: ArticleFilters = {}) => {
+    dispatch({ type: "FETCH_ARTICLES_REQUEST" });
     try {
-      const response = await fetch("/api/admin/categories", {
-        headers: {
-          Authorization: `Bearer ${token}`,
+      const data = await articleApi.getPublicArticles(filters);
+
+      const normalizedArticles = data.articles.map((article) => ({
+        ...article,
+        tags: normalizeTags(article.tags),
+      }));
+
+      dispatch({
+        type: "FETCH_ARTICLES_SUCCESS",
+        payload: {
+          articles: normalizedArticles,
+          pagination: {
+            totalArticles: data.totalArticles,
+            totalPages: data.totalPages,
+            currentPage: data.currentPage,
+            articlesPerPage: data.articlesPerPage,
+          },
         },
       });
-
-      if (response.status === 401 || response.status === 403) {
-        console.error(
-          "[ArticleContext] Admin categories fetch authentication failed."
-        );
-        handleAuthError();
-        setAdminCategories([]);
-        setAdminCategoriesLoading(false);
-        return;
-      }
-
-      if (!response.ok) {
-        console.error(
-          "[ArticleContext] Failed to fetch admin categories:",
-          response.status
-        );
-        try {
-          const errorBody = await response.text();
-          console.error("Error response body:", errorBody);
-        } catch (e) {
-          console.error("Failed to get response body:", e);
-        }
-        setAdminCategories([]);
-        setAdminCategoriesLoading(false);
-        return;
-      }
-
-      const data = (await response.json()) as Category[];
-
-      setAdminCategories(data);
-      setAdminCategoriesLoading(false);
-    } catch (error: any) {
-      console.error("[ArticleContext] Error fetching admin categories:", error);
-      setAdminCategories([]);
-      setAdminCategoriesLoading(false);
-    }
-  }, [isLoggedIn, token, handleAuthError]);
-
-  const fetchPublicCategories = useCallback(async () => {
-    setPublicCategoriesLoading(true);
-
-    try {
-      const response = await fetch("/api/categories");
-
-      if (!response.ok) {
-        console.error(
-          "[ArticleContext] Failed to fetch public categories:",
-          response.status
-        );
-        try {
-          const errorBody = await response.text();
-          console.error("Error response body:", errorBody);
-        } catch (e) {
-          console.error("Failed to get response body:", e);
-        }
-        setPublicCategories([]);
-        setPublicCategoriesLoading(false);
-        return;
-      }
-
-      const data = (await response.json()) as Category[];
-
-      setPublicCategories(data);
-      setPublicCategoriesLoading(false);
-    } catch (error: any) {
-      console.error(
-        "[ArticleContext] Error fetching public categories:",
-        error
-      );
-      setPublicCategories([]);
-      setPublicCategoriesLoading(false);
+    } catch (error) {
+      dispatch({
+        type: "FETCH_ARTICLES_FAILURE",
+        payload:
+          error instanceof Error ? error.message : "An unknown error occurred",
+      });
     }
   }, []);
 
-  const createCategory = useCallback(
-    async (categoryData: CategoryFormData): Promise<Category | null> => {
-      if (!isLoggedIn || !token) {
-        console.error(
-          "[ArticleContext] User not logged in or token not available to create category."
-        );
-        return null;
-      }
-
+  /**
+   * Fetches a single public article by its slug.
+   * @param slug - The slug of the article to fetch.
+   * @returns The normalized article data or null if not found.
+   */
+  const fetchArticleBySlug = useCallback(
+    async (slug: string): Promise<Article | null> => {
+      dispatch({ type: "FETCH_ARTICLE_BY_SLUG_REQUEST" });
       try {
-        const response = await fetch("/api/admin/categories", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-          body: JSON.stringify(categoryData),
-        });
-
-        if (response.status === 401 || response.status === 403) {
-          handleAuthError();
-          return null;
-        }
+        const response = await fetch(
+          `${
+            import.meta.env.VITE_BACKEND_API_URL || "http://localhost:3001"
+          }/api/articles/${slug}`
+        );
 
         if (!response.ok) {
-          console.error(
-            "[ArticleContext] Failed to create new category:",
-            response.status
-          );
-          try {
-            const errorData = await response.json();
-            console.error("Error detail:", errorData.message);
-          } catch (jsonError: any) {
-            console.error("Failed to parse error response as JSON:", jsonError);
-          }
-          return null;
+          const error = await response.text();
+          throw new Error(error || "Article not found");
         }
 
-        const newCategory = (await response.json()) as Category;
+        const article = await response.json();
+        const normalizedArticle = {
+          ...article,
+          tags: normalizeTags(article.tags),
+        };
 
-        return newCategory;
-      } catch (error: any) {
-        console.error("[ArticleContext] Error creating new category:", error);
+        dispatch({
+          type: "FETCH_ARTICLE_BY_SLUG_SUCCESS",
+          payload: normalizedArticle,
+        });
+
+        // Optional: update state.articles also
+        if (state.articles.length < 10) {
+          fetchArticles({ limit: 20 });
+        }
+
+        return normalizedArticle;
+      } catch (error) {
+        const message =
+          error instanceof Error ? error.message : "Failed to load article";
+        dispatch({ type: "FETCH_ARTICLE_BY_SLUG_FAILURE", payload: message });
         return null;
       }
     },
-    [isLoggedIn, token, handleAuthError]
+    [state.articles.length, fetchArticles]
   );
 
-  const updateCategory = useCallback(
-    async (
-      id: number,
-      updates: Partial<CategoryFormData>
-    ): Promise<Category | null> => {
-      if (!isLoggedIn || !token) {
-        console.error(
-          "[ArticleContext] User not logged in or token not available to update category."
-        );
-        return null;
+  /**
+   * Fetches all public categories from the API.
+   */
+  const fetchCategories = useCallback(async () => {
+    dispatch({ type: "FETCH_CATEGORIES_REQUEST" });
+    try {
+      const response = await fetch(
+        `${
+          import.meta.env.VITE_BACKEND_API_URL || "http://localhost:3001"
+        }/api/categories`
+      );
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.message || "Failed to fetch categories");
       }
 
-      try {
-        const response = await fetch(`/api/admin/categories/${id}`, {
-          method: "PUT",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-          body: JSON.stringify(updates),
-        });
+      dispatch({ type: "FETCH_CATEGORIES_SUCCESS", payload: data });
+    } catch (error) {
+      dispatch({
+        type: "FETCH_CATEGORIES_FAILURE",
+        payload:
+          error instanceof Error ? error.message : "An unknown error occurred",
+      });
+    }
+  }, []);
 
-        if (response.status === 401 || response.status === 403) {
-          handleAuthError();
-          return null;
-        }
+  /**
+   * Fetches all public tags from the API.
+   */
+  const fetchTags = useCallback(async () => {
+    dispatch({ type: "FETCH_TAGS_REQUEST" });
+    try {
+      const response = await fetch(
+        `${
+          import.meta.env.VITE_BACKEND_API_URL || "http://localhost:3001"
+        }/api/tags`
+      );
+      const data = await response.json();
 
-        if (!response.ok) {
-          console.error(
-            `[ArticleContext] Failed to update category with ID ${id}:`,
-            response.status
-          );
-          try {
-            const errorData = await response.json();
-            console.error("Error detail:", errorData.message);
-          } catch (jsonError: any) {
-            console.error("Failed to parse error response as JSON:", jsonError);
-          }
-          return null;
-        }
-
-        const updatedCategory = (await response.json()) as Category;
-
-        return updatedCategory;
-      } catch (error: any) {
-        console.error(
-          `[ArticleContext] Error updating category with ID ${id}:`,
-          error
-        );
-        return null;
-      }
-    },
-    [isLoggedIn, token, handleAuthError]
-  );
-
-  const deleteCategory = useCallback(
-    async (id: number): Promise<boolean> => {
-      if (!isLoggedIn || !token) {
-        console.error(
-          "[ArticleContext] User not logged in or token not available to delete category."
-        );
-        return false;
+      if (!response.ok) {
+        throw new Error(data.message || "Failed to fetch tags");
       }
 
-      try {
-        const response = await fetch(`/api/admin/categories/${id}`, {
-          method: "DELETE",
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
+      dispatch({ type: "FETCH_TAGS_SUCCESS", payload: data });
+    } catch (error) {
+      dispatch({
+        type: "FETCH_TAGS_FAILURE",
+        payload:
+          error instanceof Error ? error.message : "An unknown error occurred",
+      });
+    }
+  }, []);
 
-        if (response.status === 401 || response.status === 403) {
-          handleAuthError();
-          return false;
-        }
-
-        if (!response.ok) {
-          console.error(
-            `[ArticleContext] Failed to delete category with ID ${id}:`,
-            response.status
-          );
-          try {
-            const errorBody = await response.text();
-            console.error("Error response body:", errorBody);
-          } catch (e) {
-            console.error("Failed to get response body:", e);
-          }
-          return false;
-        }
-
-        return true;
-      } catch (error: any) {
-        console.error(
-          `[ArticleContext] Error deleting category with ID ${id}:`,
-          error
-        );
-        return false;
-      }
-    },
-    [isLoggedIn, token, handleAuthError]
-  );
-
-  const fetchPublicArticles = useCallback(
+  /**
+   * Fetches admin articles from the API with optional filters.
+   * @param filters - Optional filters to apply to the query.
+   */
+  const fetchAdminArticles = useCallback(
     async (filters: ArticleFilters = {}) => {
-      setLoading(true);
-
-      const queryParams = new URLSearchParams();
-      if (filters.page !== undefined)
-        queryParams.append("page", filters.page.toString());
-      if (filters.limit !== undefined)
-        queryParams.append("limit", filters.limit.toString());
-      if (filters.tag) {
-        if (Array.isArray(filters.tag)) {
-          filters.tag.forEach((t) => queryParams.append("tag", t));
-        } else {
-          queryParams.append("tag", filters.tag);
-        }
-      }
-      if (filters.keyword) queryParams.append("keyword", filters.keyword);
-
-      if (filters.category) queryParams.append("category", filters.category);
-
-      const baseUrl = "/api/articles/";
-      const urlWithParams = `${baseUrl}${
-        queryParams.toString() ? `?${queryParams.toString()}` : ""
-      }`;
-
+      dispatch({ type: "FETCH_ADMIN_ARTICLES_REQUEST" });
       try {
-        const response = await fetch(urlWithParams);
+        const data = await articleApi.getAdminArticles(filters);
 
-        if (!response.ok) {
-          console.error(
-            "[ArticleContext] Failed to fetch public articles:",
-            response.status
-          );
-          try {
-            const errorBody = await response.text();
-            console.error("Error response body:", errorBody);
-          } catch (e) {
-            console.error("Failed to get response body:", e);
-          }
-          setLoading(false);
-          setPublicArticlesData(null);
-          return;
-        }
+        const normalizedArticles = data.articles.map((article) => ({
+          ...article,
+          tags: normalizeTags(article.tags),
+        }));
 
-        const data = (await response.json()) as PaginationData<Article>;
-
-        setPublicArticlesData(data);
-        setLoading(false);
-      } catch (error: any) {
-        console.error(
-          "[ArticleContext] Error fetching public articles:",
-          error
-        );
-        setLoading(false);
-        setPublicArticlesData(null);
+        dispatch({
+          type: "FETCH_ADMIN_ARTICLES_SUCCESS",
+          payload: {
+            articles: normalizedArticles,
+            pagination: {
+              totalArticles: data.totalArticles,
+              totalPages: data.totalPages,
+              currentPage: data.currentPage,
+              articlesPerPage: data.articlesPerPage,
+            },
+          },
+        });
+      } catch (error) {
+        dispatch({
+          type: "FETCH_ADMIN_ARTICLES_FAILURE",
+          payload:
+            error instanceof Error
+              ? error.message
+              : "An unknown error occurred",
+        });
       }
     },
     []
   );
 
-  const fetchPublicTagsList = useCallback(async () => {
-    setPublicTagsLoading(true);
-
+  /**
+   * Fetches admin categories from the API.
+   */
+  const fetchAdminCategories = useCallback(async () => {
+    dispatch({ type: "FETCH_ADMIN_CATEGORIES_REQUEST" });
     try {
-      const response = await fetch("/api/tags/");
-
-      if (!response.ok) {
-        console.error(
-          "[ArticleContext] Failed to fetch public tags list:",
-          response.status
-        );
-        try {
-          const errorBody = await response.text();
-          console.error("Error response body:", errorBody);
-        } catch (e) {
-          console.error("Failed to get response body:", e);
-        }
-        setPublicTags([]);
-        setPublicTagsLoading(false);
-        return;
-      }
-
-      const tagsData = (await response.json()) as string[];
-
-      setPublicTags(tagsData);
-      setPublicTagsLoading(false);
-    } catch (error: any) {
-      console.error("[ArticleContext] Error fetching public tags list:", error);
-      setPublicTags([]);
-      setPublicTagsLoading(false);
+      const data = await categoryApi.getAdminCategories();
+      dispatch({ type: "FETCH_ADMIN_CATEGORIES_SUCCESS", payload: data });
+    } catch (error) {
+      dispatch({
+        type: "FETCH_ADMIN_CATEGORIES_FAILURE",
+        payload:
+          error instanceof Error ? error.message : "An unknown error occurred",
+      });
     }
   }, []);
 
-  const fetchAdminArticles = useCallback(
-    async (filters: ArticleFilters = {}) => {
-      setAdminLoading(true);
-
-      if (!isLoggedIn || !token) {
-        console.warn(
-          "[ArticleContext] User not logged in or token not available for fetching admin articles. Skipping fetch."
-        );
-        setAdminArticlesData(null);
-        setAdminLoading(false);
-        return;
-      }
-
-      const queryParams = new URLSearchParams();
-      if (filters.keyword) queryParams.append("keyword", filters.keyword);
-      if (filters.published !== undefined) {
-        queryParams.append("published", filters.published.toString());
-      }
-      if (filters.featured === true) {
-        queryParams.append("featured", "true");
-      }
-
-      if (filters.tag) {
-        if (Array.isArray(filters.tag)) {
-          filters.tag.forEach((t) => queryParams.append("tag", t));
-        } else {
-          queryParams.append("tag", filters.tag);
-        }
-      }
-
-      if (filters.category) queryParams.append("category", filters.category);
-
-      if (filters.page !== undefined)
-        queryParams.append("page", filters.page.toString());
-      if (filters.limit !== undefined)
-        queryParams.append("limit", filters.limit.toString());
-
-      const baseUrl = "/api/admin/articles/";
-      const urlWithParams = `${baseUrl}${
-        queryParams.toString() ? `?${queryParams.toString()}` : ""
-      }`;
-
+  /**
+   * Fetches a single article by its ID.
+   * @param id - The ID of the article to fetch.
+   * @returns The normalized article data or undefined if not found.
+   */
+  const fetchArticleById = useCallback(
+    async (id: string): Promise<Article | undefined> => {
       try {
-        const response = await fetch(urlWithParams, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
+        const data = await articleApi.getArticleById(id);
+
+        const normalizedData = {
+          ...data,
+          tags: normalizeTags(data.tags),
+        };
+
+        dispatch({
+          type: "FETCH_ARTICLE_BY_ID_SUCCESS",
+          payload: normalizedData,
         });
-
-        if (response.status === 401 || response.status === 403) {
-          console.error("[ArticleContext] Admin fetch authentication failed.");
-          handleAuthError();
-          setAdminArticlesData(null);
-          setAdminLoading(false);
-          return;
-        }
-        if (!response.ok) {
-          console.error(
-            "[ArticleContext] Failed to fetch admin articles from backend:",
-            response.status
-          );
-          try {
-            const errorBody = await response.text();
-            console.error("Error response body:", errorBody);
-          } catch (e) {
-            console.error("Failed to get response body:", e);
-          }
-          setAdminLoading(false);
-          setAdminArticlesData(null);
-          return;
-        }
-
-        const data = (await response.json()) as PaginationData<Article>;
-
-        setAdminArticlesData(data);
-        setAdminLoading(false);
-      } catch (error: any) {
-        console.error(
-          "[ArticleContext] Error fetching admin articles from backend:",
-          error
-        );
-        setAdminLoading(false);
-        setAdminArticlesData(null);
-      }
-    },
-    [isLoggedIn, token, handleAuthError]
-  );
-
-  const fetchAdminArticleById = useCallback(
-    async (articleId: string): Promise<Article | undefined> => {
-      if (!isLoggedIn || !token || !articleId) {
-        console.warn(
-          "User not logged in, token, or Article ID not available to fetch specific admin article."
-        );
-        return undefined;
-      }
-
-      try {
-        const response = await fetch(`/api/admin/articles/${articleId}`, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
-
-        if (response.status === 401 || response.status === 403) {
-          handleAuthError();
-          return undefined;
-        }
-
-        if (!response.ok) {
-          console.error(
-            `[ArticleContext] Failed to fetch admin article with id ${articleId}:`,
-            response.status
-          );
-          try {
-            const errorBody = await response.text();
-            console.error("Error response body:", errorBody);
-          } catch (e) {
-            console.error("Failed to get response body:", e);
-          }
-          return undefined;
-        }
-
-        const data = await response.json();
-
-        return data as Article;
-      } catch (error: any) {
-        console.error(
-          `[ArticleContext] Error fetching admin article with id ${articleId}:`,
-          error
-        );
+        return normalizedData;
+      } catch (error) {
         return undefined;
       }
     },
-    [isLoggedIn, token, handleAuthError]
+    []
   );
 
-  useEffect(() => {
-    fetchPublicArticles({ page: 1, limit: 10 });
-    fetchPublicTagsList();
-    fetchPublicCategories();
-  }, [fetchPublicArticles, fetchPublicTagsList, fetchPublicCategories]);
-
-  useEffect(() => {
-    if (isLoggedIn && token) {
-      fetchAdminCategories();
-    } else {
-      setAdminCategories([]);
-    }
-  }, [isLoggedIn, token, fetchAdminCategories]);
-
-  const createNewArticle = useCallback(
-    async (
-      articleData: Omit<
-        Article,
-        "id" | "slug" | "readingTime" | "lastModified" | "category"
-      > & { category_id?: number | null }
-    ): Promise<Article | null> => {
-      if (!isLoggedIn || !token) {
-        console.error(
-          "[ArticleContext] User not logged in or token not available to create article."
-        );
-        return null;
-      }
-
+  /**
+   * Creates a new article.
+   * @param formData - The data for the new article.
+   * @param file - Optional image file for the article.
+   */
+  const createArticle = useCallback(
+    async (formData: ArticleFormData, file?: File) => {
       try {
-        const response = await fetch("/api/admin/articles/", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-          body: JSON.stringify(articleData),
-        });
+        const newArticle = await articleApi.createArticle(formData, file);
 
-        if (response.status === 401 || response.status === 403) {
-          handleAuthError();
-          return null;
-        }
+        const normalizedData = {
+          ...newArticle,
+          tags: normalizeTags(newArticle.tags),
+        };
 
-        if (!response.ok) {
-          console.error(
-            "[ArticleContext] Failed to create new article:",
-            response.status
-          );
-          try {
-            const errorData = await response.json();
-            console.error("Error detail:", errorData.message);
-          } catch (jsonError: any) {
-            console.error("Failed to parse error response as JSON:", jsonError);
-          }
-          return null;
-        }
-
-        const newArticle = (await response.json()) as Article;
-
-        return newArticle;
-      } catch (error: any) {
-        console.error("[ArticleContext] Error creating new article:", error);
-        return null;
+        dispatch({ type: "CREATE_ARTICLE_SUCCESS", payload: normalizedData });
+      } catch (error) {
+        throw error;
       }
     },
-    [isLoggedIn, token, handleAuthError]
+    []
   );
 
-  const updateExistingArticle = useCallback(
+  /**
+   * Updates an existing article.
+   * @param id - The ID of the article to update.
+   * @param formData - The updated data for the article.
+   * @param file - Optional new image file for the article.
+   * @returns The updated and normalized article data.
+   */
+  const updateArticle = useCallback(
     async (
       id: string,
-      updates: Partial<
-        Omit<
-          Article,
-          "id" | "slug" | "readingTime" | "lastModified" | "category"
-        > & { category_id?: number | null }
-      >
-    ): Promise<Article | null> => {
-      if (!isLoggedIn || !token) {
-        console.error(
-          "[ArticleContext] User not logged in or token not available to update article"
-        );
-        return null;
-      }
-
+      formData: ArticleFormData,
+      file?: File
+    ): Promise<Article> => {
       try {
-        const response = await fetch(`/api/admin/articles/${id}`, {
-          method: "PUT",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-          body: JSON.stringify(updates),
-        });
-
-        if (response.status === 401 || response.status === 403) {
-          handleAuthError();
-          return null;
-        }
-
-        if (!response.ok) {
-          console.error(
-            `[ArticleContext] Failed to update article with id ${id}:`,
-            response.status
-          );
-          try {
-            const errorBody = await response.text();
-            console.error("Error response body:", errorBody);
-          } catch (e) {
-            console.error("Failed to get response body:", e);
-          }
-          return null;
-        }
-
-        const updatedArticle = (await response.json()) as Article;
-
-        return updatedArticle;
-      } catch (error: any) {
-        console.error(
-          `[ArticleContext] Error updating article with id ${id}:`,
-          error
+        const updatedArticle = await articleApi.updateArticle(
+          id,
+          formData,
+          file
         );
-        return null;
+
+        const normalizedData = {
+          ...updatedArticle,
+          tags: normalizeTags(updatedArticle.tags),
+        };
+
+        dispatch({ type: "UPDATE_ARTICLE_SUCCESS", payload: normalizedData });
+        return normalizedData;
+      } catch (error) {
+        throw error;
       }
     },
-    [isLoggedIn, token, handleAuthError]
+    []
   );
 
-  const removeArticle = useCallback(
-    async (id: string): Promise<boolean> => {
-      if (!isLoggedIn || !token) {
-        console.error(
-          "[ArticleContext] User not logged in or token not available to delete article"
-        );
-        return false;
-      }
+  /**
+   * Deletes an article by its ID.
+   * @param id - The ID of the article to delete.
+   */
+  const deleteArticle = useCallback(async (id: string) => {
+    try {
+      await articleApi.deleteArticle(id);
+      dispatch({ type: "DELETE_ARTICLE_SUCCESS", payload: id });
+    } catch (error) {
+      throw error;
+    }
+  }, []);
 
+  /**
+   * Creates a new category.
+   * @param categoryData - The data for the new category.
+   * @returns The newly created category.
+   */
+  const createCategory = useCallback(
+    async (categoryData: CategoryFormData): Promise<Category> => {
       try {
-        const response = await fetch(`/api/admin/articles/${id}`, {
-          method: "DELETE",
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
-
-        if (response.status === 401 || response.status === 403) {
-          handleAuthError();
-          return false;
-        }
-
-        if (!response.ok) {
-          console.error(
-            `[ArticleContext] Failed to delete article with id ${id}:`,
-            response.status
-          );
-          try {
-            const errorBody = await response.text();
-            console.error("Error response body:", errorBody);
-          } catch (e) {
-            console.error("Failed to get response body:", e);
-          }
-          return false;
-        }
-
-        return true;
-      } catch (error: any) {
-        console.error(
-          `[ArticleContext] Error deleting article with id ${id}:`,
-          error
-        );
-        return false;
+        const newCategory = await categoryApi.createCategory(categoryData);
+        dispatch({ type: "CREATE_CATEGORY_SUCCESS", payload: newCategory });
+        return newCategory;
+      } catch (error) {
+        throw error;
       }
     },
-    [isLoggedIn, token, handleAuthError]
+    []
   );
 
-  const getPublicArticleBySlug = useCallback(
-    (slug: string): Article | undefined => {
-      return publicArticlesData?.articles.find(
-        (article) => article.slug === slug
-      );
+  /**
+   * Updates an existing category.
+   * @param id - The ID of the category to update.
+   * @param categoryData - The updated data for the category.
+   * @returns The updated category.
+   */
+  const updateCategory = useCallback(
+    async (
+      id: number,
+      categoryData: Partial<CategoryFormData>
+    ): Promise<Category> => {
+      try {
+        const updatedCategory = await categoryApi.updateCategory(
+          id,
+          categoryData
+        );
+        dispatch({ type: "UPDATE_CATEGORY_SUCCESS", payload: updatedCategory });
+        return updatedCategory;
+      } catch (error) {
+        throw error;
+      }
     },
-    [publicArticlesData]
+    []
   );
 
-  const getAdminArticleById = useCallback(
-    (id: string): Article | undefined => {
-      return adminArticlesData?.articles.find(
-        (article) => String(article.id) === String(id)
-      );
-    },
-    [adminArticlesData]
-  );
-
-  const getFeaturedArticles = useCallback((): Article[] => {
-    return publicArticlesData?.articles
-      ? publicArticlesData.articles
-          .filter((article) => article.featured && article.published)
-          .sort(
-            (a, b) =>
-              new Date(b.publishedDate || 0).getTime() -
-              new Date(a.publishedDate || 0).getTime()
-          )
-      : [];
-  }, [publicArticlesData]);
-
-  const getPublishedArticles = useCallback((): Article[] => {
-    return publicArticlesData?.articles
-      ? publicArticlesData.articles
-          .filter((article) => article.published)
-          .sort(
-            (a, b) =>
-              new Date(b.publishedDate || 0).getTime() -
-              new Date(a.publishedDate || 0).getTime()
-          )
-      : [];
-  }, [publicArticlesData]);
-
-  const value: ArticleContextType = {
-    publicArticlesData,
-    adminArticlesData,
-    publicTags,
-
-    adminCategories,
-    publicCategories,
-
-    loading,
-    adminLoading,
-    publicTagsLoading,
-
-    adminCategoriesLoading,
-    publicCategoriesLoading,
-
-    fetchPublicArticles,
-    fetchAdminArticles,
-
-    fetchAdminCategories,
-    fetchPublicCategories,
-
-    createCategory,
-    updateCategory,
-    deleteCategory,
-
-    getPublicArticleBySlug,
-    getAdminArticleById,
-    getFeaturedArticles,
-    getPublishedArticles,
-    createNewArticle,
-    updateExistingArticle,
-    removeArticle,
-    fetchAdminArticleById,
-    publicCategoriesError,
-  };
+  /**
+   * Deletes a category by its ID.
+   * @param id - The ID of the category to delete.
+   */
+  const deleteCategory = useCallback(async (id: number): Promise<void> => {
+    try {
+      await categoryApi.deleteCategory(id);
+      dispatch({ type: "DELETE_CATEGORY_SUCCESS", payload: id });
+    } catch (error) {
+      throw error;
+    }
+  }, []);
 
   return (
-    <ArticleContext.Provider value={value}>{children}</ArticleContext.Provider>
+    <ArticleContext.Provider
+      value={{
+        state,
+        fetchArticles,
+        fetchArticleBySlug,
+        fetchAdminArticles,
+        fetchCategories,
+        fetchAdminCategories,
+        fetchTags,
+        fetchArticleById,
+        createArticle,
+        updateArticle,
+        deleteArticle,
+        createCategory,
+        updateCategory,
+        deleteCategory,
+      }}
+    >
+      {children}
+    </ArticleContext.Provider>
   );
 };
 
+/**
+ * Custom hook to easily access the ArticleContext.
+ * @throws An error if used outside of an ArticleProvider.
+ * @returns The ArticleContext value.
+ */
 export const useArticles = () => {
   const context = useContext(ArticleContext);
   if (!context) {

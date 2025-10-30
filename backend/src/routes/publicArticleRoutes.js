@@ -1,112 +1,118 @@
 import { Router } from "express";
 import slugify from "slugify";
 
+/**
+ * Factory function that creates the public article router.
+ *
+ * @param {object} options
+ * @param {import('mysql2/promise').Pool} options.pool - MySQL connection pool
+ * @returns {import('express').Router} Express router for public article routes
+ */
 const publicArticleRouterFactory = ({ pool }) => {
   const publicArticleRouter = Router();
 
+  /**
+   * GET /api/articles
+   *
+   * Fetches a paginated list of published articles, with optional filters:
+   * - `tag`: Filter by one or multiple tags.
+   * - `category`: Filter by category slug.
+   * - `keyword`: Search by title or content.
+   * - `page`, `limit`: Pagination options.
+   */
   publicArticleRouter.get("/", async (req, res) => {
-    console.log("[Public Article Route] GET / hit (mounted at /api/articles).");
-
-    const tag = req.query.tag;
-    const keyword = req.query.keyword;
-
-    const categoryFilter = req.query.category;
-
+    const { tag, keyword, category: categoryFilter } = req.query;
     const page = Math.max(1, parseInt(req.query.page) || 1);
     const limit = Math.max(1, parseInt(req.query.limit) || 10);
-
     const offset = (page - 1) * limit;
 
     try {
       const conditions = ["articles.published = TRUE"];
       const queryParams = [];
 
+      // Keyword filter
       if (keyword) {
         conditions.push("(articles.title LIKE ? OR articles.content LIKE ?)");
         queryParams.push(`%${keyword}%`, `%${keyword}%`);
       }
 
+      // Tag filter
       const tagsToFilter = Array.isArray(tag) ? tag : tag ? [tag] : [];
       if (tagsToFilter.length > 0) {
         const tagConditions = tagsToFilter.map(
-          (t) => "JSON_CONTAINS(articles.tags, JSON_ARRAY(?), '$')"
+          () => "JSON_CONTAINS(articles.tags, JSON_ARRAY(?), '$')"
         );
         conditions.push(`(${tagConditions.join(" OR ")})`);
-        tagsToFilter.forEach((t) => {
-          queryParams.push(t);
-        });
-        console.log(
-          `[Public Article Route] Adding tag filter: ${tagsToFilter.join(", ")}`
-        );
+        queryParams.push(...tagsToFilter);
       }
 
+      // Category filter
       if (categoryFilter) {
         conditions.push("categories.slug = ?");
         queryParams.push(categoryFilter);
-        console.log(
-          `[Public Article Route] Adding category filter by slug: ${categoryFilter}`
-        );
       }
 
       const whereClause =
         conditions.length > 0 ? `WHERE ${conditions.join(" AND ")}` : "";
 
-      const sql = `SELECT
-                        articles.id,
-                        articles.title,
-                        articles.slug,
-                        articles.content,
-                        articles.overview,
-                        articles.cover_image,
-                        articles.published_date,
-                        articles.featured,
-                        articles.published,
-                        articles.author_name,
-                        articles.author_avatar,
-                        articles.tags,
-                        articles.reading_time,
-                        articles.last_modified,
-                        articles.category_id,
-                        categories.name AS category_name,
-                        categories.slug AS category_slug
-                    FROM
-                        articles
-                    LEFT JOIN
-                        categories ON articles.category_id = categories.id
-                    ${whereClause}
-                    ORDER BY articles.published_date DESC -- Urutkan berdasarkan published_date untuk publik
-                    LIMIT ${limit} OFFSET ${offset}`;
+      // Fetch paginated articles
+      const sql = `
+        SELECT
+          articles.id,
+          articles.title,
+          articles.slug,
+          articles.content,
+          articles.overview,
+          articles.cover_image,
+          articles.published_date,
+          articles.featured,
+          articles.published,
+          articles.author_name,
+          articles.author_avatar,
+          articles.tags,
+          articles.reading_time,
+          articles.last_modified,
+          articles.category_id,
+          categories.name AS category_name,
+          categories.slug AS category_slug
+        FROM
+          articles
+        LEFT JOIN
+          categories ON articles.category_id = categories.id
+        ${whereClause}
+        ORDER BY articles.published_date DESC
+        LIMIT ${limit} OFFSET ${offset};
+      `;
+
       const [rows] = await pool.execute(sql, queryParams);
 
+      // Count total results
       const [totalRows] = await pool.execute(
-        `SELECT COUNT(*) AS total
-           FROM articles
-           LEFT JOIN categories ON articles.category_id = categories.id
-           ${whereClause}`,
+        `
+        SELECT COUNT(*) AS total
+        FROM articles
+        LEFT JOIN categories ON articles.category_id = categories.id
+        ${whereClause};
+      `,
         queryParams
       );
       const totalArticles = totalRows[0].total;
 
+      // Normalize and sanitize article data
       const articles = rows.map((row) => {
-        let tagsArray = Array.isArray(row.tags) ? row.tags : [];
+        let tagsArray = [];
 
-        if (!Array.isArray(tagsArray)) {
-          console.warn(
-            `[Public Article Route] Tags for article ID ${row.id} is not an array after check.`
-          );
-          tagsArray = [];
+        if (row.tags) {
+          try {
+            tagsArray = Array.isArray(row.tags)
+              ? row.tags
+              : JSON.parse(row.tags);
+          } catch {
+            tagsArray = [];
+          }
         }
 
-        const authorName = row.author_name || "Unknown Author";
-        const authorAvatar = row.author_avatar || "/default-avatar.jpg";
-
-        const category = row.category_id
-          ? {
-              id: row.category_id,
-              name: row.category_name,
-              slug: row.category_slug,
-            }
-          : null;
+        if (!Array.isArray(tagsArray)) tagsArray = [];
 
         return {
           id: row.id,
@@ -121,100 +127,92 @@ const publicArticleRouterFactory = ({ pool }) => {
           readingTime: row.reading_time,
           tags: tagsArray,
           author: {
-            name: authorName,
-            avatar: authorAvatar,
+            name: row.author_name || "Unknown Author",
+            avatar: row.author_avatar || "/default-avatar.jpg",
           },
-
           category_id: row.category_id,
-          category: category,
+          category: row.category_id
+            ? {
+                id: row.category_id,
+                name: row.category_name,
+                slug: row.category_slug,
+              }
+            : null,
         };
       });
 
       res.status(200).json({
-        articles: articles,
-        totalArticles: totalArticles,
+        articles,
+        totalArticles,
         totalPages: Math.ceil(totalArticles / limit),
         currentPage: page,
         articlesPerPage: limit,
       });
     } catch (error) {
-      console.error(
-        "[Public Article Route] Error fetching public articles with filters and pagination:",
-        error
-      );
-
-      if (error.code) {
-        console.error("MySQL Error Code:", error.code);
-        console.error("MySQL Error No:", error.errno);
-        console.error("MySQL SQL State:", error.sqlState);
-        console.error("MySQL SQL Message:", error.sqlMessage);
-        console.error("MySQL SQL Query:", error.sql);
-      }
-      res
-        .status(500)
-        .json({ message: "Failed to fetch articles", error: error.message });
+      console.error("Error fetching public articles:", error);
+      res.status(500).json({
+        message: "Failed to fetch articles.",
+        error: error.message,
+      });
     }
   });
 
+  /**
+   * GET /api/articles/:slug
+   *
+   * Fetch a single published article by slug.
+   */
   publicArticleRouter.get("/:slug", async (req, res) => {
     const { slug } = req.params;
 
     try {
       const [rows] = await pool.execute(
-        `SELECT
-                  articles.id,
-                  articles.title,
-                  articles.slug,
-                  articles.content,
-                  articles.overview,
-                  articles.cover_image,
-                  articles.published_date,
-                  articles.featured,
-                  articles.published,
-                  articles.author_name,
-                  articles.author_avatar,
-                  articles.tags,
-                  articles.reading_time,
-                  articles.last_modified,
-                  articles.category_id,
-                  categories.name AS category_name,
-                  categories.slug AS category_slug
-              FROM
-                  articles
-              LEFT JOIN
-                  categories ON articles.category_id = categories.id
-              WHERE articles.slug = ? AND articles.published = TRUE LIMIT 1`,
+        `
+        SELECT
+          articles.id,
+          articles.title,
+          articles.slug,
+          articles.content,
+          articles.overview,
+          articles.cover_image,
+          articles.published_date,
+          articles.featured,
+          articles.published,
+          articles.author_name,
+          articles.author_avatar,
+          articles.tags,
+          articles.reading_time,
+          articles.last_modified,
+          articles.category_id,
+          categories.name AS category_name,
+          categories.slug AS category_slug
+        FROM
+          articles
+        LEFT JOIN
+          categories ON articles.category_id = categories.id
+        WHERE articles.slug = ? AND articles.published = TRUE
+        LIMIT 1;
+      `,
         [slug]
       );
 
-      if (rows.length === 0) {
-        console.log(
-          `[Public Article Route] Public article with slug "${slug}" not found or not published.`
-        );
+      if (rows.length === 0)
         return res.status(404).json({ message: "Article not found." });
-      }
 
       const row = rows[0];
+      let tagsArray = [];
 
-      let tagsArray = Array.isArray(row.tags) ? row.tags : [];
-
-      if (!Array.isArray(tagsArray)) {
-        console.warn(
-          `[Public Article Route] Tags for article slug "${slug}" is not an array after check.`
-        );
+      try {
+        tagsArray = Array.isArray(row.tags)
+          ? row.tags
+          : JSON.parse(row.tags || "[]");
+      } catch {
         tagsArray = [];
       }
 
-      const authorName = row.author_name || "Unknown Author";
-      const authorAvatar = row.author_avatar || "/default-avatar.jpg";
-
-      const category = row.category_id
-        ? {
-            id: row.category_id,
-            name: row.category_name,
-            slug: row.category_slug,
-          }
-        : null;
+      tagsArray = tagsArray
+        .map((tag) => String(tag).trim())
+        .filter((tag) => tag.length > 0);
 
       const article = {
         id: row.id,
@@ -227,34 +225,28 @@ const publicArticleRouterFactory = ({ pool }) => {
         featured: row.featured === 1,
         published: row.published === 1,
         readingTime: row.reading_time,
+        lastModified: row.last_modified,
         tags: tagsArray,
         author: {
-          name: authorName,
-          avatar: authorAvatar,
+          name: row.author_name || "Unknown Author",
+          avatar: row.author_avatar || "/default-avatar.jpg",
         },
-        lastModified: row.last_modified,
         category_id: row.category_id,
-        category: category,
+        category: row.category_id
+          ? {
+              id: row.category_id,
+              name: row.category_name,
+              slug: row.category_slug,
+            }
+          : null,
       };
 
-      console.log(
-        `[Public Article Route] Fetched public article with slug "${slug}".`
-      );
       res.status(200).json(article);
     } catch (error) {
-      console.error(
-        `[Public Article Route] Error fetching public article with slug "${slug}":`,
-        error
-      );
-
-      if (error.code) {
-        console.error("MySQL Error Code:", error.code);
-        console.error("MySQL Error No:", error.errno);
-        console.error("MySQL SQL State:", error.sqlState);
-        console.error("MySQL SQL Message:", error.sqlMessage);
-        console.error("MySQL SQL Query:", error.sql);
-      }
-      res.status(500).json({ message: "Failed to fetch article." });
+      console.error(`Error fetching article with slug "${slug}":`, error);
+      res
+        .status(500)
+        .json({ message: "Failed to fetch article.", error: error.message });
     }
   });
 

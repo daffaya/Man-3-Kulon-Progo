@@ -1,106 +1,134 @@
-// backend/src/frontend/src/pages/EditArticle.tsx
-import React, { useState, useEffect, useCallback } from "react";
-import { useParams, useNavigate, Link } from "react-router-dom"; // Import Link
+// frontend/src/pages/EditArticlePage.tsx
+
+import React, { useState, useEffect } from "react";
+import { useParams, useNavigate, Link } from "react-router-dom";
 import Layout from "../../../components/layout/Layout";
 import { useArticles } from "../../../contexts/ArticleContext";
-// Import Article dan ArticleFormData
-import { Article, ArticleFormData } from "../../../types/articleTypes";
-import ArticleForm from "../../../components/forms/ArticleForm"; // Import ArticleForm
-import { RefreshCw, X, ChevronLeft, ArrowLeft } from "lucide-react"; // Import icons
+import { ArticleFormData } from "../../../types/articleTypes";
+import ArticleForm from "../../../components/forms/ArticleForm";
+import { RefreshCw, ChevronLeft } from "lucide-react";
 import AdminLayout from "../../../components/layout/AdminLayout";
 import { useAuth } from "../../../contexts/AuthContext";
+import Toast from "../../../components/ui/Toast";
+import articleApi from "../../../api/articleApi";
 
+/** Roles that are permitted to edit articles. */
 export const ALLOWED_ROLES = ["jurnalis", "super_admin"] as const;
+
+/**
+ * Checks if a user has permission to edit articles based on their login status and role.
+ * @param isLoggedIn - The user's login status.
+ * @param role - The user's role.
+ * @returns True if the user has edit access, otherwise false.
+ */
 const hasEditAccess = (isLoggedIn: boolean, role?: string): boolean =>
   isLoggedIn && role
     ? ALLOWED_ROLES.includes(role as (typeof ALLOWED_ROLES)[number])
     : false;
 
+/**
+ * A page component for editing an existing article.
+ * It fetches the article data on load, allows the user to modify it,
+ * and saves the changes to the backend.
+ */
 const EditArticle: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const { fetchAdminArticleById, updateExistingArticle } = useArticles();
-  const [articleData, setArticleData] = useState<Article | null>(null);
-  const { isLoggedIn, logout, token, user } = useAuth();
+  const { state, updateArticle } = useArticles();
+  const { isLoggedIn, user } = useAuth();
 
-  const isAdminOrJurnalist = hasEditAccess(isLoggedIn, user?.role);
+  const isAdminOrJurnalis = hasEditAccess(isLoggedIn, user?.role);
 
-  const [loading, setLoading] = useState(true); // Loading awal saat fetch data artikel
-  const [saving, setSaving] = useState(false); // Loading saat menyimpan perubahan
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [initialLoadError, setInitialLoadError] = useState<string | null>(null); // Error saat gagal fetch data awal
+  const [initialLoadError, setInitialLoadError] = useState<string | null>(null);
+  const [article, setArticle] = useState<any>(null);
 
-  // --- Fetch data artikel saat komponen mount atau ID berubah ---
+  const [toast, setToast] = useState<{
+    message: string;
+    type: "success" | "error" | "warning" | "info";
+    isVisible: boolean;
+  }>({
+    message: "",
+    type: "success",
+    isVisible: false,
+  });
+
+  /**
+   * Displays a toast notification with a specific message and type.
+   * @param message - The message to display.
+   * @param type - The type of toast notification.
+   */
+  const showToast = (
+    message: string,
+    type: "success" | "error" | "warning" | "info" = "success"
+  ) => setToast({ message, type, isVisible: true });
+
+  /** Hides the currently visible toast notification. */
+  const hideToast = () => setToast((prev) => ({ ...prev, isVisible: false }));
+
   useEffect(() => {
+    /**
+     * Loads the article data from the API based on the ID from the URL.
+     * Validates the ID format and handles loading and error states.
+     */
     const loadArticle = async () => {
-      // Hanya perlu fetch artikel di sini
       if (!id) {
         setInitialLoadError("Article ID is missing.");
         setLoading(false);
         return;
       }
+
+      const uuidRegex =
+        /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+      if (!uuidRegex.test(id)) {
+        setInitialLoadError("Invalid article ID. ID must be a valid UUID.");
+        setLoading(false);
+        return;
+      }
+
       setLoading(true);
       setInitialLoadError(null);
 
-      console.log(`[EditArticle useEffect] Fetching article ID: ${id}...`);
-
-      // Fetch data artikel
-      const fetchedArticle = await fetchAdminArticleById(id);
-
-      if (fetchedArticle) {
-        console.log(
-          "[EditArticle useEffect] Fetched article data:",
-          fetchedArticle
-        );
-        // Set state articleData dengan data artikel yang diambil
-        setArticleData(fetchedArticle); // Simpan objek artikel lengkap
-        console.log("[EditArticle useEffect] Article data state updated.");
-      } else {
-        console.error(
-          `[EditArticle useEffect] Failed to fetch article with ID ${id}.`
-        );
-        setInitialLoadError("Failed to load article. Please check console.");
-        setArticleData(null); // Set null jika gagal
+      try {
+        const fetchedArticle = await articleApi.getArticleById(id);
+        setArticle(fetchedArticle);
+      } catch (err) {
+        setInitialLoadError("Failed to load article.");
+      } finally {
+        setLoading(false);
       }
-
-      setLoading(false); // Selesai loading setelah fetch artikel
     };
 
     loadArticle();
-  }, [id, fetchAdminArticleById]);
+  }, [id]);
 
-  const handleSubmit = async (formData: ArticleFormData) => {
+  /**
+   * Handles the form submission to update the article.
+   * @param formData - The updated article data.
+   * @param file - An optional new image file for the article.
+   */
+  const handleSubmit = async (formData: ArticleFormData, file?: File) => {
     if (!id) return;
 
     setSaving(true);
     setError(null);
 
-    console.log(
-      `[EditArticle] Submitting updates for article ID ${id}. Received formData from form:`,
-      formData
-    ); // Log data yang diterima dari form
-
-    const updatedArticle = await updateExistingArticle(id, formData);
-
-    if (updatedArticle) {
-      console.log(
-        `[EditArticle] Article ID ${id} updated successfully:`,
-        updatedArticle
-      );
-      // Opsional: Redirect atau tampilkan pesan sukses
-      // navigate(`/atmin/articles/${updatedArticle.id}`); // Redirect ke halaman detail artikel admin
-      alert("Article updated successfully!"); // Pesan sukses
-      // Opsional: Perbarui state articleData lokal jika perlu
-      setArticleData(updatedArticle);
-    } else {
-      console.error(`[EditArticle] Failed to update article with ID ${id}.`);
-      setError("Failed to update article. Please check console for details.");
+    try {
+      const updatedArticle = await updateArticle(id, formData, file);
+      showToast("Artikel berhasil diperbarui!", "success");
+      setTimeout(() => navigate("/atmin/articles"), 1500);
+    } catch (err) {
+      const message =
+        err instanceof Error ? err.message : "Failed to update article";
+      setError(message);
+      showToast(message, "error");
+    } finally {
+      setSaving(false);
     }
-
-    setSaving(false); // Selesai saving
   };
 
-  // Tampilkan loading state awal (fetch data artikel)
   if (loading) {
     return (
       <Layout>
@@ -112,20 +140,24 @@ const EditArticle: React.FC = () => {
     );
   }
 
-  // Tampilkan error state awal (gagal fetch data artikel)
   if (initialLoadError) {
     return (
       <Layout>
         <div className="container max-w-4xl mx-auto px-4 sm:px-6 py-12 text-center text-error">
           <p className="text-xl font-bold mb-4">Error Loading Article</p>
           <p>{initialLoadError}</p>
+          <Link
+            to="/atmin/articles"
+            className="mt-4 inline-block btn btn-secondary"
+          >
+            Back to Dashboard
+          </Link>
         </div>
       </Layout>
     );
   }
 
-  // Tampilkan pesan jika articleData masih null setelah loading selesai (misal ID tidak valid)
-  if (!articleData) {
+  if (!article) {
     return (
       <Layout>
         <div className="container max-w-4xl mx-auto px-4 sm:px-6 py-12 text-center text-gray-600 dark:text-gray-400">
@@ -145,7 +177,7 @@ const EditArticle: React.FC = () => {
   return (
     <AdminLayout>
       <div className="container max-w-4xl mx-auto px-4 sm:px-6 py-12 fade-in">
-        {isAdminOrJurnalist && (
+        {isAdminOrJurnalis && (
           <div className="flex items-center mb-4">
             <Link
               to="/atmin/articles"
@@ -158,24 +190,27 @@ const EditArticle: React.FC = () => {
         )}
 
         <div className="bg-white dark:bg-gray-800 rounded-xl shadow-md p-6">
-          {/* Error Message */}
           {error && (
             <div className="bg-error/10 border border-error text-error px-4 py-3 rounded mb-4">
               {error}
             </div>
           )}
-          {/* Render ArticleForm component dan teruskan data artikel serta handler submit */}
-          {/* ArticleForm akan menggunakan data artikel untuk mengisi form, termasuk kategori */}{" "}
-          <ArticleForm article={articleData} onSubmit={handleSubmit} />
-          {/* Indikator saving */}
-          {saving && (
-            <div className="mt-4 text-center text-accent flex items-center justify-center">
-              <RefreshCw size={18} className="animate-spin mr-2" /> Saving
-              changes...
-            </div>
-          )}
+
+          <ArticleForm
+            article={article}
+            onSubmit={handleSubmit}
+            isLoading={saving}
+          />
         </div>
       </div>
+
+      <Toast
+        message={toast.message}
+        type={toast.type}
+        isVisible={toast.isVisible}
+        duration={3000}
+        onClose={hideToast}
+      />
     </AdminLayout>
   );
 };

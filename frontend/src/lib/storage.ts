@@ -4,7 +4,7 @@ import { Article } from "../types/articleTypes";
 const SAMPLE_ARTICLES: Article[] = [];
 
 // localStorage keys
-const ARTICLES_STORAGE_KEY = "blog_articles";
+const ARTICLES_STORAGE_KEY = "berita_articles";
 const THEME_STORAGE_KEY = "theme_preference";
 
 // Get articles from localStorage or use sample data

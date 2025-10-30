@@ -18,8 +18,8 @@
   "dependencies": {
     "bcrypt": "^6.0.0",
     "date-fns": "^4.1.0",
-    "express-rate-limit": "^8.1.0",
     "exceljs": "^4.4.0",
+    "express-rate-limit": "^8.1.0",
     "pdfkit": "^0.17.2",
     "react-dropzone": "^14.3.8"
   }
