@@ -38,6 +38,7 @@ const LoginPage: React.FC = () => {
       full_name: data.user.username,
       avatar: null,
       ...data.user,
+      created_at: "",
     };
     login(user, data.token);
   };

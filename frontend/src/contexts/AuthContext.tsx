@@ -10,7 +10,8 @@ import { User } from "../types/userTypes";
 import userApi from "../api/userApi";
 
 /**
- * Defines the shape of the AuthContext value.
+ * Represents the structure of the authentication context.
+ * Provides user authentication state, token management, and profile operations.
  */
 interface AuthContextValue {
   isLoggedIn: boolean;
@@ -33,7 +34,10 @@ interface AuthProviderProps {
 }
 
 /**
- * Provides authentication state and methods to its children.
+ * AuthProvider component
+ *
+ * Provides authentication-related state and actions to the entire React app via Context API.
+ * Handles login, logout, user profile updates, and automatic rehydration from localStorage.
  */
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [isLoggedIn, setIsLoggedIn] = useState<boolean>(false);
@@ -42,7 +46,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [isLoadingAuth, setIsLoadingAuth] = useState<boolean>(true);
 
   /**
-   * Logs in a user by saving credentials in state and localStorage.
+   * Logs in the user.
+   * Stores the user and token in both state and localStorage.
    */
   const login = (userData: User, authToken: string) => {
     setIsLoggedIn(true);
@@ -53,7 +58,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   };
 
   /**
-   * Logs out the current user and clears state and localStorage.
+   * Logs out the user.
+   * Clears user data and token from both state and localStorage.
    */
   const logout = () => {
     setIsLoggedIn(false);
@@ -64,14 +70,13 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   };
 
   /**
-   * Updates user profile
+   * Updates the user's profile information (e.g., full name).
+   * Saves the updated user data to state and localStorage.
    */
   const updateUserProfile = async (profileData: { full_name: string }) => {
     try {
       const updatedUser = await userApi.updateUserProfile(profileData);
       setUser(updatedUser);
-
-      // Update localStorage
       localStorage.setItem("user", JSON.stringify(updatedUser));
     } catch (error) {
       throw error;
@@ -79,38 +84,36 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   };
 
   /**
-   * Updates user avatar
+   * Updates the user's avatar in both state and localStorage.
+   * This function does not make an API call — it only updates the local data.
    */
   const updateUserAvatar = (avatar: string | null) => {
     if (user) {
       const updatedUser = { ...user, avatar };
       setUser(updatedUser);
-
-      // Update localStorage
       localStorage.setItem("user", JSON.stringify(updatedUser));
     }
   };
 
   /**
-   * Refreshes user profile from API
+   * Refreshes the user's profile data by fetching the latest information from the API.
+   * If this fails (e.g., due to expired token), we do NOT automatically log out.
+   * ProtectedRoute or other components should handle such cases.
    */
   const refreshUserProfile = async () => {
     try {
       const userData = await userApi.getUserProfile();
       setUser(userData);
-      setIsLoggedIn(true);
-
-      // Update localStorage
       localStorage.setItem("user", JSON.stringify(userData));
     } catch (error) {
       console.error("Failed to refresh user profile:", error);
-      // If token is invalid, logout
-      logout();
+      // Do not auto-logout here. Let ProtectedRoute handle authentication errors.
     }
   };
 
   /**
-   * Initializes authentication state from localStorage on mount.
+   * Initializes authentication state from localStorage when the app starts.
+   * Attempts to rehydrate user and token from previous session.
    */
   useEffect(() => {
     const storedToken = localStorage.getItem("token");
@@ -122,14 +125,13 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         setIsLoggedIn(true);
         setUser(parsedUser);
         setToken(storedToken);
-
-        // Refresh user profile to get latest data
-        refreshUserProfile();
-      } catch {
+      } catch (error) {
+        console.error("Error parsing user data:", error);
         localStorage.removeItem("user");
         localStorage.removeItem("token");
       }
     }
+
     setIsLoadingAuth(false);
   }, []);
 
@@ -147,6 +149,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   return (
     <AuthContext.Provider value={value}>
+      {/* Wait until authentication state is initialized before rendering children */}
       {!isLoadingAuth && children}
     </AuthContext.Provider>
   );
@@ -154,7 +157,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
 /**
  * Custom hook to access authentication context.
- * @throws If used outside of AuthProvider.
+ * Must be used within an <AuthProvider>.
  */
 export const useAuth = () => {
   const context = useContext(AuthContext);

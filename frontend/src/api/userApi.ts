@@ -1,66 +1,79 @@
-// frontend/src/api/userApi.ts
-
 import { User, UserProfileData, UserFormData } from "../types/userTypes";
 
 const API_URL = import.meta.env.VITE_BACKEND_API_URL || "http://localhost:3001";
 
 /**
- * Mengambil header Authorization jika token tersedia di localStorage.
+ * Objek yang berisi semua fungsi untuk berinteraksi dengan API terkait user.
  */
-const getAuthHeaders = () => {
-  const token = localStorage.getItem("token");
-  return {
-    ...(token ? { Authorization: `Bearer ${token}` } : {}),
-  };
-};
-
-/**
- * Menangani response dari fetch API.
- * @param response Response dari fetch
- * @throws Error jika response tidak OK
- * @returns Data JSON
- */
-const handleResponse = async (response: Response) => {
-  if (!response.ok) {
-    const errorData = await response.json();
-    throw new Error(errorData.message || "Something went wrong");
-  }
-  return response.json();
-};
-
 const userApi = {
   /**
+   * Mengambil header Authorization jika token tersedia di localStorage.
+   * @returns {Record<string, string>} Objek header untuk autentikasi.
+   */
+  getAuthHeaders: (): Record<string, string> => {
+    const token = localStorage.getItem("token");
+    if (token) {
+      return { Authorization: `Bearer ${token}` };
+    }
+    return {}; // Mengembalikan objek kosong jika tidak ada token
+  },
+
+  /**
+   * Menangani response dari fetch API.
+   * Jika response tidak OK, akan membuang error.
+   * Jika status 401 (Unauthorized), akan menghapus token/user dan redirect ke halaman login.
+   * @param {Response} response - Response dari fetch.
+   * @throws {Error} Error dengan pesan dari server atau pesan default.
+   * @returns {Promise<any>} Data JSON dari response jika berhasil.
+   */
+  handleResponse: async (response: Response): Promise<any> => {
+    if (!response.ok) {
+      // Jika response 401 (Unauthorized), hapus token dan user dari localStorage
+      if (response.status === 401) {
+        localStorage.removeItem("token");
+        localStorage.removeItem("user");
+        // Redirect ke login page
+        window.location.href = "/login";
+      }
+
+      const errorData = await response.json().catch(() => ({})); // Prevent error if response is not JSON
+      throw new Error(errorData.message || "Something went wrong");
+    }
+    return response.json();
+  },
+
+  /**
    * Mengambil data profil user yang sedang login.
-   * @returns Data user
+   * @returns {Promise<User>} Promise yang menghasilkan data user.
    */
   getUserProfile: async (): Promise<User> => {
     const response = await fetch(`${API_URL}/api/users/profile`, {
-      headers: getAuthHeaders(),
+      headers: userApi.getAuthHeaders(),
     });
-    return handleResponse(response);
+    return userApi.handleResponse(response);
   },
 
   /**
    * Memperbarui data profil user.
-   * @param profileData Data profil yang akan diperbarui
-   * @returns Data user yang sudah diperbarui
+   * @param {UserProfileData} profileData - Data profil yang akan diperbarui.
+   * @returns {Promise<User>} Promise yang menghasilkan data user yang sudah diperbarui.
    */
   updateUserProfile: async (profileData: UserProfileData): Promise<User> => {
     const response = await fetch(`${API_URL}/api/users/profile`, {
       method: "PUT",
       headers: {
         "Content-Type": "application/json",
-        ...getAuthHeaders(),
+        ...userApi.getAuthHeaders(),
       },
       body: JSON.stringify(profileData),
     });
-    return handleResponse(response);
+    return userApi.handleResponse(response);
   },
 
   /**
-   * Upload avatar user.
-   * @param file File avatar yang akan diupload
-   * @returns URL avatar yang sudah diupload
+   * Upload avatar user dari file.
+   * @param {File} file - File avatar yang akan diupload.
+   * @returns {Promise<{ avatar: string }>} Promise yang menghasilkan URL avatar yang sudah diupload.
    */
   uploadAvatar: async (file: File): Promise<{ avatar: string }> => {
     const formData = new FormData();
@@ -68,44 +81,44 @@ const userApi = {
 
     const response = await fetch(`${API_URL}/api/users/profile/avatar`, {
       method: "POST",
-      headers: getAuthHeaders(),
+      headers: userApi.getAuthHeaders(),
       body: formData,
     });
-    return handleResponse(response);
+    return userApi.handleResponse(response);
   },
 
   /**
    * Memperbarui avatar user melalui URL.
-   * @param avatarUrl URL avatar yang akan digunakan
-   * @returns URL avatar yang sudah diperbarui
+   * @param {string} avatarUrl - URL avatar yang akan digunakan.
+   * @returns {Promise<{ avatar: string }>} Promise yang menghasilkan URL avatar yang sudah diperbarui.
    */
   updateAvatarByUrl: async (avatarUrl: string): Promise<{ avatar: string }> => {
     const response = await fetch(`${API_URL}/api/users/profile/avatar`, {
       method: "PUT",
       headers: {
         "Content-Type": "application/json",
-        ...getAuthHeaders(),
+        ...userApi.getAuthHeaders(),
       },
       body: JSON.stringify({ avatarUrl }),
     });
-    return handleResponse(response);
+    return userApi.handleResponse(response);
   },
 
   /**
-   * Mengambil semua user (Super Admin only).
-   * @returns Daftar semua user
+   * Mengambil semua data user (hanya untuk Super Admin).
+   * @returns {Promise<User[]>} Promise yang menghasilkan daftar semua user.
    */
   getAllUsers: async (): Promise<User[]> => {
     const response = await fetch(`${API_URL}/api/users/users`, {
-      headers: getAuthHeaders(),
+      headers: userApi.getAuthHeaders(),
     });
-    return handleResponse(response);
+    return userApi.handleResponse(response);
   },
 
   /**
-   * Membuat user baru (Super Admin only).
-   * @param userData Data user yang akan dibuat
-   * @returns User yang sudah dibuat
+   * Membuat user baru (hanya untuk Super Admin).
+   * @param {UserFormData} userData - Data user yang akan dibuat.
+   * @returns {Promise<{ success: boolean; user: User; message: string }>} Promise yang menghasilkan objek hasil pembuatan user.
    */
   createUser: async (
     userData: UserFormData
@@ -114,18 +127,18 @@ const userApi = {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        ...getAuthHeaders(),
+        ...userApi.getAuthHeaders(),
       },
       body: JSON.stringify(userData),
     });
-    return handleResponse(response);
+    return userApi.handleResponse(response);
   },
 
   /**
-   * Memperbarui user (Super Admin only).
-   * @param id ID user yang akan diperbarui
-   * @param userData Data user yang akan diperbarui
-   * @returns User yang sudah diperbarui
+   * Memperbarui data user (hanya untuk Super Admin).
+   * @param {number} id - ID user yang akan diperbarui.
+   * @param {UserFormData} userData - Data user yang akan diperbarui.
+   * @returns {Promise<{ success: boolean; user: User; message: string }>} Promise yang menghasilkan objek hasil pembaruan user.
    */
   updateUser: async (
     id: number,
@@ -135,26 +148,26 @@ const userApi = {
       method: "PUT",
       headers: {
         "Content-Type": "application/json",
-        ...getAuthHeaders(),
+        ...userApi.getAuthHeaders(),
       },
       body: JSON.stringify(userData),
     });
-    return handleResponse(response);
+    return userApi.handleResponse(response);
   },
 
   /**
-   * Menghapus user (Super Admin only).
-   * @param id ID user yang akan dihapus
-   * @returns Hasil operasi penghapusan
+   * Menghapus user (hanya untuk Super Admin).
+   * @param {number} id - ID user yang akan dihapus.
+   * @returns {Promise<{ success: boolean; message: string }>} Promise yang menghasilkan objek hasil penghapusan user.
    */
   deleteUser: async (
     id: number
   ): Promise<{ success: boolean; message: string }> => {
     const response = await fetch(`${API_URL}/api/users/users/${id}`, {
       method: "DELETE",
-      headers: getAuthHeaders(),
+      headers: userApi.getAuthHeaders(),
     });
-    return handleResponse(response);
+    return userApi.handleResponse(response);
   },
 };
 
