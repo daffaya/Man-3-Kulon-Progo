@@ -1,4 +1,3 @@
-// frontend/src/components/ui/ImageUploader.tsx
 import React, { useState, useRef, useEffect, useCallback } from "react";
 import {
   Upload,
@@ -8,7 +7,7 @@ import {
   HelpCircle,
 } from "lucide-react";
 import ImageWithFallback from "./ImageWithFallback";
-import { useToast } from "../../contexts/ToastContext";
+import { useToastMessage } from "../../hooks/useToastMessage";
 
 interface ImageUploaderProps {
   currentImage?: string;
@@ -25,7 +24,7 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({
   label = "Gambar",
   required = false,
 }) => {
-  const { showToast } = useToast();
+  const { showSuccessToast, showErrorToast, showInfoToast } = useToastMessage();
   const [activeTab, setActiveTab] = useState<"upload" | "url">("upload");
   const [previewUrl, setPreviewUrl] = useState<string>(currentImage);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
@@ -61,11 +60,11 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({
       if (e.target.files && e.target.files[0]) {
         const file = e.target.files[0];
         if (!file.type.startsWith("image/")) {
-          showToast("Hanya file gambar yang diperbolehkan", "error");
+          showErrorToast("Hanya file gambar yang diperbolehkan");
           return;
         }
         if (file.size > MAX_FILE_SIZE) {
-          showToast(`Ukuran file maksimal 15MB`, "error");
+          showErrorToast(`Ukuran file maksimal 15MB`);
           return;
         }
         if (previewUrl) {
@@ -76,7 +75,7 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({
         }
       }
     },
-    [previewUrl, showToast]
+    [previewUrl, showErrorToast]
   );
 
   const processFileUpload = useCallback(
@@ -92,9 +91,9 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({
       onImageChange(file);
       setImageUrl("");
       setUrlError("");
-      showToast("Gambar berhasil diunggah", "success");
+      showSuccessToast("Gambar berhasil diunggah");
     },
-    [previewUrl, onImageChange, showToast]
+    [previewUrl, onImageChange, showSuccessToast]
   );
 
   const handleDragOver = useCallback((e: React.DragEvent<HTMLDivElement>) => {
@@ -113,11 +112,11 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({
       if (e.dataTransfer.files && e.dataTransfer.files[0]) {
         const file = e.dataTransfer.files[0];
         if (!file.type.startsWith("image/")) {
-          showToast("Hanya file gambar yang diperbolehkan", "error");
+          showErrorToast("Hanya file gambar yang diperbolehkan");
           return;
         }
         if (file.size > MAX_FILE_SIZE) {
-          showToast(`Ukuran file maksimal 15MB`, "error");
+          showErrorToast(`Ukuran file maksimal 15MB`);
           return;
         }
         if (previewUrl) {
@@ -128,7 +127,7 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({
         }
       }
     },
-    [previewUrl, processFileUpload, showToast]
+    [previewUrl, processFileUpload, showErrorToast]
   );
 
   const handleImageUrlChange = useCallback(
@@ -161,7 +160,7 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({
     setUrlError("");
     if (!imageUrl.trim()) {
       setUrlError("URL tidak boleh kosong");
-      showToast("URL tidak boleh kosong", "error");
+      showErrorToast("URL tidak boleh kosong");
       return;
     }
 
@@ -175,7 +174,7 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({
         setUrlError(
           "URL tidak mengarah ke gambar yang valid atau tidak dapat diakses"
         );
-        showToast("URL tidak mengarah ke gambar yang valid", "error");
+        showErrorToast("URL tidak mengarah ke gambar yang valid");
         return;
       }
 
@@ -190,11 +189,11 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({
       setUrlError(
         "URL tidak valid. Pastikan dimulai dengan http:// atau https://"
       );
-      showToast("URL tidak valid", "error");
+      showErrorToast("URL tidak valid");
     } finally {
       setIsLoadingUrl(false);
     }
-  }, [imageUrl, previewUrl, showToast]);
+  }, [imageUrl, previewUrl, showErrorToast]);
 
   const processImageUrl = useCallback(
     (url: string) => {
@@ -204,9 +203,9 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({
       onImageChange(undefined, url);
       setImageUrl("");
       setUrlError("");
-      showToast("Gambar berhasil dimuat dari URL", "success");
+      showSuccessToast("Gambar berhasil dimuat dari URL");
     },
-    [onImageChange, showToast]
+    [onImageChange, showSuccessToast]
   );
 
   const handleRemoveImage = useCallback(() => {
@@ -216,8 +215,8 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({
     setUrlError("");
     onImageChange();
     if (fileInputRef.current) fileInputRef.current.value = "";
-    showToast("Gambar dihapus", "info");
-  }, [onImageChange, showToast]);
+    showInfoToast("Gambar dihapus");
+  }, [onImageChange, showInfoToast]);
 
   const handleUploadClick = useCallback(() => {
     if (!disabled && fileInputRef.current) {

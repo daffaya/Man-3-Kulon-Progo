@@ -1,4 +1,4 @@
-// frontend/src/contexts/ToastContext.tsx
+// contexts/ToastContext.tsx
 import React, { createContext, useContext, useState, useCallback } from "react";
 import Toast from "../components/ui/Toast";
 
@@ -15,6 +15,7 @@ interface ToastContextType {
     type?: "success" | "error" | "warning" | "info",
     duration?: number
   ) => void;
+  hideToast: (id: number) => void;
 }
 
 const ToastContext = createContext<ToastContextType | undefined>(undefined);
@@ -33,16 +34,24 @@ export const ToastProvider: React.FC<{ children: React.ReactNode }> = ({
       const id = Date.now();
       setToasts((prev) => [...prev, { id, message, type, duration }]);
 
-      setTimeout(() => {
-        setToasts((prev) => prev.filter((toast) => toast.id !== id));
-      }, duration);
+      // Hapus otomatis setelah duration
+      if (duration > 0) {
+        setTimeout(() => {
+          setToasts((prev) => prev.filter((toast) => toast.id !== id));
+        }, duration);
+      }
     },
     []
   );
 
+  const hideToast = useCallback((id: number) => {
+    setToasts((prev) => prev.filter((toast) => toast.id !== id));
+  }, []);
+
   return (
-    <ToastContext.Provider value={{ showToast }}>
+    <ToastContext.Provider value={{ showToast, hideToast }}>
       {children}
+      {/* Container untuk semua Toast */}
       <div className="fixed top-4 right-4 z-50 space-y-2">
         {toasts.map((toast, index) => (
           <Toast
@@ -51,9 +60,7 @@ export const ToastProvider: React.FC<{ children: React.ReactNode }> = ({
             type={toast.type}
             isVisible={true}
             duration={toast.duration}
-            onClose={() =>
-              setToasts((prev) => prev.filter((t) => t.id !== toast.id))
-            }
+            onClose={() => hideToast(toast.id)}
             index={index}
           />
         ))}
@@ -70,5 +77,4 @@ export const useToast = () => {
   return context;
 };
 
-// Export default untuk compatibility
 export default ToastProvider;

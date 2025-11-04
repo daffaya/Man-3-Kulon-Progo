@@ -1,9 +1,8 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../../contexts/AuthContext";
+import { useToastMessage } from "../../../hooks/useToastMessage";
 import AdminLayout from "../../../components/layout/AdminLayout";
-import Toast from "../../../components/ui/Toast";
-import { v4 as uuidv4 } from "uuid";
 import { format } from "date-fns";
 
 interface ArchiveData {
@@ -42,12 +41,10 @@ const hasEditAccess = (isLoggedIn: boolean, role?: string): boolean =>
 const AttendanceArchivePage: React.FC = () => {
   const { isLoggedIn, user, token } = useAuth();
   const navigate = useNavigate();
+  const { showSuccessToast, showErrorToast } = useToastMessage();
 
   const [classes, setClasses] = useState<ClassData[]>([]);
-  const [archiveRecords, setArchiveRecords] = useState<ArchiveData[]>([]); // Diubah nama variabel
-  const [toasts, setToasts] = useState<
-    { id: string; message: string; type: "success" | "error" }[]
-  >([]);
+  const [archiveRecords, setArchiveRecords] = useState<ArchiveData[]>([]);
   const [loading, setLoading] = useState(false);
   const [selectedYear, setSelectedYear] = useState<string>(
     format(new Date(), "yyyy")
@@ -56,15 +53,6 @@ const AttendanceArchivePage: React.FC = () => {
   const [selectedClass, setSelectedClass] = useState<number>(0);
 
   const isAdminOrGuruBK = hasEditAccess(isLoggedIn, user?.role);
-
-  const addToast = (message: string, type: "success" | "error") => {
-    const id = uuidv4();
-    setToasts((prev) => [...prev, { id, message, type }]);
-  };
-
-  const removeToast = (id: string) => {
-    setToasts((prev) => prev.filter((toast) => toast.id !== id));
-  };
 
   // Fetch classes
   useEffect(() => {
@@ -80,17 +68,17 @@ const AttendanceArchivePage: React.FC = () => {
           const data = await response.json();
           setClasses(data);
         } else {
-          addToast("Gagal mengambil data kelas", "error");
+          showErrorToast("Gagal mengambil data kelas");
         }
       } catch (err) {
-        addToast("Terjadi kesalahan saat mengambil data kelas", "error");
+        showErrorToast("Terjadi kesalahan saat mengambil data kelas");
       }
     };
 
     if (isLoggedIn) {
       fetchClasses();
     }
-  }, [isLoggedIn, token]);
+  }, [isLoggedIn, token, showErrorToast]);
 
   // Fetch archive data
   useEffect(() => {
@@ -110,28 +98,31 @@ const AttendanceArchivePage: React.FC = () => {
 
         if (response.ok) {
           const data = await response.json();
-          setArchiveRecords(data); // Diubah nama variabel
+          setArchiveRecords(data);
         } else {
-          addToast("Gagal mengambil data arsip presensi", "error");
+          showErrorToast("Gagal mengambil data arsip presensi");
         }
       } catch (err) {
-        addToast(
-          "Terjadi kesalahan saat mengambil data arsip presensi",
-          "error"
-        );
+        showErrorToast("Terjadi kesalahan saat mengambil data arsip presensi");
       }
     };
 
     if (isLoggedIn) {
       fetchArchiveData();
     }
-  }, [isLoggedIn, selectedYear, selectedSemester, selectedClass, token]);
+  }, [
+    isLoggedIn,
+    selectedYear,
+    selectedSemester,
+    selectedClass,
+    token,
+    showErrorToast,
+  ]);
 
-  // Archive data - fungsi ini yang menyebabkan error
+  // Archive data
   const handleArchiveData = async () => {
-    // Diubah nama fungsi
     if (!selectedYear || !selectedSemester) {
-      addToast("Pilih tahun ajaran dan semester terlebih dahulu", "error");
+      showErrorToast("Pilih tahun ajaran dan semester terlebih dahulu");
       return;
     }
 
@@ -153,10 +144,7 @@ const AttendanceArchivePage: React.FC = () => {
       const data = await response.json();
 
       if (response.ok && data.success) {
-        addToast(
-          data.message || "Data presensi berhasil diarsipkan",
-          "success"
-        );
+        showSuccessToast(data.message || "Data presensi berhasil diarsipkan");
 
         // Refresh archive data
         const archiveResponse = await fetch(
@@ -170,13 +158,13 @@ const AttendanceArchivePage: React.FC = () => {
 
         if (archiveResponse.ok) {
           const archiveData = await archiveResponse.json();
-          setArchiveRecords(archiveData); // Diubah nama variabel
+          setArchiveRecords(archiveData);
         }
       } else {
-        addToast(data.error || "Gagal mengarsipkan data presensi", "error");
+        showErrorToast(data.error || "Gagal mengarsipkan data presensi");
       }
     } catch (err) {
-      addToast("Terjadi kesalahan saat mengarsipkan data presensi", "error");
+      showErrorToast("Terjadi kesalahan saat mengarsipkan data presensi");
     } finally {
       setLoading(false);
     }
@@ -272,7 +260,7 @@ const AttendanceArchivePage: React.FC = () => {
                 <button
                   type="button"
                   className="btn btn-primary w-full"
-                  onClick={handleArchiveData} // Diubah nama fungsi
+                  onClick={handleArchiveData}
                   disabled={loading}
                 >
                   {loading ? "Mengarsipkan..." : "Arsipkan Data"}
@@ -282,7 +270,7 @@ const AttendanceArchivePage: React.FC = () => {
           </div>
 
           {/* Archive Table */}
-          {archiveRecords.length > 0 ? ( // Diubah nama variabel
+          {archiveRecords.length > 0 ? (
             <div className="overflow-x-auto">
               <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
                 <thead className="bg-gray-50 dark:bg-gray-800">
@@ -338,38 +326,34 @@ const AttendanceArchivePage: React.FC = () => {
                   </tr>
                 </thead>
                 <tbody className="bg-white dark:bg-gray-900 divide-y divide-gray-200 dark:divide-gray-700">
-                  {archiveRecords.map(
-                    (
-                      student // Diubah nama variabel
-                    ) => (
-                      <tr key={student.id}>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
-                          {student.nisn}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-white">
-                          {student.name}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
-                          {student.class_name}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
-                          {student.total_hadir}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
-                          {student.total_izin}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
-                          {student.total_sakit}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
-                          {student.total_alpa}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
-                          {student.percentage_kehadiran}%
-                        </td>
-                      </tr>
-                    )
-                  )}
+                  {archiveRecords.map((student) => (
+                    <tr key={student.id}>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
+                        {student.nisn}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-white">
+                        {student.name}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
+                        {student.class_name}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
+                        {student.total_hadir}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
+                        {student.total_izin}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
+                        {student.total_sakit}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
+                        {student.total_alpa}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
+                        {student.percentage_kehadiran}%
+                      </td>
+                    </tr>
+                  ))}
                 </tbody>
               </table>
             </div>
@@ -381,17 +365,6 @@ const AttendanceArchivePage: React.FC = () => {
             </div>
           )}
         </div>
-
-        {toasts.map((toast, index) => (
-          <Toast
-            key={toast.id}
-            message={toast.message}
-            type={toast.type}
-            isVisible={true}
-            onClose={() => removeToast(toast.id)}
-            index={index}
-          />
-        ))}
       </div>
     </SelectedLayout>
   );

@@ -1,8 +1,8 @@
-// src/components/modals/MoveClassModal.tsx
 import React, { useState } from "react";
 import { studentService } from "../../services/studentService";
 import { useClasses } from "../../hooks/useClasses";
-import { useAuth } from "../../contexts/AuthContext"; // TAMBAH INI
+import { useAuth } from "../../contexts/AuthContext";
+import { useToastMessage } from "../../hooks/useToastMessage";
 import { Users } from "lucide-react";
 import { Student } from "../../types/studentTypes";
 
@@ -10,28 +10,28 @@ interface MoveClassModalProps {
   student: Student;
   onClose: () => void;
   onSuccess: () => void;
-  showToast?: (message: string, type?: "success" | "error" | "warning") => void;
 }
 
 const MoveClassModal: React.FC<MoveClassModalProps> = ({
   student,
   onClose,
   onSuccess,
-  showToast,
 }) => {
   const [selectedClass, setSelectedClass] = useState<number>(0);
   const [loading, setLoading] = useState(false);
   const { classes } = useClasses();
-  const { token } = useAuth(); // TAMBAH INI
+  const { token } = useAuth();
+  const { showSuccessToast, showErrorToast, showWarningToast } =
+    useToastMessage();
 
   const handleSubmit = async () => {
     if (!selectedClass) {
-      showToast?.("⚠️ Silakan pilih kelas tujuan", "warning");
+      showWarningToast("Silakan pilih kelas tujuan");
       return;
     }
 
     if (!token) {
-      showToast?.("❌ Token tidak tersedia. Silakan login ulang.", "error");
+      showErrorToast("Token tidak tersedia. Silakan login ulang.");
       return;
     }
 
@@ -39,14 +39,11 @@ const MoveClassModal: React.FC<MoveClassModalProps> = ({
     try {
       // ✅ FIX: Pass token ke studentService
       await studentService.moveStudentClass(student.id, selectedClass, token);
-      showToast?.("✅ Siswa berhasil dipindah kelas!", "success"); // TOAST SUKSES
+      showSuccessToast("Siswa berhasil dipindah kelas!");
       onSuccess();
     } catch (error: any) {
       console.error("Error moving student class:", error);
-      showToast?.(
-        `❌ ${error.message || "Gagal memindahkan kelas siswa"}`,
-        "error"
-      ); // TOAST ERROR
+      showErrorToast(error.message || "Gagal memindahkan kelas siswa");
     } finally {
       setLoading(false);
     }

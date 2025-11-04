@@ -3,8 +3,7 @@ import React, { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "../../../contexts/AuthContext";
 import AdminLayout from "../../../components/layout/AdminLayout";
-import Toast from "../../../components/ui/Toast";
-import { v4 as uuidv4 } from "uuid";
+import { useToast } from "../../../contexts/ToastContext";
 import { format, parseISO } from "date-fns";
 import { id } from "date-fns/locale";
 
@@ -43,13 +42,11 @@ const AttendanceRecapPage: React.FC = () => {
   const { isLoggedIn, user, token } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
+  const { showToast } = useToast();
 
   const [classes, setClasses] = useState<ClassData[]>([]);
   const [selectedClass, setSelectedClass] = useState<number>(0);
   const [recapData, setRecapData] = useState<RecapData[]>([]);
-  const [toasts, setToasts] = useState<
-    { id: string; message: string; type: "success" | "error" }[]
-  >([]);
   const [loading, setLoading] = useState(false);
   const [recapPeriod, setRecapPeriod] = useState<
     "daily" | "monthly" | "semester"
@@ -62,15 +59,6 @@ const AttendanceRecapPage: React.FC = () => {
   );
 
   const isAdminOrGuruBK = hasEditAccess(isLoggedIn, user?.role);
-
-  const addToast = (message: string, type: "success" | "error") => {
-    const id = uuidv4();
-    setToasts((prev) => [...prev, { id, message, type }]);
-  };
-
-  const removeToast = (id: string) => {
-    setToasts((prev) => prev.filter((toast) => toast.id !== id));
-  };
 
   // Get classId from URL params
   useEffect(() => {
@@ -95,17 +83,17 @@ const AttendanceRecapPage: React.FC = () => {
           const data = await response.json();
           setClasses(data);
         } else {
-          addToast("Gagal mengambil data kelas", "error");
+          showToast("Gagal mengambil data kelas", "error");
         }
       } catch (err) {
-        addToast("Terjadi kesalahan saat mengambil data kelas", "error");
+        showToast("Terjadi kesalahan saat mengambil data kelas", "error");
       }
     };
 
     if (isLoggedIn) {
       fetchClasses();
     }
-  }, [isLoggedIn, token]);
+  }, [isLoggedIn, token, showToast]);
 
   // Fetch recap data
   useEffect(() => {
@@ -129,10 +117,10 @@ const AttendanceRecapPage: React.FC = () => {
           const data = await response.json();
           setRecapData(data.data);
         } else {
-          addToast("Gagal mengambil data rekap presensi", "error");
+          showToast("Gagal mengambil data rekap presensi", "error");
         }
       } catch (err) {
-        addToast(
+        showToast(
           "Terjadi kesalahan saat mengambil data rekap presensi",
           "error"
         );
@@ -149,12 +137,13 @@ const AttendanceRecapPage: React.FC = () => {
     recapStartDate,
     recapEndDate,
     token,
+    showToast,
   ]);
 
   // Export data
   const exportData = async (format: "excel" | "pdf") => {
     if (!selectedClass || !recapPeriod || !recapStartDate) {
-      addToast("Pilih kelas, periode, dan tanggal terlebih dahulu", "error");
+      showToast("Pilih kelas, periode, dan tanggal terlebih dahulu", "error");
       return;
     }
 
@@ -198,19 +187,19 @@ const AttendanceRecapPage: React.FC = () => {
         document.body.removeChild(link);
         URL.revokeObjectURL(downloadUrl);
 
-        addToast(
+        showToast(
           `Data berhasil diekspor ke ${format.toUpperCase()}`,
           "success"
         );
       } else {
         const data = await response.json();
-        addToast(
+        showToast(
           data.error || `Gagal mengekspor data ke ${format.toUpperCase()}`,
           "error"
         );
       }
     } catch (err) {
-      addToast(
+      showToast(
         `Terjadi kesalahan saat mengekspor data ke ${format.toUpperCase()}`,
         "error"
       );
@@ -525,17 +514,6 @@ const AttendanceRecapPage: React.FC = () => {
             </div>
           )}
         </div>
-
-        {toasts.map((toast, index) => (
-          <Toast
-            key={toast.id}
-            message={toast.message}
-            type={toast.type}
-            isVisible={true}
-            onClose={() => removeToast(toast.id)}
-            index={index}
-          />
-        ))}
       </div>
     </SelectedLayout>
   );

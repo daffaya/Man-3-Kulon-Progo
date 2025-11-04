@@ -3,7 +3,7 @@ import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Plus, Users } from "lucide-react";
 import { useAuth } from "../../../contexts/AuthContext";
-import Toast from "../../../components/ui/Toast";
+import { useToast } from "../../../contexts/ToastContext";
 import AdminLayout from "../../../components/layout/AdminLayout";
 import UserTable from "../../../components/tables/UserTable";
 import UserManagementForm from "../../../components/forms/auth/UserManagementForm";
@@ -13,11 +13,7 @@ import { User, UserFormData } from "../../../types/userTypes";
 const UserManagementPage: React.FC = () => {
   const navigate = useNavigate();
   const { user, isLoggedIn } = useAuth();
-  const [toast, setToast] = useState({
-    isVisible: false,
-    message: "",
-    type: "",
-  });
+  const { showToast } = useToast();
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
@@ -111,11 +107,6 @@ const UserManagementPage: React.FC = () => {
     setEditingUser(null);
   };
 
-  const showToast = (message: string, type: string) => {
-    setToast({ isVisible: true, message, type });
-    setTimeout(() => setToast({ ...toast, isVisible: false }), 3000);
-  };
-
   return (
     <AdminLayout>
       <div className="pt-24 min-h-screen bg-background dark:bg-background py-12 px-4 sm:px-6 lg:px-8">
@@ -165,11 +156,6 @@ const UserManagementPage: React.FC = () => {
           )}
         </div>
       </div>
-      <Toast
-        message={toast.message}
-        isVisible={toast.isVisible}
-        type={toast.type}
-      />
     </AdminLayout>
   );
 };

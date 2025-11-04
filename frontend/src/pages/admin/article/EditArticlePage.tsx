@@ -1,5 +1,3 @@
-// frontend/src/pages/EditArticlePage.tsx
-
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import Layout from "../../../components/layout/Layout";
@@ -9,7 +7,7 @@ import ArticleForm from "../../../components/forms/ArticleForm";
 import { RefreshCw, ChevronLeft } from "lucide-react";
 import AdminLayout from "../../../components/layout/AdminLayout";
 import { useAuth } from "../../../contexts/AuthContext";
-import Toast from "../../../components/ui/Toast";
+import { useToastMessage } from "../../../hooks/useToastMessage";
 import articleApi from "../../../api/articleApi";
 
 /** Roles that are permitted to edit articles. */
@@ -36,6 +34,7 @@ const EditArticle: React.FC = () => {
   const navigate = useNavigate();
   const { state, updateArticle } = useArticles();
   const { isLoggedIn, user } = useAuth();
+  const { showSuccessToast, showErrorToast } = useToastMessage();
 
   const isAdminOrJurnalis = hasEditAccess(isLoggedIn, user?.role);
 
@@ -44,29 +43,6 @@ const EditArticle: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [initialLoadError, setInitialLoadError] = useState<string | null>(null);
   const [article, setArticle] = useState<any>(null);
-
-  const [toast, setToast] = useState<{
-    message: string;
-    type: "success" | "error" | "warning" | "info";
-    isVisible: boolean;
-  }>({
-    message: "",
-    type: "success",
-    isVisible: false,
-  });
-
-  /**
-   * Displays a toast notification with a specific message and type.
-   * @param message - The message to display.
-   * @param type - The type of toast notification.
-   */
-  const showToast = (
-    message: string,
-    type: "success" | "error" | "warning" | "info" = "success"
-  ) => setToast({ message, type, isVisible: true });
-
-  /** Hides the currently visible toast notification. */
-  const hideToast = () => setToast((prev) => ({ ...prev, isVisible: false }));
 
   useEffect(() => {
     /**
@@ -117,13 +93,13 @@ const EditArticle: React.FC = () => {
 
     try {
       const updatedArticle = await updateArticle(id, formData, file);
-      showToast("Artikel berhasil diperbarui!", "success");
+      showSuccessToast("Artikel berhasil diperbarui!");
       setTimeout(() => navigate("/atmin/articles"), 1500);
     } catch (err) {
       const message =
         err instanceof Error ? err.message : "Failed to update article";
       setError(message);
-      showToast(message, "error");
+      showErrorToast(message);
     } finally {
       setSaving(false);
     }
@@ -203,14 +179,6 @@ const EditArticle: React.FC = () => {
           />
         </div>
       </div>
-
-      <Toast
-        message={toast.message}
-        type={toast.type}
-        isVisible={toast.isVisible}
-        duration={3000}
-        onClose={hideToast}
-      />
     </AdminLayout>
   );
 };

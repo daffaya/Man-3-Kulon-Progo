@@ -6,8 +6,7 @@ import AdminLayout from "../../components/layout/AdminLayout";
 import { Navigate, useNavigate, Link } from "react-router-dom";
 import { Category } from "../../types/archiveTypes";
 import { fetchCategories } from "../../api/archiveApi";
-import Toast from "../../components/ui/Toast";
-import { v4 as uuidv4 } from "uuid";
+import { useToast } from "../../contexts/ToastContext";
 
 export const API_URL = import.meta.env.VITE_BACKEND_API_URL;
 export const ALLOWED_ROLES = ["arsiparis", "super_admin"] as const;
@@ -20,27 +19,16 @@ const hasEditAccess = (isLoggedIn: boolean, role?: string): boolean =>
 const UploadArchivePage: React.FC = () => {
   const { isLoggedIn, user, token } = useAuth();
   const navigate = useNavigate();
+  const { showToast } = useToast();
   const [file, setFile] = useState<File | null>(null);
   const [description, setDescription] = useState("");
   const [categoryId, setCategoryId] = useState("");
   const [documentNumber, setDocumentNumber] = useState("");
   const [documentDate, setDocumentDate] = useState("");
   const [categories, setCategories] = useState<Category[]>([]);
-  const [toasts, setToasts] = useState<
-    { id: string; message: string; type: "success" | "error" }[]
-  >([]);
   const [loading, setLoading] = useState(false);
 
   const isAdminOrArsiparis = hasEditAccess(isLoggedIn, user?.role);
-
-  const addToast = (message: string, type: "success" | "error") => {
-    const id = uuidv4();
-    setToasts((prev) => [...prev, { id, message, type }]);
-  };
-
-  const removeToast = (id: string) => {
-    setToasts((prev) => prev.filter((toast) => toast.id !== id));
-  };
 
   // Fetch categories
   useEffect(() => {
@@ -49,11 +37,11 @@ const UploadArchivePage: React.FC = () => {
         const data = await fetchCategories();
         setCategories(data);
       } catch (err) {
-        addToast((err as Error).message, "error");
+        showToast((err as Error).message, "error");
       }
     };
     loadCategories();
-  }, []);
+  }, [showToast]);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFile = e.target.files?.[0] || null;
@@ -67,7 +55,7 @@ const UploadArchivePage: React.FC = () => {
         "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
       ];
       if (!allowedTypes.includes(selectedFile.type)) {
-        addToast(
+        showToast(
           "Hanya file PDF atau Word (.doc, .docx) yang diperbolehkan",
           "error"
         );
@@ -80,7 +68,7 @@ const UploadArchivePage: React.FC = () => {
       // Validasi ukuran file (10MB = 10 * 1024 * 1024 bytes)
       const maxSize = 10 * 1024 * 1024;
       if (selectedFile.size > maxSize) {
-        addToast("Ukuran file tidak boleh lebih dari 10MB", "error");
+        showToast("Ukuran file tidak boleh lebih dari 10MB", "error");
         setFile(null);
         const fileInput = e.target as HTMLInputElement;
         fileInput.value = ""; // Reset input
@@ -89,57 +77,46 @@ const UploadArchivePage: React.FC = () => {
     }
   };
 
-  // Ganti event handler untuk input file
-  <input
-    type="file"
-    id="file"
-    accept=".pdf,.doc,.docx"
-    className="form-input w-full mt-1"
-    onChange={handleFileChange}
-    disabled={loading}
-  />;
-
   // Handle form submit
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
-    setToasts([]);
     setLoading(true);
 
     if (!isLoggedIn) {
-      addToast("Silakan login untuk mengunggah arsip", "error");
+      showToast("Silakan login untuk mengunggah arsip", "error");
       navigate("/login", { state: { redirectTo: "/atmin/uploadArchive" } });
       setLoading(false);
       return;
     }
 
     if (!isAdminOrArsiparis) {
-      addToast("Anda tidak memiliki akses untuk mengunggah arsip", "error");
+      showToast("Anda tidak memiliki akses untuk mengunggah arsip", "error");
       setLoading(false);
       return;
     }
 
     if (!file) {
-      addToast("File wajib diisi", "error");
+      showToast("File wajib diisi", "error");
       setLoading(false);
       return;
     }
     if (!description.trim()) {
-      addToast("Deskripsi wajib diisi", "error");
+      showToast("Deskripsi wajib diisi", "error");
       setLoading(false);
       return;
     }
     if (!categoryId) {
-      addToast("Kategori wajib diisi", "error");
+      showToast("Kategori wajib diisi", "error");
       setLoading(false);
       return;
     }
     if (!documentNumber.trim()) {
-      addToast("Nomor dokumen wajib diisi", "error");
+      showToast("Nomor dokumen wajib diisi", "error");
       setLoading(false);
       return;
     }
     if (!documentDate) {
-      addToast("Tanggal dokumen wajib diisi", "error");
+      showToast("Tanggal dokumen wajib diisi", "error");
       setLoading(false);
       return;
     }
@@ -163,7 +140,7 @@ const UploadArchivePage: React.FC = () => {
       const data = await response.json();
 
       if (response.ok && data.success) {
-        addToast(data.message || "Arsip berhasil diunggah", "success");
+        showToast(data.message || "Arsip berhasil diunggah", "success");
         // Reset form
         setFile(null);
         setDescription("");
@@ -177,10 +154,10 @@ const UploadArchivePage: React.FC = () => {
         }, 1000);
       } else {
         // Tampilkan pesan error spesifik dari backend
-        addToast(data.error || "Gagal mengunggah arsip", "error");
+        showToast(data.error || "Gagal mengunggah arsip", "error");
       }
     } catch (err) {
-      addToast("Terjadi kesalahan saat mengunggah arsip", "error");
+      showToast("Terjadi kesalahan saat mengunggah arsip", "error");
     } finally {
       setLoading(false);
     }
@@ -334,16 +311,6 @@ const UploadArchivePage: React.FC = () => {
               </button>
             </div>
           </form>
-          {toasts.map((toast, index) => (
-            <Toast
-              key={toast.id}
-              message={toast.message}
-              type={toast.type}
-              isVisible={true}
-              onClose={() => removeToast(toast.id)}
-              index={index}
-            />
-          ))}
         </div>
       </div>
     </SelectedLayout>

@@ -1,11 +1,10 @@
-// frontend/src/pages/ProfilePage.tsx
 import React, { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { Save, ChevronLeft } from "lucide-react";
 import { useAuth } from "../../../contexts/AuthContext";
+import { useToastMessage } from "../../../hooks/useToastMessage";
 import AdminLayout from "../../../components/layout/AdminLayout";
 import AvatarUpload from "../../../components/ui/AvatarUpload";
-import Toast from "../../../components/ui/Toast";
 
 /**
  * UserProfilePage Component
@@ -20,13 +19,10 @@ import Toast from "../../../components/ui/Toast";
 const UserProfilePage: React.FC = () => {
   const { user, isLoggedIn, updateUserProfile } = useAuth();
   const navigate = useNavigate();
+  const { showSuccessToast, showErrorToast } = useToastMessage();
 
   const [fullName, setFullName] = useState("");
   const [isSaving, setIsSaving] = useState(false);
-  const [toast, setToast] = useState<{
-    message: string;
-    type: "success" | "error";
-  } | null>(null);
 
   /** Prefill user data when available */
   useEffect(() => {
@@ -42,17 +38,14 @@ const UserProfilePage: React.FC = () => {
       setIsSaving(true);
       try {
         await updateUserProfile({ full_name: fullName.trim() });
-        setToast({ message: "Profil berhasil diperbarui", type: "success" });
+        showSuccessToast("Profil berhasil diperbarui");
       } catch (error) {
-        setToast({
-          message: (error as Error).message || "Terjadi kesalahan",
-          type: "error",
-        });
+        showErrorToast((error as Error).message || "Terjadi kesalahan");
       } finally {
         setIsSaving(false);
       }
     },
-    [fullName, updateUserProfile]
+    [fullName, updateUserProfile, showSuccessToast, showErrorToast]
   );
 
   /** Handle avatar change event (delegated to AvatarUpload) */
@@ -169,15 +162,6 @@ const UserProfilePage: React.FC = () => {
           </div>
         </div>
       </div>
-
-      {toast && (
-        <Toast
-          message={toast.message}
-          type={toast.type}
-          isVisible
-          onClose={() => setToast(null)}
-        />
-      )}
     </AdminLayout>
   );
 };

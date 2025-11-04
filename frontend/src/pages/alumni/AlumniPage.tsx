@@ -7,8 +7,7 @@ import { useNavigate, Link } from "react-router-dom";
 import Filters from "../../components/alumni/AlumniFilter";
 import AlumniTable from "../../components/tables/AlumniTable";
 import { alumniService } from "../../services/alumniService";
-import Toast from "../../components/ui/Toast";
-import { v4 as uuidv4 } from "uuid";
+import { useToast } from "../../contexts/ToastContext";
 
 export const API_URL = import.meta.env.VITE_BACKEND_API_URL;
 export const ALLOWED_ROLES = ["guru_bk", "super_admin"] as const;
@@ -29,24 +28,13 @@ const hasEditAccess = (isLoggedIn: boolean, role?: string): boolean =>
 const AlumniPage: React.FC = () => {
   const { isLoggedIn, user, token } = useAuth();
   const navigate = useNavigate();
+  const { showToast } = useToast();
   const [alumni, setAlumni] = useState<Alumni[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [graduationYear, setGraduationYear] = useState("");
-  const [toasts, setToasts] = useState<
-    { id: string; message: string; type: "success" | "error" }[]
-  >([]);
   const [loading, setLoading] = useState(false);
 
   const isAdminOrGuruBK = hasEditAccess(isLoggedIn, user?.role);
-
-  const addToast = (message: string, type: "success" | "error") => {
-    const id = uuidv4();
-    setToasts((prev) => [...prev, { id, message, type }]);
-  };
-
-  const removeToast = (id: string) => {
-    setToasts((prev) => prev.filter((toast) => toast.id !== id));
-  };
 
   useEffect(() => {
     const loadAlumni = async () => {
@@ -58,17 +46,17 @@ const AlumniPage: React.FC = () => {
         );
         setAlumni(data.data);
       } catch (err) {
-        addToast((err as Error).message, "error");
+        showToast((err as Error).message, "error");
       } finally {
         setLoading(false);
       }
     };
     loadAlumni();
-  }, [searchQuery, graduationYear, token]);
+  }, [searchQuery, graduationYear, token, showToast]);
 
   const handleEditClick = (alumni: Alumni) => {
     if (!isAdminOrGuruBK) {
-      addToast("Anda tidak memiliki akses untuk mengedit alumni", "error");
+      showToast("Anda tidak memiliki akses untuk mengedit alumni", "error");
       if (!isLoggedIn) {
         navigate("/login", { state: { redirectTo: "/alumni" } });
       }
@@ -135,16 +123,6 @@ const AlumniPage: React.FC = () => {
             )}
           </div>
         )}
-        {toasts.map((toast, index) => (
-          <Toast
-            key={toast.id}
-            message={toast.message}
-            type={toast.type}
-            isVisible={true}
-            onClose={() => removeToast(toast.id)}
-            index={index}
-          />
-        ))}
       </div>
     </SelectedLayout>
   );

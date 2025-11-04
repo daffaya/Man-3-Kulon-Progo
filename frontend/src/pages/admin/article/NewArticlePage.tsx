@@ -1,4 +1,3 @@
-// frontend/src/pages/NewArticlePage.tsx
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { ChevronLeft } from "lucide-react";
@@ -6,7 +5,7 @@ import AdminLayout from "../../../components/layout/AdminLayout";
 import ArticleForm from "../../../components/forms/ArticleForm";
 import { useArticles } from "../../../contexts/ArticleContext";
 import { ArticleFormData } from "../../../types/articleTypes";
-import Toast from "../../../components/ui/Toast";
+import { useToastMessage } from "../../../hooks/useToastMessage";
 
 /**
  * Page component for creating a new article.
@@ -16,31 +15,7 @@ const NewArticlePage: React.FC = () => {
   const { createArticle } = useArticles();
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(false);
-
-  const [toast, setToast] = useState<{
-    message: string;
-    type: "success" | "error" | "warning" | "info";
-    isVisible: boolean;
-  }>({
-    message: "",
-    type: "success",
-    isVisible: false,
-  });
-
-  /**
-   * Show a toast notification.
-   * @param message The message to display
-   * @param type Type of the toast (default: "success")
-   */
-  const showToast = (
-    message: string,
-    type: "success" | "error" | "warning" | "info" = "success"
-  ) => setToast({ message, type, isVisible: true });
-
-  /**
-   * Hide the currently visible toast notification.
-   */
-  const hideToast = () => setToast((prev) => ({ ...prev, isVisible: false }));
+  const { showSuccessToast, showErrorToast } = useToastMessage();
 
   /**
    * Handle article form submission.
@@ -52,12 +27,12 @@ const NewArticlePage: React.FC = () => {
 
     try {
       await createArticle(formData, file);
-      showToast("Artikel berhasil dibuat!", "success");
+      showSuccessToast("Artikel berhasil dibuat!");
       setTimeout(() => navigate("/atmin/articles", { replace: true }), 1500);
     } catch (err) {
       const message =
         err instanceof Error ? err.message : "Gagal membuat artikel";
-      showToast(message, "error");
+      showErrorToast(message);
     } finally {
       setIsLoading(false);
     }
@@ -84,14 +59,6 @@ const NewArticlePage: React.FC = () => {
           <ArticleForm onSubmit={handleSubmit} isLoading={isLoading} />
         </div>
       </div>
-
-      <Toast
-        message={toast.message}
-        type={toast.type}
-        isVisible={toast.isVisible}
-        duration={3000}
-        onClose={hideToast}
-      />
     </AdminLayout>
   );
 };

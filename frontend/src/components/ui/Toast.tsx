@@ -10,19 +10,6 @@ interface ToastProps {
   index?: number;
 }
 
-/**
- * Komponen Toast untuk menampilkan pesan pemberitahuan kepada pengguna.
- * Toast ini dapat memiliki berbagai jenis (success, error, warning, info)
- * dan menghilang setelah durasi tertentu atau ketika pengguna menutupnya.
- *
- * @param {Object} props - Properti yang diterima oleh komponen Toast
- * @param {string} props.message - Pesan yang akan ditampilkan di dalam toast
- * @param {"success" | "error" | "warning" | "info"} [props.type="error"] - Jenis toast
- * @param {boolean} props.isVisible - Menentukan apakah toast harus ditampilkan
- * @param {number} [props.duration=2000] - Durasi (dalam ms) sebelum toast menghilang otomatis
- * @param {Function} [props.onClose] - Fungsi callback untuk menutup toast
- * @param {number} [props.index=0] - Indeks untuk menentukan posisi toast dalam stack
- */
 const Toast: React.FC<ToastProps> = ({
   message,
   type = "error",
@@ -38,12 +25,17 @@ const Toast: React.FC<ToastProps> = ({
       timerRef.current = setTimeout(() => {
         onClose?.();
       }, duration);
-      return () => clearTimeout(timerRef.current!);
+      return () => {
+        if (timerRef.current) clearTimeout(timerRef.current);
+      };
     }
   }, [isVisible, duration, onClose]);
 
   const handleMouseEnter = () => {
-    if (timerRef.current) clearTimeout(timerRef.current);
+    if (timerRef.current) {
+      clearTimeout(timerRef.current);
+      timerRef.current = null;
+    }
   };
 
   const handleMouseLeave = () => {
@@ -56,10 +48,6 @@ const Toast: React.FC<ToastProps> = ({
 
   if (!isVisible) return null;
 
-  /**
-   * Mengembalikan class CSS yang sesuai berdasarkan tipe toast.
-   * @returns {string} Class CSS untuk styling toast
-   */
   const getToastStyles = () => {
     switch (type) {
       case "success":
@@ -73,10 +61,6 @@ const Toast: React.FC<ToastProps> = ({
     }
   };
 
-  /**
-   * Mengembalikan ikon sesuai dengan tipe toast.
-   * @returns {JSX.Element} Ikon yang sesuai dengan tipe toast
-   */
   const getIcon = () => {
     switch (type) {
       case "success":
@@ -148,13 +132,17 @@ const Toast: React.FC<ToastProps> = ({
 
   return (
     <div
-      className={`fixed right-4 z-50 p-4 rounded-xl shadow-2xl text-white ${getToastStyles()} transition-all duration-300 transform ${
+      className={`fixed right-4 z-50 p-4 rounded-xl shadow-2xl text-white ${getToastStyles()} transition-all duration-500 transform ${
         isVisible ? "translate-x-0 opacity-100" : "translate-x-full opacity-0"
       }`}
-      style={{ bottom: `${4 + index * 5}rem` }}
+      style={{
+        bottom: `${4 + index * 5}rem`,
+        transitionDelay: isVisible ? `${index * 100}ms` : "0ms",
+      }}
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
       role="alert"
+      aria-live="assertive"
     >
       <div className="flex items-center justify-between">
         <div className="flex items-center">

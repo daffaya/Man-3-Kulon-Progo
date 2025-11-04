@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useAuth } from "../../contexts/AuthContext";
-import Toast from "../ui/Toast";
+import { useToastMessage } from "../../hooks/useToastMessage";
 
 // Tambahkan interface untuk tipe data
 interface Student {
@@ -17,6 +17,8 @@ interface Attendance {
 
 const AttendanceForm = () => {
   const { user } = useAuth();
+  const { showErrorToast, showSuccessToast, showWarningToast } =
+    useToastMessage();
   const [selectedClass, setSelectedClass] = useState("");
   const [selectedDate, setSelectedDate] = useState(
     new Date().toISOString().split("T")[0]
@@ -25,21 +27,21 @@ const AttendanceForm = () => {
   // Tambahkan tipe data untuk state
   const [students, setStudents] = useState<Student[]>([]);
   const [attendances, setAttendances] = useState<Attendance[]>([]);
-  const [toast, setToast] = useState({
-    isVisible: false,
-    message: "",
-    type: "error" as "success" | "error" | "warning" | "info",
-  });
   const [classes, setClasses] = useState<{ id: number; name: string }[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
     fetch("/api/classes")
       .then((res) => res.json())
-      .then((data) => setClasses(data));
+      .then((data) => setClasses(data))
+      .catch((error) => {
+        showErrorToast("Gagal memuat data kelas");
+      });
   }, []);
 
   useEffect(() => {
     if (selectedClass) {
+      setIsLoading(true);
       fetch(`/api/students?classId=${selectedClass}`)
         .then((res) => res.json())
         .then((data: Student[]) => {
@@ -51,11 +53,22 @@ const AttendanceForm = () => {
               notes: "",
             }))
           );
-        });
+        })
+        .catch((error) => {
+          showErrorToast("Gagal memuat data siswa");
+        })
+        .finally(() => setIsLoading(false));
     }
   }, [selectedClass]);
 
   const handleSubmit = async () => {
+    // Validasi sebelum API call
+    if (!selectedClass || !selectedDate) {
+      showWarningToast("Pilih kelas dan tanggal");
+      return;
+    }
+
+    setIsLoading(true);
     try {
       const response = await fetch("/api/attendance", {
         method: "POST",
@@ -67,30 +80,23 @@ const AttendanceForm = () => {
         }),
       });
 
-      if (!selectedClass || !selectedDate) {
-        setToast({
-          isVisible: true,
-          message: "Pilih kelas dan tanggal",
-          type: "warning", // Can use warning for missing data
-        });
-        return;
-      }
-
       if (!response.ok) {
         throw new Error("Gagal menyimpan presensi");
       }
 
-      setToast({
-        isVisible: true,
-        message: "Presensi berhasil disimpan",
-        type: "success", // Success message
-      });
+      showSuccessToast("Presensi berhasil disimpan");
+
+      // Reset form setelah berhasil
+      setSelectedClass("");
+      setStudents([]);
+      setAttendances([]);
     } catch (error) {
-      setToast({
-        isVisible: true,
-        message: "Terjadi kesalahan",
-        type: "error", // Error message
-      });
+      showErrorToast(
+        "Terjadi kesalahan: " +
+          (error instanceof Error ? error.message : "Unknown error")
+      );
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -103,9 +109,14 @@ const AttendanceForm = () => {
           value={selectedClass}
           onChange={(e) => setSelectedClass(e.target.value)}
           className="border rounded p-2"
+          disabled={isLoading}
         >
           <option value="">Pilih Kelas</option>
-          {/* Options dari API */}
+          {classes.map((cls) => (
+            <option key={cls.id} value={cls.id}>
+              {cls.name}
+            </option>
+          ))}
         </select>
 
         <input
@@ -113,81 +124,86 @@ const AttendanceForm = () => {
           value={selectedDate}
           onChange={(e) => setSelectedDate(e.target.value)}
           className="border rounded p-2"
+          disabled={isLoading}
         />
       </div>
 
-      <table className="w-full border-collapse">
-        <thead>
-          <tr>
-            <th className="border p-2">NISN</th>
-            <th className="border p-2">Nama</th>
-            <th className="border p-2">Status</th>
-            <th className="border p-2">Keterangan</th>
-          </tr>
-        </thead>
-        <tbody>
-          {students.map((student, index) => (
-            <tr key={student.id}>
-              <td className="border p-2">{student.nisn}</td>
-              <td className="border p-2">{student.name}</td>
-              <td className="border p-2">
-                <select
-                  value={attendances[index]?.status || "hadir"}
-                  onChange={(e) => {
-                    const newAttendances = [...attendances];
-                    newAttendances[index] = {
-                      ...newAttendances[index],
-                      status: e.target.value as
-                        | "hadir"
-                        | "izin"
-                        | "sakit"
-                        | "alpa",
-                    };
-                    setAttendances(newAttendances);
-                  }}
-                  className="w-full"
-                >
-                  <option value="hadir">Hadir</option>
-                  <option value="izin">Izin</option>
-                  <option value="sakit">Sakit</option>
-                  <option value="alpa">Alpa</option>
-                </select>
-              </td>
-              <td className="border p-2">
-                <input
-                  type="text"
-                  value={attendances[index]?.notes || ""}
-                  onChange={(e) => {
-                    const newAttendances = [...attendances];
-                    newAttendances[index] = {
-                      ...newAttendances[index],
-                      notes: e.target.value,
-                    };
-                    setAttendances(newAttendances);
-                  }}
-                  className="w-full"
-                  disabled={attendances[index]?.status === "hadir"}
-                />
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
+      {isLoading && !students.length ? (
+        <div className="flex justify-center py-8">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
+        </div>
+      ) : (
+        <>
+          <table className="w-full border-collapse">
+            <thead>
+              <tr>
+                <th className="border p-2">NISN</th>
+                <th className="border p-2">Nama</th>
+                <th className="border p-2">Status</th>
+                <th className="border p-2">Keterangan</th>
+              </tr>
+            </thead>
+            <tbody>
+              {students.map((student, index) => (
+                <tr key={student.id}>
+                  <td className="border p-2">{student.nisn}</td>
+                  <td className="border p-2">{student.name}</td>
+                  <td className="border p-2">
+                    <select
+                      value={attendances[index]?.status || "hadir"}
+                      onChange={(e) => {
+                        const newAttendances = [...attendances];
+                        newAttendances[index] = {
+                          ...newAttendances[index],
+                          status: e.target.value as
+                            | "hadir"
+                            | "izin"
+                            | "sakit"
+                            | "alpa",
+                        };
+                        setAttendances(newAttendances);
+                      }}
+                      className="w-full"
+                      disabled={isLoading}
+                    >
+                      <option value="hadir">Hadir</option>
+                      <option value="izin">Izin</option>
+                      <option value="sakit">Sakit</option>
+                      <option value="alpa">Alpa</option>
+                    </select>
+                  </td>
+                  <td className="border p-2">
+                    <input
+                      type="text"
+                      value={attendances[index]?.notes || ""}
+                      onChange={(e) => {
+                        const newAttendances = [...attendances];
+                        newAttendances[index] = {
+                          ...newAttendances[index],
+                          notes: e.target.value,
+                        };
+                        setAttendances(newAttendances);
+                      }}
+                      className="w-full"
+                      disabled={
+                        isLoading || attendances[index]?.status === "hadir"
+                      }
+                    />
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
 
-      <button
-        onClick={handleSubmit}
-        className="mt-4 bg-blue-500 text-white px-4 py-2 rounded"
-      >
-        Simpan Presensi
-      </button>
-
-      {/* Show Toast here */}
-      <Toast
-        message={toast.message}
-        type={toast.type}
-        isVisible={toast.isVisible}
-        onClose={() => setToast({ ...toast, isVisible: false })}
-      />
+          <button
+            onClick={handleSubmit}
+            className="mt-4 bg-blue-500 text-white px-4 py-2 rounded disabled:bg-blue-300"
+            disabled={isLoading || !students.length}
+          >
+            {isLoading ? "Menyimpan..." : "Simpan Presensi"}
+          </button>
+        </>
+      )}
     </div>
   );
 };

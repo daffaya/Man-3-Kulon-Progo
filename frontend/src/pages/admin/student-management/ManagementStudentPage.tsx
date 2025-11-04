@@ -1,9 +1,8 @@
-// src/pages/admin/student-management/ManagementStudentPage.tsx
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../../contexts/AuthContext";
+import { useToastMessage } from "../../../hooks/useToastMessage";
 import AdminLayout from "../../../components/layout/AdminLayout";
-import Toast from "../../../components/ui/Toast";
 import { useStudents } from "../../../hooks/useStudents";
 import { useClasses } from "../../../hooks/useClasses";
 import StudentTable from "../../../components/tables/StudentsTable";
@@ -18,13 +17,8 @@ import { useAngkatans } from "../../../hooks/useAngkatans";
 const ManagementStudentPage: React.FC = () => {
   const navigate = useNavigate();
   const { user, isLoggedIn, token, isLoadingAuth } = useAuth();
-
-  // TOAST STATE
-  const [toastMessage, setToastMessage] = useState("");
-  const [toastType, setToastType] = useState<"success" | "error" | "warning">(
-    "success"
-  );
-  const [showToast, setShowToast] = useState(false);
+  const { showSuccessToast, showErrorToast, showWarningToast } =
+    useToastMessage();
 
   const [selectedClass, setSelectedClass] = useState<number>(0);
   const [selectedAngkatan, setSelectedAngkatan] = useState<string>("");
@@ -60,27 +54,13 @@ const ManagementStudentPage: React.FC = () => {
   const { classes } = useClasses();
   const { angkatans, loading: angkatansLoading } = useAngkatans();
 
-  // TOAST FUNCTION
-  const showToastHandler = (
-    message: string,
-    type: "success" | "error" | "warning" = "success"
-  ) => {
-    setToastMessage(message);
-    setToastType(type);
-    setShowToast(true);
-    setTimeout(() => setShowToast(false), 5000);
-  };
-
   // WRAPPER FUNCTIONS DENGAN TOAST
   const addStudent = async (data: any) => {
     try {
       await _addStudent(data);
-      showToastHandler("✅ Siswa berhasil ditambahkan!", "success");
+      showSuccessToast("Siswa berhasil ditambahkan!");
     } catch (error: any) {
-      showToastHandler(
-        `❌ ${error.message || "Gagal menambah siswa"}`,
-        "error"
-      );
+      showErrorToast(error.message || "Gagal menambah siswa");
       throw error;
     }
   };
@@ -88,12 +68,9 @@ const ManagementStudentPage: React.FC = () => {
   const updateStudent = async (id: number, data: any) => {
     try {
       await _updateStudent(id, data);
-      showToastHandler("✅ Data siswa berhasil diupdate!", "success");
+      showSuccessToast("Data siswa berhasil diupdate!");
     } catch (error: any) {
-      showToastHandler(
-        `❌ ${error.message || "Gagal mengupdate siswa"}`,
-        "error"
-      );
+      showErrorToast(error.message || "Gagal mengupdate siswa");
       throw error;
     }
   };
@@ -101,12 +78,9 @@ const ManagementStudentPage: React.FC = () => {
   const deleteStudent = async (id: number) => {
     try {
       await _deleteStudent(id);
-      showToastHandler("✅ Siswa berhasil dihapus!", "success");
+      showSuccessToast("Siswa berhasil dihapus!");
     } catch (error: any) {
-      showToastHandler(
-        `❌ ${error.message || "Gagal menghapus siswa"}`,
-        "error"
-      );
+      showErrorToast(error.message || "Gagal menghapus siswa");
       throw error;
     }
   };
@@ -343,7 +317,7 @@ const ManagementStudentPage: React.FC = () => {
           )}
         </div>
 
-        {/* UPDATED MODALS - PASS showToastHandler */}
+        {/* UPDATED MODALS */}
         <AddStudentModal
           isOpen={showAddModal}
           onClose={() => setShowAddModal(false)}
@@ -351,7 +325,6 @@ const ManagementStudentPage: React.FC = () => {
             setShowAddModal(false);
             refetch();
           }}
-          showToast={showToastHandler}
         />
 
         <ImportStudentPage
@@ -371,7 +344,6 @@ const ManagementStudentPage: React.FC = () => {
               setEditStudent(null);
               refetch();
             }}
-            showToast={showToastHandler}
           />
         )}
 
@@ -383,7 +355,6 @@ const ManagementStudentPage: React.FC = () => {
               setMoveStudent(null);
               refetch();
             }}
-            showToast={showToastHandler}
           />
         )}
 
@@ -395,20 +366,11 @@ const ManagementStudentPage: React.FC = () => {
               setShowBulkMoveModal(false);
               refetch();
             }}
-            showToast={showToastHandler}
             classes={classes}
             angkatans={angkatans}
           />
         )}
       </div>
-
-      {/* TOAST CONTAINER */}
-      <Toast
-        message={toastMessage}
-        type={toastType}
-        isVisible={showToast}
-        onClose={() => setShowToast(false)}
-      />
     </AdminLayout>
   );
 };

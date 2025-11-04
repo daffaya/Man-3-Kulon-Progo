@@ -1,16 +1,14 @@
-// src/components/modals/BulkMoveClassModal.tsx
 import React, { useState, useEffect, useRef } from "react";
 import { useAuth } from "../../contexts/AuthContext";
+import { useToastMessage } from "../../hooks/useToastMessage";
 import { studentService } from "../../services/studentService";
 import { Class, Angkatan } from "../../types/studentTypes";
 import { X } from "lucide-react";
-import Toast from "../ui/Toast";
 
 interface BulkMoveClassModalProps {
   isOpen: boolean;
   onClose: () => void;
   onSuccess: () => void;
-  showToast?: (message: string, type?: "success" | "error" | "warning") => void;
   classes: Class[];
   angkatans: Angkatan[];
 }
@@ -19,11 +17,11 @@ const BulkMoveClassModal: React.FC<BulkMoveClassModalProps> = ({
   isOpen,
   onClose,
   onSuccess,
-  showToast,
   classes,
   angkatans,
 }) => {
   const { token } = useAuth();
+  const { showErrorToast, showSuccessToast } = useToastMessage();
   const [formData, setFormData] = useState({
     angkatan: "",
     classIdFrom: "",
@@ -50,7 +48,6 @@ const BulkMoveClassModal: React.FC<BulkMoveClassModalProps> = ({
   const formDataRef = useRef(formData);
   formDataRef.current = formData;
 
-  // Fungsi untuk menentukan level dari nama kelas
   // Fungsi untuk menentukan level dari nama kelas
   const getClassLevel = (className: string): string => {
     // Asumsi nama kelas seperti "X-A", "XI-B", "XII-C"
@@ -90,9 +87,8 @@ const BulkMoveClassModal: React.FC<BulkMoveClassModalProps> = ({
         setFormData((prev) => ({ ...prev, classIdFrom: "", classIdTo: "" }));
       } catch (error) {
         console.error("Error fetching classes by angkatan:", error);
-        showToast?.(
-          error instanceof Error ? error.message : "Gagal memuat kelas",
-          "error"
+        showErrorToast(
+          error instanceof Error ? error.message : "Gagal memuat kelas"
         );
       } finally {
         setLoadingClasses(false);
@@ -115,7 +111,7 @@ const BulkMoveClassModal: React.FC<BulkMoveClassModalProps> = ({
         clearTimeout(debounceRef.current);
       }
     };
-  }, [formData.angkatan, token, showToast]);
+  }, [formData.angkatan, token, showErrorToast]);
 
   // Fetch kelas tujuan berdasarkan kelas asal yang dipilih
   useEffect(() => {
@@ -161,9 +157,8 @@ const BulkMoveClassModal: React.FC<BulkMoveClassModalProps> = ({
         setFormData((prev) => ({ ...prev, classIdTo: "" }));
       } catch (error) {
         console.error("Error fetching to classes:", error);
-        showToast?.(
-          error instanceof Error ? error.message : "Gagal memuat kelas tujuan",
-          "error"
+        showErrorToast(
+          error instanceof Error ? error.message : "Gagal memuat kelas tujuan"
         );
       } finally {
         setLoadingClasses(false);
@@ -191,7 +186,7 @@ const BulkMoveClassModal: React.FC<BulkMoveClassModalProps> = ({
     formData.action,
     filteredClasses.from,
     token,
-    showToast,
+    showErrorToast,
   ]);
 
   // useEffect untuk fromClassLevel (pisah)
@@ -287,7 +282,7 @@ const BulkMoveClassModal: React.FC<BulkMoveClassModalProps> = ({
     };
 
     fetchStudentsToMoveCount();
-  }, [formData.classIdFrom, formData.angkatan, token, showToast]);
+  }, [formData.classIdFrom, formData.angkatan, token]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -300,9 +295,8 @@ const BulkMoveClassModal: React.FC<BulkMoveClassModalProps> = ({
         !formData.academicYear ||
         !formData.angkatan
       ) {
-        showToast?.(
-          "Kelas asal, tujuan, tahun ajaran, dan angkatan wajib diisi",
-          "error"
+        showErrorToast(
+          "Kelas asal, tujuan, tahun ajaran, dan angkatan wajib diisi"
         );
         return;
       }
@@ -312,16 +306,13 @@ const BulkMoveClassModal: React.FC<BulkMoveClassModalProps> = ({
         !formData.academicYear ||
         !formData.angkatan
       ) {
-        showToast?.(
-          "Kelas asal, tahun ajaran, dan angkatan wajib diisi",
-          "error"
-        );
+        showErrorToast("Kelas asal, tahun ajaran, dan angkatan wajib diisi");
         return;
       }
 
       // Validasi tambahan untuk aksi "Luluskan"
       if (fromClassLevel !== "XII") {
-        showToast?.("Aksi luluskan hanya tersedia untuk kelas XII", "error");
+        showErrorToast("Aksi luluskan hanya tersedia untuk kelas XII");
         return;
       }
     }
@@ -369,16 +360,15 @@ const BulkMoveClassModal: React.FC<BulkMoveClassModalProps> = ({
 
       console.log("Operation result:", result);
 
-      showToast?.(
-        `${result.message}. ${count} siswa berhasil ${actionText}`,
-        "success"
+      showSuccessToast(
+        `${result.message}. ${count} siswa berhasil ${actionText}`
       );
 
       onSuccess();
       onClose();
     } catch (error: any) {
       console.error("Error in confirmAction:", error);
-      showToast?.(error.message || "Gagal memproses", "error");
+      showErrorToast(error.message || "Gagal memproses");
     } finally {
       setLoading(false);
       setShowConfirmation(false);

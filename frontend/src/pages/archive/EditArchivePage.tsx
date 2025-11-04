@@ -11,8 +11,7 @@ import Layout from "../../components/layout/Layout";
 import { Category, Archive } from "../../types/archiveTypes";
 import { fetchCategories, updateArchive } from "../../api/archiveApi";
 import { ALLOWED_ROLES } from "./ArchiveManagementPage";
-import Toast from "../../components/ui/Toast";
-import { v4 as uuidv4 } from "uuid";
+import { useToastMessage } from "../../hooks/useToastMessage";
 import { ChevronLeft } from "lucide-react";
 
 const hasEditAccess = (isLoggedIn: boolean, role?: string): boolean =>
@@ -26,6 +25,7 @@ const EditArchivePage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const location = useLocation();
   const archive = location.state?.archive as Archive | undefined;
+  const { showSuccessToast, showErrorToast } = useToastMessage();
 
   const [categories, setCategories] = useState<Category[]>([]);
   const [file, setFile] = useState<File | null>(null);
@@ -34,21 +34,9 @@ const EditArchivePage: React.FC = () => {
   const [editCategoryId, setEditCategoryId] = useState("");
   const [editDocumentNumber, setEditDocumentNumber] = useState("");
   const [editDocumentDate, setEditDocumentDate] = useState("");
-  const [toasts, setToasts] = useState<
-    { id: string; message: string; type: "success" | "error" }[]
-  >([]);
   const [loading, setLoading] = useState(false);
 
   const isAdminOrArsiparis = hasEditAccess(isLoggedIn, user?.role);
-
-  const addToast = (message: string, type: "success" | "error") => {
-    const id = uuidv4();
-    setToasts((prev) => [...prev, { id, message, type }]);
-  };
-
-  const removeToast = (id: string) => {
-    setToasts((prev) => prev.filter((toast) => toast.id !== id));
-  };
 
   if (!isLoggedIn) {
     return <Navigate to="/login" state={{ redirectTo: "/archives" }} replace />;
@@ -66,11 +54,11 @@ const EditArchivePage: React.FC = () => {
         const data = await fetchCategories();
         setCategories(data);
       } catch (err) {
-        addToast((err as Error).message, "error");
+        showErrorToast((err as Error).message);
       }
     };
     loadCategories();
-  }, []);
+  }, [showErrorToast]);
 
   useEffect(() => {
     let initialDate = archive.document_date || "";
@@ -101,9 +89,8 @@ const EditArchivePage: React.FC = () => {
         "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
       ];
       if (!allowedTypes.includes(selectedFile.type)) {
-        addToast(
-          "Hanya file PDF atau Word (.doc, .docx) yang diperbolehkan",
-          "error"
+        showErrorToast(
+          "Hanya file PDF atau Word (.doc, .docx) yang diperbolehkan"
         );
         setFile(null);
         const fileInput = e.target as HTMLInputElement;
@@ -114,7 +101,7 @@ const EditArchivePage: React.FC = () => {
       // Validasi ukuran file (10MB = 10 * 1024 * 1024 bytes)
       const maxSize = 10 * 1024 * 1024;
       if (selectedFile.size > maxSize) {
-        addToast("Ukuran file tidak boleh lebih dari 10MB", "error");
+        showErrorToast("Ukuran file tidak boleh lebih dari 10MB");
         setFile(null);
         const fileInput = e.target as HTMLInputElement;
         fileInput.value = ""; // Reset input
@@ -123,19 +110,8 @@ const EditArchivePage: React.FC = () => {
     }
   };
 
-  // Ganti event handler untuk input file
-  <input
-    type="file"
-    id="file"
-    accept=".pdf,.doc,.docx"
-    className="form-input w-full mt-1"
-    onChange={handleFileChange}
-    disabled={loading}
-  />;
-
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
-    setToasts([]);
     setLoading(true);
 
     const formData = new FormData();
@@ -149,7 +125,7 @@ const EditArchivePage: React.FC = () => {
 
     try {
       await updateArchive(parseInt(id), formData, token);
-      addToast("Arsip berhasil diedit", "success");
+      showSuccessToast("Arsip berhasil diedit");
       setTimeout(() => {
         navigate("/archives", {
           replace: true,
@@ -157,7 +133,7 @@ const EditArchivePage: React.FC = () => {
         });
       }, 2000);
     } catch (err) {
-      addToast((err as Error).message, "error");
+      showErrorToast((err as Error).message);
     } finally {
       setLoading(false);
     }
@@ -167,17 +143,15 @@ const EditArchivePage: React.FC = () => {
     <Layout>
       <div className="container max-w-6xl mx-auto px-4 sm:px-6 py-12 fade-in">
         <div className="mb-8">
-          {" "}
           <div className="flex items-center">
-            {" "}
             <Link
               to="/archives"
               className="mr-4 text-gray-600 dark:text-gray-400 hover:text-accent dark:hover:text-accent transition-colors"
             >
-              <ChevronLeft size={20} />{" "}
-            </Link>{" "}
-            <h1 className="text-3xl font-serif font-bold">Edit Arsip </h1>{" "}
-          </div>{" "}
+              <ChevronLeft size={20} />
+            </Link>
+            <h1 className="text-3xl font-serif font-bold">Edit Arsip</h1>
+          </div>
         </div>
         <div className="bg-white dark:bg-semibackground rounded-xl shadow-md p-6">
           <form onSubmit={handleSubmit} className="space-y-4">
@@ -285,16 +259,6 @@ const EditArchivePage: React.FC = () => {
               </button>
             </div>
           </form>
-          {toasts.map((toast, index) => (
-            <Toast
-              key={toast.id}
-              message={toast.message}
-              type={toast.type}
-              isVisible={true}
-              onClose={() => removeToast(toast.id)}
-              index={index}
-            />
-          ))}
         </div>
       </div>
     </Layout>

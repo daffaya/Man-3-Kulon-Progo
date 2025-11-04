@@ -1,11 +1,10 @@
-// src/pages/admin/attendance/AttendanceStudentPage.tsx
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../../contexts/AuthContext";
+import { useToastMessage } from "../../../hooks/useToastMessage";
 import { fetchClasses, fetchTodayStats } from "../../../api/attendanceApi";
 import AppCard from "../../../components/ui/AppCard";
 import AdminLayout from "../../../components/layout/AdminLayout";
-import Toast from "../../../components/ui/Toast";
 import { studentService } from "../../../services/studentService";
 import AddStudentModal from "../../../components/modals/AddStudentModal";
 import QuickActionCard from "../../../components/ui/QuickActionCard";
@@ -41,6 +40,7 @@ interface TodayStats {
 const AttendanceStudentPage: React.FC = () => {
   const { user, isLoggedIn, token } = useAuth();
   const navigate = useNavigate();
+  const { showSuccessToast, showErrorToast } = useToastMessage();
   const [classes, setClasses] = useState<ClassData[]>([]);
   const [todayStats, setTodayStats] = useState<TodayStats>({
     totalHadir: 0,
@@ -50,21 +50,11 @@ const AttendanceStudentPage: React.FC = () => {
     totalLibur: 0,
   });
   const [loading, setLoading] = useState(true);
-  // Perbaiki type toast
-  const [toast, setToast] = useState({
-    isVisible: false,
-    message: "",
-    type: "success" as "success" | "error",
-  });
   const [showAddStudentModal, setShowAddStudentModal] = useState(false);
   const [showImportModal, setShowImportModal] = useState(false);
 
   const hasEditAccess =
     isLoggedIn && ["guru_bk", "super_admin"].includes(user?.role || "");
-
-  const addToast = (message: string, type: "success" | "error" = "success") => {
-    setToast({ isVisible: true, message, type });
-  };
 
   useEffect(() => {
     const fetchData = async () => {
@@ -79,7 +69,7 @@ const AttendanceStudentPage: React.FC = () => {
         setClasses(classesData);
         setTodayStats(statsData);
       } catch (error) {
-        addToast("Gagal memuat data", "error");
+        showErrorToast("Gagal memuat data");
       } finally {
         setLoading(false);
       }
@@ -88,7 +78,7 @@ const AttendanceStudentPage: React.FC = () => {
     if (isLoggedIn && token) {
       fetchData();
     }
-  }, [isLoggedIn, token]);
+  }, [isLoggedIn, token, showErrorToast]);
 
   const handleAddStudent = async (studentData: any) => {
     try {
@@ -96,15 +86,14 @@ const AttendanceStudentPage: React.FC = () => {
         throw new Error("Token tidak tersedia");
       }
       await studentService.createStudent(studentData, token);
-      addToast("Siswa berhasil ditambahkan", "success");
+      showSuccessToast("Siswa berhasil ditambahkan");
       setShowAddStudentModal(false);
       // Refresh data
       const classesData = await fetchClasses(token);
       setClasses(classesData);
     } catch (error) {
-      addToast(
-        error instanceof Error ? error.message : "Gagal menambah siswa",
-        "error"
+      showErrorToast(
+        error instanceof Error ? error.message : "Gagal menambah siswa"
       );
     }
   };
@@ -348,13 +337,6 @@ const AttendanceStudentPage: React.FC = () => {
           </div>
         </div>
       </div>
-      <Toast
-        message={toast.message}
-        type={toast.type}
-        isVisible={toast.isVisible}
-        onClose={() => setToast({ ...toast, isVisible: false })}
-      />
-
       {/* Add Student Modal */}
       <AddStudentModal
         isOpen={showAddStudentModal}

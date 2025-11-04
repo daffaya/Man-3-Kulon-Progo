@@ -2,7 +2,7 @@ import React, { useState, useRef } from "react";
 import { Camera, Link as LinkIcon, X, RefreshCw } from "lucide-react";
 import userApi from "../../api/userApi";
 import { useAuth } from "../../contexts/AuthContext";
-import Toast from "./Toast";
+import { useToastMessage } from "../../hooks/useToastMessage";
 
 interface AvatarUploadProps {
   currentAvatar?: string | null;
@@ -14,14 +14,11 @@ const AvatarUpload: React.FC<AvatarUploadProps> = ({
   onAvatarChange,
 }) => {
   const { updateUserAvatar, user } = useAuth();
+  const { showSuccessToast, showErrorToast } = useToastMessage();
   const [avatar, setAvatar] = useState<string | null>(currentAvatar || null);
   const [isUploading, setIsUploading] = useState(false);
   const [showUrlInput, setShowUrlInput] = useState(false);
   const [avatarUrl, setAvatarUrl] = useState("");
-  const [toast, setToast] = useState<{
-    message: string;
-    type: "success" | "error";
-  } | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -35,18 +32,12 @@ const AvatarUpload: React.FC<AvatarUploadProps> = ({
         "image/svg+xml",
       ];
       if (!validTypes.includes(file.type)) {
-        setToast({
-          message: "Only JPG, JPEG, PNG, and SVG files are allowed",
-          type: "error",
-        });
+        showErrorToast("Only JPG, JPEG, PNG, and SVG files are allowed");
         return;
       }
 
       if (file.size > 10 * 1024 * 1024) {
-        setToast({
-          message: "File size must be less than 10MB",
-          type: "error",
-        });
+        showErrorToast("File size must be less than 10MB");
         return;
       }
 
@@ -56,9 +47,9 @@ const AvatarUpload: React.FC<AvatarUploadProps> = ({
         setAvatar(response.avatar);
         onAvatarChange(response.avatar);
         updateUserAvatar(response.avatar);
-        setToast({ message: "Avatar updated successfully", type: "success" });
+        showSuccessToast("Avatar updated successfully");
       } catch (error) {
-        setToast({ message: (error as Error).message, type: "error" });
+        showErrorToast((error as Error).message);
       } finally {
         setIsUploading(false);
       }
@@ -75,11 +66,11 @@ const AvatarUpload: React.FC<AvatarUploadProps> = ({
       setAvatar(response.avatar);
       onAvatarChange(response.avatar);
       updateUserAvatar(response.avatar);
-      setToast({ message: "Avatar updated successfully", type: "success" });
+      showSuccessToast("Avatar updated successfully");
       setShowUrlInput(false);
       setAvatarUrl("");
     } catch (error) {
-      setToast({ message: (error as Error).message, type: "error" });
+      showErrorToast((error as Error).message);
     } finally {
       setIsUploading(false);
     }
@@ -92,9 +83,9 @@ const AvatarUpload: React.FC<AvatarUploadProps> = ({
       setAvatar(defaultAvatar);
       onAvatarChange(defaultAvatar);
       updateUserAvatar(defaultAvatar);
-      setToast({ message: "Avatar removed", type: "success" });
+      showSuccessToast("Avatar removed");
     } catch (error) {
-      setToast({ message: (error as Error).message, type: "error" });
+      showErrorToast((error as Error).message);
     } finally {
       setIsUploading(false);
     }
@@ -187,15 +178,6 @@ const AvatarUpload: React.FC<AvatarUploadProps> = ({
             </button>
           </div>
         </form>
-      )}
-
-      {toast && (
-        <Toast
-          message={toast.message}
-          type={toast.type}
-          isVisible={true}
-          onClose={() => setToast(null)}
-        />
       )}
     </div>
   );

@@ -1,10 +1,8 @@
-// src/pages/admin/attendance/AttendanceHolidaysPage.tsx
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../../contexts/AuthContext";
+import { useToastMessage } from "../../../hooks/useToastMessage";
 import AdminLayout from "../../../components/layout/AdminLayout";
-import Toast from "../../../components/ui/Toast";
-import { v4 as uuidv4 } from "uuid";
 import { format, parseISO } from "date-fns";
 import { id } from "date-fns/locale";
 
@@ -26,11 +24,9 @@ const hasEditAccess = (isLoggedIn: boolean, role?: string): boolean =>
 const AttendanceHolidaysPage: React.FC = () => {
   const { isLoggedIn, user, token } = useAuth();
   const navigate = useNavigate();
+  const { showSuccessToast, showErrorToast } = useToastMessage();
 
   const [holidays, setHolidays] = useState<Holiday[]>([]);
-  const [toasts, setToasts] = useState<
-    { id: string; message: string; type: "success" | "error" }[]
-  >([]);
   const [loading, setLoading] = useState(false);
   const [newHoliday, setNewHoliday] = useState<{
     date: string;
@@ -38,15 +34,6 @@ const AttendanceHolidaysPage: React.FC = () => {
   }>({ date: "", description: "" });
 
   const isAdminOrGuruBK = hasEditAccess(isLoggedIn, user?.role);
-
-  const addToast = (message: string, type: "success" | "error") => {
-    const id = uuidv4();
-    setToasts((prev) => [...prev, { id, message, type }]);
-  };
-
-  const removeToast = (id: string) => {
-    setToasts((prev) => prev.filter((toast) => toast.id !== id));
-  };
 
   // Fetch holidays
   useEffect(() => {
@@ -62,22 +49,22 @@ const AttendanceHolidaysPage: React.FC = () => {
           const data = await response.json();
           setHolidays(data);
         } else {
-          addToast("Gagal mengambil data hari libur", "error");
+          showErrorToast("Gagal mengambil data hari libur");
         }
       } catch (err) {
-        addToast("Terjadi kesalahan saat mengambil data hari libur", "error");
+        showErrorToast("Terjadi kesalahan saat mengambil data hari libur");
       }
     };
 
     if (isLoggedIn) {
       fetchHolidays();
     }
-  }, [isLoggedIn, token]);
+  }, [isLoggedIn, token, showErrorToast]);
 
   // Add holiday
   const addHoliday = async () => {
     if (!newHoliday.date || !newHoliday.description) {
-      addToast("Tanggal dan keterangan harus diisi", "error");
+      showErrorToast("Tanggal dan keterangan harus diisi");
       return;
     }
 
@@ -100,7 +87,7 @@ const AttendanceHolidaysPage: React.FC = () => {
       const data = await response.json();
 
       if (response.ok && data.success) {
-        addToast(data.message || "Hari libur berhasil ditambahkan", "success");
+        showSuccessToast(data.message || "Hari libur berhasil ditambahkan");
         setNewHoliday({ date: "", description: "" });
 
         // Refresh holidays list
@@ -118,10 +105,10 @@ const AttendanceHolidaysPage: React.FC = () => {
           setHolidays(holidaysData);
         }
       } else {
-        addToast(data.error || "Gagal menambahkan hari libur", "error");
+        showErrorToast(data.error || "Gagal menambahkan hari libur");
       }
     } catch (err) {
-      addToast("Terjadi kesalahan saat menambahkan hari libur", "error");
+      showErrorToast("Terjadi kesalahan saat menambahkan hari libur");
     } finally {
       setLoading(false);
     }
@@ -146,7 +133,7 @@ const AttendanceHolidaysPage: React.FC = () => {
       const data = await response.json();
 
       if (response.ok && data.success) {
-        addToast(data.message || "Hari libur berhasil dihapus", "success");
+        showSuccessToast(data.message || "Hari libur berhasil dihapus");
 
         // Refresh holidays list
         const holidaysResponse = await fetch(
@@ -163,10 +150,10 @@ const AttendanceHolidaysPage: React.FC = () => {
           setHolidays(holidaysData);
         }
       } else {
-        addToast(data.error || "Gagal menghapus hari libur", "error");
+        showErrorToast(data.error || "Gagal menghapus hari libur");
       }
     } catch (err) {
-      addToast("Terjadi kesalahan saat menghapus hari libur", "error");
+      showErrorToast("Terjadi kesalahan saat menghapus hari libur");
     } finally {
       setLoading(false);
     }
@@ -343,17 +330,6 @@ const AttendanceHolidaysPage: React.FC = () => {
             </div>
           )}
         </div>
-
-        {toasts.map((toast, index) => (
-          <Toast
-            key={toast.id}
-            message={toast.message}
-            type={toast.type}
-            isVisible={true}
-            onClose={() => removeToast(toast.id)}
-            index={index}
-          />
-        ))}
       </div>
     </SelectedLayout>
   );

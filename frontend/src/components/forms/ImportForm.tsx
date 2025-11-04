@@ -1,8 +1,8 @@
-// src/components/forms/ImportForm.tsx
 import React, { useState, useCallback, useEffect, useRef } from "react";
 import { useDropzone, FileRejection } from "react-dropzone";
 import { importStudents } from "../../services/importService";
 import { useAuth } from "../../contexts/AuthContext";
+import { useToastMessage } from "../../hooks/useToastMessage";
 import {
   Upload,
   Download,
@@ -15,7 +15,6 @@ import {
   UserMinus,
   AlertTriangle,
 } from "lucide-react";
-import Toast from "../ui/Toast";
 import { ImportResult } from "../../types/importTypes";
 
 interface ImportFormProps {
@@ -24,14 +23,11 @@ interface ImportFormProps {
 
 export const ImportForm: React.FC<ImportFormProps> = ({ onSuccess }) => {
   const { token } = useAuth();
+  const { showSuccessToast, showErrorToast, showWarningToast } =
+    useToastMessage();
   const [file, setFile] = useState<File | null>(null);
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<ImportResult | null>(null);
-  const [showToast, setShowToast] = useState(false);
-  const [toastMessage, setToastMessage] = useState("");
-  const [toastType, setToastType] = useState<
-    "success" | "error" | "warning" | "info"
-  >("success");
 
   // Reference to the modal content
   const modalRef = useRef<HTMLDivElement>(null);
@@ -47,19 +43,17 @@ export const ImportForm: React.FC<ImportFormProps> = ({ onSuccess }) => {
       if (fileRejections.length > 0) {
         const error = fileRejections[0].errors[0];
         if (error.code === "file-too-large") {
-          setToastMessage("Ukuran file terlalu besar. Maksimal 5MB");
+          showErrorToast("Ukuran file terlalu besar. Maksimal 5MB");
         } else if (error.code === "file-invalid-type") {
-          setToastMessage(
+          showErrorToast(
             "Tipe file tidak valid. Hanya .xlsx dan .xls yang diperbolehkan"
           );
         } else {
-          setToastMessage("Error: " + error.message);
+          showErrorToast("Error: " + error.message);
         }
-        setToastType("error");
-        setShowToast(true);
       }
     },
-    []
+    [showErrorToast]
   );
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
@@ -80,9 +74,7 @@ export const ImportForm: React.FC<ImportFormProps> = ({ onSuccess }) => {
 
   const handleImport = async () => {
     if (!file) {
-      setToastMessage("Silakan pilih file Excel terlebih dahulu");
-      setToastType("warning");
-      setShowToast(true);
+      showWarningToast("Silakan pilih file Excel terlebih dahulu");
       return;
     }
 
@@ -121,13 +113,13 @@ export const ImportForm: React.FC<ImportFormProps> = ({ onSuccess }) => {
         message += ` ${response.failed} gagal (lihat error)`;
       }
 
-      setToastMessage(message);
-      setToastType(response.failed > 0 ? "warning" : "success");
-      setShowToast(true);
+      if (response.failed > 0) {
+        showWarningToast(message);
+      } else {
+        showSuccessToast(message);
+      }
     } catch (error: any) {
-      setToastMessage(error.message || "Gagal mengimport data siswa");
-      setToastType("error");
-      setShowToast(true);
+      showErrorToast(error.message || "Gagal mengimport data siswa");
     } finally {
       setLoading(false);
     }
@@ -136,9 +128,11 @@ export const ImportForm: React.FC<ImportFormProps> = ({ onSuccess }) => {
   const downloadTemplate = () => {
     // Cek token dulu
     if (!token) {
-      setToastMessage("Sesi telah berakhir. Silakan login kembali.");
-      setToastType("error");
-      setShowToast(true);
+      showErrorToast("Sesi telah berakhir. Silakan login kembali.");
+      // Redirect ke login setelah delay
+      setTimeout(() => {
+        window.location.href = "/login";
+      }, 2000);
       return;
     }
 
@@ -155,13 +149,9 @@ export const ImportForm: React.FC<ImportFormProps> = ({ onSuccess }) => {
       document.body.removeChild(link);
 
       // Tampilkan toast sukses download
-      setToastMessage("Template berhasil diunduh");
-      setToastType("success");
-      setShowToast(true);
+      showSuccessToast("Template berhasil diunduh");
     } catch (error) {
-      setToastMessage("Gagal mengunduh template");
-      setToastType("error");
-      setShowToast(true);
+      showErrorToast("Gagal mengunduh template");
     }
   };
 
@@ -181,15 +171,13 @@ export const ImportForm: React.FC<ImportFormProps> = ({ onSuccess }) => {
 
   useEffect(() => {
     if (!token) {
-      setToastMessage("Sesi telah berakhir. Silakan login kembali.");
-      setToastType("error");
-      setShowToast(true);
+      showErrorToast("Sesi telah berakhir. Silakan login kembali.");
       // Redirect ke login setelah delay
       setTimeout(() => {
         window.location.href = "/login";
       }, 2000);
     }
-  }, [token]);
+  }, [token, showErrorToast]);
 
   return (
     <div
@@ -529,15 +517,6 @@ export const ImportForm: React.FC<ImportFormProps> = ({ onSuccess }) => {
             )}
           </div>
         )}
-
-        {/* Toast Notification */}
-        <Toast
-          message={toastMessage}
-          type={toastType}
-          isVisible={showToast}
-          duration={5000}
-          onClose={() => setShowToast(false)}
-        />
       </div>
     </div>
   );

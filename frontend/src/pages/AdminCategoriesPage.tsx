@@ -6,8 +6,7 @@ import { Plus, Edit, Trash2, RefreshCw, X, ArrowLeft } from "lucide-react";
 import Layout from "../components/layout/Layout";
 import AdminLayout from "../components/layout/AdminLayout";
 import { Link, useNavigate } from "react-router-dom";
-import Toast from "../components/ui/Toast";
-import { v4 as uuidv4 } from "uuid";
+import { useToastMessage } from "../hooks/useToastMessage";
 
 /** Roles that are permitted to manage categories. */
 export const ALLOWED_ROLES = ["super_admin", "jurnalis"] as const;
@@ -38,6 +37,8 @@ const AdminCategoriesPage: React.FC = () => {
     deleteCategory,
   } = useArticles();
 
+  const { showSuccessToast, showErrorToast } = useToastMessage();
+
   const adminCategories = state.adminCategories;
   const adminCategoriesLoading = state.adminCategoriesLoading;
 
@@ -55,41 +56,19 @@ const AdminCategoriesPage: React.FC = () => {
 
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
-  const [toasts, setToasts] = useState<
-    { id: string; message: string; type: "success" | "error" }[]
-  >([]);
-
   const isAdminOrJurnalis = hasEditAccess(isLoggedIn, user?.role);
-
-  /**
-   * Adds a new toast notification to the queue.
-   * @param message - The message to display.
-   * @param type - The type of toast (success or error).
-   */
-  const addToast = (message: string, type: "success" | "error") => {
-    const id = uuidv4();
-    setToasts((prev) => [...prev, { id, message, type }]);
-  };
-
-  /**
-   * Removes a toast notification by its unique ID.
-   * @param id - The ID of the toast to remove.
-   */
-  const removeToast = (id: string) => {
-    setToasts((prev) => prev.filter((toast) => toast.id !== id));
-  };
 
   // Fetches categories when the component mounts.
   useEffect(() => {
     fetchAdminCategories().catch(() => {
-      addToast("Failed to fetch categories", "error");
+      showErrorToast("Failed to fetch categories");
     });
-  }, [fetchAdminCategories]);
+  }, [fetchAdminCategories, showErrorToast]);
 
   /** Opens the modal to add a new category after checking permissions. */
   const handleAddClick = () => {
     if (!isAdminOrJurnalis) {
-      addToast("Anda tidak memiliki akses untuk menambah kategori", "error");
+      showErrorToast("Anda tidak memiliki akses untuk menambah kategori");
       if (!isLoggedIn) {
         navigate("/login", { state: { redirectTo: "/admin/categories" } });
       }
@@ -120,12 +99,12 @@ const AdminCategoriesPage: React.FC = () => {
       await createCategory(categoryData);
       fetchAdminCategories();
       setShowAddModal(false);
-      addToast("Kategori berhasil dibuat", "success");
+      showSuccessToast("Kategori berhasil dibuat");
     } catch (error) {
       setErrorMessage(
         "Failed to create category. Please try again. (Check backend logs for details)"
       );
-      addToast("Gagal membuat kategori", "error");
+      showErrorToast("Gagal membuat kategori");
     }
   };
 
@@ -138,7 +117,7 @@ const AdminCategoriesPage: React.FC = () => {
   /** Opens the modal to edit an existing category after checking permissions. */
   const handleEditClick = (category: Category) => {
     if (!isAdminOrJurnalis) {
-      addToast("Anda tidak memiliki akses untuk mengedit kategori", "error");
+      showErrorToast("Anda tidak memiliki akses untuk mengedit kategori");
       if (!isLoggedIn) {
         navigate("/login", { state: { redirectTo: "/admin/categories" } });
       }
@@ -170,12 +149,12 @@ const AdminCategoriesPage: React.FC = () => {
       fetchAdminCategories();
       setShowEditModal(false);
       setEditingCategory(null);
-      addToast("Kategori berhasil diperbarui", "success");
+      showSuccessToast("Kategori berhasil diperbarui");
     } catch (error) {
       setErrorMessage(
         "Failed to update category. Please try again. (Check backend logs for details)"
       );
-      addToast("Gagal memperbarui kategori", "error");
+      showErrorToast("Gagal memperbarui kategori");
     }
   };
 
@@ -189,7 +168,7 @@ const AdminCategoriesPage: React.FC = () => {
   /** Opens the delete confirmation modal for a specific category. */
   const handleDeleteClick = (category: Category) => {
     if (!isAdminOrJurnalis) {
-      addToast("Anda tidak memiliki akses untuk menghapus kategori", "error");
+      showErrorToast("Anda tidak memiliki akses untuk menghapus kategori");
       if (!isLoggedIn) {
         navigate("/login", { state: { redirectTo: "/admin/categories" } });
       }
@@ -211,12 +190,12 @@ const AdminCategoriesPage: React.FC = () => {
       fetchAdminCategories();
       setShowDeleteConfirmation(false);
       setCategoryToDelete(null);
-      addToast("Kategori berhasil dihapus", "success");
+      showSuccessToast("Kategori berhasil dihapus");
     } catch (error) {
       setErrorMessage(
         "Failed to delete category. Please try again. (Check backend logs for details)"
       );
-      addToast("Gagal menghapus kategori", "error");
+      showErrorToast("Gagal menghapus kategori");
     }
   };
 
@@ -377,17 +356,6 @@ const AdminCategoriesPage: React.FC = () => {
             )}
           </div>
         )}
-
-        {toasts.map((toast, index) => (
-          <Toast
-            key={toast.id}
-            message={toast.message}
-            type={toast.type}
-            isVisible={true}
-            onClose={() => removeToast(toast.id)}
-            index={index}
-          />
-        ))}
 
         {showAddModal && (
           <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">

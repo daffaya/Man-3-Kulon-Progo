@@ -3,6 +3,7 @@ import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import { ThemeProvider } from "./contexts/ThemeContext";
 import { ArticleProvider } from "./contexts/ArticleContext";
 import { AuthProvider } from "./contexts/AuthContext";
+import { ToastProvider } from "./contexts/ToastContext";
 import { Outlet } from "react-router-dom";
 // Pages
 import HomePage from "./pages/HomePage";
@@ -51,93 +52,101 @@ const AdminLayout = () => (
 function App() {
   return (
     <ThemeProvider>
-      <AuthProvider>
-        <ArticleProvider>
-          <Router>
-            <Routes>
-              <Route path="/" element={<HomePage />} />
-              <Route path="/berita" element={<NewsPage />} />
-              <Route path="/berita/:slug" element={<ArticlePage />} />
-              <Route path="/Profile" element={<ProfilePage />} />
-              <Route path="/contact" element={<ContactPage />} />
-              <Route path="/webApp" element={<WebAppPage />} />
-              <Route path="/login" element={<LoginPage />} />
+      <ToastProvider>
+        <AuthProvider>
+          <ArticleProvider>
+            <Router>
+              <Routes>
+                <Route path="/" element={<HomePage />} />
+                <Route path="/berita" element={<NewsPage />} />
+                <Route path="/berita/:slug" element={<ArticlePage />} />
+                <Route path="/Profile" element={<ProfilePage />} />
+                <Route path="/contact" element={<ContactPage />} />
+                <Route path="/webApp" element={<WebAppPage />} />
+                <Route path="/login" element={<LoginPage />} />
 
-              <Route path="/profile/sejarah" element={<SejarahPage />} />
-              <Route
-                path="/profile/struktur-organisasi"
-                element={<StrukturOrganisasiPage />}
-              />
-              <Route path="/profile/visi-misi" element={<VisiMisiPage />} />
-              <Route
-                path="/profile/kepala-madrasah"
-                element={<KepalaMadrasahPage />}
-              />
-              <Route path="/profile/guru-staf" element={<GuruStafPage />} />
-              <Route path="/profile/siswa" element={<SiswaPage />} />
-              <Route path="/profile/mitra" element={<MitraPage />} />
-              <Route
-                path="/profile/program-kerja"
-                element={<ProgramKerjaPage />}
-              />
-              <Route
-                path="/profile/sarana-prasarana"
-                element={<SaranaPrasaranaPage />}
-              />
-
-              <Route path="/archives" element={<ArchiveManagementPage />} />
-
-              <Route path="/alumni" element={<AlumniPage />} />
-
-              <Route path="/atmin" element={<AdminLayout />}>
-                <Route index element={<AdminDashboard />} />
-                <Route path="userProfile" element={<UserProfilePage />} />
-
-                {/* Article */}
-                <Route path="articles" element={<ArticleManagementPage />} />
-                <Route path="articles/new" element={<NewArticlePage />} />
-                <Route path="articles/:id/edit" element={<EditArticlePage />} />
-                <Route path="category" element={<AdminCategoriesPage />} />
-
-                {/*Archive*/}
-                <Route path="archives/:id/edit" element={<EditArchivePage />} />
-
-                {/* Attendance */}
-                <Route path="presensi" element={<AttendanceStudentPage />} />
+                <Route path="/profile/sejarah" element={<SejarahPage />} />
                 <Route
-                  path="presensi/input"
-                  element={<AttendanceInputPage />}
+                  path="/profile/struktur-organisasi"
+                  element={<StrukturOrganisasiPage />}
+                />
+                <Route path="/profile/visi-misi" element={<VisiMisiPage />} />
+                <Route
+                  path="/profile/kepala-madrasah"
+                  element={<KepalaMadrasahPage />}
+                />
+                <Route path="/profile/guru-staf" element={<GuruStafPage />} />
+                <Route path="/profile/siswa" element={<SiswaPage />} />
+                <Route path="/profile/mitra" element={<MitraPage />} />
+                <Route
+                  path="/profile/program-kerja"
+                  element={<ProgramKerjaPage />}
                 />
                 <Route
-                  path="presensi/recap"
-                  element={<AttendanceRecapPage />}
-                />
-                <Route
-                  path="presensi/holidays"
-                  element={<AttendanceHolidaysPage />}
-                />
-                <Route
-                  path="presensi/archive"
-                  element={<AttendanceArchivePage />}
-                />
-                <Route path="uploadArchive" element={<UploadArchivePage />} />
-
-                {/* Student Management - PINDAH KE SINI */}
-                <Route
-                  path="manajemen-siswa"
-                  element={<ManajemenStudentPage />}
+                  path="/profile/sarana-prasarana"
+                  element={<SaranaPrasaranaPage />}
                 />
 
-                <Route path="alumni/:id/edit" element={<EditAlumniPage />} />
+                <Route path="/archives" element={<ArchiveManagementPage />} />
 
-                <Route path="users" element={<UserManagementPage />} />
-              </Route>
+                <Route path="/alumni" element={<AlumniPage />} />
 
-              <Route path="*" element={<NotFoundPage />} />
-            </Routes>
-          </Router>
-        </ArticleProvider>
-      </AuthProvider>
+                <Route path="/atmin" element={<AdminLayout />}>
+                  <Route index element={<AdminDashboard />} />
+                  <Route path="userProfile" element={<UserProfilePage />} />
+
+                  {/* Article */}
+                  <Route path="articles" element={<ArticleManagementPage />} />
+                  <Route path="articles/new" element={<NewArticlePage />} />
+                  <Route
+                    path="articles/:id/edit"
+                    element={<EditArticlePage />}
+                  />
+                  <Route path="category" element={<AdminCategoriesPage />} />
+
+                  {/*Archive*/}
+                  <Route
+                    path="archives/:id/edit"
+                    element={<EditArchivePage />}
+                  />
+
+                  {/* Attendance */}
+                  <Route path="presensi" element={<AttendanceStudentPage />} />
+                  <Route
+                    path="presensi/input"
+                    element={<AttendanceInputPage />}
+                  />
+                  <Route
+                    path="presensi/recap"
+                    element={<AttendanceRecapPage />}
+                  />
+                  <Route
+                    path="presensi/holidays"
+                    element={<AttendanceHolidaysPage />}
+                  />
+                  <Route
+                    path="presensi/archive"
+                    element={<AttendanceArchivePage />}
+                  />
+                  <Route path="uploadArchive" element={<UploadArchivePage />} />
+
+                  {/* Student Management - PINDAH KE SINI */}
+                  <Route
+                    path="manajemen-siswa"
+                    element={<ManajemenStudentPage />}
+                  />
+
+                  <Route path="alumni/:id/edit" element={<EditAlumniPage />} />
+
+                  <Route path="users" element={<UserManagementPage />} />
+                </Route>
+
+                <Route path="*" element={<NotFoundPage />} />
+              </Routes>
+            </Router>
+          </ArticleProvider>
+        </AuthProvider>
+      </ToastProvider>
     </ThemeProvider>
   );
 }

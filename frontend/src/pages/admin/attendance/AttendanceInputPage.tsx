@@ -1,10 +1,8 @@
-// src/pages/admin/attendance/AttendanceInputPage.tsx
 import React, { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "../../../contexts/AuthContext";
+import { useToastMessage } from "../../../hooks/useToastMessage";
 import AdminLayout from "../../../components/layout/AdminLayout";
-import Toast from "../../../components/ui/Toast";
-import { v4 as uuidv4 } from "uuid";
 import { format } from "date-fns";
 import { id } from "date-fns/locale";
 
@@ -40,6 +38,7 @@ const AttendanceInputPage: React.FC = () => {
   const { isLoggedIn, user, token } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
+  const { showSuccessToast, showErrorToast } = useToastMessage();
 
   const [classes, setClasses] = useState<ClassData[]>([]);
   const [selectedClass, setSelectedClass] = useState<number>(0);
@@ -48,21 +47,9 @@ const AttendanceInputPage: React.FC = () => {
   );
   const [students, setStudents] = useState<Student[]>([]);
   const [attendances, setAttendances] = useState<Attendance[]>([]);
-  const [toasts, setToasts] = useState<
-    { id: string; message: string; type: "success" | "error" }[]
-  >([]);
   const [loading, setLoading] = useState(false);
 
   const isAdminOrGuruBK = hasEditAccess(isLoggedIn, user?.role);
-
-  const addToast = (message: string, type: "success" | "error") => {
-    const id = uuidv4();
-    setToasts((prev) => [...prev, { id, message, type }]);
-  };
-
-  const removeToast = (id: string) => {
-    setToasts((prev) => prev.filter((toast) => toast.id !== id));
-  };
 
   // Get classId from URL params
   useEffect(() => {
@@ -87,17 +74,17 @@ const AttendanceInputPage: React.FC = () => {
           const data = await response.json();
           setClasses(data);
         } else {
-          addToast("Gagal mengambil data kelas", "error");
+          showErrorToast("Gagal mengambil data kelas");
         }
       } catch (err) {
-        addToast("Terjadi kesalahan saat mengambil data kelas", "error");
+        showErrorToast("Terjadi kesalahan saat mengambil data kelas");
       }
     };
 
     if (isLoggedIn) {
       fetchClasses();
     }
-  }, [isLoggedIn, token]);
+  }, [isLoggedIn, token, showErrorToast]);
 
   // Fetch students when class is selected
   useEffect(() => {
@@ -127,17 +114,17 @@ const AttendanceInputPage: React.FC = () => {
           );
           setAttendances(initialAttendances);
         } else {
-          addToast("Gagal mengambil data siswa", "error");
+          showErrorToast("Gagal mengambil data siswa");
         }
       } catch (err) {
-        addToast("Terjadi kesalahan saat mengambil data siswa", "error");
+        showErrorToast("Terjadi kesalahan saat mengambil data siswa");
       }
     };
 
     if (isLoggedIn && selectedClass) {
       fetchStudents();
     }
-  }, [isLoggedIn, selectedClass, token]);
+  }, [isLoggedIn, selectedClass, token, showErrorToast]);
 
   // Fetch attendance for selected date
   useEffect(() => {
@@ -183,7 +170,7 @@ const AttendanceInputPage: React.FC = () => {
     if (isLoggedIn && selectedClass && selectedDate) {
       fetchAttendance();
     }
-  }, [isLoggedIn, selectedClass, selectedDate, token]);
+  }, [isLoggedIn, selectedClass, selectedDate, token, attendances]);
 
   // Handle attendance status change
   const handleStatusChange = (
@@ -209,7 +196,7 @@ const AttendanceInputPage: React.FC = () => {
   // Save attendance
   const saveAttendance = async () => {
     if (!selectedClass || !selectedDate) {
-      addToast("Pilih kelas dan tanggal terlebih dahulu", "error");
+      showErrorToast("Pilih kelas dan tanggal terlebih dahulu");
       return;
     }
 
@@ -236,12 +223,12 @@ const AttendanceInputPage: React.FC = () => {
       const data = await response.json();
 
       if (response.ok && data.success) {
-        addToast("Data presensi berhasil disimpan", "success");
+        showSuccessToast("Data presensi berhasil disimpan");
       } else {
-        addToast(data.error || "Gagal menyimpan data presensi", "error");
+        showErrorToast(data.error || "Gagal menyimpan data presensi");
       }
     } catch (err) {
-      addToast("Terjadi kesalahan saat menyimpan data presensi", "error");
+      showErrorToast("Terjadi kesalahan saat menyimpan data presensi");
     } finally {
       setLoading(false);
     }
@@ -433,17 +420,6 @@ const AttendanceInputPage: React.FC = () => {
             </div>
           )}
         </div>
-
-        {toasts.map((toast, index) => (
-          <Toast
-            key={toast.id}
-            message={toast.message}
-            type={toast.type}
-            isVisible={true}
-            onClose={() => removeToast(toast.id)}
-            index={index}
-          />
-        ))}
       </div>
     </SelectedLayout>
   );

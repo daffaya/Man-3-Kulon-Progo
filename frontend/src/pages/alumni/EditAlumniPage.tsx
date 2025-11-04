@@ -1,12 +1,11 @@
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "../../contexts/AuthContext";
+import { useToastMessage } from "../../hooks/useToastMessage";
 import { ArrowLeft } from "lucide-react";
 import AdminLayout from "../../components/layout/AdminLayout";
 import { alumniService } from "../../services/alumniService";
 import { studentService } from "../../services/studentService";
-import Toast from "../../components/ui/Toast";
-import { v4 as uuidv4 } from "uuid";
 
 export const API_URL = import.meta.env.VITE_BACKEND_API_URL;
 export const ALLOWED_ROLES = ["guru_bk", "super_admin"] as const;
@@ -41,6 +40,7 @@ const EditAlumniPage: React.FC = () => {
   const navigate = useNavigate();
   const { state } = useLocation();
   const { isLoggedIn, user, token } = useAuth();
+  const { showSuccessToast, showErrorToast } = useToastMessage();
   const [formData, setFormData] = useState<Alumni>({
     id: 0,
     student_id: 0,
@@ -50,25 +50,13 @@ const EditAlumniPage: React.FC = () => {
     last_class_name: "",
     last_academic_year: "",
   });
-  const [toasts, setToasts] = useState<
-    { id: string; message: string; type: "success" | "error" }[]
-  >([]);
   const [loading, setLoading] = useState(false);
 
   const isAdminOrGuruBK = hasEditAccess(isLoggedIn, user?.role);
 
-  const addToast = (message: string, type: "success" | "error") => {
-    const id = uuidv4();
-    setToasts((prev) => [...prev, { id, message, type }]);
-  };
-
-  const removeToast = (id: string) => {
-    setToasts((prev) => prev.filter((toast) => toast.id !== id));
-  };
-
   useEffect(() => {
     if (!isAdminOrGuruBK) {
-      addToast("Anda tidak memiliki akses untuk mengedit alumni", "error");
+      showErrorToast("Anda tidak memiliki akses untuk mengedit alumni");
       navigate("/alumni");
       return;
     }
@@ -95,31 +83,31 @@ const EditAlumniPage: React.FC = () => {
                     phone: student.phone || "",
                   });
                 } else {
-                  addToast("Data siswa tidak ditemukan", "error");
+                  showErrorToast("Data siswa tidak ditemukan");
                   navigate("/alumni");
                 }
               })
               .catch((error) => {
-                addToast(error.message || "Gagal memuat data siswa", "error");
+                showErrorToast(error.message || "Gagal memuat data siswa");
                 navigate("/alumni");
               });
           } else {
-            addToast("Alumni tidak ditemukan", "error");
+            showErrorToast("Alumni tidak ditemukan");
             navigate("/alumni");
           }
         })
         .catch((error) => {
-          addToast(error.message || "Gagal memuat data alumni", "error");
+          showErrorToast(error.message || "Gagal memuat data alumni");
           navigate("/alumni");
         })
         .finally(() => setLoading(false));
     }
-  }, [id, token, navigate, isAdminOrGuruBK]);
+  }, [id, token, navigate, isAdminOrGuruBK, showErrorToast]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!token) {
-      addToast("Token tidak ditemukan", "error");
+      showErrorToast("Token tidak ditemukan");
       return;
     }
     setLoading(true);
@@ -134,10 +122,10 @@ const EditAlumniPage: React.FC = () => {
         },
         token
       );
-      addToast("Data alumni berhasil diperbarui", "success");
+      showSuccessToast("Data alumni berhasil diperbarui");
       navigate("/alumni");
     } catch (error: any) {
-      addToast(error.message || "Gagal memperbarui data alumni", "error");
+      showErrorToast(error.message || "Gagal memperbarui data alumni");
     } finally {
       setLoading(false);
     }
@@ -333,16 +321,6 @@ const EditAlumniPage: React.FC = () => {
             </form>
           )}
         </div>
-        {toasts.map((toast, index) => (
-          <Toast
-            key={toast.id}
-            message={toast.message}
-            type={toast.type}
-            isVisible={true}
-            onClose={() => removeToast(toast.id)}
-            index={index}
-          />
-        ))}
       </div>
     </AdminLayout>
   );

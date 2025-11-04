@@ -13,8 +13,7 @@ import {
   downloadArchive,
   deleteArchive,
 } from "../../api/archiveApi";
-import Toast from "../../components/ui/Toast";
-import { v4 as uuidv4 } from "uuid";
+import { useToast } from "../../contexts/ToastContext";
 
 export const API_URL = import.meta.env.VITE_BACKEND_API_URL;
 /** Roles that are permitted to manage archives. */
@@ -38,37 +37,16 @@ const hasEditAccess = (isLoggedIn: boolean, role?: string): boolean =>
 const ArchiveManagementPage: React.FC = () => {
   const { isLoggedIn, user, token } = useAuth();
   const navigate = useNavigate();
+  const { showToast } = useToast();
   const [archives, setArchives] = useState<Archive[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [categoryId, setCategoryId] = useState("");
   const [showConfirmation, setShowConfirmation] = useState(false);
   const [archiveToDelete, setArchiveToDelete] = useState<number | null>(null);
-
-  const [toasts, setToasts] = useState<
-    { id: string; message: string; type: "success" | "error" }[]
-  >([]);
   const [loading, setLoading] = useState(false);
 
   const isAdminOrArsiparis = hasEditAccess(isLoggedIn, user?.role);
-
-  /**
-   * Adds a new toast notification to the queue.
-   * @param message - The message to display.
-   * @param type - The type of toast (success or error).
-   */
-  const addToast = (message: string, type: "success" | "error") => {
-    const id = uuidv4();
-    setToasts((prev) => [...prev, { id, message, type }]);
-  };
-
-  /**
-   * Removes a toast notification by its unique ID.
-   * @param id - The ID of the toast to remove.
-   */
-  const removeToast = (id: string) => {
-    setToasts((prev) => prev.filter((toast) => toast.id !== id));
-  };
 
   // Fetches categories from the API when the component mounts.
   useEffect(() => {
@@ -77,11 +55,11 @@ const ArchiveManagementPage: React.FC = () => {
         const data = await fetchCategories();
         setCategories(data);
       } catch (err) {
-        addToast((err as Error).message, "error");
+        showToast((err as Error).message, "error");
       }
     };
     loadCategories();
-  }, []);
+  }, [showToast]);
 
   // Fetches archives whenever the search query or category filter changes.
   useEffect(() => {
@@ -91,13 +69,13 @@ const ArchiveManagementPage: React.FC = () => {
         const data = await fetchArchives(searchQuery, categoryId);
         setArchives(data);
       } catch (err) {
-        addToast((err as Error).message, "error");
+        showToast((err as Error).message, "error");
       } finally {
         setLoading(false);
       }
     };
     loadArchives();
-  }, [searchQuery, categoryId]);
+  }, [searchQuery, categoryId, showToast]);
 
   /**
    * Handles the download action for a specific archive.
@@ -108,7 +86,7 @@ const ArchiveManagementPage: React.FC = () => {
     try {
       await downloadArchive(id, fileName);
     } catch (err) {
-      addToast((err as Error).message, "error");
+      showToast((err as Error).message, "error");
     }
   };
 
@@ -118,7 +96,7 @@ const ArchiveManagementPage: React.FC = () => {
    */
   const handleEditClick = (archive: Archive) => {
     if (!isAdminOrArsiparis) {
-      addToast("Anda tidak memiliki akses untuk mengedit arsip", "error");
+      showToast("Anda tidak memiliki akses untuk mengedit arsip", "error");
       if (!isLoggedIn) {
         navigate("/login", { state: { redirectTo: "/archives" } });
       }
@@ -133,7 +111,7 @@ const ArchiveManagementPage: React.FC = () => {
    */
   const handleDeleteClick = (id: number) => {
     if (!isAdminOrArsiparis) {
-      addToast("Anda tidak memiliki akses untuk menghapus arsip", "error");
+      showToast("Anda tidak memiliki akses untuk menghapus arsip", "error");
       if (!isLoggedIn) {
         navigate("/login", { state: { redirectTo: "/archives" } });
       }
@@ -153,9 +131,9 @@ const ArchiveManagementPage: React.FC = () => {
       setArchives((prev) =>
         prev.filter((archive) => archive.id !== archiveToDelete)
       );
-      addToast("Arsip berhasil dihapus", "success");
+      showToast("Arsip berhasil dihapus", "success");
     } catch (err) {
-      addToast((err as Error).message, "error");
+      showToast((err as Error).message, "error");
     } finally {
       setShowConfirmation(false);
       setArchiveToDelete(null);
@@ -238,16 +216,6 @@ const ArchiveManagementPage: React.FC = () => {
             )}
           </div>
         )}
-        {toasts.map((toast, index) => (
-          <Toast
-            key={toast.id}
-            message={toast.message}
-            type={toast.type}
-            isVisible={true}
-            onClose={() => removeToast(toast.id)}
-            index={index}
-          />
-        ))}
       </div>
       {showConfirmation && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">

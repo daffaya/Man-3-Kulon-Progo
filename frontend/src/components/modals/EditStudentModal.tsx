@@ -1,40 +1,39 @@
-// src/components/modals/EditStudentModal.tsx
 import React from "react";
 import StudentForm from "../forms/StudentForm";
 import { StudentFormData } from "../../types/studentTypes";
 import { studentService } from "../../services/studentService";
-import { useAuth } from "../../contexts/AuthContext"; // TAMBAH INI
+import { useAuth } from "../../contexts/AuthContext";
+import { useToastMessage } from "../../hooks/useToastMessage";
 import { useClasses } from "../../hooks/useClasses";
 
 interface EditStudentModalProps {
   student: any;
   onClose: () => void;
   onSuccess: () => void;
-  showToast?: (message: string, type?: "success" | "error" | "warning") => void;
 }
 
 const EditStudentModal: React.FC<EditStudentModalProps> = ({
   student,
   onClose,
   onSuccess,
-  showToast,
 }) => {
-  const { token } = useAuth(); // TAMBAH INI
+  const { token } = useAuth();
+  const { showSuccessToast, showErrorToast } = useToastMessage();
   const { classes } = useClasses();
 
   const handleSubmit = async (data: StudentFormData) => {
     if (!token) {
-      showToast?.("Token tidak tersedia. Silakan login ulang.", "error");
+      showErrorToast("Token tidak tersedia. Silakan login ulang.");
       return;
     }
 
     try {
       await studentService.updateStudent(student.id, data, token);
-      showToast?.("Data siswa berhasil diupdate!", "success"); // TOAST SUKSES
+      showSuccessToast("Data siswa berhasil diupdate!");
       onSuccess();
     } catch (error: any) {
       console.error("Error updating student:", error);
-      showToast?.(`${error.message || "Gagal mengupdate siswa"}`, "error"); // TOAST ERROR
+      showErrorToast(error.message || "Gagal mengupdate siswa");
       throw error; // Re-throw untuk handle di parent
     }
   };

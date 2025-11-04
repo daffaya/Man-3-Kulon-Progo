@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { Archive, Clipboard, Users, BookOpen } from "lucide-react";
 import AppCard from "../../components/ui/AppCard";
 import { useAuth } from "../../contexts/AuthContext";
-import Toast from "../../components/ui/Toast";
+import { useToastMessage } from "../../hooks/useToastMessage";
 import AdminLayout from "../../components/layout/AdminLayout";
 
 /**
@@ -13,7 +13,7 @@ import AdminLayout from "../../components/layout/AdminLayout";
 const AdminDashboard: React.FC = () => {
   const navigate = useNavigate();
   const { user, isLoggedIn, isLoadingAuth } = useAuth();
-  const [toast, setToast] = useState({ isVisible: false, message: "" });
+  const { showErrorToast } = useToastMessage();
 
   /**
    * Render the loading skeleton UI while authentication is in progress.
@@ -133,26 +133,13 @@ const AdminDashboard: React.FC = () => {
     }
 
     if (!hasAccess(requiredRole)) {
-      setToast({
-        isVisible: true,
-        message: "Anda tidak memiliki akses ke aplikasi ini",
-      });
+      showErrorToast("Anda tidak memiliki akses ke aplikasi ini");
       return;
     }
 
     // Use the specified 'to' route if provided, otherwise default to /atmin/[appId]
     navigate(to || `/atmin/${appId}`);
   };
-
-  // Auto-hide toast after 3 seconds
-  useEffect(() => {
-    if (toast.isVisible) {
-      const timer = setTimeout(() => {
-        setToast({ ...toast, isVisible: false });
-      }, 3000);
-      return () => clearTimeout(timer);
-    }
-  }, [toast]);
 
   /**
    * Get the list of apps that the user has access to.
@@ -205,7 +192,6 @@ const AdminDashboard: React.FC = () => {
           )}
         </div>
       </div>
-      <Toast message={toast.message} isVisible={toast.isVisible} />
     </AdminLayout>
   );
 };
