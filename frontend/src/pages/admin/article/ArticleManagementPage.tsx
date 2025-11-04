@@ -5,6 +5,7 @@ import ArticleTable from "../../../components/tables/ArticleTable";
 import { useArticles } from "../../../contexts/ArticleContext";
 import { useAuth } from "../../../contexts/AuthContext";
 import { ArticleFilters } from "../../../types/articleTypes";
+import { useToastMessage } from "../../../hooks/useToastMessage";
 import AdminLayout from "../../../components/layout/AdminLayout";
 
 /** Represents the filters currently applied to the article list. */
@@ -41,6 +42,8 @@ const ArticleManagementPage: React.FC = () => {
 
   const [showConfirmation, setShowConfirmation] = useState(false);
   const [articleToDelete, setArticleToDelete] = useState<string | null>(null);
+  const { showSuccessToast, showErrorToast } = useToastMessage();
+
   const { isLoggedIn, user } = useAuth();
   const navigate = useNavigate();
 
@@ -231,8 +234,13 @@ const ArticleManagementPage: React.FC = () => {
         fetchAdminArticles(filtersWithPagination);
         setShowConfirmation(false);
         setArticleToDelete(null);
+
+        // Tampilkan toast sukses
+        showSuccessToast("Artikel berhasil dihapus");
       } catch (error) {
-        // Error handling can be implemented here if needed
+        // Tampilkan toast error jika terjadi kesalahan
+        showErrorToast("Gagal menghapus artikel");
+        console.error("Error deleting article:", error);
       }
     }
   }, [
@@ -242,6 +250,8 @@ const ArticleManagementPage: React.FC = () => {
     appliedFilters,
     currentPage,
     articlesPerPage,
+    showSuccessToast,
+    showErrorToast,
   ]);
 
   /** Hides the delete confirmation modal. */
