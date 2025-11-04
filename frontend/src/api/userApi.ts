@@ -1,3 +1,4 @@
+// frontend/src/api/userApi.ts
 import { User, UserProfileData, UserFormData } from "../types/userTypes";
 
 const API_URL = import.meta.env.VITE_BACKEND_API_URL || "http://localhost:3001";
@@ -21,7 +22,7 @@ const userApi = {
   /**
    * Menangani response dari fetch API.
    * Jika response tidak OK, akan membuang error.
-   * Jika status 401 (Unauthorized), akan menghapus token/user dan redirect ke halaman login.
+   * Jika status 401 (Unauthorized), akan menghapus token/user dan trigger event kustom.
    * @param {Response} response - Response dari fetch.
    * @throws {Error} Error dengan pesan dari server atau pesan default.
    * @returns {Promise<any>} Data JSON dari response jika berhasil.
@@ -30,14 +31,18 @@ const userApi = {
     if (!response.ok) {
       // Jika response 401 (Unauthorized), hapus token dan user dari localStorage
       if (response.status === 401) {
+        console.error("Unauthorized access, token might be invalid");
         localStorage.removeItem("token");
         localStorage.removeItem("user");
-        // Redirect ke login page
-        window.location.href = "/login";
+        // Trigger event kustom untuk menangani unauthorized
+        window.dispatchEvent(new CustomEvent("unauthorized"));
+        throw new Error("Unauthorized: Please login again");
       }
 
-      const errorData = await response.json().catch(() => ({})); // Prevent error if response is not JSON
-      throw new Error(errorData.message || "Something went wrong");
+      const errorData = await response.json().catch(() => ({}));
+      const errorMessage = errorData.message || "Something went wrong";
+      console.error("API Error:", errorMessage);
+      throw new Error(errorMessage);
     }
     return response.json();
   },
@@ -53,21 +58,61 @@ const userApi = {
     return userApi.handleResponse(response);
   },
 
+  // frontend/src/api/userApi.ts
+  // ... kode sebelumnya ...
+
   /**
    * Memperbarui data profil user.
    * @param {UserProfileData} profileData - Data profil yang akan diperbarui.
    * @returns {Promise<User>} Promise yang menghasilkan data user yang sudah diperbarui.
    */
   updateUserProfile: async (profileData: UserProfileData): Promise<User> => {
+    const headers = {
+      "Content-Type": "application/json",
+      ...userApi.getAuthHeaders(),
+    };
+    console.log("Update profile headers:", headers);
+    console.log("Update profile data:", profileData);
+
     const response = await fetch(`${API_URL}/api/users/profile`, {
       method: "PUT",
-      headers: {
-        "Content-Type": "application/json",
-        ...userApi.getAuthHeaders(),
-      },
+      headers,
       body: JSON.stringify(profileData),
     });
-    return userApi.handleResponse(response);
+
+    // Log response status
+    console.log("Response status:", response.status);
+
+    // Cek jika response tidak OK
+    if (!response.ok) {
+      // Jika response 401 (Unauthorized), hapus token dan user dari localStorage
+      if (response.status === 401) {
+        console.error("Unauthorized access, token might be invalid");
+        localStorage.removeItem("token");
+        localStorage.removeItem("user");
+        // Trigger event kustom untuk menangani unauthorized
+        window.dispatchEvent(new CustomEvent("unauthorized"));
+        throw new Error("Unauthorized: Please login again");
+      }
+
+      // Coba parse error response
+      const errorData = await response.json().catch(() => ({}));
+      const errorMessage = errorData.message || "Something went wrong";
+      console.error("API Error:", errorMessage);
+      throw new Error(errorMessage);
+    }
+
+    // Parse response yang sukses
+    const data = await response.json();
+    console.log("Update profile response data:", data);
+
+    // Pastikan response memiliki struktur yang diharapkan
+    if (!data.data) {
+      console.error("Invalid response structure:", data);
+      throw new Error("Invalid response structure");
+    }
+
+    return data.data;
   },
 
   /**

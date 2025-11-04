@@ -155,7 +155,7 @@ const documentUpload = createUploadMiddleware({
  * @description
  * Pre-configured middleware for uploading article cover images.
  * - Supported Types: JPEG, PNG, GIF, WebP.
- * - Max Size: 5MB.
+ * - Max Size: 15MB.
  * - Field Name: 'coverImageFile'.
  * - Saved in: 'uploads/covers'.
  * - Filename Format: man3kulonprogo-judul_artikel
@@ -169,7 +169,7 @@ const imageUpload = createUploadMiddleware({
     "image/gif",
     "image/webp",
   ],
-  maxFileSize: 5 * 1024 * 1024,
+  maxFileSize: 15 * 1024 * 1024,
   fieldName: "coverImageFile",
   filenameGenerator: (req, file, cb) => {
     // Ambil judul dari request body

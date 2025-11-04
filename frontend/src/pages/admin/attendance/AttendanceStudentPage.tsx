@@ -5,11 +5,9 @@ import { useToastMessage } from "../../../hooks/useToastMessage";
 import { fetchClasses, fetchTodayStats } from "../../../api/attendanceApi";
 import AppCard from "../../../components/ui/AppCard";
 import AdminLayout from "../../../components/layout/AdminLayout";
-import { studentService } from "../../../services/studentService";
 import AddStudentModal from "../../../components/modals/AddStudentModal";
 import QuickActionCard from "../../../components/ui/QuickActionCard";
 import StatCard from "../../../components/ui/StatCard";
-// Import icon dengan benar
 import {
   Clipboard,
   BarChart,
@@ -41,6 +39,7 @@ const AttendanceStudentPage: React.FC = () => {
   const { user, isLoggedIn, token } = useAuth();
   const navigate = useNavigate();
   const { showSuccessToast, showErrorToast } = useToastMessage();
+
   const [classes, setClasses] = useState<ClassData[]>([]);
   const [todayStats, setTodayStats] = useState<TodayStats>({
     totalHadir: 0,
@@ -52,20 +51,27 @@ const AttendanceStudentPage: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [showAddStudentModal, setShowAddStudentModal] = useState(false);
   const [showImportModal, setShowImportModal] = useState(false);
+  const [refreshData, setRefreshData] = useState(false);
 
   const hasEditAccess =
     isLoggedIn && ["guru_bk", "super_admin"].includes(user?.role || "");
 
+  // 🔹 Redirect if not logged in (after render)
+  useEffect(() => {
+    if (!isLoggedIn) {
+      navigate("/login");
+    }
+  }, [isLoggedIn, navigate]);
+
+  // 🔹 Initial data fetching
   useEffect(() => {
     const fetchData = async () => {
       if (!token) return;
-
       try {
         const [classesData, statsData] = await Promise.all([
           fetchClasses(token),
           fetchTodayStats(new Date().toISOString().split("T")[0], token),
         ]);
-
         setClasses(classesData);
         setTodayStats(statsData);
       } catch (error) {
@@ -75,28 +81,25 @@ const AttendanceStudentPage: React.FC = () => {
       }
     };
 
-    if (isLoggedIn && token) {
-      fetchData();
-    }
+    if (isLoggedIn && token) fetchData();
   }, [isLoggedIn, token, showErrorToast]);
 
-  const handleAddStudent = async (studentData: any) => {
-    try {
-      if (!token) {
-        throw new Error("Token tidak tersedia");
-      }
-      await studentService.createStudent(studentData, token);
-      showSuccessToast("Siswa berhasil ditambahkan");
-      setShowAddStudentModal(false);
-      // Refresh data
-      const classesData = await fetchClasses(token);
-      setClasses(classesData);
-    } catch (error) {
-      showErrorToast(
-        error instanceof Error ? error.message : "Gagal menambah siswa"
-      );
+  // 🔹 Handle refresh after modal actions
+  useEffect(() => {
+    if (refreshData && token) {
+      const refreshClasses = async () => {
+        try {
+          const classesData = await fetchClasses(token);
+          setClasses(classesData);
+        } catch {
+          showErrorToast("Gagal memuat data kelas");
+        } finally {
+          setRefreshData(false);
+        }
+      };
+      refreshClasses();
     }
-  };
+  }, [refreshData, token, showErrorToast]);
 
   const quickActions = [
     {
@@ -156,22 +159,26 @@ const AttendanceStudentPage: React.FC = () => {
     },
   ];
 
-  if (!isLoggedIn) {
-    navigate("/login");
-    return null;
+  const username =
+    typeof user?.username === "string" && user.username
+      ? user.username
+      : "Guru BK";
+
+  if (loading) {
+    return (
+      <AdminLayout>
+        <div className="flex items-center justify-center min-h-screen text-gray-500">
+          Memuat data...
+        </div>
+      </AdminLayout>
+    );
   }
-
-  const getUsername = () => {
-    if (!user || !user.username) return "Guru BK";
-    return typeof user.username === "string" ? user.username : "Guru BK";
-  };
-
-  const username = getUsername();
 
   return (
     <AdminLayout>
       <div className="pt-8 min-h-screen bg-background dark:bg-background py-12 px-4 sm:px-6 lg:px-8">
         <div className="max-w-6xl mx-auto">
+          {/* Header */}
           <div className="mb-8">
             <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
               Dashboard Guru BK
@@ -182,7 +189,7 @@ const AttendanceStudentPage: React.FC = () => {
           </div>
 
           {/* Statistik Hari Ini */}
-          <div className="mb-8">
+          <section className="mb-8">
             <h2 className="text-xl font-semibold text-gray-700 dark:text-gray-300 mb-4">
               Statistik Presensi Hari Ini
             </h2>
@@ -213,10 +220,10 @@ const AttendanceStudentPage: React.FC = () => {
                 color="border-l-4 border-purple-500"
               />
             </div>
-          </div>
+          </section>
 
-          {/* Fitur-Fitur */}
-          <div className="mb-8">
+          {/* Fitur Presensi */}
+          <section className="mb-8">
             <h2 className="text-xl font-semibold text-gray-700 dark:text-gray-300 mb-4">
               Fitur Presensi
             </h2>
@@ -231,11 +238,11 @@ const AttendanceStudentPage: React.FC = () => {
                 />
               ))}
             </div>
-          </div>
+          </section>
 
           {/* Quick Actions */}
           {hasEditAccess && (
-            <div className="mb-8">
+            <section className="mb-8">
               <h2 className="text-xl font-semibold text-gray-700 dark:text-gray-300 mb-4">
                 Quick Actions - Manajemen Siswa
               </h2>
@@ -252,11 +259,11 @@ const AttendanceStudentPage: React.FC = () => {
                   />
                 ))}
               </div>
-            </div>
+            </section>
           )}
 
           {/* Daftar Kelas */}
-          <div>
+          <section>
             <h2 className="text-xl font-semibold text-gray-700 dark:text-gray-300 mb-4">
               Daftar Kelas
             </h2>
@@ -271,21 +278,20 @@ const AttendanceStudentPage: React.FC = () => {
                 <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
                   <thead className="bg-gray-50 dark:bg-gray-700">
                     <tr>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                        Kelas
-                      </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                        Tahun Ajaran
-                      </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                        Semester
-                      </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                        Total Siswa
-                      </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                        Aksi
-                      </th>
+                      {[
+                        "Kelas",
+                        "Tahun Ajaran",
+                        "Semester",
+                        "Total Siswa",
+                        "Aksi",
+                      ].map((header) => (
+                        <th
+                          key={header}
+                          className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider"
+                        >
+                          {header}
+                        </th>
+                      ))}
                     </tr>
                   </thead>
                   <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
@@ -294,19 +300,19 @@ const AttendanceStudentPage: React.FC = () => {
                         key={classItem.id}
                         className="hover:bg-gray-50 dark:hover:bg-gray-700"
                       >
-                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-white">
+                        <td className="px-6 py-4 text-sm font-medium text-gray-900 dark:text-white">
                           {classItem.name}
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
+                        <td className="px-6 py-4 text-sm text-gray-500 dark:text-gray-400">
                           {classItem.academic_year}
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
+                        <td className="px-6 py-4 text-sm text-gray-500 dark:text-gray-400">
                           {classItem.semester}
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
+                        <td className="px-6 py-4 text-sm text-gray-500 dark:text-gray-400">
                           {classItem.total_siswa} siswa
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                        <td className="px-6 py-4 text-sm font-medium">
                           <button
                             onClick={() =>
                               navigate(
@@ -334,28 +340,24 @@ const AttendanceStudentPage: React.FC = () => {
                 </table>
               </div>
             )}
-          </div>
+          </section>
         </div>
       </div>
-      {/* Add Student Modal */}
+
+      {/* 🔹 Add Student Modal */}
       <AddStudentModal
         isOpen={showAddStudentModal}
         onClose={() => setShowAddStudentModal(false)}
-        onSuccess={() => {
-          if (token) {
-            fetchClasses(token).then(setClasses);
-          }
-        }}
+        onSuccess={() => setRefreshData(true)}
       />
 
+      {/* 🔹 Import Student Modal */}
       <ImportStudentPage
         isOpen={showImportModal}
         onClose={() => setShowImportModal(false)}
         onSuccess={() => {
           setShowImportModal(false);
-          if (token) {
-            fetchClasses(token).then(setClasses);
-          }
+          setRefreshData(true);
         }}
       />
     </AdminLayout>

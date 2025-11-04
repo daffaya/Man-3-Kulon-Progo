@@ -9,10 +9,6 @@ import React, {
 import { User } from "../types/userTypes";
 import userApi from "../api/userApi";
 
-/**
- * Represents the structure of the authentication context.
- * Provides user authentication state, token management, and profile operations.
- */
 interface AuthContextValue {
   isLoggedIn: boolean;
   user: User | null;
@@ -33,22 +29,12 @@ interface AuthProviderProps {
   children: ReactNode;
 }
 
-/**
- * AuthProvider component
- *
- * Provides authentication-related state and actions to the entire React app via Context API.
- * Handles login, logout, user profile updates, and automatic rehydration from localStorage.
- */
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [isLoggedIn, setIsLoggedIn] = useState<boolean>(false);
   const [user, setUser] = useState<User | null>(null);
   const [token, setToken] = useState<string | null>(null);
   const [isLoadingAuth, setIsLoadingAuth] = useState<boolean>(true);
 
-  /**
-   * Logs in the user.
-   * Stores the user and token in both state and localStorage.
-   */
   const login = (userData: User, authToken: string) => {
     setIsLoggedIn(true);
     setUser(userData);
@@ -57,10 +43,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     localStorage.setItem("user", JSON.stringify(userData));
   };
 
-  /**
-   * Logs out the user.
-   * Clears user data and token from both state and localStorage.
-   */
   const logout = () => {
     setIsLoggedIn(false);
     setUser(null);
@@ -69,24 +51,26 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     localStorage.removeItem("user");
   };
 
-  /**
-   * Updates the user's profile information (e.g., full name).
-   * Saves the updated user data to state and localStorage.
-   */
   const updateUserProfile = async (profileData: { full_name: string }) => {
     try {
+      console.log("AuthContext: Updating user profile with data:", profileData);
       const updatedUser = await userApi.updateUserProfile(profileData);
+      console.log("AuthContext: Received updated user:", updatedUser);
+
+      // Perbarui state user
       setUser(updatedUser);
+
+      // Perbarui localStorage
       localStorage.setItem("user", JSON.stringify(updatedUser));
+
+      console.log("AuthContext: User profile updated successfully");
     } catch (error) {
+      console.error("AuthContext: Error updating user profile:", error);
+      // Hapus penanganan logout di sini karena sudah ditangani oleh event listener
       throw error;
     }
   };
 
-  /**
-   * Updates the user's avatar in both state and localStorage.
-   * This function does not make an API call — it only updates the local data.
-   */
   const updateUserAvatar = (avatar: string | null) => {
     if (user) {
       const updatedUser = { ...user, avatar };
@@ -95,11 +79,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }
   };
 
-  /**
-   * Refreshes the user's profile data by fetching the latest information from the API.
-   * If this fails (e.g., due to expired token), we do NOT automatically log out.
-   * ProtectedRoute or other components should handle such cases.
-   */
   const refreshUserProfile = async () => {
     try {
       const userData = await userApi.getUserProfile();
@@ -107,14 +86,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       localStorage.setItem("user", JSON.stringify(userData));
     } catch (error) {
       console.error("Failed to refresh user profile:", error);
-      // Do not auto-logout here. Let ProtectedRoute handle authentication errors.
     }
   };
 
-  /**
-   * Initializes authentication state from localStorage when the app starts.
-   * Attempts to rehydrate user and token from previous session.
-   */
   useEffect(() => {
     const storedToken = localStorage.getItem("token");
     const storedUser = localStorage.getItem("user");
@@ -149,16 +123,11 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   return (
     <AuthContext.Provider value={value}>
-      {/* Wait until authentication state is initialized before rendering children */}
       {!isLoadingAuth && children}
     </AuthContext.Provider>
   );
 };
 
-/**
- * Custom hook to access authentication context.
- * Must be used within an <AuthProvider>.
- */
 export const useAuth = () => {
   const context = useContext(AuthContext);
   if (!context) {

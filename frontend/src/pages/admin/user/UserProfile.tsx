@@ -1,3 +1,4 @@
+// frontend/src/pages/admin/user/UserProfile.tsx
 import React, { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { Save, ChevronLeft } from "lucide-react";
@@ -6,30 +7,21 @@ import { useToastMessage } from "../../../hooks/useToastMessage";
 import AdminLayout from "../../../components/layout/AdminLayout";
 import AvatarUpload from "../../../components/ui/AvatarUpload";
 
-/**
- * UserProfilePage Component
- *
- * Displays and manages the user's profile page, allowing users to:
- * - View their avatar, name, username, and role
- * - Update their full name
- * - Receive feedback via toast notifications
- *
- * Protected route: redirects to login if the user is not authenticated.
- */
 const UserProfilePage: React.FC = () => {
-  const { user, isLoggedIn, updateUserProfile } = useAuth();
+  const { user, isLoggedIn, updateUserProfile, updateUserAvatar } = useAuth();
   const navigate = useNavigate();
   const { showSuccessToast, showErrorToast } = useToastMessage();
 
-  const [fullName, setFullName] = useState("");
+  const [fullName, setFullName] = useState<string>("");
   const [isSaving, setIsSaving] = useState(false);
 
-  /** Prefill user data when available */
   useEffect(() => {
-    if (user?.full_name) setFullName(user.full_name);
+    console.log("UserProfilePage: User changed:", user);
+    if (user?.full_name) {
+      setFullName(user.full_name);
+    }
   }, [user]);
 
-  /** Handle profile update form submission */
   const handleSubmit = useCallback(
     async (e: React.FormEvent) => {
       e.preventDefault();
@@ -37,9 +29,17 @@ const UserProfilePage: React.FC = () => {
 
       setIsSaving(true);
       try {
-        await updateUserProfile({ full_name: fullName.trim() });
+        console.log(
+          "UserProfilePage: Submitting form with fullName:",
+          fullName
+        );
+        await updateUserProfile({
+          full_name: fullName.trim(),
+        });
         showSuccessToast("Profil berhasil diperbarui");
+        console.log("UserProfilePage: Profile update successful");
       } catch (error) {
+        console.error("UserProfilePage: Error updating profile:", error);
         showErrorToast((error as Error).message || "Terjadi kesalahan");
       } finally {
         setIsSaving(false);
@@ -48,10 +48,14 @@ const UserProfilePage: React.FC = () => {
     [fullName, updateUserProfile, showSuccessToast, showErrorToast]
   );
 
-  /** Handle avatar change event (delegated to AvatarUpload) */
-  const handleAvatarChange = useCallback((avatar: string | null) => {
-    // Avatar updates handled internally by AvatarUpload
-  }, []);
+  const handleAvatarChange = useCallback(
+    (avatar: string | null) => {
+      if (user) {
+        updateUserAvatar(avatar);
+      }
+    },
+    [user, updateUserAvatar]
+  );
 
   if (!isLoggedIn || !user) return null;
 
@@ -70,9 +74,8 @@ const UserProfilePage: React.FC = () => {
             Profil Saya
           </h1>
 
-          <div className="bg-white dark:bg-semibackground rounded-xl shadow-lg p-6 md:p-8">
+          <div className="bg-background dark:bg-semibackground rounded-xl shadow-lg p-6 md:p-8">
             <div className="flex flex-col md:flex-row gap-6 md:gap-8">
-              {/* Avatar Section */}
               <div className="md:w-1/3 flex flex-col items-center">
                 <AvatarUpload
                   currentAvatar={user.avatar}
@@ -91,7 +94,6 @@ const UserProfilePage: React.FC = () => {
                 </div>
               </div>
 
-              {/* Profile Info Form */}
               <div className="md:w-2/3">
                 <form onSubmit={handleSubmit} className="space-y-6">
                   <div>
@@ -105,7 +107,7 @@ const UserProfilePage: React.FC = () => {
                       type="text"
                       id="fullName"
                       value={fullName}
-                      onChange={(e) => setFullName(e.target.value)}
+                      onChange={(e) => setFullName(e.target.value || "")}
                       className="form-input w-full"
                       required
                     />
@@ -121,7 +123,7 @@ const UserProfilePage: React.FC = () => {
                     <input
                       type="text"
                       id="username"
-                      value={user.username}
+                      value={user.username || ""}
                       className="w-full px-4 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 cursor-not-allowed"
                       disabled
                     />
@@ -140,7 +142,7 @@ const UserProfilePage: React.FC = () => {
                     <input
                       type="text"
                       id="role"
-                      value={user.role}
+                      value={user.role || ""}
                       className="w-full px-4 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 cursor-not-allowed"
                       disabled
                     />

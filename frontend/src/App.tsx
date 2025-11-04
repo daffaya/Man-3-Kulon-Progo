@@ -1,3 +1,4 @@
+// frontend/src/App.tsx
 import React, { useState } from "react";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import { ThemeProvider } from "./contexts/ThemeContext";
@@ -42,6 +43,7 @@ import EditAlumniPage from "./pages/alumni/EditAlumniPage";
 import AlumniPage from "./pages/alumni/AlumniPage";
 import UserProfilePage from "./pages/admin/user/UserProfile";
 import UserManagementPage from "./pages/admin/user/UserManagementPage";
+import UnauthorizedHandler from "./components/ui/UnathorizedHandler";
 
 const AdminLayout = () => (
   <ProtectedRoute>
@@ -53,9 +55,10 @@ function App() {
   return (
     <ThemeProvider>
       <ToastProvider>
-        <AuthProvider>
-          <ArticleProvider>
-            <Router>
+        <Router>
+          <AuthProvider>
+            <UnauthorizedHandler />
+            <ArticleProvider>
               <Routes>
                 <Route path="/" element={<HomePage />} />
                 <Route path="/berita" element={<NewsPage />} />
@@ -143,9 +146,9 @@ function App() {
 
                 <Route path="*" element={<NotFoundPage />} />
               </Routes>
-            </Router>
-          </ArticleProvider>
-        </AuthProvider>
+            </ArticleProvider>
+          </AuthProvider>
+        </Router>
       </ToastProvider>
     </ThemeProvider>
   );

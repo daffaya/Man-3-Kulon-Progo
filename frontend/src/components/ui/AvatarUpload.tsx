@@ -1,11 +1,10 @@
+// frontend/src/components/ui/AvatarUpload.tsx
 import React, { useState, useRef } from "react";
-import { Camera, Link as LinkIcon, X, RefreshCw } from "lucide-react";
+import { Camera, X, Loader2 } from "lucide-react";
 import userApi from "../../api/userApi";
-import { useAuth } from "../../contexts/AuthContext";
-import { useToastMessage } from "../../hooks/useToastMessage";
 
 interface AvatarUploadProps {
-  currentAvatar?: string | null;
+  currentAvatar: string | null;
   onAvatarChange: (avatar: string | null) => void;
 }
 
@@ -13,171 +12,144 @@ const AvatarUpload: React.FC<AvatarUploadProps> = ({
   currentAvatar,
   onAvatarChange,
 }) => {
-  const { updateUserAvatar, user } = useAuth();
-  const { showSuccessToast, showErrorToast } = useToastMessage();
-  const [avatar, setAvatar] = useState<string | null>(currentAvatar || null);
   const [isUploading, setIsUploading] = useState(false);
-  const [showUrlInput, setShowUrlInput] = useState(false);
-  const [avatarUrl, setAvatarUrl] = useState("");
+  const [previewUrl, setPreviewUrl] = useState<string | null>(currentAvatar);
+  const [isHovering, setIsHovering] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files[0]) {
-      const file = e.target.files[0];
+    const file = e.target.files?.[0];
+    if (!file) return;
 
-      const validTypes = [
-        "image/jpeg",
-        "image/jpg",
-        "image/png",
-        "image/svg+xml",
-      ];
-      if (!validTypes.includes(file.type)) {
-        showErrorToast("Only JPG, JPEG, PNG, and SVG files are allowed");
-        return;
-      }
-
-      if (file.size > 10 * 1024 * 1024) {
-        showErrorToast("File size must be less than 10MB");
-        return;
-      }
-
-      setIsUploading(true);
-      try {
-        const response = await userApi.uploadAvatar(file);
-        setAvatar(response.avatar);
-        onAvatarChange(response.avatar);
-        updateUserAvatar(response.avatar);
-        showSuccessToast("Avatar updated successfully");
-      } catch (error) {
-        showErrorToast((error as Error).message);
-      } finally {
-        setIsUploading(false);
-      }
+    // Validate file type
+    if (!file.type.match("image.*")) {
+      alert("Please select an image file");
+      return;
     }
-  };
 
-  const handleUrlSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!avatarUrl.trim()) return;
+    // Validate file size (max 15MB)
+    if (file.size > 15 * 1024 * 1024) {
+      alert("File size must be less than 15MB");
+      return;
+    }
 
+    // Create preview
+    const reader = new FileReader();
+    reader.onload = () => {
+      setPreviewUrl(reader.result as string);
+    };
+    reader.readAsDataURL(file);
+
+    // Upload file
     setIsUploading(true);
     try {
-      const response = await userApi.updateAvatarByUrl(avatarUrl);
-      setAvatar(response.avatar);
+      const response = await userApi.uploadAvatar(file);
       onAvatarChange(response.avatar);
-      updateUserAvatar(response.avatar);
-      showSuccessToast("Avatar updated successfully");
-      setShowUrlInput(false);
-      setAvatarUrl("");
     } catch (error) {
-      showErrorToast((error as Error).message);
+      console.error("Error uploading avatar:", error);
+      // Reset preview on error
+      setPreviewUrl(currentAvatar);
     } finally {
       setIsUploading(false);
     }
   };
 
   const handleRemoveAvatar = async () => {
-    setIsUploading(true);
+    setPreviewUrl(null);
     try {
-      const defaultAvatar = null;
-      setAvatar(defaultAvatar);
-      onAvatarChange(defaultAvatar);
-      updateUserAvatar(defaultAvatar);
-      showSuccessToast("Avatar removed");
+      await userApi.updateAvatarByUrl("");
+      onAvatarChange(null);
     } catch (error) {
-      showErrorToast((error as Error).message);
-    } finally {
-      setIsUploading(false);
+      console.error("Error removing avatar:", error);
+      // Reset preview on error
+      setPreviewUrl(currentAvatar);
     }
   };
 
-  return (
-    <div className="flex flex-col items-center p-4 bg-white dark:bg-semibackground rounded-lg border border-gray-200 dark:border-gray-700 w-full max-w-sm mx-auto">
-      <div className="relative mb-4">
-        <div className="w-32 h-32 rounded-full overflow-hidden border-4 border-gray-200 dark:border-gray-700">
-          {avatar ? (
-            <img
-              src={
-                avatar.startsWith("http")
-                  ? avatar
-                  : `${import.meta.env.VITE_BACKEND_API_URL}${avatar}`
-              }
-              alt="Avatar"
-              className="w-full h-full object-cover"
-            />
-          ) : (
-            <div className="w-full h-full bg-gray-100 dark:bg-gray-700 flex items-center justify-center">
-              <span className="text-4xl text-gray-500 dark:text-gray-400">
-                {user?.full_name ? user.full_name.charAt(0).toUpperCase() : "U"}
-              </span>
-            </div>
-          )}
-        </div>
+  const triggerFileInput = () => {
+    fileInputRef.current?.click();
+  };
 
+  return (
+    <div className="relative">
+      <div
+        className="w-32 h-32 rounded-full overflow-hidden border-4 border-white dark:border-gray-800 shadow-lg group cursor-pointer"
+        onMouseEnter={() => setIsHovering(true)}
+        onMouseLeave={() => setIsHovering(false)}
+        onClick={triggerFileInput}
+      >
+        {previewUrl ? (
+          <img
+            src={previewUrl}
+            alt="Avatar"
+            className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110"
+          />
+        ) : (
+          <div className="w-full h-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center transition-colors duration-300 group-hover:bg-gray-300 dark:group-hover:bg-gray-600">
+            <span className="text-gray-500 dark:text-gray-400 text-4xl transition-colors duration-300 group-hover:text-gray-600 dark:group-hover:text-gray-300">
+              {currentAvatar?.charAt(0).toUpperCase() || "U"}
+            </span>
+          </div>
+        )}
+
+        {/* Hover overlay with camera icon */}
+        <div
+          className={`absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-40 transition-all duration-300 flex items-center justify-center ${
+            isHovering ? "opacity-100" : "opacity-0"
+          }`}
+        >
+          <Camera
+            size={32}
+            className="text-white transform scale-0 group-hover:scale-100 transition-transform duration-300"
+          />
+        </div>
+      </div>
+
+      {/* Action buttons */}
+      <div className="absolute bottom-0 right-0 flex space-x-1">
         <button
-          onClick={() => fileInputRef.current?.click()}
-          className="absolute bottom-0 right-0 bg-blue-500 hover:bg-blue-600 dark:bg-blue-600 dark:hover:bg-blue-500 text-white rounded-full p-2 shadow transition-colors"
+          type="button"
+          onClick={triggerFileInput}
           disabled={isUploading}
-          title="Upload new avatar"
+          className="bg-accent text-white rounded-full p-2.5 shadow-lg hover:bg-hover transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-accent focus:ring-offset-2 disabled:opacity-50 transform hover:scale-110"
+          aria-label="Upload avatar"
         >
           {isUploading ? (
-            <RefreshCw size={16} className="animate-spin" />
+            <Loader2 size={16} className="animate-spin" />
           ) : (
             <Camera size={16} />
           )}
         </button>
 
-        <input
-          type="file"
-          ref={fileInputRef}
-          onChange={handleFileChange}
-          className="hidden"
-          accept="image/jpeg, image/jpg, image/png, image/svg+xml"
-        />
-      </div>
-
-      <div className="flex space gap-2">
-        <button
-          onClick={() => setShowUrlInput(!showUrlInput)}
-          className="px-4 py-2 text-sm font-medium bg-gray-100 dark:bg-gray-800 text-gray-800 dark:text-gray-100 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 transition-colors flex items-center disabled:opacity-50 disabled:cursor-not-allowed"
-          disabled={isUploading}
-        >
-          <LinkIcon size={16} className="mr-1.5" />
-          Use URL
-        </button>
-
-        {avatar && (
+        {previewUrl && (
           <button
+            type="button"
             onClick={handleRemoveAvatar}
-            className="px-4 py-2 text-sm font-medium bg-red-500 dark:bg-red-600 text-white dark:text-white rounded-lg hover:bg-red-600 dark:hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 dark:focus:ring-red-400 transition-colors flex items-center disabled:opacity-50 disabled:cursor-not-allowed"
             disabled={isUploading}
+            className="bg-error text-white rounded-full p-2.5 shadow-lg hover:bg-red-600 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-error focus:ring-offset-2 disabled:opacity-50 transform hover:scale-110"
+            aria-label="Remove avatar"
           >
-            <X size={16} className="mr-1.5" />
-            Remove
+            <X size={16} />
           </button>
         )}
       </div>
 
-      {showUrlInput && (
-        <form onSubmit={handleUrlSubmit} className="mt-4 w-full">
-          <div className="flex">
-            <input
-              type="url"
-              value={avatarUrl}
-              onChange={(e) => setAvatarUrl(e.target.value)}
-              placeholder="Enter avatar URL"
-              className="flex-grow px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-l-md bg-gray-50 dark:bg-gray-900 text-gray-700 dark:text-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500"
-              required
-            />
-            <button
-              type="submit"
-              className="px-4 py-2 bg-blue-500 hover:bg-blue-600 dark:bg-blue-600 dark:hover:bg-blue-500 text-white text-sm font-medium rounded-r-md transition-colors"
-              disabled={isUploading}
-            >
-              {isUploading ? "Saving..." : "Save"}
-            </button>
+      <input
+        type="file"
+        ref={fileInputRef}
+        onChange={handleFileChange}
+        className="hidden"
+        accept="image/*"
+      />
+
+      {/* Upload progress overlay */}
+      {isUploading && (
+        <div className="absolute inset-0 bg-black bg-opacity-60 rounded-full flex items-center justify-center backdrop-blur-sm">
+          <div className="flex flex-col items-center text-white">
+            <Loader2 size={32} className="animate-spin mb-2" />
+            <div className="text-sm font-medium">Uploading...</div>
           </div>
-        </form>
+        </div>
       )}
     </div>
   );
