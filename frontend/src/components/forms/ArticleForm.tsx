@@ -8,6 +8,7 @@ import { useArticles } from "../../contexts/ArticleContext";
 import { useAuth } from "../../contexts/AuthContext";
 import { RefreshCw, X, Upload, Image } from "lucide-react";
 import ImageWithFallback from "../ui/ImageWithFallback";
+import ImageUploader from "../ui/ImageUploader"; // Tambahkan import ini
 
 /** Props for the ArticleForm component. */
 interface ArticleFormProps {
@@ -48,9 +49,8 @@ const ArticleForm: React.FC<ArticleFormProps> = ({
   });
 
   const [tagInput, setTagInput] = useState("");
-  const [selectedFile, setSelectedFile] = useState<File | null>(null);
-  const [previewUrl, setPreviewUrl] = useState<string>("");
-  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null); // Tetap diperlukan untuk submit
+  const fileInputRef = useRef<HTMLInputElement>(null); // Tetap diperlukan untuk akses file input
 
   /** Configuration for the React Quill rich text editor toolbar. */
   const quillModules = {
@@ -87,10 +87,6 @@ const ArticleForm: React.FC<ArticleFormProps> = ({
         },
         category_id: article.category_id ?? null,
       });
-
-      if (article.coverImage) {
-        setPreviewUrl(article.coverImage);
-      }
     } else {
       setFormData({
         title: "",
@@ -107,7 +103,6 @@ const ArticleForm: React.FC<ArticleFormProps> = ({
         },
         category_id: null,
       });
-      setPreviewUrl("");
     }
 
     fetchAdminCategories();
@@ -179,28 +174,22 @@ const ArticleForm: React.FC<ArticleFormProps> = ({
   };
 
   /**
-   * Handles file selection for the cover image, creating a temporary preview URL.
-   * @param e - The change event from the file input element.
+   * Handles image change from ImageUploader component.
+   * @param file - The selected file (if any).
+   * @param url - The image URL (if any).
    */
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files[0]) {
-      const file = e.target.files[0];
+  const handleImageChange = (file?: File, url?: string) => {
+    if (file) {
       setSelectedFile(file);
-      const objectUrl = URL.createObjectURL(file);
-      setPreviewUrl(objectUrl);
+      setFormData((prev) => ({ ...prev, coverImage: "" }));
+    } else if (url) {
+      setSelectedFile(null);
+      setFormData((prev) => ({ ...prev, coverImage: url }));
+    } else {
+      setSelectedFile(null);
+      setFormData((prev) => ({ ...prev, coverImage: "" }));
     }
   };
-
-  /** Resets the selected file and preview URL. */
-  const handleRemoveFile = () => {
-    setSelectedFile(null);
-    setPreviewUrl("");
-    if (fileInputRef.current) fileInputRef.current.value = "";
-    setFormData((prev) => ({ ...prev, coverImage: "" }));
-  };
-
-  /** Programmatically clicks the hidden file input. */
-  const handleUploadClick = () => fileInputRef.current?.click();
 
   /**
    * Handles the form submission event.
@@ -268,65 +257,15 @@ const ArticleForm: React.FC<ArticleFormProps> = ({
         </p>
       </div>
 
+      {/* Ganti bagian cover image dengan ImageUploader */}
       <div>
-        <label className="block text-sm font-medium mb-1">
-          Cover Image <span className="text-error">*</span>
-        </label>
-
-        <input
-          type="file"
-          ref={fileInputRef}
-          onChange={handleFileChange}
-          className="hidden"
-          accept="image/*"
+        <ImageUploader
+          currentImage={formData.coverImage}
+          onImageChange={handleImageChange}
           disabled={isLoading}
+          label="Cover Image"
+          required={true}
         />
-
-        <div className="flex items-center space-x-3 mb-3">
-          <button
-            type="button"
-            onClick={handleUploadClick}
-            className="btn btn-secondary flex items-center"
-            disabled={isLoading}
-          >
-            <Upload size={16} className="mr-2" />
-            Upload Gambar
-          </button>
-
-          {previewUrl && (
-            <button
-              type="button"
-              onClick={handleRemoveFile}
-              className="btn btn-outline flex items-center"
-              disabled={isLoading}
-            >
-              <X size={16} className="mr-2" />
-              Hapus Gambar
-            </button>
-          )}
-        </div>
-
-        {previewUrl ? (
-          <div className="mt-2 aspect-[16/9] max-h-48 rounded-md overflow-hidden border">
-            <ImageWithFallback
-              src={previewUrl}
-              alt="Pratinjau sampul"
-              className="w-full h-full object-cover"
-              fallback="/placeholder-image.jpg"
-            />
-          </div>
-        ) : (
-          <div className="mt-2 aspect-[16/9] max-h-48 rounded-md border-2 border-dashed border-gray-300 dark:border-gray-600 flex flex-col items-center justify-center bg-gray-50 dark:bg-gray-800">
-            <Image size={32} className="text-gray-400 mb-2" />
-            <p className="text-sm text-gray-500 dark:text-gray-400">
-              Belum ada gambar cover
-            </p>
-            <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">
-              Klik "Upload Gambar" untuk menambahkan
-            </p>
-          </div>
-        )}
-        <input type="hidden" name="coverImage" value={formData.coverImage} />
       </div>
 
       <div>

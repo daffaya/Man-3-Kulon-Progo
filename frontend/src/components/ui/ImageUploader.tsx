@@ -355,7 +355,7 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({
           }`}
         >
           <div
-            className={`mt-2 w-full aspect-[16/9] max-h-48 rounded-md border-2 flex flex-col items-center justify-center cursor-pointer transition-all duration-200 ${
+            className={`mt-2 w-full aspect-[16/9] max-h-64 rounded-md border-2 flex flex-col items-center justify-center cursor-pointer transition-all duration-200 ${
               isDragging
                 ? "border-blue-500 bg-blue-50 dark:bg-blue-900/20 scale-[1.02]"
                 : previewUrl
@@ -379,7 +379,6 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({
                   fallback="/placeholder-image.jpg"
                 />
                 {!disabled && (
-                  // === PERUBAAN DIMULAI DI SINI ===
                   <div className="absolute inset-0 bg-black bg-opacity-60 flex items-center justify-center transition-all duration-200 rounded-md p-2 opacity-0 group-hover:opacity-100">
                     <div className="flex flex-col items-center justify-center text-center">
                       <p className="text-white text-sm font-medium mb-1">
@@ -390,7 +389,6 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({
                       </p>
                     </div>
                   </div>
-                  // === PERUBAAN BERAKHIR DI SINI ===
                 )}
               </div>
             ) : (
@@ -529,8 +527,8 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({
               <p className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                 Pratinjau:
               </p>
-              <div className="aspect-[16/9] max-h-48 rounded-md overflow-hidden border">
-                <div className="relative w-full h-full group">
+              <div className="mt-2 w-full aspect-[16/9] max-h-64 rounded-md border-2 flex flex-col items-center justify-center cursor-pointer transition-all duration-200">
+                <div className="relative group w-full h-full rounded-md overflow-hidden">
                   <ImageWithFallback
                     src={previewUrl}
                     alt="Pratinjau gambar"
