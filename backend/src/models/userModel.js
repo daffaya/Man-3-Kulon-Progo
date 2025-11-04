@@ -135,18 +135,44 @@ const createUserModel = ({ pool }) => {
      * Updates a user's profile information (full name and avatar).
      * @param {number} id - The ID of the user to update.
      * @param {Object} profileData - The profile data to update.
-     * @param {string} profileData.full_name - The new full name.
-     * @param {string} profileData.avatar - The new avatar URL.
+     * @param {string} [profileData.full_name] - The new full name.
+     * @param {string} [profileData.avatar] - The new avatar URL.
      * @returns {Promise<boolean>} A promise that resolves to true if the update was successful, otherwise false.
      * @throws {Error} If a database error occurs.
      */
     updateProfile: async (id, { full_name, avatar }) => {
-      const [result] = await pool.execute(
-        `UPDATE users 
-         SET full_name = ?, avatar = ? 
-         WHERE id = ?`,
-        [full_name, avatar, id]
-      );
+      // Validasi parameter
+      if (id === undefined || id === null) {
+        throw new Error("User ID is required");
+      }
+
+      // Siapkan parameter query
+      const params = [];
+      let query = "UPDATE users SET ";
+
+      // Tambahkan field yang akan diupdate
+      const updates = [];
+
+      if (full_name !== undefined) {
+        updates.push("full_name = ?");
+        params.push(full_name);
+      }
+
+      if (avatar !== undefined) {
+        updates.push("avatar = ?");
+        params.push(avatar);
+      }
+
+      // Jika tidak ada field yang diupdate, kembalikan false
+      if (updates.length === 0) {
+        return false;
+      }
+
+      // Gabungkan query
+      query += updates.join(", ") + " WHERE id = ?";
+      params.push(id);
+
+      const [result] = await pool.execute(query, params);
       return result.affectedRows > 0;
     },
 

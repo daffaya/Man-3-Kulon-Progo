@@ -106,9 +106,9 @@ const userApi = {
 
   /**
    * Mengambil semua data user (hanya untuk Super Admin).
-   * @returns {Promise<User[]>} Promise yang menghasilkan daftar semua user.
+   * @returns {Promise<{success: boolean, data: User[]}>} Promise yang menghasilkan objek berisi daftar semua user.
    */
-  getAllUsers: async (): Promise<User[]> => {
+  getAllUsers: async (): Promise<{ success: boolean; data: User[] }> => {
     const response = await fetch(`${API_URL}/api/users/users`, {
       headers: userApi.getAuthHeaders(),
     });
@@ -118,11 +118,11 @@ const userApi = {
   /**
    * Membuat user baru (hanya untuk Super Admin).
    * @param {UserFormData} userData - Data user yang akan dibuat.
-   * @returns {Promise<{ success: boolean; user: User; message: string }>} Promise yang menghasilkan objek hasil pembuatan user.
+   * @returns {Promise<{ success: boolean; data: User; message: string }>} Promise yang menghasilkan objek hasil pembuatan user.
    */
   createUser: async (
     userData: UserFormData
-  ): Promise<{ success: boolean; user: User; message: string }> => {
+  ): Promise<{ success: boolean; data: User; message: string }> => {
     const response = await fetch(`${API_URL}/api/users/users`, {
       method: "POST",
       headers: {
@@ -138,12 +138,12 @@ const userApi = {
    * Memperbarui data user (hanya untuk Super Admin).
    * @param {number} id - ID user yang akan diperbarui.
    * @param {UserFormData} userData - Data user yang akan diperbarui.
-   * @returns {Promise<{ success: boolean; user: User; message: string }>} Promise yang menghasilkan objek hasil pembaruan user.
+   * @returns {Promise<{ success: boolean; data: User; message: string }>} Promise yang menghasilkan objek hasil pembaruan user.
    */
   updateUser: async (
     id: number,
     userData: UserFormData
-  ): Promise<{ success: boolean; user: User; message: string }> => {
+  ): Promise<{ success: boolean; data: User; message: string }> => {
     const response = await fetch(`${API_URL}/api/users/users/${id}`, {
       method: "PUT",
       headers: {

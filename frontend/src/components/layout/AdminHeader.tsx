@@ -68,21 +68,13 @@ const AdminHeader: React.FC = () => {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
+  // frontend/src/components/layout/AdminHeader.tsx
   /**
    * Mendapatkan nama pengguna dari objek user (dengan aman)
    */
   const getUsername = (): string => {
     if (!user) return "Admin";
-    if (typeof user.username === "string") return user.username;
-
-    if (
-      typeof user.username === "object" &&
-      user.username !== null &&
-      "username" in user.username
-    ) {
-      return (user.username as { username: string }).username;
-    }
-    return "Admin";
+    return user.username || "Admin";
   };
 
   /**
@@ -90,16 +82,7 @@ const AdminHeader: React.FC = () => {
    */
   const getRole = (): string => {
     if (!user) return "Administrator";
-    if (typeof user.role === "string") return user.role;
-
-    if (
-      typeof user.role === "object" &&
-      user.role !== null &&
-      "role" in user.role
-    ) {
-      return (user.role as { role: string }).role;
-    }
-    return "Administrator";
+    return user.role || "Administrator";
   };
 
   /**

@@ -4,6 +4,7 @@ import multer from "multer";
 import path from "path";
 import { fileURLToPath } from "url";
 import fs from "fs";
+import slugify from "slugify"; // Pastikan Anda sudah mengimpor slugify
 
 // Polyfill for __dirname in ES Modules
 const __filename = fileURLToPath(import.meta.url);
@@ -157,6 +158,7 @@ const documentUpload = createUploadMiddleware({
  * - Max Size: 5MB.
  * - Field Name: 'coverImageFile'.
  * - Saved in: 'uploads/covers'.
+ * - Filename Format: man3kulonprogo-judul_artikel
  */
 const imageUpload = createUploadMiddleware({
   subfolder: "covers",
@@ -169,6 +171,27 @@ const imageUpload = createUploadMiddleware({
   ],
   maxFileSize: 5 * 1024 * 1024,
   fieldName: "coverImageFile",
+  filenameGenerator: (req, file, cb) => {
+    // Ambil judul dari request body
+    const title = req.body.title || "artikel";
+
+    // Buat slug dari judul dengan format yang diinginkan
+    const slug = slugify(title, {
+      lower: true,
+      strict: true,
+      replacement: "_", // Mengganti spasi dengan underscore
+      remove: /[*+~.()'"!:@]/g, // Menghapus karakter khusus
+    });
+
+    // Prefix untuk nama file
+    const prefix = "man3kulonprogo";
+
+    // Ekstensi file asli
+    const ext = path.extname(file.originalname);
+
+    // Gabungkan menjadi format: man3kulonprogo-judul_artikel
+    cb(null, `${prefix}-${slug}${ext}`);
+  },
 });
 
 /**

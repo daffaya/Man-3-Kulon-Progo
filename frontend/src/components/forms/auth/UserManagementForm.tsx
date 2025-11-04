@@ -1,6 +1,14 @@
-// frontend/src/components/forms/UserManagementForm.tsx
+// frontend/src/components/forms/auth/UserManagementForm.tsx
 import React, { useState, useEffect } from "react";
-import { Eye, EyeOff, Save, X } from "lucide-react";
+import {
+  Eye,
+  EyeOff,
+  Save,
+  X,
+  User as UserIcon,
+  Shield,
+  Lock,
+} from "lucide-react";
 import { User, UserFormData } from "../../../types/userTypes";
 
 interface UserManagementFormProps {
@@ -23,8 +31,10 @@ const UserManagementForm: React.FC<UserManagementFormProps> = ({
     full_name: "",
   });
   const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [confirmPassword, setConfirmPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
+  const [focusedField, setFocusedField] = useState<string | null>(null);
 
   useEffect(() => {
     if (initialData) {
@@ -32,13 +42,17 @@ const UserManagementForm: React.FC<UserManagementFormProps> = ({
         username: initialData.username,
         password: "", // Don't pre-fill password for security
         role: initialData.role,
-        full_name: initialData.full_name,
+        full_name: initialData.full_name || "",
       });
     }
   }, [initialData]);
 
   const togglePasswordVisibility = () => {
     setShowPassword(!showPassword);
+  };
+
+  const toggleConfirmPasswordVisibility = () => {
+    setShowConfirmPassword(!showConfirmPassword);
   };
 
   const handleInputChange = (
@@ -77,22 +91,31 @@ const UserManagementForm: React.FC<UserManagementFormProps> = ({
     { value: "jurnalis", label: "Jurnalis" },
   ];
 
+  /**
+   * Utility function to determine icon color based on focus.
+   */
+  const getIconColor = (field: string) =>
+    focusedField === field
+      ? "text-[rgba(var(--color-accent),1)]"
+      : "text-secondary";
+
   return (
-    <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
+    <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6 w-full max-w-md">
       <div className="flex justify-between items-center mb-6">
-        <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
-          {initialData ? "Edit User" : "Create New User"}
-        </h2>
+        <h3 className="text-xl font-semibold text-gray-900 dark:text-white">
+          {initialData ? "Edit User" : "Tambah User Baru"}
+        </h3>
         <button
           onClick={onCancel}
-          className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300"
+          className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300 transition-colors"
+          aria-label="Close"
         >
           <X size={24} />
         </button>
       </div>
 
       {error && (
-        <div className="bg-red-50 text-red-700 p-3 rounded-md text-sm mb-4">
+        <div className="bg-red-50 dark:bg-red-900/30 text-red-700 dark:text-red-300 p-3 rounded-md text-sm mb-4 border border-red-200 dark:border-red-800">
           {error}
         </div>
       )}
@@ -101,25 +124,41 @@ const UserManagementForm: React.FC<UserManagementFormProps> = ({
         <div>
           <label
             htmlFor="username"
-            className="block text-sm font-medium text-gray-700 dark:text-gray-300"
+            className="block text-sm font-medium text-foreground dark:text-foreground mb-2"
           >
             Username
           </label>
-          <input
-            type="text"
-            id="username"
-            name="username"
-            className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm dark:bg-gray-700 dark:text-white"
-            value={formData.username}
-            onChange={handleInputChange}
-            required
-          />
+          <div className="relative">
+            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+              <UserIcon
+                className={`h-5 w-5 transition-colors duration-200 ${getIconColor(
+                  "username"
+                )}`}
+              />
+            </div>
+            <input
+              type="text"
+              id="username"
+              name="username"
+              className={`form-input pl-10 ${
+                focusedField === "username"
+                  ? "ring-2 ring-[rgba(var(--color-accent),0.5)]"
+                  : ""
+              }`}
+              placeholder="Masukkan username"
+              value={formData.username}
+              onChange={handleInputChange}
+              onFocus={() => setFocusedField("username")}
+              onBlur={() => setFocusedField(null)}
+              required
+            />
+          </div>
         </div>
 
         <div>
           <label
             htmlFor="full_name"
-            className="block text-sm font-medium text-gray-700 dark:text-gray-300"
+            className="block text-sm font-medium text-foreground dark:text-foreground mb-2"
           >
             Full Name
           </label>
@@ -127,9 +166,16 @@ const UserManagementForm: React.FC<UserManagementFormProps> = ({
             type="text"
             id="full_name"
             name="full_name"
-            className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm dark:bg-gray-700 dark:text-white"
+            className={`form-input w-full ${
+              focusedField === "full_name"
+                ? "ring-2 ring-[rgba(var(--color-accent),0.5)]"
+                : ""
+            }`}
+            placeholder="Masukkan nama lengkap"
             value={formData.full_name}
             onChange={handleInputChange}
+            onFocus={() => setFocusedField("full_name")}
+            onBlur={() => setFocusedField(null)}
             required
           />
         </div>
@@ -137,53 +183,84 @@ const UserManagementForm: React.FC<UserManagementFormProps> = ({
         <div>
           <label
             htmlFor="role"
-            className="block text-sm font-medium text-gray-700 dark:text-gray-300"
+            className="block text-sm font-medium text-foreground dark:text-foreground mb-2"
           >
             Role
           </label>
-          <select
-            id="role"
-            name="role"
-            className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm dark:bg-gray-700 dark:text-white"
-            value={formData.role}
-            onChange={handleInputChange}
-            required
-          >
-            {roles.map((roleOption) => (
-              <option key={roleOption.value} value={roleOption.value}>
-                {roleOption.label}
-              </option>
-            ))}
-          </select>
+          <div className="relative">
+            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+              <Shield
+                className={`h-5 w-5 transition-colors duration-200 ${getIconColor(
+                  "role"
+                )}`}
+              />
+            </div>
+            <select
+              id="role"
+              name="role"
+              className={`form-input pl-10 w-full ${
+                focusedField === "role"
+                  ? "ring-2 ring-[rgba(var(--color-accent),0.5)]"
+                  : ""
+              }`}
+              value={formData.role}
+              onChange={handleInputChange}
+              onFocus={() => setFocusedField("role")}
+              onBlur={() => setFocusedField(null)}
+              required
+            >
+              {roles.map((roleOption) => (
+                <option key={roleOption.value} value={roleOption.value}>
+                  {roleOption.label}
+                </option>
+              ))}
+            </select>
+          </div>
         </div>
 
         <div>
           <label
             htmlFor="password"
-            className="block text-sm font-medium text-gray-700 dark:text-gray-300"
+            className="block text-sm font-medium text-foreground dark:text-foreground mb-2"
           >
-            Password {initialData && "(Leave blank to keep current password)"}
+            Password {initialData && "(Kosongkan jika tidak ingin mengubah)"}
           </label>
           <div className="relative">
+            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+              <Lock
+                className={`h-5 w-5 transition-colors duration-200 ${getIconColor(
+                  "password"
+                )}`}
+              />
+            </div>
             <input
               type={showPassword ? "text" : "password"}
               id="password"
               name="password"
-              className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm dark:bg-gray-700 dark:text-white"
+              className={`form-input pl-10 pr-10 ${
+                focusedField === "password"
+                  ? "ring-2 ring-[rgba(var(--color-accent),0.5)]"
+                  : ""
+              }`}
+              placeholder="Masukkan password"
               value={formData.password}
               onChange={handleInputChange}
+              onFocus={() => setFocusedField("password")}
+              onBlur={() => setFocusedField(null)}
               required={!initialData} // Password is required only for new users
             />
-            <div
-              className="absolute inset-y-0 right-0 pr-3 flex items-center cursor-pointer"
+            <button
+              type="button"
+              className="absolute inset-y-0 right-0 pr-3 flex items-center"
               onClick={togglePasswordVisibility}
+              aria-label={showPassword ? "Hide password" : "Show password"}
             >
               {showPassword ? (
-                <EyeOff className="h-5 w-5 text-gray-400" />
+                <EyeOff className="h-5 w-5 text-secondary hover:text-foreground transition-colors duration-200" />
               ) : (
-                <Eye className="h-5 w-5 text-gray-400" />
+                <Eye className="h-5 w-5 text-secondary hover:text-foreground transition-colors duration-200" />
               )}
-            </div>
+            </button>
           </div>
         </div>
 
@@ -191,18 +268,48 @@ const UserManagementForm: React.FC<UserManagementFormProps> = ({
           <div>
             <label
               htmlFor="confirmPassword"
-              className="block text-sm font-medium text-gray-700 dark:text-gray-300"
+              className="block text-sm font-medium text-foreground dark:text-foreground mb-2"
             >
               Confirm Password
             </label>
-            <input
-              type="password"
-              id="confirmPassword"
-              className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm dark:bg-gray-700 dark:text-white"
-              value={confirmPassword}
-              onChange={(e) => setConfirmPassword(e.target.value)}
-              required
-            />
+            <div className="relative">
+              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                <Lock
+                  className={`h-5 w-5 transition-colors duration-200 ${getIconColor(
+                    "confirmPassword"
+                  )}`}
+                />
+              </div>
+              <input
+                type={showConfirmPassword ? "text" : "password"}
+                id="confirmPassword"
+                className={`form-input pl-10 pr-10 ${
+                  focusedField === "confirmPassword"
+                    ? "ring-2 ring-[rgba(var(--color-accent),0.5)]"
+                    : ""
+                }`}
+                placeholder="Konfirmasi password"
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+                onFocus={() => setFocusedField("confirmPassword")}
+                onBlur={() => setFocusedField(null)}
+                required
+              />
+              <button
+                type="button"
+                className="absolute inset-y-0 right-0 pr-3 flex items-center"
+                onClick={toggleConfirmPasswordVisibility}
+                aria-label={
+                  showConfirmPassword ? "Hide password" : "Show password"
+                }
+              >
+                {showConfirmPassword ? (
+                  <EyeOff className="h-5 w-5 text-secondary hover:text-foreground transition-colors duration-200" />
+                ) : (
+                  <Eye className="h-5 w-5 text-secondary hover:text-foreground transition-colors duration-200" />
+                )}
+              </button>
+            </div>
           </div>
         )}
 
@@ -210,24 +317,24 @@ const UserManagementForm: React.FC<UserManagementFormProps> = ({
           <button
             type="button"
             onClick={onCancel}
-            className="px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600"
+            className="btn btn-secondary transform hover:scale-[1.02] active:scale-[0.98] transition-transform duration-200"
           >
-            Cancel
+            Batal
           </button>
           <button
             type="submit"
             disabled={isLoading}
-            className="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50 flex items-center"
+            className="btn btn-primary flex items-center transform hover:scale-[1.02] active:scale-[0.98] transition-transform duration-200"
           >
             {isLoading ? (
               <>
                 <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                Saving...
+                Menyimpan...
               </>
             ) : (
               <>
                 <Save size={16} className="mr-2" />
-                {initialData ? "Update User" : "Create User"}
+                {initialData ? "Update User" : "Tambah User"}
               </>
             )}
           </button>
