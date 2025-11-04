@@ -109,7 +109,7 @@ const ArticlePage: React.FC = () => {
             {articleError}
           </p>
           <Link to="/berita" className="text-accent hover:underline">
-            Back to articles
+            Kembali ke halaman berita
           </Link>
         </div>
       </Layout>
@@ -128,7 +128,7 @@ const ArticlePage: React.FC = () => {
             to="/berita"
             className="text-accent hover:underline mt-4 inline-block"
           >
-            Back to articles
+            Kembali ke halaman berita
           </Link>
         </div>
       </Layout>
@@ -145,7 +145,7 @@ const ArticlePage: React.FC = () => {
               to="/berita"
               className="flex items-center text-gray-600 dark:text-gray-400 hover:text-accent transition-colors"
             >
-              <ChevronLeft size={20} /> <span>Back to articles</span>
+              <ChevronLeft size={20} /> <span>Kembali ke halaman berita</span>
             </Link>
           </div>
 

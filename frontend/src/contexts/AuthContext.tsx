@@ -1,4 +1,4 @@
-// src/contexts/AuthContext.tsx
+// frontend/src/contexts/AuthContext.tsx
 import React, {
   createContext,
   useState,
@@ -6,14 +6,8 @@ import React, {
   ReactNode,
   useContext,
 } from "react";
-
-/**
- * Represents a user object in the authentication context.
- */
-export interface User {
-  username: string;
-  role: string;
-}
+import { User } from "../types/userTypes";
+import userApi from "../api/userApi";
 
 /**
  * Defines the shape of the AuthContext value.
@@ -24,11 +18,9 @@ interface AuthContextValue {
   token: string | null;
   login: (userData: User, authToken: string) => void;
   logout: () => void;
-  register: (userData: {
-    username: string;
-    password: string;
-    role: string;
-  }) => Promise<{ success: boolean; message?: string }>;
+  updateUserProfile: (profileData: { full_name: string }) => Promise<void>;
+  updateUserAvatar: (avatar: string | null) => void;
+  refreshUserProfile: () => Promise<void>;
   isLoadingAuth: boolean;
 }
 
@@ -72,40 +64,48 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   };
 
   /**
-   * Registers a new user by calling the backend API.
-   * @param userData - The registration details for the new user.
-   * @returns An object indicating success and an optional message.
+   * Updates user profile
    */
-  const register = async (userData: {
-    username: string;
-    password: string;
-    role: string;
-  }) => {
-    const BACKEND_API_URL =
-      import.meta.env.VITE_BACKEND_API_URL || "http://localhost:3001";
-
+  const updateUserProfile = async (profileData: { full_name: string }) => {
     try {
-      const response = await fetch(`${BACKEND_API_URL}/api/auth/register`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(userData),
-      });
+      const updatedUser = await userApi.updateUserProfile(profileData);
+      setUser(updatedUser);
 
-      const data = await response.json();
+      // Update localStorage
+      localStorage.setItem("user", JSON.stringify(updatedUser));
+    } catch (error) {
+      throw error;
+    }
+  };
 
-      if (response.ok && data.success) {
-        return { success: true };
-      } else {
-        return {
-          success: false,
-          message: data.message || "Registration failed",
-        };
-      }
-    } catch {
-      return {
-        success: false,
-        message: "Terjadi kesalahan saat menghubungi server.",
-      };
+  /**
+   * Updates user avatar
+   */
+  const updateUserAvatar = (avatar: string | null) => {
+    if (user) {
+      const updatedUser = { ...user, avatar };
+      setUser(updatedUser);
+
+      // Update localStorage
+      localStorage.setItem("user", JSON.stringify(updatedUser));
+    }
+  };
+
+  /**
+   * Refreshes user profile from API
+   */
+  const refreshUserProfile = async () => {
+    try {
+      const userData = await userApi.getUserProfile();
+      setUser(userData);
+      setIsLoggedIn(true);
+
+      // Update localStorage
+      localStorage.setItem("user", JSON.stringify(userData));
+    } catch (error) {
+      console.error("Failed to refresh user profile:", error);
+      // If token is invalid, logout
+      logout();
     }
   };
 
@@ -122,6 +122,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         setIsLoggedIn(true);
         setUser(parsedUser);
         setToken(storedToken);
+
+        // Refresh user profile to get latest data
+        refreshUserProfile();
       } catch {
         localStorage.removeItem("user");
         localStorage.removeItem("token");
@@ -136,7 +139,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     token,
     login,
     logout,
-    register,
+    updateUserProfile,
+    updateUserAvatar,
+    refreshUserProfile,
     isLoadingAuth,
   };
 

@@ -1,5 +1,5 @@
 import React, { useEffect, useRef } from "react";
-import { X } from "lucide-react"; // Ganti SVG manual dengan ikon X dari lucide-react
+import { X } from "lucide-react";
 
 interface ToastProps {
   message: string;
@@ -7,16 +7,29 @@ interface ToastProps {
   isVisible: boolean;
   duration?: number;
   onClose?: () => void;
-  index?: number; // Untuk stackable offset
+  index?: number;
 }
 
+/**
+ * Komponen Toast untuk menampilkan pesan pemberitahuan kepada pengguna.
+ * Toast ini dapat memiliki berbagai jenis (success, error, warning, info)
+ * dan menghilang setelah durasi tertentu atau ketika pengguna menutupnya.
+ *
+ * @param {Object} props - Properti yang diterima oleh komponen Toast
+ * @param {string} props.message - Pesan yang akan ditampilkan di dalam toast
+ * @param {"success" | "error" | "warning" | "info"} [props.type="error"] - Jenis toast
+ * @param {boolean} props.isVisible - Menentukan apakah toast harus ditampilkan
+ * @param {number} [props.duration=2000] - Durasi (dalam ms) sebelum toast menghilang otomatis
+ * @param {Function} [props.onClose] - Fungsi callback untuk menutup toast
+ * @param {number} [props.index=0] - Indeks untuk menentukan posisi toast dalam stack
+ */
 const Toast: React.FC<ToastProps> = ({
   message,
   type = "error",
   isVisible,
   duration = 2000,
   onClose,
-  index = 0, // Default index 0 untuk offset
+  index = 0,
 }) => {
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -43,6 +56,10 @@ const Toast: React.FC<ToastProps> = ({
 
   if (!isVisible) return null;
 
+  /**
+   * Mengembalikan class CSS yang sesuai berdasarkan tipe toast.
+   * @returns {string} Class CSS untuk styling toast
+   */
   const getToastStyles = () => {
     switch (type) {
       case "success":
@@ -56,6 +73,10 @@ const Toast: React.FC<ToastProps> = ({
     }
   };
 
+  /**
+   * Mengembalikan ikon sesuai dengan tipe toast.
+   * @returns {JSX.Element} Ikon yang sesuai dengan tipe toast
+   */
   const getIcon = () => {
     switch (type) {
       case "success":
@@ -130,7 +151,7 @@ const Toast: React.FC<ToastProps> = ({
       className={`fixed right-4 z-50 p-4 rounded-xl shadow-2xl text-white ${getToastStyles()} transition-all duration-300 transform ${
         isVisible ? "translate-x-0 opacity-100" : "translate-x-full opacity-0"
       }`}
-      style={{ bottom: `${4 + index * 5}rem` }} // Offset untuk stack
+      style={{ bottom: `${4 + index * 5}rem` }}
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
       role="alert"

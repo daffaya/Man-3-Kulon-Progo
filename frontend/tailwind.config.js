@@ -5,8 +5,16 @@ export default {
   theme: {
     extend: {
       fontFamily: {
-        sans: ["Lexend Deca", "Inter", "system-ui", "sans-serif"],
-        serif: ["Newsreader", "Georgia", "serif"],
+        // A highly legible, neutral sans-serif for UI and body text.
+        // The gold standard for modern web apps.
+        sans: ["Inter", "system-ui", "sans-serif"],
+
+        // An elegant, readable serif for headings and articles.
+        // Pairs beautifully with Inter.
+        serif: ["Lora", "Georgia", "serif"],
+
+        // A clean monospace for data, code snippets, or timestamps.
+        mono: ["JetBrains Mono", "ui-monospace", "monospace"],
       },
       colors: {
         background: "rgb(var(--color-background))",

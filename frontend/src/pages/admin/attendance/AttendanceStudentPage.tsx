@@ -6,7 +6,6 @@ import { fetchClasses, fetchTodayStats } from "../../../api/attendanceApi";
 import AppCard from "../../../components/ui/AppCard";
 import AdminLayout from "../../../components/layout/AdminLayout";
 import Toast from "../../../components/ui/Toast";
-import StudentForm from "../../../components/forms/StudentForm";
 import { studentService } from "../../../services/studentService";
 import AddStudentModal from "../../../components/modals/AddStudentModal";
 import QuickActionCard from "../../../components/ui/QuickActionCard";
@@ -21,6 +20,7 @@ import {
   Users,
   UserPlus,
 } from "lucide-react";
+import ImportStudentPage from "../../../components/modals/ImportStudentPage";
 
 interface ClassData {
   id: string;
@@ -57,6 +57,7 @@ const AttendanceStudentPage: React.FC = () => {
     type: "success" as "success" | "error",
   });
   const [showAddStudentModal, setShowAddStudentModal] = useState(false);
+  const [showImportModal, setShowImportModal] = useState(false);
 
   const hasEditAccess =
     isLoggedIn && ["guru_bk", "super_admin"].includes(user?.role || "");
@@ -130,7 +131,7 @@ const AttendanceStudentPage: React.FC = () => {
       title: "Import Siswa",
       description: "Import data siswa dari Excel/CSV",
       icon: <Upload className="w-6 h-6" />,
-      to: "/atmin/import-siswa",
+      action: () => setShowImportModal(true),
       color: "purple" as const,
     },
   ];
@@ -180,7 +181,7 @@ const AttendanceStudentPage: React.FC = () => {
 
   return (
     <AdminLayout>
-      <div className="pt-24 min-h-screen bg-background dark:bg-background py-12 px-4 sm:px-6 lg:px-8">
+      <div className="pt-8 min-h-screen bg-background dark:bg-background py-12 px-4 sm:px-6 lg:px-8">
         <div className="max-w-6xl mx-auto">
           <div className="mb-8">
             <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
@@ -359,7 +360,17 @@ const AttendanceStudentPage: React.FC = () => {
         isOpen={showAddStudentModal}
         onClose={() => setShowAddStudentModal(false)}
         onSuccess={() => {
-          // Refresh data setelah berhasil tambah siswa
+          if (token) {
+            fetchClasses(token).then(setClasses);
+          }
+        }}
+      />
+
+      <ImportStudentPage
+        isOpen={showImportModal}
+        onClose={() => setShowImportModal(false)}
+        onSuccess={() => {
+          setShowImportModal(false);
           if (token) {
             fetchClasses(token).then(setClasses);
           }

@@ -1,11 +1,11 @@
 // frontend/src/components/forms/ArticleForm.tsx
-
 import React, { useState, useEffect, useRef } from "react";
 import { format } from "date-fns";
 import ReactQuill from "react-quill";
 import "react-quill/dist/quill.snow.css";
 import { Article, ArticleFormData } from "../../types/articleTypes";
 import { useArticles } from "../../contexts/ArticleContext";
+import { useAuth } from "../../contexts/AuthContext";
 import { RefreshCw, X, Upload, Image } from "lucide-react";
 import ImageWithFallback from "../ui/ImageWithFallback";
 
@@ -19,12 +19,6 @@ interface ArticleFormProps {
   isLoading?: boolean;
 }
 
-/** Default author information for new articles. */
-const defaultAuthor = {
-  name: "Penulis Pena",
-  avatar: "/profile.jpg",
-};
-
 /**
  * A form component for creating and editing articles.
  * It handles all article fields, including a rich text editor, image upload, tags, and categories.
@@ -35,6 +29,7 @@ const ArticleForm: React.FC<ArticleFormProps> = ({
   isLoading = false,
 }) => {
   const { state, fetchAdminCategories } = useArticles();
+  const { user } = useAuth();
 
   const [formData, setFormData] = useState<ArticleFormData>({
     title: "",
@@ -45,7 +40,10 @@ const ArticleForm: React.FC<ArticleFormProps> = ({
     publishedDate: format(new Date(), "yyyy-MM-dd"),
     featured: false,
     published: false,
-    author: defaultAuthor,
+    author: {
+      name: user?.full_name || user?.username || "Penulis Pena",
+      avatar: user?.avatar || "/logo.png",
+    },
     category_id: null,
   });
 
@@ -83,7 +81,10 @@ const ArticleForm: React.FC<ArticleFormProps> = ({
           : "",
         featured: article.featured ?? false,
         published: article.published ?? false,
-        author: article.author || defaultAuthor,
+        author: article.author || {
+          name: user?.full_name || user?.username || "Penulis Pena",
+          avatar: user?.avatar || "/logo.png",
+        },
         category_id: article.category_id ?? null,
       });
 
@@ -100,14 +101,17 @@ const ArticleForm: React.FC<ArticleFormProps> = ({
         publishedDate: format(new Date(), "yyyy-MM-dd"),
         featured: false,
         published: false,
-        author: defaultAuthor,
+        author: {
+          name: user?.full_name || user?.username || "Penulis Pena",
+          avatar: user?.avatar || "/logo.png",
+        },
         category_id: null,
       });
       setPreviewUrl("");
     }
 
     fetchAdminCategories();
-  }, [article, fetchAdminCategories]);
+  }, [article, fetchAdminCategories, user]);
 
   /**
    * Handles input changes for standard form fields, checkboxes, and selects.
@@ -204,8 +208,18 @@ const ArticleForm: React.FC<ArticleFormProps> = ({
    */
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (selectedFile) onSubmit(formData, selectedFile);
-    else onSubmit(formData);
+
+    // Update author data with current user data
+    const formDataWithAuthor = {
+      ...formData,
+      author: {
+        name: user?.full_name || user?.username || "Penulis Pena",
+        avatar: user?.avatar || "/logo.png",
+      },
+    };
+
+    if (selectedFile) onSubmit(formDataWithAuthor, selectedFile);
+    else onSubmit(formDataWithAuthor);
   };
 
   if (state.adminCategoriesLoading && state.adminCategories.length === 0) {

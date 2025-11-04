@@ -71,7 +71,7 @@ const ArticleCard: React.FC<ArticleCardProps> = ({
                     src={author.avatar}
                     alt={author.name}
                     className="w-8 h-8 rounded-full object-cover"
-                    fallback="/profile.jpg"
+                    fallback="/logo.png"
                   />
                   <span>{author.name}</span>
                 </div>
@@ -140,11 +140,11 @@ const ArticleCard: React.FC<ArticleCardProps> = ({
 
         <div className="grid grid-cols-2 grid-rows-2 text-sm mt-auto">
           <div className="flex items-center">
-            <span className="font-bold text-xs">Created By</span>
+            <span className="font-bold text-xs">Ditulis oleh</span>
           </div>
 
           <div className="flex items-center justify-end">
-            <span className="font-bold text-xs">Published on</span>
+            <span className="font-bold text-xs">Diterbitkan</span>
           </div>
 
           <div className="flex items-center">

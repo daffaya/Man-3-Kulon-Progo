@@ -1,42 +1,72 @@
+/**
+ * @file styles.css
+ * @description Global styles and Tailwind CSS customizations for the application.
+ * Includes theme variables, base styles, component classes, and third-party overrides.
+ */
+
+/* Tailwind CSS Base Imports */
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
+/* ==========================================================================
+   # THEME VARIABLES
+   ========================================================================== */
+
+/**
+ * CSS Custom Properties for theming.
+ * Defines color palettes for both light and dark modes.
+ * Values are stored as RGB numbers to work with Tailwind's `rgb()` function.
+ */
+
 :root {
+  /* --- Core Colors --- */
   --color-primary: 25, 26, 27;
   --color-secondary: 102, 102, 102;
   --color-accent: 67, 163, 103;
   --color-success: 34, 197, 94;
   --color-warning: 234, 179, 8;
   --color-error: 239, 68, 68;
+
+  /* --- Surface Colors --- */
   --color-background: 251, 251, 251;
   --color-semi-background: 243, 243, 243;
   --color-foreground: 25, 26, 27;
 
+  /* --- Interactive States --- */
   --color-hover: 2, 165, 40;
   --color-secondary-button: 238, 238, 238;
   --color-secondary-hover: 220, 220, 220;
 }
 
 .dark {
+  /* --- Core Colors --- */
   --color-primary: 229, 231, 235;
   --color-secondary: 156, 163, 175;
-  --color-accent: 0 170 19;
-  --color-selected: 242, 242, 242;
-  --color-muted: 195, 195, 195;
+  --color-accent: 0, 170, 19;
   --color-success: 34, 197, 94;
   --color-warning: 234, 179, 8;
   --color-error: 239, 68, 68;
+
+  /* --- Surface Colors --- */
   --color-background: 7, 7, 9;
   --color-semi-background: 20, 20, 20;
-  --color-table-background: 31, 51, 33;
   --color-foreground: 229, 231, 235;
 
+  /* --- Interactive States --- */
   --color-hover: 34, 197, 94;
   --color-secondary-button: 24, 24, 27;
   --color-secondary-hover: 36, 36, 39;
 }
 
+/* ==========================================================================
+   # CUSTOM UTILITY CLASSES
+   ========================================================================== */
+
+/**
+ * Truncates multi-line text to 2 lines with a fade-out effect.
+ * Uses -webkit-line-clamp for the truncation and a gradient mask for the fade.
+ */
 .fade-text {
   display: -webkit-box;
   -webkit-box-orient: vertical;
@@ -56,6 +86,14 @@
   );
 }
 
+/* ==========================================================================
+   # BASE STYLES (@layer base)
+   ========================================================================== */
+
+/**
+ * Foundational styles applied to raw HTML elements.
+ * These styles form the base layer of the application's UI.
+ */
 @layer base {
   body {
     @apply bg-background text-foreground font-sans antialiased;
@@ -89,11 +127,21 @@
   }
 }
 
+/* ==========================================================================
+   # COMPONENT CLASSES (@layer components)
+   ========================================================================== */
+
+/**
+ * Reusable component classes built on top of Tailwind's utilities.
+ * Promotes consistency and DRY (Don't Repeat Yourself) principles.
+ */
 @layer components {
+  /* --- Layout Components --- */
   .container-narrow {
     @apply w-full max-w-3xl mx-auto px-4 sm:px-6;
   }
 
+  /* --- Button Components --- */
   .btn {
     @apply px-4 py-2 rounded-md font-medium transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2;
   }
@@ -110,6 +158,7 @@
     @apply bg-error text-white hover:bg-error/90 focus:ring-error/50;
   }
 
+  /* --- Form Components --- */
   .form-input {
     @apply w-full px-3 py-2 rounded-md border border-gray-300 dark:border-gray-700 bg-white dark:bg-semibackground text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-accent/50 focus:border-transparent transition duration-200;
   }
@@ -118,6 +167,7 @@
     @apply form-input min-h-[150px];
   }
 
+  /* --- Content Components --- */
   .article-content {
     @apply prose dark:prose-invert prose-lg max-w-none;
   }
@@ -164,87 +214,94 @@
     @apply bg-gray-100 dark:bg-gray-800 px-1 py-0.5 rounded text-sm;
   }
 }
-/* Quill Container */
+
+/* ==========================================================================
+   # THIRD-PARTY OVERRIDES
+   ========================================================================== */
+
+/**
+ * Quill.js Editor Styles
+ * Customizes the default "snow" theme to match the application's design system,
+ * including dark mode support.
+ */
+
+/* --- Quill Container & Editor --- */
 .ql-container {
-  @apply border border-gray-300 dark:border-gray-700 bg-white dark:bg-[rgb(var(--color-semi-background))] rounded-md focus:outline-none focus:ring-2 focus:ring-accent/50 focus:border-transparent transition duration-200;
+  @apply border border-gray-300 dark:border-gray-700 bg-white dark:bg-semibackground rounded-md focus:outline-none focus:ring-2 focus:ring-accent/50 focus:border-transparent transition duration-200;
 }
 
-/* Quill Editor */
 .ql-editor {
-  @apply px-3 py-2 text-gray-900 dark:text-[rgb(var(--color-foreground))] min-h-[150px] focus:outline-none;
+  @apply px-3 py-2 text-gray-900 dark:text-foreground min-h-[150px] focus:outline-none font-sans leading-relaxed;
 }
 
-/* Focus State */
 .ql-container.ql-focus {
-  @apply ring-2 ring-[rgba(var(--color-accent),0.5)] border-transparent;
+  @apply ring-2 ring-accent/50 border-transparent;
 }
 
-/* Toolbar */
+/* --- Quill Toolbar --- */
 .ql-toolbar {
-  @apply bg-white dark:bg-[rgb(var(--color-semi-background))] border border-gray-300 dark:border-gray-700 rounded-t-md;
+  @apply bg-white dark:bg-semibackground border border-gray-300 dark:border-gray-700 rounded-t-md;
 }
 
-/* Toolbar Buttons */
 .ql-toolbar .ql-formats button {
-  @apply text-gray-900 dark:text-[rgb(var(--color-foreground))] hover:bg-gray-100 dark:hover:bg-[rgb(var(--color-secondary-hover))] transition duration-200;
+  @apply text-gray-900 dark:text-foreground hover:bg-gray-100 dark:hover:bg-secondaryhover transition duration-200;
 }
 
-/* Active Toolbar Buttons */
 .ql-toolbar .ql-formats .ql-active {
-  @apply bg-gray-200 dark:bg-[rgb(var(--color-secondary-hover))];
+  @apply bg-gray-200 dark:bg-secondaryhover;
 }
 
-/* Toolbar and Editor Integration */
 .ql-toolbar + .ql-container {
   @apply border-t-0 rounded-t-none;
 }
 
-/* Placeholder - PERBAIKI UNTUK DARK MODE */
+/* --- Quill Dark Mode Specifics --- */
+/* Note: !important is used here to override Quill's inline styles. */
 .ql-editor.ql-blank::before {
   @apply text-gray-500 dark:text-gray-400 !important;
   content: attr(data-placeholder) !important;
 }
 
-/* PERBAIKI UNTUK DROPDOWN/PICKER OPTIONS */
 .ql-snow .ql-picker {
-  @apply text-gray-900 dark:text-[rgb(var(--color-foreground))];
+  @apply text-gray-900 dark:text-foreground;
 }
 
 .ql-snow .ql-picker-label {
-  @apply text-gray-900 dark:text-[rgb(var(--color-foreground))];
+  @apply text-gray-900 dark:text-foreground;
 }
 
 .ql-snow .ql-picker-options {
-  @apply bg-white dark:bg-[rgb(var(--color-semi-background))] border-gray-300 dark:border-gray-700 !important;
+  @apply bg-white dark:bg-semibackground border-gray-300 dark:border-gray-700 !important;
 }
 
 .ql-snow .ql-picker-item {
-  @apply text-gray-900 dark:text-[rgb(var(--color-foreground))] !important;
+  @apply text-gray-900 dark:text-foreground !important;
 }
 
 .ql-snow .ql-picker-item:hover {
-  @apply bg-gray-100 dark:bg-[rgb(var(--color-secondary-hover))] !important;
+  @apply bg-gray-100 dark:bg-secondaryhover !important;
 }
 
 .ql-snow .ql-picker-item.ql-selected {
-  @apply bg-gray-200 dark:bg-[rgb(var(--color-secondary-hover))] !important;
+  @apply bg-gray-200 dark:bg-secondaryhover !important;
 }
 
-/* Font Consistency */
-.ql-editor {
-  @apply font-sans leading-relaxed;
-}
-
-/* Override Quill's Default Snow Theme for Dark Mode */
+/* --- Quill Icon Styling --- */
 .ql-snow .ql-stroke {
-  @apply stroke-gray-900 dark:stroke-[rgb(var(--color-foreground))];
+  @apply stroke-gray-900 dark:stroke-foreground;
 }
 
 .ql-snow .ql-fill {
-  @apply fill-gray-900 dark:fill-[rgb(var(--color-foreground))];
+  @apply fill-gray-900 dark:fill-foreground;
 }
 
-/* Animations */
+/* ==========================================================================
+   # ANIMATIONS
+   ========================================================================== */
+
+/**
+ * Utility classes and keyframes for simple animations.
+ */
 .fade-in {
   animation: fadeIn 0.5s ease-in-out;
 }

@@ -1,3 +1,5 @@
+// backend/src/routes/api.js
+
 import { Router } from "express";
 import authRouterFactory from "./authRoutes.js";
 import tagRouterFactory from "./tagRoutes.js";
@@ -9,17 +11,28 @@ import attendanceRouterFactory from "./attendanceRoutes.js";
 import archiveRouterFactory from "./archiveRoutes.js";
 import studentRouterFactory from "./studentRoutes.js";
 import alumniRouterFactory from "./alumniRoutes.js";
+import userRouterFactory from "./userRoutes.js";
 
 /**
- * Factory function that creates the main API router.
+ * @fileoverview Main API router. This module aggregates and mounts all
+ * sub-routers for the application, separating public, admin, and other protected routes.
+ */
+
+/**
+ * @typedef {object} ApiRouterOptions
+ * @property {import('mysql2/promise').Pool} pool - The MySQL connection pool.
+ * @property {object} transporter - The Nodemailer transporter for sending emails.
+ * @property {string} JWT_SECRET - The secret key for signing JSON Web Tokens.
+ * @property {string|number} JWT_EXPIRATION - The expiration time for JWTs.
+ * @property {string} FRONTEND_URL - The URL of the frontend application.
+ */
+
+/**
+ * Factory function that creates and configures the main API router.
+ * It mounts various sub-routers for different parts of the application.
  *
- * @param {object} options
- * @param {import('mysql2/promise').Pool} options.pool
- * @param {*} options.transporter
- * @param {string} options.JWT_SECRET
- * @param {string|number} options.JWT_EXPIRATION
- * @param {string} options.FRONTEND_URL
- * @returns {import('express').Router} Express router
+ * @param {ApiRouterOptions} options - Configuration options for the routers.
+ * @returns {import('express').Router} The configured Express router.
  */
 const apiRouterFactory = ({
   pool,
@@ -30,16 +43,33 @@ const apiRouterFactory = ({
 }) => {
   const apiRouter = Router();
 
-  // Public routes
+  /**
+   * @description
+   * A simple health check endpoint to verify that the API is running.
+   * Useful for load balancers and monitoring services.
+   */
+  apiRouter.get("/", (req, res) => {
+    res.status(200).json({ status: "OK", message: "API is running" });
+  });
+
+  // --- Public Routes ---
+  // These routes do not require authentication.
   apiRouter.use(
     "/auth",
-    authRouterFactory({ pool, JWT_SECRET, JWT_EXPIRATION })
+    authRouterFactory({
+      pool,
+      transporter,
+      JWT_SECRET,
+      JWT_EXPIRATION,
+      FRONTEND_URL,
+    })
   );
   apiRouter.use("/categories", publicCategoryRouterFactory({ pool }));
   apiRouter.use("/tags", tagRouterFactory({ pool }));
   apiRouter.use("/articles", publicArticleRouterFactory({ pool }));
 
-  // Admin routes
+  // --- Admin Routes ---
+  // These routes are protected and intended for administrative users.
   apiRouter.use(
     "/atmin/articles",
     adminArticleRouterFactory({ pool, JWT_SECRET })
@@ -49,7 +79,12 @@ const apiRouterFactory = ({
     adminCategoryRouterFactory({ pool, JWT_SECRET })
   );
 
-  // Other protected routes
+  // --- User Routes ---
+  // Routes for authenticated users to manage their own profiles.
+  apiRouter.use("/users", userRouterFactory({ pool, JWT_SECRET }));
+
+  // --- Other Protected Routes ---
+  // Routes that require authentication but are not strictly for user profiles or admin tasks.
   apiRouter.use("/attendance", attendanceRouterFactory({ pool, JWT_SECRET }));
   apiRouter.use("/archives", archiveRouterFactory({ pool, JWT_SECRET }));
   apiRouter.use("/students", studentRouterFactory({ pool, JWT_SECRET }));

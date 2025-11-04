@@ -17,6 +17,7 @@ import {
   ArticleFilters,
   PaginationData,
 } from "../types/articleTypes";
+import { useAuth } from "./AuthContext"; // Tambahkan import ini
 
 /**
  * Represents the state structure for articles, categories, tags, loading states, errors, and pagination.
@@ -300,6 +301,7 @@ export const ArticleProvider: React.FC<{ children: React.ReactNode }> = ({
   children,
 }) => {
   const [state, dispatch] = useReducer(articleReducer, initialState);
+  const { user } = useAuth(); // Tambahkan ini
 
   /**
    * Fetches public articles from the API with optional filters.
@@ -529,7 +531,22 @@ export const ArticleProvider: React.FC<{ children: React.ReactNode }> = ({
   const createArticle = useCallback(
     async (formData: ArticleFormData, file?: File) => {
       try {
-        const newArticle = await articleApi.createArticle(formData, file);
+        // Get current user data
+        const authorData = {
+          name: user?.full_name || user?.username || "Penulis Pena",
+          avatar: user?.avatar || "/logo.png",
+        };
+
+        // Add author data to form data
+        const articleDataWithAuthor = {
+          ...formData,
+          author: authorData,
+        };
+
+        const newArticle = await articleApi.createArticle(
+          articleDataWithAuthor,
+          file
+        );
 
         const normalizedData = {
           ...newArticle,
@@ -541,7 +558,7 @@ export const ArticleProvider: React.FC<{ children: React.ReactNode }> = ({
         throw error;
       }
     },
-    []
+    [user] // Tambahkan dependency
   );
 
   /**
@@ -558,9 +575,21 @@ export const ArticleProvider: React.FC<{ children: React.ReactNode }> = ({
       file?: File
     ): Promise<Article> => {
       try {
+        // Get current user data
+        const authorData = {
+          name: user?.full_name || user?.username || "Penulis Pena",
+          avatar: user?.avatar || "/logo.png",
+        };
+
+        // Add author data to form data
+        const articleDataWithAuthor = {
+          ...formData,
+          author: authorData,
+        };
+
         const updatedArticle = await articleApi.updateArticle(
           id,
-          formData,
+          articleDataWithAuthor,
           file
         );
 
@@ -575,7 +604,7 @@ export const ArticleProvider: React.FC<{ children: React.ReactNode }> = ({
         throw error;
       }
     },
-    []
+    [user] // Tambahkan dependency
   );
 
   /**

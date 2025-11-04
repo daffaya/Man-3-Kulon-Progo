@@ -1,7 +1,5 @@
-// frontend/src/pages/admin/article/ArticleManagementPage.tsx
-
 import React, { useEffect, useState, useCallback } from "react";
-import { Link, Navigate } from "react-router-dom";
+import { Link, Navigate, useNavigate } from "react-router-dom";
 import { Plus, RefreshCw, X, ArrowLeft } from "lucide-react";
 import ArticleTable from "../../../components/tables/ArticleTable";
 import { useArticles } from "../../../contexts/ArticleContext";
@@ -44,8 +42,21 @@ const ArticleManagementPage: React.FC = () => {
   const [showConfirmation, setShowConfirmation] = useState(false);
   const [articleToDelete, setArticleToDelete] = useState<string | null>(null);
   const { isLoggedIn, user } = useAuth();
+  const navigate = useNavigate();
+
+  // Redirect ke login jika belum login
+  if (!isLoggedIn) {
+    return (
+      <Navigate to="/login" state={{ redirectTo: "/atmin/articles" }} replace />
+    );
+  }
 
   const isAdminOrJurnalist = hasEditAccess(isLoggedIn, user?.role);
+
+  // Jika user login tapi tidak memiliki role yang sesuai, redirect ke dashboard
+  if (!isAdminOrJurnalist) {
+    return <Navigate to="/atmin" replace />;
+  }
 
   const [keyword, setKeyword] = useState("");
   const [publishedStatus, setPublishedStatus] = useState<
@@ -73,7 +84,7 @@ const ArticleManagementPage: React.FC = () => {
 
   // Effect to fetch articles and categories when filters or pagination change
   useEffect(() => {
-    if (isLoggedIn) {
+    if (isLoggedIn && isAdminOrJurnalist) {
       const filtersWithPagination: ArticleFilters = {
         ...appliedFilters,
         page: currentPage,
@@ -88,6 +99,7 @@ const ArticleManagementPage: React.FC = () => {
     currentPage,
     articlesPerPage,
     isLoggedIn,
+    isAdminOrJurnalist,
     fetchAdminArticles,
     fetchAdminCategories,
   ]);
@@ -238,10 +250,6 @@ const ArticleManagementPage: React.FC = () => {
     setArticleToDelete(null);
   };
 
-  if (!isLoggedIn || !user) {
-    return <Navigate to="/atmin/login" />;
-  }
-
   const articlesToDisplay = state.adminArticles;
   const hasActiveFilters =
     appliedFilters.keyword ||
@@ -305,26 +313,37 @@ const ArticleManagementPage: React.FC = () => {
   return (
     <AdminLayout>
       <div className="container mx-auto px-4 sm:px-6 py-12 fade-in">
-        {isAdminOrJurnalist && (
-          <Link
-            to="/atmin"
-            className="text-sm text-gray-600 dark:text-gray-400 hover:text-primary dark:hover:text-primary flex items-center mb-4 transition-colors"
-          >
-            <ArrowLeft className="h-4 w-4 mr-1" />
-            Kembali ke admin dashboard
-          </Link>
-        )}
+        <Link
+          to="/atmin"
+          className="text-sm text-gray-600 dark:text-gray-400 hover:text-primary dark:hover:text-primary flex items-center mb-4 transition-colors"
+        >
+          <ArrowLeft className="h-4 w-4 mr-1" />
+          Kembali ke admin dashboard
+        </Link>
         <div className="flex flex-col mx-4 sm:flex-row sm:items-center sm:justify-between mb-8">
           <h1 className="text-3xl font-serif font-bold mb-4 sm:mb-0">
             Manajemen Artikel
           </h1>
-          <Link
-            to="/atmin/articles/new"
-            className="btn btn-primary flex items-center justify-center sm:justify-start"
-          >
-            <Plus size={18} className="mr-1" /> Artikel Baru
-          </Link>
+
+          <div className="flex space-x-2">
+            {/* Tombol "Atur Kategori" */}
+            <Link
+              to="/category"
+              className="btn btn-secondary flex items-center"
+            >
+              Atur Kategori
+            </Link>
+
+            {/* Tombol "Artikel Baru" */}
+            <Link
+              to="/atmin/articles/new"
+              className="btn btn-primary flex items-center"
+            >
+              <Plus size={18} className="mr-1" /> Artikel Baru
+            </Link>
+          </div>
         </div>
+
         <div className="bg-white dark:bg-semibackground rounded-xl shadow-md p-6">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6">
             {hasActiveFilters && (

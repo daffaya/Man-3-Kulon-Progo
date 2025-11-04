@@ -1,14 +1,30 @@
+// frontend/src/components/forms/auth/LoginForm.tsx
 import React, { useState } from "react";
-import { Eye, EyeOff } from "lucide-react";
+import { Eye, EyeOff, User, Lock } from "lucide-react";
 
 interface LoginFormProps {
+  /**
+   * Callback when login is successful.
+   * @param userData - Object containing user info and token
+   */
   onLoginSuccess: (userData: {
     user: { username: string; role: string };
     token: string;
   }) => void;
+
+  /**
+   * Callback when login fails.
+   * @param message - Error message to display
+   */
   onLoginError: (message: string) => void;
 }
 
+/**
+ * LoginForm Component
+ *
+ * Renders a username/password form with password visibility toggle
+ * and handles login API requests.
+ */
 const LoginForm: React.FC<LoginFormProps> = ({
   onLoginSuccess,
   onLoginError,
@@ -17,76 +33,140 @@ const LoginForm: React.FC<LoginFormProps> = ({
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const [focusedField, setFocusedField] = useState<
+    "username" | "password" | null
+  >(null);
 
-  const togglePasswordVisibility = () => {
-    setShowPassword(!showPassword);
-  };
+  const BACKEND_API_URL =
+    import.meta.env.VITE_BACKEND_API_URL || "http://localhost:3001";
 
+  const togglePasswordVisibility = () => setShowPassword((prev) => !prev);
+
+  /**
+   * Handles form submission and performs login request.
+   * Calls the appropriate callback based on success/failure.
+   */
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
     setLoading(true);
-    const BACKEND_API_URL =
-      import.meta.env.VITE_BACKEND_API_URL || "http://localhost:3001";
+
     try {
       const response = await fetch(`${BACKEND_API_URL}/api/auth/login`, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ username, password }),
       });
 
       const data = await response.json();
 
       if (response.ok && data.success) {
-        onLoginSuccess({
-          user: data.user,
-          token: data.token,
-        });
-        console.log("User data from API:", data.user); // Check the user structure
+        onLoginSuccess({ user: data.user, token: data.token });
       } else {
-        onLoginError(data.message);
+        onLoginError(data.message || "Login gagal.");
       }
-    } catch (error: any) {
+    } catch {
       onLoginError("Terjadi kesalahan saat menghubungi server.");
-      console.error("Error during login:", error);
     } finally {
       setLoading(false);
     }
   };
 
+  const renderSpinner = () => (
+    <svg
+      className="animate-spin -ml-1 mr-3 h-5 w-5 text-white"
+      xmlns="http://www.w3.org/2000/svg"
+      fill="none"
+      viewBox="0 0 24 24"
+    >
+      <circle
+        className="opacity-25"
+        cx="12"
+        cy="12"
+        r="10"
+        stroke="currentColor"
+        strokeWidth="4"
+      />
+      <path
+        className="opacity-75"
+        fill="currentColor"
+        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+      />
+    </svg>
+  );
+
+  /**
+   * Utility function to determine icon color based on focus.
+   */
+  const getIconColor = (field: "username" | "password") =>
+    focusedField === field
+      ? "text-[rgba(var(--color-accent),1)]"
+      : "text-secondary";
+
   return (
-    <form onSubmit={handleSubmit} className="space-y-4">
+    <form onSubmit={handleSubmit} className="space-y-6">
+      {/* Username Field */}
       <div>
         <label
           htmlFor="username"
-          className="block text-sm font-normal text-primary dark:text-primary "
+          className="block text-sm font-medium text-foreground dark:text-foreground mb-2"
         >
-          Username:
-        </label>
-        <input
-          type="text"
-          id="username"
-          className="mt-2 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm dark:text-black"
-          value={username}
-          onChange={(e) => setUsername(e.target.value)}
-          required
-        />
-      </div>
-      <div className="max-w-sm">
-        <label
-          htmlFor="password"
-          className="block text-sm font-normal text-primary dark:text-primary mt-6"
-        >
-          Password:
+          Username
         </label>
         <div className="relative">
+          <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+            <User
+              className={`h-5 w-5 transition-colors duration-200 ${getIconColor(
+                "username"
+              )}`}
+            />
+          </div>
+          <input
+            type="text"
+            id="username"
+            className={`form-input pl-10 ${
+              focusedField === "username"
+                ? "ring-2 ring-[rgba(var(--color-accent),0.5)]"
+                : ""
+            }`}
+            placeholder="Masukkan username"
+            value={username}
+            onChange={(e) => setUsername(e.target.value)}
+            onFocus={() => setFocusedField("username")}
+            onBlur={() => setFocusedField(null)}
+            required
+          />
+        </div>
+      </div>
+
+      {/* Password Field */}
+      <div>
+        <label
+          htmlFor="password"
+          className="block text-sm font-medium text-foreground dark:text-foreground mb-2"
+        >
+          Password
+        </label>
+        <div className="relative">
+          <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+            <Lock
+              className={`h-5 w-5 transition-colors duration-200 ${getIconColor(
+                "password"
+              )}`}
+            />
+          </div>
           <input
             type={showPassword ? "text" : "password"}
             id="password"
-            className="mt-2 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm dark:text-black"
+            className={`form-input pl-10 pr-10 ${
+              focusedField === "password"
+                ? "ring-2 ring-[rgba(var(--color-accent),0.5)]"
+                : ""
+            }`}
+            placeholder="Masukkan password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
+            onFocus={() => setFocusedField("password")}
+            onBlur={() => setFocusedField(null)}
             required
           />
           <div
@@ -94,20 +174,29 @@ const LoginForm: React.FC<LoginFormProps> = ({
             onClick={togglePasswordVisibility}
           >
             {showPassword ? (
-              <EyeOff className="h-5 w-5 text-accent" />
+              <EyeOff className="h-5 w-5 text-secondary hover:text-foreground transition-colors duration-200" />
             ) : (
-              <Eye className="h-5 w-5 text-accent" />
+              <Eye className="h-5 w-5 text-secondary hover:text-foreground transition-colors duration-200" />
             )}
           </div>
         </div>
       </div>
-      <div>
+
+      {/* Submit Button */}
+      <div className="pt-2">
         <button
           type="submit"
-          className="w-full flex justify-center mt-8 py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-accent hover:bg-hover focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+          className="btn btn-primary w-full flex justify-center items-center py-3 transform hover:scale-[1.02] active:scale-[0.98] transition-transform duration-200"
           disabled={loading}
         >
-          {loading ? "Logging in..." : "Login"}
+          {loading ? (
+            <>
+              {renderSpinner()}
+              Signing in...
+            </>
+          ) : (
+            "Sign in"
+          )}
         </button>
       </div>
     </form>

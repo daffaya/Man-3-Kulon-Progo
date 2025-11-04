@@ -1,3 +1,5 @@
+// frontend/src/types/articleTypes.ts
+
 /**
  * Represents a category for articles.
  */
@@ -17,8 +19,6 @@ export interface CategoryFormData {
   name: string;
   description?: string | null;
 }
-
-// frontend/src/types/articleTypes.ts
 
 /**
  * Represents an article.

@@ -45,7 +45,7 @@ const articleApi = {
     file?: File
   ): Promise<Article> => {
     const data = new FormData();
-
+    console.log("Auth headers:", getAuthHeaders());
     Object.entries(formData).forEach(([key, value]) => {
       if (key === "author" || key === "tags") {
         data.append(key, JSON.stringify(value));

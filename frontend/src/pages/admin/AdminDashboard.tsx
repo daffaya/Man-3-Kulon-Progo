@@ -6,12 +6,18 @@ import { useAuth } from "../../contexts/AuthContext";
 import Toast from "../../components/ui/Toast";
 import AdminLayout from "../../components/layout/AdminLayout";
 
+/**
+ * AdminDashboard component renders the admin dashboard with available apps
+ * based on the user's role and permissions.
+ */
 const AdminDashboard: React.FC = () => {
   const navigate = useNavigate();
   const { user, isLoggedIn, isLoadingAuth } = useAuth();
-
   const [toast, setToast] = useState({ isVisible: false, message: "" });
 
+  /**
+   * Render the loading skeleton UI while authentication is in progress.
+   */
   const renderLoadingState = () => (
     <div className="pt min-h-screen bg-gray-50 dark:bg-gray-900 py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-4xl mx-auto">
@@ -39,20 +45,23 @@ const AdminDashboard: React.FC = () => {
     return renderLoadingState();
   }
 
+  // Redirect to login if not logged in
   if (!isLoggedIn) {
     navigate("/login");
     return null;
   }
 
-  const getUsername = () => {
-    if (!user || !user.username) return "Administrator";
-    return typeof user.username === "string" ? user.username : "Administrator";
-  };
+  /**
+   * Retrieves the username of the logged-in user.
+   * @returns {string} - The username or "Administrator" if not available.
+   */
+  const getUsername = (): string => user?.username || "Administrator";
 
-  const getRole = () => {
-    if (!user || !user.role) return "User";
-    return typeof user.role === "string" ? user.role : "User";
-  };
+  /**
+   * Retrieves the role of the logged-in user.
+   * @returns {string} - The role of the user or "User" if not available.
+   */
+  const getRole = (): string => user?.role || "User";
 
   const userRole = getRole();
   const username = getUsername();
@@ -67,12 +76,12 @@ const AdminDashboard: React.FC = () => {
       to: "/archives",
     },
     {
-      id: "inventory",
-      title: "Inventaris",
-      description: "Pantau dan kelola barang inventaris sekolah",
-      icon: <Clipboard className="w-6 h-6" />,
-      requiredRole: "pengelola_bmn",
-      to: "/atmin/inventory",
+      id: "articles",
+      title: "Artikel Sekolah",
+      description: "Buat dan kelola artikel untuk website sekolah",
+      icon: <BookOpen className="w-6 h-6" />,
+      requiredRole: "jurnalis",
+      to: "/atmin/articles",
     },
     {
       id: "presensi",
@@ -83,22 +92,40 @@ const AdminDashboard: React.FC = () => {
       to: "/atmin/presensi",
     },
     {
-      id: "articles",
-      title: "Artikel Sekolah",
-      description: "Buat dan kelola artikel untuk website sekolah",
-      icon: <BookOpen className="w-6 h-6" />,
-      requiredRole: "jurnalis",
-      to: "/atmin/articles",
+      id: "inventory",
+      title: "Inventaris",
+      description: "Pantau dan kelola barang inventaris sekolah",
+      icon: <Clipboard className="w-6 h-6" />,
+      requiredRole: "pengelola_bmn",
+      to: "/atmin/inventory",
+    },
+    {
+      id: "users",
+      title: "Manajemen User",
+      description: "Kelola pengguna sistem",
+      icon: <Users className="w-6 h-6" />,
+      requiredRole: "super_admin",
+      to: "/atmin/users",
     },
   ];
 
-  const hasAccess = (requiredRole: string) => {
-    if (!userRole) return false;
+  /**
+   * Check if the current user has the required role to access an app.
+   * @param {string} requiredRole - The role required to access the app.
+   * @returns {boolean} - True if the user has access, false otherwise.
+   */
+  const hasAccess = (requiredRole: string): boolean => {
     if (userRole === "super_admin") return true;
-    if (userRole === requiredRole) return true;
-    return false;
+    return userRole === requiredRole;
   };
 
+  /**
+   * Handle click event for app access and navigation.
+   * If the user does not have access, show a toast notification.
+   * @param {string} appId - The app identifier.
+   * @param {string} requiredRole - The required role for the app.
+   * @param {string} [to] - Optional route to navigate to.
+   */
   const handleAppClick = (appId: string, requiredRole: string, to?: string) => {
     if (!userRole) {
       navigate("/login", { state: { redirectTo: to || `/atmin/${appId}` } });
@@ -117,6 +144,7 @@ const AdminDashboard: React.FC = () => {
     navigate(to || `/atmin/${appId}`);
   };
 
+  // Auto-hide toast after 3 seconds
   useEffect(() => {
     if (toast.isVisible) {
       const timer = setTimeout(() => {
@@ -126,6 +154,10 @@ const AdminDashboard: React.FC = () => {
     }
   }, [toast]);
 
+  /**
+   * Get the list of apps that the user has access to.
+   * @returns {Array} - Filtered list of apps the user can access.
+   */
   const getVisibleApps = () => {
     return apps.filter((app) => hasAccess(app.requiredRole));
   };
@@ -134,7 +166,7 @@ const AdminDashboard: React.FC = () => {
 
   return (
     <AdminLayout>
-      <div className="pt-24 min-h-screen bg-background dark:bg-background py-12 px-4 sm:px-6 lg:px-8">
+      <div className="pt-8 min-h-screen bg-background dark:bg-background py-12 px-4 sm:px-6 lg:px-8">
         <div className="max-w-6xl mx-auto">
           <div className="mb-8">
             <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
