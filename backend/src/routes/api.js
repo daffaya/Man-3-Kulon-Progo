@@ -1,5 +1,3 @@
-// backend/src/routes/api.js
-
 import { Router } from "express";
 import authRouterFactory from "./authRoutes.js";
 import tagRouterFactory from "./tagRoutes.js";
@@ -12,6 +10,9 @@ import archiveRouterFactory from "./archiveRoutes.js";
 import studentRouterFactory from "./studentRoutes.js";
 import alumniRouterFactory from "./alumniRoutes.js";
 import userRouterFactory from "./userRoutes.js";
+// Tambahkan import untuk gallery routes
+import publicGalleryRouterFactory from "./publicGalleryRoutes.js";
+import adminGalleryRouterFactory from "./adminGalleryRoutes.js";
 
 /**
  * @fileoverview Main API router. This module aggregates and mounts all
@@ -67,6 +68,8 @@ const apiRouterFactory = ({
   apiRouter.use("/categories", publicCategoryRouterFactory({ pool }));
   apiRouter.use("/tags", tagRouterFactory({ pool }));
   apiRouter.use("/articles", publicArticleRouterFactory({ pool }));
+  // Tambahkan public gallery routes
+  apiRouter.use("/gallery", publicGalleryRouterFactory({ pool }));
 
   // --- Admin Routes ---
   // These routes are protected and intended for administrative users.
@@ -77,6 +80,11 @@ const apiRouterFactory = ({
   apiRouter.use(
     "/atmin/categories",
     adminCategoryRouterFactory({ pool, JWT_SECRET })
+  );
+  // Tambahkan admin gallery routes
+  apiRouter.use(
+    "/atmin/gallery",
+    adminGalleryRouterFactory({ pool, JWT_SECRET })
   );
 
   // --- User Routes ---

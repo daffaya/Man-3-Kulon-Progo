@@ -68,20 +68,20 @@ const AdminDashboard: React.FC = () => {
 
   const apps = [
     {
-      id: "archives",
-      title: "Manajemen Arsip",
-      description: "Kelola dokumen dan arsip sekolah dengan mudah",
-      icon: <Archive className="w-6 h-6" />,
-      requiredRole: "arsiparis",
-      to: "/archives",
-    },
-    {
       id: "articles",
       title: "Artikel Sekolah",
       description: "Buat dan kelola artikel untuk website sekolah",
       icon: <BookOpen className="w-6 h-6" />,
       requiredRole: "jurnalis",
       to: "/atmin/articles",
+    },
+    {
+      id: "archives",
+      title: "Manajemen Arsip",
+      description: "Kelola dokumen dan arsip sekolah dengan mudah",
+      icon: <Archive className="w-6 h-6" />,
+      requiredRole: "arsiparis",
+      to: "/archives",
     },
     {
       id: "presensi",
@@ -92,20 +92,20 @@ const AdminDashboard: React.FC = () => {
       to: "/atmin/presensi",
     },
     {
-      id: "inventory",
-      title: "Inventaris",
-      description: "Pantau dan kelola barang inventaris sekolah",
-      icon: <Clipboard className="w-6 h-6" />,
-      requiredRole: "pengelola_bmn",
-      to: "/atmin/inventory",
-    },
-    {
       id: "users",
       title: "Manajemen User",
       description: "Kelola pengguna sistem",
       icon: <Users className="w-6 h-6" />,
       requiredRole: "super_admin",
       to: "/atmin/users",
+    },
+    {
+      id: "inventory",
+      title: "Inventaris",
+      description: "Pantau dan kelola barang inventaris sekolah",
+      icon: <Clipboard className="w-6 h-6" />,
+      requiredRole: "pengelola_bmn",
+      to: "/atmin/inventory",
     },
   ];
 
