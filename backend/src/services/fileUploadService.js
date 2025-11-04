@@ -187,5 +187,4 @@ const avatarUpload = createUploadMiddleware({
   fieldName: "avatar",
 });
 
-// Use named exports for clarity and explicitness.
 export { createUploadMiddleware, documentUpload, imageUpload, avatarUpload };
