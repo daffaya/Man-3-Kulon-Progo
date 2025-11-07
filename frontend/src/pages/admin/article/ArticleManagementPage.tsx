@@ -338,7 +338,7 @@ const ArticleManagementPage: React.FC = () => {
           <div className="flex space-x-2">
             {/* Tombol "Atur Kategori" */}
             <Link
-              to="/category"
+              to="/atmin/category"
               className="btn btn-secondary flex items-center"
             >
               Atur Kategori

@@ -1,43 +1,27 @@
 import { Router } from "express";
-
-// Models
 import createGalleryModel from "../models/galleryModel.js";
-
-// Controller
 import createGalleryController from "../controllers/galleryController.js";
 
 /**
- * Factory function that creates and configures the router for public gallery access.
- * This router handles read-only operations for gallery albums and photos.
+ * Membuat dan mengonfigurasi router untuk galeri publik.
+ * Router ini hanya menyediakan endpoint baca (read-only) untuk album dan foto.
  *
- * @param {object} dependencies - The dependencies for the router.
- * @param {import('mysql2/promise').Pool} dependencies.pool - MySQL connection pool.
- * @returns {import('express').Router} Configured Express router for public gallery routes.
+ * @param {object} dependencies - Dependensi router.
+ * @param {import('mysql2/promise').Pool} dependencies.pool - Koneksi pool MySQL.
+ * @returns {import('express').Router} Router Express yang sudah dikonfigurasi.
  */
 const publicGalleryRouterFactory = ({ pool }) => {
   const router = Router();
 
-  // --- Model and Controller Initialization ---
+  // Inisialisasi model dan controller
   const galleryModel = createGalleryModel({ pool });
-  const galleryController = createGalleryController({
-    galleryModel,
-  });
-
-  // --- API Endpoints ---
+  const galleryController = createGalleryController({ galleryModel });
 
   /**
-   * @route   GET /albums
-   * @desc    Get a list of all albums (public).
-   * @access  Public
+   * Album Routes (Publik)
    */
   router.get("/albums", galleryController.getAllAlbums);
-
-  /**
-   * @route   GET /albums/:id
-   * @desc    Get a single album by its ID (public).
-   * @access  Public
-   */
-  router.get("/albums/:id", galleryController.getAlbumById);
+  router.get("/albums/:slug", galleryController.getAlbumBySlug);
 
   return router;
 };

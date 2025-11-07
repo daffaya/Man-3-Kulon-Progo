@@ -70,7 +70,7 @@ const AdminCategoriesPage: React.FC = () => {
     if (!isAdminOrJurnalis) {
       showErrorToast("Anda tidak memiliki akses untuk menambah kategori");
       if (!isLoggedIn) {
-        navigate("/login", { state: { redirectTo: "/admin/categories" } });
+        navigate("/login", { state: { redirectTo: "/atmin/categories" } });
       }
       return;
     }
@@ -119,7 +119,7 @@ const AdminCategoriesPage: React.FC = () => {
     if (!isAdminOrJurnalis) {
       showErrorToast("Anda tidak memiliki akses untuk mengedit kategori");
       if (!isLoggedIn) {
-        navigate("/login", { state: { redirectTo: "/admin/categories" } });
+        navigate("/login", { state: { redirectTo: "/atmin/categories" } });
       }
       return;
     }
@@ -170,7 +170,7 @@ const AdminCategoriesPage: React.FC = () => {
     if (!isAdminOrJurnalis) {
       showErrorToast("Anda tidak memiliki akses untuk menghapus kategori");
       if (!isLoggedIn) {
-        navigate("/login", { state: { redirectTo: "/admin/categories" } });
+        navigate("/login", { state: { redirectTo: "/atmin/categories" } });
       }
       return;
     }
@@ -225,7 +225,7 @@ const AdminCategoriesPage: React.FC = () => {
       <div className="container mx-auto px-4 sm:px-6 py-12 fade-in">
         {isAdminOrJurnalis && (
           <Link
-            to="/admin"
+            to="/atmin"
             className="text-sm text-gray-600 dark:text-gray-400 hover:text-primary dark:hover:text-primary flex items-center mb-4 transition-colors"
           >
             <ArrowLeft className="h-4 w-4 mr-1" />
@@ -345,7 +345,7 @@ const AdminCategoriesPage: React.FC = () => {
                 <button
                   onClick={() =>
                     navigate("/login", {
-                      state: { redirectTo: "/admin/categories" },
+                      state: { redirectTo: "/atmin/categories" },
                     })
                   }
                   className="btn btn-primary flex items-center justify-center mx-auto w-fit"

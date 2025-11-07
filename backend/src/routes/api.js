@@ -91,7 +91,6 @@ const apiRouterFactory = ({
   // Routes for authenticated users to manage their own profiles.
   apiRouter.use("/users", userRouterFactory({ pool, JWT_SECRET }));
 
-  // --- Other Protected Routes ---
   // Routes that require authentication but are not strictly for user profiles or admin tasks.
   apiRouter.use("/attendance", attendanceRouterFactory({ pool, JWT_SECRET }));
   apiRouter.use("/archives", archiveRouterFactory({ pool, JWT_SECRET }));

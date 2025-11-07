@@ -1,23 +1,17 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { Archive, Clipboard, Users, BookOpen } from "lucide-react";
+import { Archive, Clipboard, Users, BookOpen, Image } from "lucide-react";
 import AppCard from "../../components/ui/AppCard";
 import { useAuth } from "../../contexts/AuthContext";
 import { useToastMessage } from "../../hooks/useToastMessage";
 import AdminLayout from "../../components/layout/AdminLayout";
+import type { UserRole } from "../../types/userTypes"; // ✅ import UserRole
 
-/**
- * AdminDashboard component renders the admin dashboard with available apps
- * based on the user's role and permissions.
- */
 const AdminDashboard: React.FC = () => {
   const navigate = useNavigate();
   const { user, isLoggedIn, isLoadingAuth } = useAuth();
   const { showErrorToast } = useToastMessage();
 
-  /**
-   * Render the loading skeleton UI while authentication is in progress.
-   */
   const renderLoadingState = () => (
     <div className="pt min-h-screen bg-gray-50 dark:bg-gray-900 py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-4xl mx-auto">
@@ -41,30 +35,14 @@ const AdminDashboard: React.FC = () => {
     </div>
   );
 
-  if (isLoadingAuth) {
-    return renderLoadingState();
-  }
-
-  // Redirect to login if not logged in
+  if (isLoadingAuth) return renderLoadingState();
   if (!isLoggedIn) {
     navigate("/login");
     return null;
   }
 
-  /**
-   * Retrieves the username of the logged-in user.
-   * @returns {string} - The username or "Administrator" if not available.
-   */
-  const getUsername = (): string => user?.username || "Administrator";
-
-  /**
-   * Retrieves the role of the logged-in user.
-   * @returns {string} - The role of the user or "User" if not available.
-   */
-  const getRole = (): string => user?.role || "User";
-
-  const userRole = getRole();
-  const username = getUsername();
+  const userRole = (user?.role || "User") as UserRole;
+  const username = user?.username || "Administrator";
 
   const apps = [
     {
@@ -107,26 +85,36 @@ const AdminDashboard: React.FC = () => {
       requiredRole: "pengelola_bmn",
       to: "/atmin/inventory",
     },
+
+    {
+      id: "galeri",
+      title: "Galeri Sekolah",
+      description: "Kelola foto dan video kegiatan sekolah",
+      icon: <Image className="w-6 h-6" />,
+      requiredRole: [
+        "super_admin",
+        "jurnalis",
+        "arsiparis",
+        "guru_bk",
+        "pengelola_bmn",
+        "operator",
+        "kepala_sekolah",
+      ] as UserRole[],
+      to: "/atmin/gallery",
+    },
   ];
 
-  /**
-   * Check if the current user has the required role to access an app.
-   * @param {string} requiredRole - The role required to access the app.
-   * @returns {boolean} - True if the user has access, false otherwise.
-   */
-  const hasAccess = (requiredRole: string): boolean => {
+  const hasAccess = (requiredRole: string | string[]): boolean => {
     if (userRole === "super_admin") return true;
+    if (Array.isArray(requiredRole)) return requiredRole.includes(userRole);
     return userRole === requiredRole;
   };
 
-  /**
-   * Handle click event for app access and navigation.
-   * If the user does not have access, show a toast notification.
-   * @param {string} appId - The app identifier.
-   * @param {string} requiredRole - The required role for the app.
-   * @param {string} [to] - Optional route to navigate to.
-   */
-  const handleAppClick = (appId: string, requiredRole: string, to?: string) => {
+  const handleAppClick = (
+    appId: string,
+    requiredRole: string | string[],
+    to?: string
+  ) => {
     if (!userRole) {
       navigate("/login", { state: { redirectTo: to || `/atmin/${appId}` } });
       return;
@@ -137,19 +125,10 @@ const AdminDashboard: React.FC = () => {
       return;
     }
 
-    // Use the specified 'to' route if provided, otherwise default to /atmin/[appId]
     navigate(to || `/atmin/${appId}`);
   };
 
-  /**
-   * Get the list of apps that the user has access to.
-   * @returns {Array} - Filtered list of apps the user can access.
-   */
-  const getVisibleApps = () => {
-    return apps.filter((app) => hasAccess(app.requiredRole));
-  };
-
-  const visibleApps = getVisibleApps();
+  const visibleApps = apps.filter((app) => hasAccess(app.requiredRole));
 
   return (
     <AdminLayout>

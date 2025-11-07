@@ -1,5 +1,14 @@
 // frontend/src/types/userTypes.ts
 
+export type UserRole =
+  | "super_admin"
+  | "jurnalis"
+  | "arsiparis"
+  | "guru_bk"
+  | "pengelola_bmn"
+  | "operator"
+  | "kepala_sekolah";
+
 /**
  * Represents a user in the system.
  */
@@ -8,7 +17,7 @@ export interface User {
   username: string;
   full_name: string;
   avatar: string | null;
-  role: string;
+  role: UserRole;
   created_at: string;
 }
 
@@ -31,7 +40,7 @@ export interface UserAvatarData {
  */
 export interface UserFormData {
   username: string;
-  password?: string; // Optional for update
-  role: string;
+  password?: string;
+  role: UserRole;
   full_name: string;
 }

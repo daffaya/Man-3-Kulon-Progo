@@ -63,10 +63,6 @@
    # CUSTOM UTILITY CLASSES
    ========================================================================== */
 
-/**
- * Truncates multi-line text to 2 lines with a fade-out effect.
- * Uses -webkit-line-clamp for the truncation and a gradient mask for the fade.
- */
 .fade-text {
   display: -webkit-box;
   -webkit-box-orient: vertical;
@@ -90,10 +86,6 @@
    # BASE STYLES (@layer base)
    ========================================================================== */
 
-/**
- * Foundational styles applied to raw HTML elements.
- * These styles form the base layer of the application's UI.
- */
 @layer base {
   body {
     @apply bg-background text-foreground font-sans antialiased;
@@ -131,17 +123,11 @@
    # COMPONENT CLASSES (@layer components)
    ========================================================================== */
 
-/**
- * Reusable component classes built on top of Tailwind's utilities.
- * Promotes consistency and DRY (Don't Repeat Yourself) principles.
- */
 @layer components {
-  /* --- Layout Components --- */
   .container-narrow {
     @apply w-full max-w-3xl mx-auto px-4 sm:px-6;
   }
 
-  /* --- Button Components --- */
   .btn {
     @apply px-4 py-2 rounded-md font-medium transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2;
   }
@@ -158,7 +144,6 @@
     @apply bg-error text-white hover:bg-error/90 focus:ring-error/50;
   }
 
-  /* --- Form Components --- */
   .form-input {
     @apply w-full px-3 py-2 pr-8 rounded-md border border-gray-300 dark:border-gray-700 bg-white dark:bg-semibackground text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-accent/50 focus:border-transparent transition duration-200;
   }
@@ -167,7 +152,6 @@
     @apply form-input min-h-[150px];
   }
 
-  /* --- Content Components --- */
   .article-content {
     @apply prose dark:prose-invert prose-lg max-w-none;
   }
@@ -219,13 +203,6 @@
    # THIRD-PARTY OVERRIDES
    ========================================================================== */
 
-/**
- * Quill.js Editor Styles
- * Customizes the default "snow" theme to match the application's design system,
- * including dark mode support.
- */
-
-/* --- Quill Container & Editor --- */
 .ql-container {
   @apply border border-gray-300 dark:border-gray-700 bg-white dark:bg-semibackground rounded-md focus:outline-none focus:ring-2 focus:ring-accent/50 focus:border-transparent transition duration-200;
 }
@@ -238,7 +215,6 @@
   @apply ring-2 ring-accent/50 border-transparent;
 }
 
-/* --- Quill Toolbar --- */
 .ql-toolbar {
   @apply bg-white dark:bg-semibackground border border-gray-300 dark:border-gray-700 rounded-t-md;
 }
@@ -255,8 +231,6 @@
   @apply border-t-0 rounded-t-none;
 }
 
-/* --- Quill Dark Mode Specifics --- */
-/* Note: !important is used here to override Quill's inline styles. */
 .ql-editor.ql-blank::before {
   @apply text-gray-500 dark:text-gray-400 !important;
   content: attr(data-placeholder) !important;
@@ -286,7 +260,6 @@
   @apply bg-gray-200 dark:bg-secondaryhover !important;
 }
 
-/* --- Quill Icon Styling --- */
 .ql-snow .ql-stroke {
   @apply stroke-gray-900 dark:stroke-foreground;
 }
@@ -299,9 +272,6 @@
    # ANIMATIONS
    ========================================================================== */
 
-/**
- * Utility classes and keyframes for simple animations.
- */
 .fade-in {
   animation: fadeIn 0.5s ease-in-out;
 }
@@ -328,4 +298,61 @@
     opacity: 1;
     transform: translateY(0);
   }
+}
+
+/* ==========================================================================
+   # ADDITIONAL EFFECTS (from index.css)
+   ========================================================================== */
+
+/* Efek backdrop blur untuk tombol */
+.backdrop-blur-md {
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+/* Animasi untuk gambar */
+.image-hover {
+  transition: transform 0.5s ease;
+}
+
+.image-hover:hover {
+  transform: scale(1.05);
+}
+
+/* Efek pulse untuk skeleton loading */
+@keyframes pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+.animate-pulse {
+  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+/* Efek untuk tombol dengan bayangan */
+.shadow-md {
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1),
+    0 2px 4px -1px rgba(0, 0, 0, 0.06);
+}
+
+.shadow-lg {
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1),
+    0 4px 6px -2px rgba(0, 0, 0, 0.05);
+}
+
+.shadow-xl {
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1),
+    0 10px 10px -5px rgba(0, 0, 0, 0.04);
+}
+
+/* Transisi untuk tombol */
+.transition-all {
+  transition-property: all;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  transition-duration: 150ms;
 }

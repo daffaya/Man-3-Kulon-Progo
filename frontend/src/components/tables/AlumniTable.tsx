@@ -34,6 +34,7 @@ const AlumniTable: React.FC<AlumniTableProps> = ({
         <table className="w-full text-sm">
           <thead>
             <tr className="border-b">
+              <th className="text-left py-3 px-4">No</th>
               <th className="text-left py-3 px-4">NISN</th>
               <th className="text-left py-3 px-4">Nama</th>
               <th className="text-left py-3 px-4">Tahun Lulus</th>
@@ -42,8 +43,9 @@ const AlumniTable: React.FC<AlumniTableProps> = ({
             </tr>
           </thead>
           <tbody>
-            {alumni.map((alum) => (
+            {alumni.map((alum, index) => (
               <tr key={alum.id} className="border-b">
+                <td className=" py-3 px-4">{index + 1}</td>
                 <td className="py-3 px-4">{alum.nisn}</td>
                 <td className="py-3 px-4">{alum.name}</td>
                 <td className="py-3 px-4">{alum.graduation_year}</td>

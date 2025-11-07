@@ -6,9 +6,11 @@ import {
   FileText,
   Home,
   User,
+  GraduationCap,
   Mail,
   AppWindow,
   ChevronDown,
+  Image,
 } from "lucide-react";
 import ThemeToggle from "../ui/ThemeToggle";
 
@@ -76,6 +78,7 @@ const Header: React.FC = () => {
         <nav className="hidden md:flex items-center space-x-8">
           <NavLink to="/" label="Home" icon={<Home size={18} />} />
           <NavLink to="/berita" label="Berita" icon={<FileText size={18} />} />
+          <NavLink to="/galeri" label="Galeri" icon={<Image size={18} />} />
 
           {/* Profile Dropdown */}
           <ProfileDropdown
@@ -90,6 +93,14 @@ const Header: React.FC = () => {
             label="Web App"
             icon={<AppWindow size={18} />}
           />
+
+          {/* Alumni */}
+          <NavLink
+            to="/alumni"
+            label="Alumni"
+            icon={<GraduationCap size={18} />}
+          />
+
           <NavLink to="/contact" label="Kontak" icon={<Mail size={18} />} />
           <ThemeToggle />
         </nav>
@@ -218,7 +229,12 @@ const MobileMenu: React.FC<MobileMenuProps> = ({
         icon={<FileText size={18} />}
         isMobile
       />
-
+      <NavLink
+        to="/galeri"
+        label="Galeri"
+        icon={<Image size={18} />}
+        isMobile
+      />
       {/* Profile Dropdown Mobile */}
       <div>
         <button
@@ -250,6 +266,14 @@ const MobileMenu: React.FC<MobileMenuProps> = ({
           </div>
         )}
       </div>
+
+      {/* Alumni mobile */}
+      <NavLink
+        to="/alumni"
+        label="Alumni"
+        icon={<GraduationCap size={18} />}
+        isMobile
+      />
 
       <NavLink
         to="/contact"

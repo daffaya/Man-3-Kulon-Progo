@@ -8,10 +8,6 @@ import ArticleList from "../components/article/ArticleList";
 import { useArticles } from "../contexts/ArticleContext";
 import { Article, ArticleFilters } from "../types/articleTypes";
 
-/**
- * The main page for displaying a list of articles.
- * It provides filtering by category and tag, pagination, and handles URL synchronization for filter states.
- */
 const NewsPage: React.FC = () => {
   const { state, fetchArticles, fetchCategories, fetchTags } = useArticles();
   const {
@@ -32,18 +28,11 @@ const NewsPage: React.FC = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const articlesPerPage = 15;
 
-  /**
-   * Fetches categories and tags from the API once when the component mounts.
-   */
   useEffect(() => {
     fetchCategories();
     fetchTags();
   }, [fetchCategories, fetchTags]);
 
-  /**
-   * Synchronizes the component's filter state with the URL query parameters.
-   * This runs whenever the URL search string changes.
-   */
   useEffect(() => {
     const params = new URLSearchParams(location.search);
     const tagParam = params.get("tag");
@@ -59,9 +48,6 @@ const NewsPage: React.FC = () => {
     setCurrentPage(page);
   }, [location.search]);
 
-  /**
-   * Fetches articles from the API whenever the active filters or the current page change.
-   */
   useEffect(() => {
     const filters: ArticleFilters = {
       page: currentPage,
@@ -74,17 +60,8 @@ const NewsPage: React.FC = () => {
     fetchArticles(filters);
   }, [currentPage, activeTag, activeCategory, fetchArticles]);
 
-  /**
-   * A memoized, alphabetically sorted list of all available tags.
-   */
   const allTags = useMemo(() => tags.sort(), [tags]);
 
-  /**
-   * Updates the URL with the specified filter parameters and navigates.
-   * @param tag - The tag to filter by.
-   * @param category - The category slug to filter by.
-   * @param page - The page number to navigate to.
-   */
   const applyFilters = useCallback(
     (tag: string | null, category: string | null, page: number = 1) => {
       const params = new URLSearchParams();
@@ -99,19 +76,11 @@ const NewsPage: React.FC = () => {
     [navigate, location.pathname]
   );
 
-  /**
-   * Handles the change event for the category filter dropdown.
-   * @param e - The change event from the select element.
-   */
   const handleCategoryChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const newSlug = e.target.value === "all" ? null : e.target.value;
     applyFilters(null, newSlug, 1);
   };
 
-  /**
-   * Handles navigation to a new page, updates the state, and scrolls to the top.
-   * @param page - The page number to navigate to.
-   */
   const handlePageChange = (page: number) => {
     setCurrentPage(page);
     applyFilters(activeTag, activeCategory, page);
@@ -120,15 +89,15 @@ const NewsPage: React.FC = () => {
 
   if ((loading && articles.length === 0) || tagsLoading || categoriesLoading) {
     const message = tagsLoading
-      ? "Loading tags..."
+      ? "Memuat tag..."
       : categoriesLoading
-      ? "Loading categories..."
-      : "Loading articles...";
+      ? "Memuat kategori..."
+      : "Memuat artikel...";
     return (
       <Layout>
         <div className="container mx-auto px-4 py-12 text-center">
           <RefreshCw size={32} className="mx-auto animate-spin text-accent" />
-          <p className="mt-4">{message}</p>
+          <p className="mt-4 text-gray-600 dark:text-gray-400">{message}</p>
         </div>
       </Layout>
     );
@@ -140,12 +109,12 @@ const NewsPage: React.FC = () => {
   if (noArticles) {
     const message = hasFilters
       ? activeTag
-        ? `No articles found with tag "${activeTag}".`
-        : `No articles found in category "${
+        ? `Tidak ada artikel dengan tag "${activeTag}".`
+        : `Tidak ada artikel di kategori "${
             categories.find((c) => c.slug === activeCategory)?.name ||
             activeCategory
           }".`
-      : "No articles found yet. Check back later!";
+      : "Belum ada artikel. Cek lagi nanti ya!";
 
     return (
       <Layout>
@@ -156,7 +125,7 @@ const NewsPage: React.FC = () => {
               onClick={() => applyFilters(null, null, 1)}
               className="mt-4 text-accent hover:underline flex items-center justify-center mx-auto"
             >
-              <X size={16} className="mr-1" /> Clear All Filters
+              <X size={16} className="mr-1" /> Hapus semua filter
             </button>
           )}
         </div>
@@ -166,16 +135,16 @@ const NewsPage: React.FC = () => {
 
   return (
     <Layout>
-      <div className="container mx-auto px-4 py-12 fade-in">
+      <div className="container mx-auto px-4 py-8 fade-in">
         <div className="text-center mb-6">
           <h1 className="text-4xl md:text-5xl font-serif font-bold mb-4">
-            Articles
+            Berita & Artikel
           </h1>
 
           {hasFilters ? (
             <div className="flex flex-col items-center">
               <p className="text-lg text-gray-600 dark:text-gray-400 mb-4">
-                You're now viewing filtered articles:
+                Menampilkan artikel berdasarkan filter:
               </p>
               {activeTag && (
                 <div className="inline-flex items-center px-4 py-2 bg-accent text-white rounded-full mb-2">
@@ -190,7 +159,7 @@ const NewsPage: React.FC = () => {
               )}
               {activeCategory && (
                 <div className="inline-flex items-center px-4 py-2 bg-accent text-white rounded-full mb-2">
-                  Category:{" "}
+                  Kategori:{" "}
                   {categories.find((c) => c.slug === activeCategory)?.name ||
                     activeCategory}
                   <button
@@ -205,13 +174,12 @@ const NewsPage: React.FC = () => {
                 onClick={() => applyFilters(null, null, 1)}
                 className="mt-2 text-gray-600 dark:text-gray-400 hover:underline flex items-center justify-center mx-auto"
               >
-                <X size={16} className="mr-1" /> Clear All Filters
+                <X size={16} className="mr-1" /> Hapus semua filter
               </button>
             </div>
           ) : (
             <p className="text-lg text-gray-600 dark:text-gray-400">
-              Explore my thoughts and ideas. Browse all articles or filter by
-              topic.
+              Lihat semua artikel atau pilih kategori dan tag favoritmu.
             </p>
           )}
         </div>
@@ -224,7 +192,7 @@ const NewsPage: React.FC = () => {
               onChange={handleCategoryChange}
               className="form-input w-full"
             >
-              <option value="all">All Categories</option>
+              <option value="all">Semua Kategori</option>
               {categories.map((cat) => (
                 <option key={cat.id} value={cat.slug}>
                   {cat.name}
@@ -275,7 +243,7 @@ const NewsPage: React.FC = () => {
                 }`}
               >
                 <ChevronLeft size={20} />
-                <span className="ml-1">Previous</span>
+                <span className="ml-1">Sebelumnya</span>
               </button>
 
               <div className="flex items-center space-x-1">
@@ -330,7 +298,7 @@ const NewsPage: React.FC = () => {
                     : "text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-800"
                 }`}
               >
-                <span className="mr-1">Next</span>
+                <span className="mr-1">Berikutnya</span>
                 <ChevronRight size={20} />
               </button>
             </nav>
@@ -339,11 +307,12 @@ const NewsPage: React.FC = () => {
 
         {pagination && (
           <div className="text-center mt-4 text-sm text-gray-600 dark:text-gray-400">
-            Showing {articles.length} of {pagination.totalArticles} articles
+            Menampilkan {articles.length} dari {pagination.totalArticles}{" "}
+            artikel
             {pagination.totalPages > 1 && (
               <span>
                 {" "}
-                (Page {currentPage} of {pagination.totalPages})
+                (Halaman {currentPage} dari {pagination.totalPages})
               </span>
             )}
           </div>

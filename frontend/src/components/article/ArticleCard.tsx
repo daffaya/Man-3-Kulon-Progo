@@ -36,7 +36,7 @@ const ArticleCard: React.FC<ArticleCardProps> = ({
   if (featured) {
     return (
       <article className="relative overflow-hidden rounded-xl shadow-lg transition-transform duration-300 hover:-translate-y-1 hover:shadow-xl flex flex-col">
-        <div className="aspect-[16/9] overflow-hidden max-w-full max-h-100">
+        <div className="aspect-[16/9] overflow-hidden max-w-full h-120">
           <ImageWithFallback
             src={coverImage}
             alt={title}
@@ -45,7 +45,7 @@ const ArticleCard: React.FC<ArticleCardProps> = ({
           />
         </div>
         <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent">
-          <div className="absolute bottom-0 left-0 right-0 p-6 text-white">
+          <div className="absolute bottom-0 left-0 right-0 px-48 py-8 text-white">
             <div className="flex flex-wrap gap-2 mb-3">
               {(tags || []).slice(0, 3).map((tag) => (
                 <span

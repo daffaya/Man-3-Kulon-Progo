@@ -1,17 +1,20 @@
+// backend/src/controllers/galleryController.js
 import slugify from "slugify";
 import { v4 as uuidv4 } from "uuid";
 import fs from "fs/promises";
 import path from "path";
-import sharp from "sharp";
+import GalleryService from "../services/galleryService.js";
+import GalleryModel from "../models/galleryModel.js";
 
 /**
  * Factory function to create a Gallery Controller with CRUD operations.
  * @param {Object} dependencies - Dependencies to be injected
  * @param {Object} dependencies.galleryModel - Model for gallery operations
- * @param {Object} dependencies.userModel - Model for user operations (optional)
  * @returns {Object} Controller with CRUD methods
  */
-const createGalleryController = ({ galleryModel, userModel }) => {
+const createGalleryController = ({ galleryModel }) => {
+  const galleryService = new GalleryService();
+
   /**
    * Helper function to prepare album data from request
    * @param {Object} req - Express request object
@@ -34,35 +37,6 @@ const createGalleryController = ({ galleryModel, userModel }) => {
       description,
       cover_photo_id,
       created_by: req.user.id,
-    };
-  };
-
-  /**
-   * Helper function to process uploaded images and create thumbnails
-   * @param {Object} file - Uploaded file object
-   * @returns {Promise<Object>} Processed file data
-   */
-  const processImage = async (file) => {
-    // Generate thumbnail
-    const thumbnailFilename = `thumb_${file.filename}`;
-    const thumbnailPath = path.join(file.destination, thumbnailFilename);
-
-    await sharp(file.path)
-      .resize(300, 300, { fit: "cover" })
-      .jpeg({ quality: 80 })
-      .toFile(thumbnailPath);
-
-    // Optimize original image
-    await sharp(file.path)
-      .resize(1920, 1080, { fit: "inside", withoutEnlargement: true })
-      .jpeg({ quality: 85 })
-      .toFile(file.path);
-
-    // Return relative paths
-    const albumId = path.basename(file.destination);
-    return {
-      image_url: `/uploads/gallery/${albumId}/${file.filename}`,
-      thumbnail_url: `/uploads/gallery/${albumId}/${thumbnailFilename}`,
     };
   };
 
@@ -253,54 +227,106 @@ const createGalleryController = ({ galleryModel, userModel }) => {
     },
 
     /**
+     * Retrieves an album by slug (for public access).
+     * @param {Object} req - Express request object
+     * @param {Object} res - Express response object
+     * @returns {Promise<void>}
+     */
+    getAlbumBySlug: async (req, res) => {
+      try {
+        const { slug } = req.params;
+        const album = await galleryModel.findAlbumBySlug(slug);
+
+        if (!album) {
+          return res.status(404).json({ message: "Album not found" });
+        }
+
+        const photos = await galleryModel.findPhotosByAlbumId(album.id);
+
+        res.status(200).json({
+          album,
+          photos,
+        });
+      } catch (error) {
+        res.status(500).json({
+          message: "Failed to fetch album",
+          error: error.message,
+        });
+      }
+    },
+
+    /**
      * Uploads photos to an album.
      * @param {Object} req - Express request object
      * @param {Object} res - Express response object
      * @returns {Promise<void>}
      */
-    // Di controller, bagian uploadPhotos
     uploadPhotos: async (req, res) => {
       try {
         const { album_id } = req.body;
         const files = req.files;
 
+        console.log("Upload request received:", {
+          album_id,
+          filesCount: files?.length,
+        });
+
         if (!files || files.length === 0) {
-          return res.status(400).json({
-            message: "No files uploaded",
-          });
+          return res.status(400).json({ message: "No files uploaded" });
         }
 
-        // Process images using gallery upload service
-        const processedFiles = await galleryUploadService.processImages(files);
+        if (!album_id) {
+          return res.status(400).json({ message: "Album ID is required" });
+        }
 
-        const uploadedPhotos = [];
+        // Process uploaded files using gallery service
+        const processedFiles = await galleryService.processUploadedFiles(
+          files,
+          album_id
+        );
 
-        for (let i = 0; i < processedFiles.length; i++) {
-          const file = processedFiles[i];
+        // Save processed files to database
+        const savedPhotos = [];
+        for (const file of processedFiles) {
+          // Validate all required fields
+          if (!file.filename || !file.url || !file.thumbnailUrl) {
+            console.error("Invalid file data:", file);
+            continue; // Skip this file
+          }
 
           const photoData = {
-            album_id,
-            title: file.originalName,
-            description: "",
-            image_url: file.image_url,
-            thumbnail_url: file.thumbnail_url,
-            alt_text: file.originalName,
-            upload_order: i,
+            id: undefined, // Biarkan database generate ID (auto increment)
+            album_id: album_id,
+            title: file.originalName || file.filename, // Gunakan originalName jika tersedia
+            description: "", // Kosongkan karena tidak ada input deskripsi
+            image_url: file.url,
+            thumbnail_url: file.thumbnailUrl,
+            alt_text: file.originalName || file.filename, // Gunakan nama file sebagai alt text
+            upload_order: savedPhotos.length + 1, // Berikan urutan berdasarkan jumlah foto yang sudah disimpan
           };
 
-          const photoId = await galleryModel.createPhoto(photoData);
-          uploadedPhotos.push({
-            id: photoId,
-            image_url: file.image_url,
-            thumbnail_url: file.thumbnail_url,
+          try {
+            const photoId = await galleryModel.createPhoto(photoData);
+            savedPhotos.push({ id: photoId, ...file });
+          } catch (dbError) {
+            console.error("Database error for file:", file, dbError);
+          }
+        }
+
+        if (savedPhotos.length === 0) {
+          return res.status(500).json({
+            message: "Failed to save any photos to database",
           });
         }
 
         res.status(201).json({
           message: "Photos uploaded successfully",
-          photos: uploadedPhotos,
+          photos: savedPhotos,
         });
       } catch (error) {
+        console.error("UploadPhotos controller error:", error);
+
+        // Return proper JSON error response
         res.status(500).json({
           message: "Failed to upload photos",
           error: error.message,
@@ -316,11 +342,21 @@ const createGalleryController = ({ galleryModel, userModel }) => {
      */
     setAlbumCover: async (req, res) => {
       try {
-        const { album_id, photo_id } = req.body;
+        // Ambil album_id dari params, bukan dari body
+        const { album_id } = req.params;
+        const { photo_id } = req.body;
 
-        const updated = await galleryModel.updateAlbum(album_id, {
-          cover_photo_id: photo_id,
-        });
+        console.log("Setting album cover:", { album_id, photo_id });
+
+        // Validasi input
+        if (!album_id || !photo_id) {
+          return res.status(400).json({
+            message: "Album ID and Photo ID are required",
+          });
+        }
+
+        // Gunakan metode khusus untuk update cover saja
+        const updated = await galleryModel.updateAlbumCover(album_id, photo_id);
 
         if (!updated) {
           return res.status(404).json({ message: "Album not found" });
@@ -330,6 +366,7 @@ const createGalleryController = ({ galleryModel, userModel }) => {
           message: "Album cover updated successfully",
         });
       } catch (error) {
+        console.error("Error in setAlbumCover:", error);
         res.status(500).json({
           message: "Failed to set album cover",
           error: error.message,

@@ -14,14 +14,19 @@ import ArticleCard from "../components/article/ArticleCard";
 import { useArticles } from "../contexts/ArticleContext";
 import Carousel from "../components/ui/Carousel";
 import Hero from "../components/ui/Hero";
+import { useGallery } from "../contexts/GalleryContext";
+import AlbumCard from "../components/gallery/AlbumCard";
 
 const HomePage: React.FC = () => {
   const { state, fetchArticles } = useArticles();
   const { articles, loading } = state;
+  const { state: galleryState, fetchAlbums } = useGallery();
+  const { albums: galleryAlbums, loading: galleryLoading } = galleryState;
 
   useEffect(() => {
     fetchArticles({ limit: 10 });
-  }, [fetchArticles]);
+    fetchAlbums({ limit: 6 });
+  }, [fetchArticles, fetchAlbums]);
 
   if (loading) {
     return (
@@ -103,7 +108,7 @@ const HomePage: React.FC = () => {
       </section>
 
       {/* Announcements */}
-      <section className="py-12 bg-gray-50 dark:bg-gray-900">
+      {/* <section className="py-12 bg-gray-50 dark:bg-gray-900">
         <div className="container max-w-6xl mx-auto px-4 sm:px-6">
           <div className="flex justify-between items-center mb-8">
             <h2 className="text-2xl md:text-3xl font-serif font-bold flex items-center">
@@ -161,10 +166,10 @@ const HomePage: React.FC = () => {
             </div>
           </div>
         </div>
-      </section>
+      </section> */}
 
       {/* Upcoming Events */}
-      <section className="py-12 bg-white dark:bg-gray-800">
+      {/* <section className="py-12 bg-white dark:bg-gray-800">
         <div className="container max-w-6xl mx-auto px-4 sm:px-6">
           <div className="flex justify-between items-center mb-8">
             <h2 className="text-2xl md:text-3xl font-serif font-bold flex items-center">
@@ -215,25 +220,25 @@ const HomePage: React.FC = () => {
             </div>
           </div>
         </div>
-      </section>
+      </section> */}
 
       {/* Featured Articles */}
-      {featuredArticles.length > 0 && (
-        <section className="py-12 bg-gray-50 dark:bg-gray-900">
-          <div className="container max-w-6xl mx-auto px-4 sm:px-6">
-            <div className="flex justify-between items-center mb-8">
-              <h2 className="text-2xl md:text-3xl font-serif font-bold">
-                Artikel Unggulan
-              </h2>
-            </div>
+      <div className="text-center my-8 fade-in">
+        <h1 className="text-4xl md:text-5xl sm:text-6xl font-serif font-bold mb-4">
+          Artikel & Berita Pilihan
+        </h1>
+        <p className="text-lg text-gray-600 dark:text-gray-400 max-w-3xl mx-auto">
+          Lihat sekilas cerita seru, prestasi keren, dan momen berharga di MAN 3
+          Kulon Progo. Dari kegiatan sekolah sampai kabar terbaru, semua bisa
+          kamu nikmati di sini! <br />
+          Jangan sampai ketinggalan, ya!
+        </p>
+      </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-4">
-              {featuredArticles.map((article) => (
-                <ArticleCard key={article.id} article={article} />
-              ))}
-            </div>
-          </div>
-        </section>
+      {featuredArticles.length > 0 && (
+        <div className="mb-16 slide-up">
+          <ArticleCard article={featuredArticles[0]} featured />
+        </div>
       )}
 
       {/* Recent News */}
@@ -261,7 +266,7 @@ const HomePage: React.FC = () => {
       </section>
 
       {/* Achievements */}
-      <section className="py-12 bg-gray-50 dark:bg-gray-900">
+      {/* <section className="py-12 bg-gray-50 dark:bg-gray-900">
         <div className="container max-w-6xl mx-auto px-4 sm:px-6">
           <div className="flex justify-between items-center mb-8">
             <h2 className="text-2xl md:text-3xl font-serif font-bold flex items-center">
@@ -315,9 +320,9 @@ const HomePage: React.FC = () => {
             </div>
           </div>
         </div>
-      </section>
+      </section> */}
 
-      {/* Photo Gallery Preview */}
+      {/* Update Photo Gallery Preview Section */}
       <section className="py-12 bg-white dark:bg-gray-800">
         <div className="container max-w-6xl mx-auto px-4 sm:px-6">
           <div className="flex justify-between items-center mb-8">
@@ -334,28 +339,34 @@ const HomePage: React.FC = () => {
             </Link>
           </div>
 
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
-            <img
-              src="/Slider1.jpg"
-              alt="Kegiatan sekolah"
-              className="w-full h-32 object-cover rounded"
-            />
-            <img
-              src="/Slider2.jpeg"
-              alt="Kegiatan sekolah"
-              className="w-full h-32 object-cover rounded"
-            />
-            <img
-              src="/Slider3.jpeg"
-              alt="Kegiatan sekolah"
-              className="w-full h-32 object-cover rounded"
-            />
-            <img
-              src="/MAN 3_1.jpg"
-              alt="Kegiatan sekolah"
-              className="w-full h-32 object-cover rounded"
-            />
-          </div>
+          {galleryLoading ? (
+            <div className="text-center py-8">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-accent mx-auto"></div>
+              <p className="mt-2 text-gray-500 dark:text-gray-400">
+                Memuat galeri...
+              </p>
+            </div>
+          ) : galleryAlbums.length > 0 ? (
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+              {galleryAlbums.slice(0, 4).map((album) => (
+                <AlbumCard
+                  key={album.id}
+                  album={album}
+                  showDescription={false}
+                />
+              ))}
+            </div>
+          ) : (
+            <div className="text-center py-8">
+              <Image size={48} className="mx-auto text-gray-400 mb-4" />
+              <h3 className="text-xl font-medium text-gray-600 dark:text-gray-400 mb-2">
+                Belum ada album foto
+              </h3>
+              <p className="text-gray-500 dark:text-gray-400">
+                Dokumentasi kegiatan akan segera tersedia
+              </p>
+            </div>
+          )}
         </div>
       </section>
 

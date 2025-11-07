@@ -67,35 +67,41 @@ const createGalleryModel = ({ pool }) => {
       const whereClause =
         conditions.length > 0 ? `WHERE ${conditions.join(" AND ")}` : "";
 
+      // Perbaiki query untuk menghitung semua foto di album
       const sql = `
-        SELECT
-          a.id,
-          a.title,
-          a.slug,
-          a.description,
-          a.cover_photo_id,
-          a.created_by,
-          a.created_at,
-          a.updated_at,
-          COUNT(p.id) as photo_count,
-          p.image_url as cover_image_url,
-          p.thumbnail_url as cover_thumbnail_url
-        FROM gallery_albums a
-        LEFT JOIN gallery_photos p ON a.cover_photo_id = p.id
-        ${whereClause}
-        GROUP BY a.id
-        ORDER BY a.created_at DESC
-        LIMIT ${limit} OFFSET ${offset};
-      `;
+    SELECT
+      a.id,
+      a.title,
+      a.slug,
+      a.description,
+      a.cover_photo_id,
+      a.created_by,
+      a.created_at,
+      a.updated_at,
+      COALESCE(photo_counts.photo_count, 0) as photo_count,
+      cover_p.image_url as cover_image_url,
+      cover_p.thumbnail_url as cover_thumbnail_url
+    FROM gallery_albums a
+    LEFT JOIN (
+      SELECT album_id, COUNT(id) as photo_count
+      FROM gallery_photos
+      GROUP BY album_id
+    ) photo_counts ON a.id = photo_counts.album_id
+    LEFT JOIN gallery_photos cover_p ON a.cover_photo_id = cover_p.id
+    ${whereClause}
+    GROUP BY a.id
+    ORDER BY a.created_at DESC
+    LIMIT ${limit} OFFSET ${offset};
+  `;
 
       const [rows] = await pool.execute(sql, queryParams);
 
       const [totalRows] = await pool.execute(
         `
-        SELECT COUNT(*) AS total
-        FROM gallery_albums a
-        ${whereClause};
-      `,
+    SELECT COUNT(*) AS total
+    FROM gallery_albums a
+    ${whereClause};
+  `,
         queryParams
       );
 
@@ -110,7 +116,7 @@ const createGalleryModel = ({ pool }) => {
         created_by: row.created_by,
         created_at: row.created_at,
         updated_at: row.updated_at,
-        photo_count: row.photo_count,
+        photo_count: row.photo_count, // Sekarang sudah benar
         cover_image_url: row.cover_image_url,
         cover_thumbnail_url: row.cover_thumbnail_url,
       }));
@@ -149,6 +155,56 @@ const createGalleryModel = ({ pool }) => {
         WHERE a.id = ?;
       `,
         [id]
+      );
+
+      if (rows.length === 0) return null;
+
+      const row = rows[0];
+      return {
+        id: row.id,
+        title: row.title,
+        slug: row.slug,
+        description: row.description,
+        cover_photo_id: row.cover_photo_id,
+        created_by: row.created_by,
+        created_at: row.created_at,
+        updated_at: row.updated_at,
+        photo_count: row.photo_count,
+        cover_image_url: row.cover_image_url,
+        cover_thumbnail_url: row.cover_thumbnail_url,
+      };
+    },
+
+    /**
+     * Find album by its slug.
+     * @param {string} slug
+     * @returns {Promise<object|null>}
+     */
+    async findAlbumBySlug(slug) {
+      const [rows] = await pool.execute(
+        `
+    SELECT
+      a.id,
+      a.title,
+      a.slug,
+      a.description,
+      a.cover_photo_id,
+      a.created_by,
+      a.created_at,
+      a.updated_at,
+      COALESCE(photo_counts.photo_count, 0) as photo_count,
+      cover_p.image_url as cover_image_url,
+      cover_p.thumbnail_url as cover_thumbnail_url
+    FROM gallery_albums a
+    LEFT JOIN (
+      SELECT album_id, COUNT(id) as photo_count
+      FROM gallery_photos
+      GROUP BY album_id
+    ) photo_counts ON a.id = photo_counts.album_id
+    LEFT JOIN gallery_photos cover_p ON a.cover_photo_id = cover_p.id
+    WHERE a.slug = ?;
+    `,
+        [slug]
       );
 
       if (rows.length === 0) return null;
@@ -213,6 +269,29 @@ const createGalleryModel = ({ pool }) => {
     },
 
     /**
+     * Update album cover photo by ID.
+     * @param {string|number} albumId
+     * @param {string|number} coverPhotoId
+     * @returns {Promise<boolean>} Whether the update succeeded
+     */
+    async updateAlbumCover(albumId, coverPhotoId) {
+      try {
+        const sql = `
+      UPDATE gallery_albums SET
+        cover_photo_id = ?,
+        updated_at = NOW()
+      WHERE id = ?;
+    `;
+
+        const [result] = await pool.execute(sql, [coverPhotoId, albumId]);
+        return result.affectedRows > 0;
+      } catch (error) {
+        console.error("[GalleryModel] Error updating album cover:", error);
+        throw error;
+      }
+    },
+
+    /**
      * Create a new photo record.
      * @param {object} photoData - Data for the new photo.
      * @returns {Promise<string|number>} Inserted photo ID.
@@ -220,7 +299,7 @@ const createGalleryModel = ({ pool }) => {
     async createPhoto(photoData) {
       try {
         const {
-          id,
+          id, // Bisa undefined untuk auto increment
           album_id,
           title,
           description,
@@ -230,32 +309,56 @@ const createGalleryModel = ({ pool }) => {
           upload_order,
         } = photoData;
 
-        const sql = `
-          INSERT INTO gallery_photos 
-          SET 
-            id = ?, 
-            album_id = ?, 
-            title = ?, 
-            description = ?, 
-            image_url = ?, 
-            thumbnail_url = ?, 
-            alt_text = ?, 
-            upload_order = ?
-        `;
+        // Jika id tidak disediakan, biarkan database generate auto increment
+        const sql = id
+          ? `
+        INSERT INTO gallery_photos 
+        SET 
+          id = ?, 
+          album_id = ?, 
+          title = ?, 
+          description = ?, 
+          image_url = ?, 
+          thumbnail_url = ?, 
+          alt_text = ?, 
+          upload_order = ?
+      `
+          : `
+        INSERT INTO gallery_photos 
+        SET 
+          album_id = ?, 
+          title = ?, 
+          description = ?, 
+          image_url = ?, 
+          thumbnail_url = ?, 
+          alt_text = ?, 
+          upload_order = ?
+      `;
 
-        const params = [
-          id,
-          album_id,
-          title,
-          description,
-          image_url,
-          thumbnail_url,
-          alt_text,
-          upload_order,
-        ];
+        // Hanya sertakan id jika disediakan
+        const params = id
+          ? [
+              id,
+              album_id,
+              title || null, // Gunakan null jika undefined
+              description || null,
+              image_url,
+              thumbnail_url,
+              alt_text || null,
+              upload_order || 0,
+            ]
+          : [
+              album_id,
+              title || null,
+              description || null,
+              image_url,
+              thumbnail_url,
+              alt_text || null,
+              upload_order || 0,
+            ];
 
         const [result] = await pool.execute(sql, params);
-        return result.insertId || id;
+        return result.insertId;
       } catch (error) {
         console.error("[GalleryModel] Error creating photo:", error);
         throw error;
