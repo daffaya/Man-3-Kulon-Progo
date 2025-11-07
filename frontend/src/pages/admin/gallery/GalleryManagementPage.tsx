@@ -8,7 +8,6 @@ import { useToastMessage } from "../../../hooks/useToastMessage";
 import AlbumList from "../../../components/gallery/AlbumList";
 import AdminLayout from "../../../components/layout/AdminLayout";
 
-/** Roles that are permitted to access gallery management. */
 export const ALLOWED_ROLES = [
   "super_admin",
   "jurnalis",
@@ -17,21 +16,11 @@ export const ALLOWED_ROLES = [
   "arsiparis",
 ] as const;
 
-/**
- * Checks if a user has permission to manage gallery based on their login status and role.
- * @param isLoggedIn - The user's login status.
- * @param role - The user's role.
- * @returns True if the user has management access, otherwise false.
- */
 const hasEditAccess = (isLoggedIn: boolean, role?: string): boolean =>
   isLoggedIn && role
     ? ALLOWED_ROLES.includes(role as (typeof ALLOWED_ROLES)[number])
     : false;
 
-/**
- * A page component for managing gallery albums in the admin panel.
- * It provides functionality to view, filter, paginate, and delete albums.
- */
 const GalleryManagementPage: React.FC = () => {
   const { state, deleteAlbum, fetchAdminAlbums } = useGallery();
   const [showConfirmation, setShowConfirmation] = useState(false);
@@ -41,7 +30,6 @@ const GalleryManagementPage: React.FC = () => {
   const { isLoggedIn, user } = useAuth();
   const navigate = useNavigate();
 
-  // Redirect ke login jika belum login
   if (!isLoggedIn) {
     return (
       <Navigate to="/login" state={{ redirectTo: "/atmin/gallery" }} replace />
@@ -50,7 +38,6 @@ const GalleryManagementPage: React.FC = () => {
 
   const hasGalleryAccess = hasEditAccess(isLoggedIn, user?.role);
 
-  // Jika user login tapi tidak memiliki role yang sesuai, redirect ke dashboard
   if (!hasGalleryAccess) {
     return <Navigate to="/atmin" replace />;
   }
@@ -63,18 +50,13 @@ const GalleryManagementPage: React.FC = () => {
   const albumsPerPage = 10;
   const [debouncedKeyword, setDebouncedKeyword] = useState("");
 
-  // Effect for debouncing the keyword input to reduce API calls
   useEffect(() => {
     const handler = setTimeout(() => {
       setDebouncedKeyword(keyword);
     }, 500);
-
-    return () => {
-      clearTimeout(handler);
-    };
+    return () => clearTimeout(handler);
   }, [keyword]);
 
-  // Effect to fetch albums when filters or pagination change
   useEffect(() => {
     if (isLoggedIn && hasGalleryAccess) {
       const filtersWithPagination = {
@@ -82,31 +64,24 @@ const GalleryManagementPage: React.FC = () => {
         page: currentPage,
         limit: albumsPerPage,
       };
-
       fetchAdminAlbums(filtersWithPagination);
     }
   }, [
     appliedFilters,
     currentPage,
-    albumsPerPage,
     isLoggedIn,
     hasGalleryAccess,
     fetchAdminAlbums,
   ]);
 
-  // Effect to automatically apply filters when keyword input changes
   useEffect(() => {
     handleApplyFilters();
   }, [debouncedKeyword]);
 
-  /** Navigates to the previous page of albums. */
   const handlePreviousPage = () => {
-    if (currentPage > 1) {
-      setCurrentPage(currentPage - 1);
-    }
+    if (currentPage > 1) setCurrentPage(currentPage - 1);
   };
 
-  /** Navigates to the next page of albums. */
   const handleNextPage = () => {
     if (
       state.adminPagination &&
@@ -116,28 +91,23 @@ const GalleryManagementPage: React.FC = () => {
     }
   };
 
-  /** Constructs the filter object from input states and triggers a new search. */
   const handleApplyFilters = () => {
     const filtersToApply = {
       keyword:
         debouncedKeyword.trim() !== "" ? debouncedKeyword.trim() : undefined,
     };
-
     setAppliedFilters(filtersToApply);
     setCurrentPage(1);
   };
 
-  /** Resets all filter inputs to their default values. */
   const handleRemoveFilters = () => {
     setKeyword("");
   };
 
-  /** Updates the keyword state on input change. */
   const handleKeywordInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setKeyword(e.target.value);
   };
 
-  /** Triggers filter application on Enter key press in the keyword input. */
   const handleKeywordInputKeyPress = (
     e: React.KeyboardEvent<HTMLInputElement>
   ) => {
@@ -147,13 +117,11 @@ const GalleryManagementPage: React.FC = () => {
     }
   };
 
-  /** Sets the album to be deleted and shows the confirmation modal. */
   const handleDeleteClick = (id: string) => {
     setAlbumToDelete(id);
     setShowConfirmation(true);
   };
 
-  /** Deletes the selected album and refreshes the list. */
   const confirmDelete = async () => {
     if (albumToDelete) {
       try {
@@ -166,18 +134,14 @@ const GalleryManagementPage: React.FC = () => {
         fetchAdminAlbums(filtersWithPagination);
         setShowConfirmation(false);
         setAlbumToDelete(null);
-
-        // Tampilkan toast sukses
         showSuccessToast("Album berhasil dihapus");
       } catch (error) {
-        // Tampilkan toast error jika terjadi kesalahan
         showErrorToast("Gagal menghapus album");
         console.error("Error deleting album:", error);
       }
     }
   };
 
-  /** Hides the delete confirmation modal. */
   const cancelDelete = () => {
     setShowConfirmation(false);
     setAlbumToDelete(null);
@@ -190,13 +154,13 @@ const GalleryManagementPage: React.FC = () => {
     return (
       <AdminLayout>
         <div className="container mx-auto px-4 sm:px-6 py-12 text-center">
-          <p className="text-xl text-gray-600 dark:text-gray-400">
+          <p className="text-xl text-secondary">
             Tidak ada album yang cocok dengan filter.
           </p>
           {hasActiveFilters && (
             <button
               onClick={handleRemoveFilters}
-              className="mt-4 text-accent hover:underline flex items-center justify-center mx-auto"
+              className="mt-4 btn btn-secondary text-sm"
             >
               <X size={16} className="mr-1" /> Hapus Filter
             </button>
@@ -214,12 +178,12 @@ const GalleryManagementPage: React.FC = () => {
     return (
       <AdminLayout>
         <div className="container mx-auto px-4 sm:px-6 py-12 text-center">
-          <p className="text-xl text-gray-600 dark:text-gray-400">
+          <p className="text-xl text-secondary">
             Belum ada album yang ditemukan.
           </p>
           <Link
             to="/atmin/gallery/new"
-            className="mt-4 inline-block btn btn-primary flex items-center justify-center mx-auto w-fit"
+            className="mt-4 btn btn-primary flex items-center mx-auto w-fit"
           >
             <Plus size={18} className="mr-1" /> Buat Album Pertama Anda
           </Link>
@@ -239,18 +203,16 @@ const GalleryManagementPage: React.FC = () => {
       <div className="container mx-auto px-4 sm:px-6 py-12 fade-in">
         <Link
           to="/atmin"
-          className="text-sm text-gray-600 dark:text-gray-400 hover:text-primary dark:hover:text-primary flex items-center mb-4 transition-colors"
+          className="text-sm text-secondary hover:text-accent flex items-center mb-4 transition-colors"
         >
           <ArrowLeft className="h-4 w-4 mr-1" />
           Kembali ke admin dashboard
         </Link>
-        <div className="flex flex-col mx-4 sm:flex-row sm:items-center sm:justify-between mb-8">
-          <h1 className="text-3xl font-serif font-bold mb-4 sm:mb-0">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-8">
+          <h1 className="text-3xl font-serif font-bold text-foreground mb-4 sm:mb-0">
             Manajemen Galeri
           </h1>
-
           <div className="flex space-x-2">
-            {/* Tombol "Album Baru" */}
             <Link
               to="/atmin/gallery/new"
               className="btn btn-primary flex items-center"
@@ -260,12 +222,12 @@ const GalleryManagementPage: React.FC = () => {
           </div>
         </div>
 
-        <div className="bg-white dark:bg-semibackground rounded-xl shadow-md p-6">
+        <div className="card p-6">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6">
             {hasActiveFilters && (
               <button
                 onClick={handleRemoveFilters}
-                className="btn btn-secondary py-1 text-sm"
+                className="btn btn-secondary text-primary py-1 text-sm"
               >
                 Hapus Filter
               </button>
@@ -275,12 +237,11 @@ const GalleryManagementPage: React.FC = () => {
             <div>
               <label
                 htmlFor="keyword"
-                className="block text-sm font-medium mb-1"
+                className="block text-sm font-medium mb-1 text-foreground"
               >
                 Cari Kata Kunci{" "}
-                <span className="text-xs text-gray-500">(Tekan Enter)</span>
+                <span className="text-xs text-secondary">(Tekan Enter)</span>
               </label>
-
               <input
                 type="text"
                 id="keyword"
@@ -292,13 +253,14 @@ const GalleryManagementPage: React.FC = () => {
               />
             </div>
           </div>
+
           {state.adminLoading ? (
             <div className="text-center py-12">
               <RefreshCw
                 size={32}
                 className="mx-auto animate-spin text-accent"
               />
-              <p className="mt-4">Memuat album...</p>
+              <p className="mt-4 text-secondary">Memuat album...</p>
             </div>
           ) : (
             <AlbumList
@@ -309,30 +271,27 @@ const GalleryManagementPage: React.FC = () => {
               isAdmin={true}
             />
           )}
+
           {state.adminPagination.totalPages > 1 && (
             <div className="flex justify-center items-center mt-6 space-x-4">
               <button
                 onClick={handlePreviousPage}
                 disabled={isPreviousDisabled}
-                className={`px-4 py-2 rounded-md transition-colors ${
-                  isPreviousDisabled
-                    ? "bg-gray-200 dark:bg-gray-700 text-gray-500 cursor-not-allowed"
-                    : "bg-accent text-white hover:bg-accent-dark"
+                className={`btn btn-secondary text-sm ${
+                  isPreviousDisabled ? "opacity-50 cursor-not-allowed" : ""
                 }`}
               >
                 Sebelumnya
               </button>
-              <span className="text-gray-700 dark:text-gray-300">
+              <span className="text-secondary">
                 Halaman {state.adminPagination.currentPage} dari{" "}
                 {state.adminPagination.totalPages}
               </span>
               <button
                 onClick={handleNextPage}
                 disabled={isNextDisabled}
-                className={`px-4 py-2 rounded-md transition-colors ${
-                  isNextDisabled
-                    ? "bg-gray-200 dark:bg-gray-700 text-gray-500 cursor-not-allowed"
-                    : "bg-accent text-white hover:bg-accent-dark"
+                className={`btn btn-secondary text-sm ${
+                  isNextDisabled ? "opacity-50 cursor-not-allowed" : ""
                 }`}
               >
                 Berikutnya
@@ -340,27 +299,29 @@ const GalleryManagementPage: React.FC = () => {
             </div>
           )}
         </div>
-      </div>
 
-      {showConfirmation && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white dark:bg-gray-800 rounded-lg p-6 max-w-md w-full">
-            <h3 className="text-xl font-bold mb-4">Konfirmasi Hapus</h3>
-            <p className="mb-6 text-gray-600 dark:text-gray-400">
-              Apakah Anda yakin ingin menghapus album ini? Semua foto di dalam
-              album juga akan dihapus. Tindakan ini tidak dapat dibatalkan.
-            </p>
-            <div className="flex justify-end space-x-4">
-              <button onClick={cancelDelete} className="btn btn-secondary">
-                Batal
-              </button>
-              <button onClick={confirmDelete} className="btn btn-danger">
-                Hapus
-              </button>
+        {showConfirmation && (
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+            <div className="card p-6 max-w-md w-full">
+              <h3 className="text-xl font-bold text-foreground mb-4">
+                Konfirmasi Hapus
+              </h3>
+              <p className="mb-6 text-secondary">
+                Apakah Anda yakin ingin menghapus album ini? Semua foto di dalam
+                album juga akan dihapus. Tindakan ini tidak dapat dibatalkan.
+              </p>
+              <div className="flex justify-end space-x-4">
+                <button onClick={cancelDelete} className="btn btn-secondary">
+                  Batal
+                </button>
+                <button onClick={confirmDelete} className="btn btn-danger">
+                  Hapus
+                </button>
+              </div>
             </div>
           </div>
-        </div>
-      )}
+        )}
+      </div>
     </AdminLayout>
   );
 };

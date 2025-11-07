@@ -19,8 +19,6 @@ const AlbumCoverSelector: React.FC<AlbumCoverSelectorProps> = ({
 }) => {
   return (
     <div className="space-y-4">
-      <h3 className="text-lg font-medium">Pilih Cover Album</h3>
-
       {photos.length === 0 ? (
         <div className="text-center py-8 text-gray-500 dark:text-gray-400">
           Belum ada foto di album ini

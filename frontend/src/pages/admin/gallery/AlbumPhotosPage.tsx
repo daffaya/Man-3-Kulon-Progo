@@ -1,7 +1,8 @@
 // frontend/src/pages/admin/gallery/AlbumPhotosPage.tsx
+
 import React, { useEffect, useState } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
-import { ChevronLeft, Upload, Settings, Eye, X, Edit } from "lucide-react"; // Tambahkan Edit icon
+import { ChevronLeft, Upload, Settings, Eye, X, Edit } from "lucide-react";
 import AdminLayout from "../../../components/layout/AdminLayout";
 import { useGallery } from "../../../contexts/GalleryContext";
 import { useToastMessage } from "../../../hooks/useToastMessage";
@@ -9,14 +10,12 @@ import PhotoGrid from "../../../components/gallery/PhotoGrid";
 import GalleryUpload from "../../../components/gallery/GalleryUpload";
 import AlbumCoverSelector from "../../../components/gallery/AlbumCoverSelector";
 import PhotoLightbox from "../../../components/gallery/PhotoLightBox";
-import AlbumForm from "../../../components/forms/AlbumForm"; // Tambahkan import AlbumForm
-import { AlbumFormData } from "../../../types/galleryTypes"; // Tambahkan import type
+import AlbumForm from "../../../components/forms/AlbumForm";
+import { AlbumFormData } from "../../../types/galleryTypes";
 
-/**
- * Page component for managing photos in an album.
- */
 const AlbumPhotosPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
+  const navigate = useNavigate();
   const {
     state,
     fetchAlbumById,
@@ -24,25 +23,22 @@ const AlbumPhotosPage: React.FC = () => {
     setAlbumCover,
     deletePhoto,
     updateAlbum,
-  } = useGallery(); // Tambahkan updateAlbum
+  } = useGallery();
   const { currentAlbum, currentPhotos, loading } = state;
-  const navigate = useNavigate();
-  const [showUploadModal, setShowUploadModal] = useState(false);
-  const [showCoverSelector, setShowCoverSelector] = useState(false);
-  const [showEditModal, setShowEditModal] = useState(false); // Tambahkan state untuk edit modal
-  const [lightboxOpen, setLightboxOpen] = useState(false);
-  const [currentPhotoIndex, setCurrentPhotoIndex] = useState(0);
-  const [isUpdating, setIsUpdating] = useState(false); // Tambahkan state untuk loading update
   const { showSuccessToast, showErrorToast } = useToastMessage();
 
+  const [showUploadModal, setShowUploadModal] = useState(false);
+  const [showCoverSelector, setShowCoverSelector] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [lightboxOpen, setLightboxOpen] = useState(false);
+  const [currentPhotoIndex, setCurrentPhotoIndex] = useState(0);
+  const [isUpdating, setIsUpdating] = useState(false);
+
   useEffect(() => {
-    if (id) {
-      fetchAlbumById(id);
-    }
+    if (id) fetchAlbumById(id);
   }, [id, fetchAlbumById]);
 
   const handlePhotoClick = (photo: any) => {
-    // Find the index of the clicked photo
     const index = currentPhotos.findIndex((p: any) => p.id === photo.id);
     if (index !== -1) {
       setCurrentPhotoIndex(index);
@@ -54,52 +50,41 @@ const AlbumPhotosPage: React.FC = () => {
     try {
       await deletePhoto(photoId);
       showSuccessToast("Foto berhasil dihapus");
-    } catch (error) {
+    } catch {
       showErrorToast("Gagal menghapus foto");
     }
   };
 
   const handleUpload = async (files: File[]) => {
-    console.log("handleUpload called with files:", files);
-    if (!id) {
-      console.log("No album id found");
-      return;
-    }
-
+    if (!id) return;
     try {
-      console.log("Calling uploadPhotos with albumId:", id);
       await uploadPhotos(id, files);
-      console.log("Upload completed successfully");
       setShowUploadModal(false);
       showSuccessToast("Foto berhasil diupload");
-    } catch (error) {
-      console.error("Upload error:", error);
+    } catch {
       showErrorToast("Gagal mengupload foto");
     }
   };
 
   const handleCoverSelect = async (photoId: string) => {
     if (!id) return;
-
     try {
       await setAlbumCover(id, photoId);
       setShowCoverSelector(false);
       showSuccessToast("Cover album berhasil diperbarui");
-    } catch (error) {
+    } catch {
       showErrorToast("Gagal mengubah cover album");
     }
   };
 
-  // Tambahkan fungsi untuk handle edit album
   const handleEditAlbum = async (formData: AlbumFormData) => {
     if (!id) return;
-
     setIsUpdating(true);
     try {
       await updateAlbum(id, formData);
       setShowEditModal(false);
       showSuccessToast("Album berhasil diperbarui");
-    } catch (error) {
+    } catch {
       showErrorToast("Gagal memperbarui album");
     } finally {
       setIsUpdating(false);
@@ -109,11 +94,9 @@ const AlbumPhotosPage: React.FC = () => {
   if (loading) {
     return (
       <AdminLayout>
-        <div className="container max-w-6xl mx-auto px-4 sm:px-6 py-12">
-          <div className="text-center">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-accent mx-auto"></div>
-            <p className="mt-4">Loading album...</p>
-          </div>
+        <div className="container max-w-6xl mx-auto px-4 py-12 text-center">
+          <div className="inline-flex items-center justify-center w-12 h-12 border-4 border-accent/20 border-t-accent rounded-full animate-spin" />
+          <p className="mt-4 text-secondary">Memuat album...</p>
         </div>
       </AdminLayout>
     );
@@ -122,17 +105,18 @@ const AlbumPhotosPage: React.FC = () => {
   if (!currentAlbum) {
     return (
       <AdminLayout>
-        <div className="container max-w-6xl mx-auto px-4 sm:px-6 py-12 text-center">
-          <h1 className="text-2xl font-bold mb-4">Album tidak ditemukan</h1>
+        <div className="container max-w-6xl mx-auto px-4 py-12 text-center">
+          <h1 className="text-2xl font-bold text-foreground mb-4">
+            Album tidak ditemukan
+          </h1>
           <Link to="/atmin/gallery" className="text-accent hover:underline">
-            Kembali ke Manajemen Galeri
+            Kembali ke Galeri
           </Link>
         </div>
       </AdminLayout>
     );
   }
 
-  // Prepare initial data for edit form
   const initialData: AlbumFormData = {
     title: currentAlbum.title,
     description: currentAlbum.description,
@@ -141,80 +125,72 @@ const AlbumPhotosPage: React.FC = () => {
 
   return (
     <AdminLayout>
-      <div className="container max-w-6xl mx-auto px-4 sm:px-6 py-12">
+      <div className="container max-w-6xl mx-auto px-4 sm:px-6 py-8 fade-in">
         {/* Header */}
-        <div className="mb-8">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center">
-              <Link
-                to="/atmin/gallery"
-                className="mr-4 text-gray-600 dark:text-gray-400 hover:text-accent dark:hover:text-accent transition-colors"
-              >
-                <ChevronLeft size={20} />
-              </Link>
-              <div>
-                <h1 className="text-3xl font-serif font-bold">
-                  {currentAlbum.title}
-                </h1>
-                <p className="text-gray-600 dark:text-gray-400">
-                  Kelola foto dalam album
-                </p>
-              </div>
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
+          <div className="flex items-center">
+            <Link
+              to="/atmin/gallery"
+              className="text-secondary hover:text-accent flex items-center mr-4 transition-colors"
+            >
+              <ChevronLeft className="h-5 w-5" />
+            </Link>
+            <div>
+              <h1 className="text-3xl font-serif font-bold text-foreground">
+                {currentAlbum.title}
+              </h1>
+              <p className="text-secondary">{currentPhotos.length} foto</p>
             </div>
+          </div>
 
-            <div className="flex space-x-2">
-              {/* Tambahkan tombol Edit Album */}
-              <button
-                onClick={() => setShowEditModal(true)}
-                className="btn btn-secondary flex items-center"
-              >
-                <Edit size={18} className="mr-1" />
-                Edit Album
-              </button>
-              <button
-                onClick={() => setShowUploadModal(true)}
-                className="btn btn-primary flex items-center"
-              >
-                <Upload size={18} className="mr-1" />
-                Upload Foto
-              </button>
-              <button
-                onClick={() => setShowCoverSelector(true)}
-                className="btn btn-secondary flex items-center"
-              >
-                <Settings size={18} className="mr-1" />
-                Cover Album
-              </button>
-            </div>
+          <div className="flex flex-wrap gap-2">
+            <button
+              onClick={() => navigate(`/atmin/gallery/${id}/edit`)}
+              className="btn btn-secondary text-primary flex items-center"
+            >
+              <Edit className="h-5 w-5 mr-2" />
+              Edit Album
+            </button>
+            <button
+              onClick={() => setShowCoverSelector(true)}
+              className="btn btn-secondary text-primary  flex items-center"
+            >
+              <Settings className="h-5 w-5 mr-2" />
+              Cover
+            </button>
+            <button
+              onClick={() => setShowUploadModal(true)}
+              className="btn btn-primary flex items-center"
+            >
+              <Upload className="h-5 w-5 mr-2" />
+              Upload Foto
+            </button>
           </div>
         </div>
 
-        {/* Photos Grid */}
-        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-md p-6">
+        {/* Photo Grid */}
+        <div className="card p-6">
           {currentPhotos.length > 0 ? (
             <PhotoGrid
-              key={`photos-${currentPhotos.length}-${
-                currentAlbum?.updated_at || ""
-              }`}
               photos={currentPhotos}
               onPhotoClick={handlePhotoClick}
               onPhotoDelete={handlePhotoDelete}
-              showDeleteButton={true}
+              showDeleteButton
             />
           ) : (
-            <div className="text-center py-12">
-              <Eye size={48} className="mx-auto text-gray-400 mb-4" />
-              <h3 className="text-xl font-medium text-gray-600 dark:text-gray-400 mb-2">
-                Belum ada foto di album ini
+            <div className="text-center py-16">
+              <Eye className="h-16 w-16 text-secondary/30 mx-auto mb-4" />
+              <h3 className="text-xl font-semibold text-foreground mb-2">
+                Belum Ada Foto
               </h3>
-              <p className="text-gray-500 dark:text-gray-400 mb-4">
-                Upload foto untuk mengisi album ini
+              <p className="text-secondary mb-6">
+                Album ini masih kosong. Mulai unggah foto untuk mengisinya.
               </p>
               <button
                 onClick={() => setShowUploadModal(true)}
                 className="btn btn-primary"
               >
-                Upload Foto Sekarang
+                Upload Foto Pertama
               </button>
             </div>
           )}
@@ -224,23 +200,19 @@ const AlbumPhotosPage: React.FC = () => {
       {/* Upload Modal */}
       {showUploadModal && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-            <div className="p-6">
-              <div className="flex justify-between items-center mb-6">
-                <h3 className="text-xl font-bold">Upload Foto</h3>
-                <button
-                  onClick={() => setShowUploadModal(false)}
-                  className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
-                >
-                  <X size={24} />
-                </button>
-              </div>
-              <GalleryUpload
-                onUpload={handleUpload}
-                maxFiles={10}
-                maxSize={10}
-              />
+          <div className="card max-w-2xl w-full max-h-[90vh] overflow-y-auto p-6">
+            <div className="flex justify-between items-center mb-6">
+              <h3 className="text-xl font-semibold text-foreground">
+                Upload Foto
+              </h3>
+              <button
+                onClick={() => setShowUploadModal(false)}
+                className="text-secondary hover:text-foreground"
+              >
+                <X className="h-6 w-6" />
+              </button>
             </div>
+            <GalleryUpload onUpload={handleUpload} maxFiles={10} maxSize={10} />
           </div>
         </div>
       )}
@@ -248,24 +220,24 @@ const AlbumPhotosPage: React.FC = () => {
       {/* Edit Album Modal */}
       {showEditModal && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-            <div className="p-6">
-              <div className="flex justify-between items-center mb-6">
-                <h3 className="text-xl font-bold">Edit Album</h3>
-                <button
-                  onClick={() => setShowEditModal(false)}
-                  className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
-                >
-                  <X size={24} />
-                </button>
-              </div>
-              <AlbumForm
-                initialData={initialData}
-                onSubmit={handleEditAlbum}
-                onCancel={() => setShowEditModal(false)}
-                isLoading={isUpdating}
-              />
+          <div className="card max-w-lg w-full max-h-[90vh] overflow-y-auto p-6">
+            <div className="flex justify-between items-center mb-6">
+              <h3 className="text-xl font-semibold text-foreground">
+                Edit Album
+              </h3>
+              <button
+                onClick={() => setShowEditModal(false)}
+                className="text-secondary hover:text-foreground"
+              >
+                <X className="h-6 w-6" />
+              </button>
             </div>
+            <AlbumForm
+              initialData={initialData}
+              onSubmit={handleEditAlbum}
+              onCancel={() => setShowEditModal(false)}
+              isLoading={isUpdating}
+            />
           </div>
         </div>
       )}
@@ -273,29 +245,29 @@ const AlbumPhotosPage: React.FC = () => {
       {/* Cover Selector Modal */}
       {showCoverSelector && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
-            <div className="p-6">
-              <div className="flex justify-between items-center mb-6">
-                <h3 className="text-xl font-bold">Pilih Cover Album</h3>
-                <button
-                  onClick={() => setShowCoverSelector(false)}
-                  className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
-                >
-                  <X size={24} />
-                </button>
-              </div>
-              <AlbumCoverSelector
-                photos={currentPhotos}
-                currentCoverId={currentAlbum.cover_photo_id}
-                onCoverSelect={handleCoverSelect}
-                isEditMode={true}
-              />
+          <div className="card max-w-5xl w-full max-h-[90vh] overflow-y-auto p-6">
+            <div className="flex justify-between items-center mb-6">
+              <h3 className="text-xl font-semibold text-foreground">
+                Pilih Cover Album
+              </h3>
+              <button
+                onClick={() => setShowCoverSelector(false)}
+                className="text-secondary hover:text-foreground"
+              >
+                <X className="h-6 w-6" />
+              </button>
             </div>
+            <AlbumCoverSelector
+              photos={currentPhotos}
+              currentCoverId={currentAlbum.cover_photo_id}
+              onCoverSelect={handleCoverSelect}
+              isEditMode
+            />
           </div>
         </div>
       )}
 
-      {/* Photo Lightbox */}
+      {/* Lightbox */}
       <PhotoLightbox
         photos={currentPhotos}
         currentPhotoIndex={currentPhotoIndex}

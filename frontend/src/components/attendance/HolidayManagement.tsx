@@ -1,4 +1,4 @@
-// src/components/attendance/HolidayManagement.tsx (Diperbaiki)
+// src/components/attendance/HolidayManagement.tsx
 import { useState, useEffect } from "react";
 import {
   fetchHolidays,
@@ -6,6 +6,8 @@ import {
   deleteHoliday,
 } from "../../api/attendanceApi";
 import { useAuth } from "../../contexts/AuthContext";
+import { useToastMessage } from "../../hooks/useToastMessage";
+import { Trash2, CalendarPlus } from "lucide-react";
 
 interface Holiday {
   id: number;
@@ -16,12 +18,15 @@ interface Holiday {
 
 const HolidayManagement = () => {
   const { token } = useAuth();
+  const { showSuccessToast, showErrorToast, showWarningToast } =
+    useToastMessage();
   const [holidays, setHolidays] = useState<Holiday[]>([]);
   const [newHoliday, setNewHoliday] = useState({
     date: "",
     description: "",
   });
   const [loading, setLoading] = useState(false);
+  const [deleteLoading, setDeleteLoading] = useState<number | null>(null);
 
   useEffect(() => {
     const loadHolidays = async () => {
@@ -30,15 +35,16 @@ const HolidayManagement = () => {
         setHolidays(data);
       } catch (error) {
         console.error("Error fetching holidays:", error);
+        showErrorToast("Gagal memuat data hari libur");
       }
     };
 
     if (token) loadHolidays();
-  }, [token]);
+  }, [token, showErrorToast]);
 
   const handleAddHoliday = async () => {
     if (!newHoliday.date || !newHoliday.description) {
-      alert("Tanggal dan keterangan harus diisi");
+      showWarningToast("Tanggal dan keterangan harus diisi");
       return;
     }
 
@@ -52,12 +58,13 @@ const HolidayManagement = () => {
         token || ""
       );
       setNewHoliday({ date: "", description: "" });
+      showSuccessToast("Hari libur berhasil ditambahkan");
       // Refresh data
       const updatedHolidays = await fetchHolidays(token || "");
       setHolidays(updatedHolidays);
     } catch (error) {
       console.error("Error adding holiday:", error);
-      alert("Gagal menambah hari libur");
+      showErrorToast("Gagal menambah hari libur");
     } finally {
       setLoading(false);
     }
@@ -66,45 +73,67 @@ const HolidayManagement = () => {
   const handleDeleteHoliday = async (id: number) => {
     if (!confirm("Apakah Anda yakin ingin menghapus hari libur ini?")) return;
 
+    setDeleteLoading(id);
     try {
       await deleteHoliday(id, token || "");
+      showSuccessToast("Hari libur berhasil dihapus");
       // Refresh data
       const updatedHolidays = await fetchHolidays(token || "");
       setHolidays(updatedHolidays);
     } catch (error) {
       console.error("Error deleting holiday:", error);
-      alert("Gagal menghapus hari libur");
+      showErrorToast("Gagal menghapus hari libur");
+    } finally {
+      setDeleteLoading(null);
     }
   };
 
+  const formatDate = (dateString: string) => {
+    const date = new Date(dateString);
+    return date.toLocaleDateString("id-ID", {
+      day: "numeric",
+      month: "long",
+      year: "numeric",
+    });
+  };
+
   return (
-    <div className="p-6">
-      <h1 className="text-2xl font-bold mb-6">Manajemen Hari Libur</h1>
+    <div className="container mx-auto px-4 sm:px-6 py-8 fade-in">
+      <h1 className="text-3xl font-serif font-bold mb-6 text-foreground">
+        Manajemen Hari Libur
+      </h1>
 
       {/* Add Holiday Form */}
-      <div className="mb-6 bg-gray-50 p-4 rounded">
-        <h2 className="text-lg font-semibold mb-4">Tambah Hari Libur</h2>
+      <div className="card p-6 mb-6">
+        <h2 className="text-xl font-semibold mb-4 text-foreground flex items-center">
+          <CalendarPlus className="mr-2 h-5 w-5" />
+          Tambah Hari Libur
+        </h2>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div>
-            <label className="block text-sm font-medium mb-1">Tanggal</label>
+            <label className="block text-sm font-medium text-foreground mb-1">
+              Tanggal
+            </label>
             <input
               type="date"
               value={newHoliday.date}
               onChange={(e) =>
                 setNewHoliday({ ...newHoliday, date: e.target.value })
               }
-              className="w-full border rounded p-2"
+              className="form-input w-full"
             />
           </div>
           <div>
-            <label className="block text-sm font-medium mb-1">Keterangan</label>
+            <label className="block text-sm font-medium text-foreground mb-1">
+              Keterangan
+            </label>
             <input
               type="text"
               value={newHoliday.description}
               onChange={(e) =>
                 setNewHoliday({ ...newHoliday, description: e.target.value })
               }
-              className="w-full border rounded p-2"
+              className="form-input w-full"
               placeholder="Contoh: Hari Raya Idul Fitri"
             />
           </div>
@@ -112,47 +141,122 @@ const HolidayManagement = () => {
             <button
               onClick={handleAddHoliday}
               disabled={loading}
-              className="bg-blue-500 text-white px-4 py-2 rounded w-full"
+              className="btn btn-primary w-full flex items-center justify-center"
             >
-              {loading ? "Menyimpan..." : "Tambah"}
+              {loading ? (
+                <>
+                  <svg
+                    className="animate-spin -ml-1 mr-2 h-4 w-4 text-white"
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                  >
+                    <circle
+                      className="opacity-25"
+                      cx="12"
+                      cy="12"
+                      r="10"
+                      stroke="currentColor"
+                      strokeWidth="4"
+                    ></circle>
+                    <path
+                      className="opacity-75"
+                      fill="currentColor"
+                      d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                    ></path>
+                  </svg>
+                  Menyimpan...
+                </>
+              ) : (
+                "Tambah"
+              )}
             </button>
           </div>
         </div>
       </div>
 
       {/* Holidays List */}
-      <div>
-        <h2 className="text-lg font-semibold mb-4">Daftar Hari Libur</h2>
+      <div className="card p-6">
+        <h2 className="text-xl font-semibold mb-4 text-foreground">
+          Daftar Hari Libur
+        </h2>
         {holidays.length === 0 ? (
-          <p>Belum ada hari libur yang terdaftar</p>
+          <div className="text-center py-8">
+            <p className="text-secondary">
+              Belum ada hari libur yang terdaftar
+            </p>
+          </div>
         ) : (
-          <table className="w-full border-collapse">
-            <thead>
-              <tr>
-                <th className="border p-2">Tanggal</th>
-                <th className="border p-2">Keterangan</th>
-                <th className="border p-2">Tahun Ajaran</th>
-                <th className="border p-2">Aksi</th>
-              </tr>
-            </thead>
-            <tbody>
-              {holidays.map((holiday) => (
-                <tr key={holiday.id}>
-                  <td className="border p-2">{holiday.date}</td>
-                  <td className="border p-2">{holiday.description}</td>
-                  <td className="border p-2">{holiday.academic_year}</td>
-                  <td className="border p-2">
-                    <button
-                      onClick={() => handleDeleteHoliday(holiday.id)}
-                      className="bg-red-500 text-white px-3 py-1 rounded text-sm"
-                    >
-                      Hapus
-                    </button>
-                  </td>
+          <div className="overflow-x-auto">
+            <table className="min-w-full divide-y divide-zinc-800">
+              <thead className="bg-semibackground">
+                <tr>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider">
+                    Tanggal
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider">
+                    Keterangan
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider">
+                    Tahun Ajaran
+                  </th>
+                  <th className="px-6 py-3 text-right text-xs font-medium text-secondary uppercase tracking-wider">
+                    Aksi
+                  </th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody className="divide-y divide-zinc-800">
+                {holidays.map((holiday) => (
+                  <tr
+                    key={holiday.id}
+                    className="hover:bg-semibackground transition-colors"
+                  >
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-foreground">
+                      {formatDate(holiday.date)}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-foreground">
+                      {holiday.description}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-foreground">
+                      {holiday.academic_year}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                      <button
+                        onClick={() => handleDeleteHoliday(holiday.id)}
+                        disabled={deleteLoading === holiday.id}
+                        className="text-error hover:text-error/80 transition-colors"
+                      >
+                        {deleteLoading === holiday.id ? (
+                          <svg
+                            className="animate-spin h-4 w-4"
+                            xmlns="http://www.w3.org/2000/svg"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                          >
+                            <circle
+                              className="opacity-25"
+                              cx="12"
+                              cy="12"
+                              r="10"
+                              stroke="currentColor"
+                              strokeWidth="4"
+                            ></circle>
+                            <path
+                              className="opacity-75"
+                              fill="currentColor"
+                              d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                            ></path>
+                          </svg>
+                        ) : (
+                          <Trash2 size={18} />
+                        )}
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         )}
       </div>
     </div>

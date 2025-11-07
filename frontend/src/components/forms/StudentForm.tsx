@@ -90,9 +90,9 @@ const StudentForm: React.FC<StudentFormProps> = ({
       <div>
         <label
           htmlFor="nisn"
-          className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
+          className="block text-sm font-medium mb-1 text-foreground"
         >
-          NISN <span className="text-red-500">*</span>
+          NISN <span className="text-[rgb(var(--color-error))]">*</span>
         </label>
         <input
           type="text"
@@ -100,20 +100,24 @@ const StudentForm: React.FC<StudentFormProps> = ({
           name="nisn"
           value={formData.nisn}
           onChange={handleChange}
-          className={`form-input ${errors.nisn ? "border-red-500" : ""}`}
+          className={`form-input ${
+            errors.nisn ? "border-[rgb(var(--color-error))]" : ""
+          }`}
           placeholder="Masukkan NISN"
         />
         {errors.nisn && (
-          <p className="text-red-500 text-sm mt-1">{errors.nisn}</p>
+          <p className="text-[rgb(var(--color-error))] text-sm mt-1">
+            {errors.nisn}
+          </p>
         )}
       </div>
 
       <div>
         <label
           htmlFor="name"
-          className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
+          className="block text-sm font-medium mb-1 text-foreground"
         >
-          Nama Lengkap <span className="text-red-500">*</span>
+          Nama Lengkap <span className="text-[rgb(var(--color-error))]">*</span>
         </label>
         <input
           type="text"
@@ -121,27 +125,33 @@ const StudentForm: React.FC<StudentFormProps> = ({
           name="name"
           value={formData.name}
           onChange={handleChange}
-          className={`form-input ${errors.name ? "border-red-500" : ""}`}
+          className={`form-input ${
+            errors.name ? "border-[rgb(var(--color-error))]" : ""
+          }`}
           placeholder="Masukkan nama lengkap"
         />
         {errors.name && (
-          <p className="text-red-500 text-sm mt-1">{errors.name}</p>
+          <p className="text-[rgb(var(--color-error))] text-sm mt-1">
+            {errors.name}
+          </p>
         )}
       </div>
 
       <div>
         <label
           htmlFor="class_id"
-          className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
+          className="block text-sm font-medium mb-1 text-foreground"
         >
-          Kelas <span className="text-red-500">*</span>
+          Kelas <span className="text-[rgb(var(--color-error))]">*</span>
         </label>
         <select
           id="class_id"
           name="class_id"
           value={formData.class_id}
           onChange={handleChange}
-          className={`form-input ${errors.class_id ? "border-red-500" : ""}`}
+          className={`form-input ${
+            errors.class_id ? "border-[rgb(var(--color-error))]" : ""
+          }`}
         >
           <option value={0}>Pilih Kelas</option>
           {classes.map((cls) => (
@@ -151,16 +161,18 @@ const StudentForm: React.FC<StudentFormProps> = ({
           ))}
         </select>
         {errors.class_id && (
-          <p className="text-red-500 text-sm mt-1">{errors.class_id}</p>
+          <p className="text-[rgb(var(--color-error))] text-sm mt-1">
+            {errors.class_id}
+          </p>
         )}
       </div>
 
       <div>
         <label
           htmlFor="academic_year"
-          className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
+          className="block text-sm font-medium mb-1 text-foreground"
         >
-          Tahun Ajaran <span className="text-red-500">*</span>
+          Tahun Ajaran <span className="text-[rgb(var(--color-error))]">*</span>
         </label>
         <input
           type="text"
@@ -169,12 +181,14 @@ const StudentForm: React.FC<StudentFormProps> = ({
           value={formData.academic_year}
           onChange={handleChange}
           className={`form-input ${
-            errors.academic_year ? "border-red-500" : ""
+            errors.academic_year ? "border-[rgb(var(--color-error))]" : ""
           }`}
           placeholder="Contoh: 2024/2025"
         />
         {errors.academic_year && (
-          <p className="text-red-500 text-sm mt-1">{errors.academic_year}</p>
+          <p className="text-[rgb(var(--color-error))] text-sm mt-1">
+            {errors.academic_year}
+          </p>
         )}
       </div>
 

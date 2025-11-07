@@ -45,13 +45,13 @@ const EditModal: React.FC<EditModalProps> = ({
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white dark:bg-gray-800 rounded-lg p-6 max-w-md w-full">
-        <h3 className="text-xl font-bold mb-4">Edit Arsip</h3>
+      <div className="card p-6 max-w-md w-full">
+        <h3 className="text-xl font-bold mb-4 text-foreground">Edit Arsip</h3>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
             <label
               htmlFor="editFile"
-              className="block text-sm font-medium text-foreground"
+              className="block text-sm font-medium text-foreground mb-1"
             >
               File (PDF/Word, kosongkan jika tidak diganti):
             </label>
@@ -59,7 +59,7 @@ const EditModal: React.FC<EditModalProps> = ({
               type="file"
               id="editFile"
               accept=".pdf,.doc,.docx"
-              className="form-input w-full mt-1"
+              className="form-input w-full"
               onChange={(e) =>
                 handleChange("file")(e.target.files?.[0] || null)
               }
@@ -68,14 +68,14 @@ const EditModal: React.FC<EditModalProps> = ({
           <div>
             <label
               htmlFor="editDescription"
-              className="block text-sm font-medium text-foreground"
+              className="block text-sm font-medium text-foreground mb-1"
             >
               Deskripsi:
             </label>
             <input
               type="text"
               id="editDescription"
-              className="form-input w-full mt-1"
+              className="form-input w-full"
               value={formState.description}
               onChange={(e) => handleChange("description")(e.target.value)}
             />
@@ -83,13 +83,13 @@ const EditModal: React.FC<EditModalProps> = ({
           <div>
             <label
               htmlFor="editCategory"
-              className="block text-sm font-medium text-foreground"
+              className="block text-sm font-medium text-foreground mb-1"
             >
               Kategori:
             </label>
             <select
               id="editCategory"
-              className="form-input w-full mt-1"
+              className="form-input w-full"
               value={formState.categoryId}
               onChange={(e) => handleChange("categoryId")(e.target.value)}
             >
@@ -104,14 +104,14 @@ const EditModal: React.FC<EditModalProps> = ({
           <div>
             <label
               htmlFor="editDocumentNumber"
-              className="block text-sm font-medium text-foreground"
+              className="block text-sm font-medium text-foreground mb-1"
             >
               Nomor Dokumen:
             </label>
             <input
               type="text"
               id="editDocumentNumber"
-              className="form-input w-full mt-1"
+              className="form-input w-full"
               value={formState.documentNumber}
               onChange={(e) => handleChange("documentNumber")(e.target.value)}
             />
@@ -119,23 +119,24 @@ const EditModal: React.FC<EditModalProps> = ({
           <div>
             <label
               htmlFor="editDocumentDate"
-              className="block text-sm font-medium text-foreground"
+              className="block text-sm font-medium text-foreground mb-1"
             >
               Tanggal Dokumen:
             </label>
             <input
               type="date"
               id="editDocumentDate"
-              className="form-input w-full mt-1"
+              className="form-input w-full"
               value={formState.documentDate}
               onChange={(e) => handleChange("documentDate")(e.target.value)}
             />
           </div>
-          <div className="flex justify-end space-x-4">
+          <div className="flex justify-end space-x-4 pt-4">
             <button
               type="button"
               onClick={onClose}
               className="btn btn-secondary"
+              disabled={loading}
             >
               Batal
             </button>

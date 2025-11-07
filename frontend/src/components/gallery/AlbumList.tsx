@@ -25,23 +25,24 @@ const AlbumList: React.FC<AlbumListProps> = ({
 }) => {
   if (loading) {
     return (
-      <div className="text-center py-12">
-        <RefreshCw size={32} className="mx-auto animate-spin text-accent" />
-        <p className="mt-4 text-gray-600 dark:text-gray-400">
-          Loading albums...
-        </p>
+      <div className="card p-12 text-center">
+        <RefreshCw
+          size={32}
+          className="mx-auto animate-spin text-[rgb(var(--color-accent))]"
+        />
+        <p className="mt-4 text-secondary">Loading albums...</p>
       </div>
     );
   }
 
   if (albums.length === 0) {
     return (
-      <div className="text-center py-12">
-        <Image size={48} className="mx-auto text-gray-400 mb-4" />
-        <h3 className="text-xl font-medium text-gray-600 dark:text-gray-400 mb-2">
+      <div className="card p-12 text-center">
+        <Image size={48} className="mx-auto text-secondary mb-4" />
+        <h3 className="text-xl font-medium text-foreground mb-2">
           Belum ada album
         </h3>
-        <p className="text-gray-500 dark:text-gray-400">
+        <p className="text-secondary">
           Silakan kunjungi kembali lain waktu untuk melihat album foto terbaru.
         </p>
       </div>

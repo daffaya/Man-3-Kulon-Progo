@@ -51,30 +51,31 @@ const MoveClassModal: React.FC<MoveClassModalProps> = ({
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div className="bg-white dark:bg-gray-800 rounded-lg p-6 w-full max-w-md">
+      <div className="card p-6 w-full max-w-md">
         <div className="flex justify-between items-center mb-4">
           <div className="flex items-center">
-            <Users className="h-5 w-5 text-blue-500 mr-2" />
-            <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+            <Users className="h-5 w-5 text-accent mr-2" />
+            <h3 className="text-lg font-semibold text-foreground">
               Pindah Kelas Siswa
             </h3>
           </div>
           <button
             onClick={onClose}
-            className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300"
+            className="text-secondary hover:text-foreground transition-colors"
           >
             ×
           </button>
         </div>
 
         <div className="mb-4">
-          <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">
-            Siswa: <span className="font-medium">{student.name}</span> (
-            {student.nisn})
+          <p className="text-sm text-secondary mb-2">
+            Siswa:{" "}
+            <span className="font-medium text-foreground">{student.name}</span>{" "}
+            ({student.nisn})
           </p>
-          <p className="text-sm text-gray-600 dark:text-gray-400">
+          <p className="text-sm text-secondary">
             Kelas saat ini:{" "}
-            <span className="font-medium">
+            <span className="font-medium text-foreground">
               {student.class_name || "Belum ditetapkan"}
             </span>
           </p>
@@ -83,7 +84,7 @@ const MoveClassModal: React.FC<MoveClassModalProps> = ({
         <div className="mb-6">
           <label
             htmlFor="targetClass"
-            className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
+            className="block text-sm font-medium text-foreground mb-1"
           >
             Pilih Kelas Tujuan
           </label>

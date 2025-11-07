@@ -28,7 +28,6 @@ const EditArchivePage: React.FC = () => {
   const { showSuccessToast, showErrorToast } = useToastMessage();
 
   const [categories, setCategories] = useState<Category[]>([]);
-  const [file, setFile] = useState<File | null>(null);
   const [editFile, setEditFile] = useState<File | null>(null);
   const [editDescription, setEditDescription] = useState("");
   const [editCategoryId, setEditCategoryId] = useState("");
@@ -79,10 +78,9 @@ const EditArchivePage: React.FC = () => {
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFile = e.target.files?.[0] || null;
-    setFile(selectedFile);
+    setEditFile(selectedFile);
 
     if (selectedFile) {
-      // Validasi jenis file
       const allowedTypes = [
         "application/pdf",
         "application/msword",
@@ -92,19 +90,16 @@ const EditArchivePage: React.FC = () => {
         showErrorToast(
           "Hanya file PDF atau Word (.doc, .docx) yang diperbolehkan"
         );
-        setFile(null);
-        const fileInput = e.target as HTMLInputElement;
-        fileInput.value = ""; // Reset input
+        setEditFile(null);
+        e.target.value = "";
         return;
       }
 
-      // Validasi ukuran file (10MB = 10 * 1024 * 1024 bytes)
       const maxSize = 10 * 1024 * 1024;
       if (selectedFile.size > maxSize) {
         showErrorToast("Ukuran file tidak boleh lebih dari 10MB");
-        setFile(null);
-        const fileInput = e.target as HTMLInputElement;
-        fileInput.value = ""; // Reset input
+        setEditFile(null);
+        e.target.value = "";
         return;
       }
     }
@@ -146,15 +141,17 @@ const EditArchivePage: React.FC = () => {
           <div className="flex items-center">
             <Link
               to="/archives"
-              className="mr-4 text-gray-600 dark:text-gray-400 hover:text-accent dark:hover:text-accent transition-colors"
+              className="mr-4 text-secondary hover:text-accent transition-colors"
             >
               <ChevronLeft size={20} />
             </Link>
-            <h1 className="text-3xl font-serif font-bold">Edit Arsip</h1>
+            <h1 className="text-3xl font-serif font-bold text-foreground">
+              Edit Arsip
+            </h1>
           </div>
         </div>
-        <div className="bg-white dark:bg-semibackground rounded-xl shadow-md p-6">
-          <form onSubmit={handleSubmit} className="space-y-4">
+        <div className="card p-6">
+          <form onSubmit={handleSubmit} className="space-y-6">
             <div>
               <label
                 htmlFor="editFile"
@@ -167,10 +164,17 @@ const EditArchivePage: React.FC = () => {
                 id="editFile"
                 accept=".pdf,.doc,.docx"
                 className="form-input w-full mt-1"
-                onChange={(e) => setEditFile(e.target.files?.[0] || null)}
+                onChange={handleFileChange}
                 disabled={loading}
               />
+              {archive.file_name && (
+                <p className="mt-2 text-sm text-secondary">
+                  File saat ini:{" "}
+                  <span className="font-medium">{archive.file_name}</span>
+                </p>
+              )}
             </div>
+
             <div>
               <label
                 htmlFor="editDescription"
@@ -185,8 +189,10 @@ const EditArchivePage: React.FC = () => {
                 value={editDescription}
                 onChange={(e) => setEditDescription(e.target.value)}
                 disabled={loading}
+                required
               />
             </div>
+
             <div>
               <label
                 htmlFor="editCategory"
@@ -200,6 +206,7 @@ const EditArchivePage: React.FC = () => {
                 value={editCategoryId}
                 onChange={(e) => setEditCategoryId(e.target.value)}
                 disabled={loading}
+                required
               >
                 <option value="">Pilih Kategori</option>
                 {categories.map((cat) => (
@@ -209,6 +216,7 @@ const EditArchivePage: React.FC = () => {
                 ))}
               </select>
             </div>
+
             <div>
               <label
                 htmlFor="editDocumentNumber"
@@ -225,6 +233,7 @@ const EditArchivePage: React.FC = () => {
                 disabled={loading}
               />
             </div>
+
             <div>
               <label
                 htmlFor="editDocumentDate"
@@ -241,7 +250,8 @@ const EditArchivePage: React.FC = () => {
                 disabled={loading}
               />
             </div>
-            <div className="flex justify-end space-x-4">
+
+            <div className="flex justify-end space-x-4 pt-4">
               <button
                 type="button"
                 onClick={() => navigate("/archives", { replace: true })}
@@ -255,7 +265,7 @@ const EditArchivePage: React.FC = () => {
                 className="btn btn-primary"
                 disabled={loading}
               >
-                {loading ? "Menyimpan..." : "Simpan"}
+                {loading ? "Menyimpan..." : "Simpan Perubahan"}
               </button>
             </div>
           </form>

@@ -1,3 +1,5 @@
+// frontend/src/pages/admin/student/ManagementStudentPage.tsx
+
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../../contexts/AuthContext";
@@ -5,20 +7,27 @@ import { useToastMessage } from "../../../hooks/useToastMessage";
 import AdminLayout from "../../../components/layout/AdminLayout";
 import { useStudents } from "../../../hooks/useStudents";
 import { useClasses } from "../../../hooks/useClasses";
+import { useAngkatans } from "../../../hooks/useAngkatans";
 import StudentTable from "../../../components/tables/StudentsTable";
 import AddStudentModal from "../../../components/modals/AddStudentModal";
 import EditStudentModal from "../../../components/modals/EditStudentModal";
 import MoveClassModal from "../../../components/modals/MoveClassModal";
 import ImportStudentPage from "../../../components/modals/ImportStudentPage";
 import BulkMoveClassModal from "../../../components/modals/BulkMoveClassModal";
-import { Search, Plus, Filter, Upload, Users, RefreshCw } from "lucide-react";
-import { useAngkatans } from "../../../hooks/useAngkatans";
+import {
+  Search,
+  Plus,
+  Filter,
+  Upload,
+  Users,
+  RefreshCw,
+  ArrowLeft,
+} from "lucide-react";
 
 const ManagementStudentPage: React.FC = () => {
   const navigate = useNavigate();
   const { user, isLoggedIn, token, isLoadingAuth } = useAuth();
-  const { showSuccessToast, showErrorToast, showWarningToast } =
-    useToastMessage();
+  const { showSuccessToast, showErrorToast } = useToastMessage();
 
   const [selectedClass, setSelectedClass] = useState<number>(0);
   const [selectedAngkatan, setSelectedAngkatan] = useState<string>("");
@@ -28,10 +37,8 @@ const ManagementStudentPage: React.FC = () => {
   const [editStudent, setEditStudent] = useState<any>(null);
   const [moveStudent, setMoveStudent] = useState<any>(null);
   const [showBulkMoveModal, setShowBulkMoveModal] = useState(false);
-
-  // PAGINATION STATE
   const [currentPage, setCurrentPage] = useState(1);
-  const studentsPerPage = 30; // Maksimal 30 siswa per halaman
+  const studentsPerPage = 30;
 
   const {
     students,
@@ -54,97 +61,41 @@ const ManagementStudentPage: React.FC = () => {
   const { classes } = useClasses();
   const { angkatans, loading: angkatansLoading } = useAngkatans();
 
-  // WRAPPER FUNCTIONS DENGAN TOAST
-  const addStudent = async (data: any) => {
-    try {
-      await _addStudent(data);
-      showSuccessToast("Siswa berhasil ditambahkan!");
-    } catch (error: any) {
-      showErrorToast(error.message || "Gagal menambah siswa");
-      throw error;
-    }
-  };
-
-  const updateStudent = async (id: number, data: any) => {
-    try {
-      await _updateStudent(id, data);
-      showSuccessToast("Data siswa berhasil diupdate!");
-    } catch (error: any) {
-      showErrorToast(error.message || "Gagal mengupdate siswa");
-      throw error;
-    }
-  };
-
-  const deleteStudent = async (id: number) => {
-    try {
-      await _deleteStudent(id);
-      showSuccessToast("Siswa berhasil dihapus!");
-    } catch (error: any) {
-      showErrorToast(error.message || "Gagal menghapus siswa");
-      throw error;
-    }
-  };
-
-  // UPDATED handleDeleteStudent
-  const handleDeleteStudent = async (id: number) => {
-    if (!window.confirm("Apakah Anda yakin ingin menghapus siswa ini?")) {
-      return;
-    }
-    await deleteStudent(id);
-  };
-
-  // PAGINATION HANDLERS
-  const handlePreviousPage = () => {
-    if (currentPage > 1) {
-      setCurrentPage(currentPage - 1);
-    }
-  };
-
-  const handleNextPage = () => {
-    if (pagination && currentPage < pagination.totalPages) {
-      setCurrentPage(currentPage + 1);
-    }
-  };
-
-  // Reset to page 1 when filters change
+  // Reset page on filter change
   useEffect(() => {
     setCurrentPage(1);
   }, [selectedClass, selectedAngkatan, searchTerm]);
 
-  // Auth checks (sama)
+  // Auth check
   if (isLoadingAuth) {
     return (
       <AdminLayout>
-        <div className="container mx-auto px-4 sm:px-6 py-12">
-          <div className="text-center">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
-            <p className="mt-4 text-gray-600 dark:text-gray-400">
-              Memeriksa autentikasi...
-            </p>
-          </div>
+        <div className="container mx-auto px-4 py-12 text-center">
+          <div className="inline-flex items-center justify-center w-12 h-12 border-4 border-accent/20 border-t-accent rounded-full animate-spin" />
+          <p className="mt-4 text-secondary">Memeriksa autentikasi...</p>
         </div>
       </AdminLayout>
     );
   }
 
   if (!isLoggedIn) {
-    navigate("/login");
+    navigate("/login", { state: { redirectTo: "/atmin/presensi/students" } });
     return null;
   }
 
-  const hasEditAccess =
-    isLoggedIn && ["guru_bk", "super_admin"].includes(user?.role || "");
-  const canEditClasses = isLoggedIn && user?.role === "super_admin";
+  const hasEditAccess = ["guru_bk", "super_admin"].includes(user?.role || "");
+  const canEditClasses = user?.role === "super_admin";
 
   if (!hasEditAccess) {
     return (
       <AdminLayout>
-        <div className="container mx-auto px-4 sm:px-6 py-12">
-          <div className="bg-white dark:bg-gray-800 rounded-lg p-8 text-center">
-            <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
+        <div className="container mx-auto px-4 py-12">
+          <div className="card p-12 text-center max-w-md mx-auto">
+            <Users className="h-16 w-16 text-secondary/40 mx-auto mb-4" />
+            <h3 className="text-xl font-semibold text-foreground mb-2">
               Akses Ditolak
-            </h2>
-            <p className="text-gray-600 dark:text-gray-400">
+            </h3>
+            <p className="text-secondary">
               Hanya Guru BK dan Super Admin yang dapat mengakses halaman ini.
             </p>
           </div>
@@ -153,66 +104,116 @@ const ManagementStudentPage: React.FC = () => {
     );
   }
 
+  // Wrapper functions with toast
+  const addStudent = async (data: any) => {
+    try {
+      await _addStudent(data);
+      showSuccessToast("Siswa berhasil ditambahkan!");
+    } catch (err: any) {
+      showErrorToast(err.message || "Gagal menambah siswa");
+      throw err;
+    }
+  };
+
+  const updateStudent = async (id: number, data: any) => {
+    try {
+      await _updateStudent(id, data);
+      showSuccessToast("Data siswa berhasil diperbarui!");
+    } catch (err: any) {
+      showErrorToast(err.message || "Gagal mengupdate siswa");
+      throw err;
+    }
+  };
+
+  const deleteStudent = async (id: number) => {
+    if (
+      !window.confirm(
+        "Apakah Anda yakin ingin menghapus siswa ini? Tindakan ini tidak dapat dibatalkan."
+      )
+    ) {
+      return;
+    }
+    try {
+      await _deleteStudent(id);
+      showSuccessToast("Siswa berhasil dihapus!");
+    } catch (err: any) {
+      showErrorToast(err.message || "Gagal menghapus siswa");
+    }
+  };
+
+  const handlePreviousPage = () => {
+    if (currentPage > 1) setCurrentPage((prev) => prev - 1);
+  };
+
+  const handleNextPage = () => {
+    if (pagination && currentPage < pagination.totalPages) {
+      setCurrentPage((prev) => prev + 1);
+    }
+  };
+
   return (
     <AdminLayout>
-      <div className="container mx-auto px-4 sm:px-6 py-8">
-        {/* Header - sama */}
-        <div className="flex items-center justify-between mb-6">
+      <div className="container mx-auto px-4 sm:px-6 py-8 fade-in">
+        {/* Header */}
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
           <div className="flex items-center">
             <button
               onClick={() => navigate("/atmin/presensi")}
-              className="mr-4 text-gray-600 dark:text-gray-400 hover:text-accent dark:hover:text-accent"
+              className="text-sm text-secondary hover:text-accent flex items-center mr-4 transition-colors"
             >
-              ← Kembali
+              <ArrowLeft className="h-4 w-4 mr-1" />
+              Kembali
             </button>
-            <h1 className="text-3xl font-bold">Manajemen Siswa</h1>
+            <h1 className="text-3xl font-serif font-bold text-foreground">
+              Manajemen Siswa
+            </h1>
           </div>
 
-          <div className="flex space-x-2">
+          <div className="flex flex-wrap gap-2">
             <button
               onClick={() => setShowImportModal(true)}
               className="btn btn-secondary flex items-center"
             >
-              <Upload className="mr-2 h-5 w-5" />
-              Import Data
+              <Upload className="h-5 w-5 mr-2" />
+              Import
             </button>
             <button
               onClick={() => setShowBulkMoveModal(true)}
               className="btn btn-secondary flex items-center"
             >
-              <Users className="mr-2 h-5 w-5" />
+              <Users className="h-5 w-5 mr-2" />
               Naik Kelas
             </button>
             <button
               onClick={() => setShowAddModal(true)}
               className="btn btn-primary flex items-center"
             >
-              <Plus className="mr-2 h-5 w-5" />
+              <Plus className="h-5 w-5 mr-2" />
               Tambah Siswa
             </button>
           </div>
         </div>
 
-        {/* Filters - sama */}
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-4 mb-6">
+        {/* Filters */}
+        <div className="card p-5 mb-6">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div className="relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-secondary" />
               <input
                 type="text"
-                placeholder="Cari berdasarkan NISN atau nama..."
+                placeholder="Cari NISN atau nama..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-10 form-input w-full"
+                className="form-input w-full pl-10"
               />
             </div>
 
             <div className="relative">
-              <Filter className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
+              <Filter className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-secondary" />
               <select
                 value={selectedClass}
                 onChange={(e) => setSelectedClass(Number(e.target.value))}
-                className="pl-10 form-input w-full appearance-none"
+                className="form-input w-full pl-10 appearance-none"
               >
                 <option value={0}>Semua Kelas</option>
                 {classes.map((cls) => (
@@ -223,91 +224,82 @@ const ManagementStudentPage: React.FC = () => {
               </select>
             </div>
 
-            <div className="flex items-center justify-between">
-              <span className="text-sm text-gray-600 dark:text-gray-400">
-                Total: {pagination?.totalItems || students.length} siswa
+            <div className="flex items-center justify-between text-sm">
+              <span className="text-secondary">
+                Total:{" "}
+                <strong>{pagination?.totalItems ?? students.length}</strong>{" "}
+                siswa
               </span>
               <button
                 onClick={refetch}
-                className="text-sm text-blue-600 hover:text-blue-800 flex items-center"
+                className="text-accent hover:text-accent-dark flex items-center"
+                disabled={loading}
               >
-                <RefreshCw className="h-4 w-4 mr-1" />
+                <RefreshCw
+                  className={`h-4 w-4 mr-1 ${loading ? "animate-spin" : ""}`}
+                />
                 Refresh
               </button>
             </div>
           </div>
         </div>
 
-        {/* Error Display - sama */}
+        {/* Error */}
         {error && (
-          <div className="mb-6 p-4 bg-red-50 dark:bg-red-900/20 rounded-lg">
-            <h3 className="font-medium text-red-800 dark:text-red-300 mb-2">
-              Error:
-            </h3>
-            <p className="text-red-700 dark:text-red-400">{error}</p>
+          <div className="card p-4 mb-6 border border-error/20 bg-error/5">
+            <p className="text-error font-medium">{error}</p>
             {error.includes("token") && (
               <button
                 onClick={() => {
                   localStorage.clear();
                   window.location.href = "/login";
                 }}
-                className="mt-2 text-sm text-red-600 hover:text-red-800 underline"
+                className="mt-2 text-sm text-error hover:underline"
               >
-                Login Ulang
+                Login ulang
               </button>
             )}
           </div>
         )}
 
-        {/* Students Table with Pagination */}
-        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-md p-6">
+        {/* Table */}
+        <div className="card p-6">
           {loading ? (
             <div className="text-center py-12">
-              <RefreshCw
-                size={32}
-                className="mx-auto animate-spin text-accent"
-              />
-              <p className="mt-4">Memuat data siswa...</p>
+              <RefreshCw className="h-8 w-8 text-accent animate-spin mx-auto mb-3" />
+              <p className="text-secondary">Memuat data siswa...</p>
             </div>
           ) : (
             <>
               <StudentTable
                 students={students}
-                onEdit={(student) => setEditStudent(student)}
-                onDelete={handleDeleteStudent}
-                onMoveClass={(student) => setMoveStudent(student)}
+                onEdit={setEditStudent}
+                onDelete={deleteStudent}
+                onMoveClass={setMoveStudent}
                 canEditClasses={canEditClasses}
                 loading={loading}
                 currentPage={currentPage}
                 itemsPerPage={studentsPerPage}
               />
 
-              {/* Pagination Controls */}
+              {/* Pagination */}
               {pagination && pagination.totalPages > 1 && (
-                <div className="flex justify-center items-center mt-6 space-x-4">
+                <div className="flex items-center justify-center gap-3 mt-8">
                   <button
                     onClick={handlePreviousPage}
-                    disabled={currentPage <= 1}
-                    className={`px-4 py-2 rounded-md transition-colors ${
-                      currentPage <= 1
-                        ? "bg-gray-200 dark:bg-gray-700 text-gray-500 cursor-not-allowed"
-                        : "bg-accent text-white hover:bg-accent-dark"
-                    }`}
+                    disabled={currentPage === 1}
+                    className="btn btn-secondary text-sm"
                   >
                     Sebelumnya
                   </button>
-                  <span className="text-gray-700 dark:text-gray-300">
-                    Halaman {pagination.currentPage} dari{" "}
-                    {pagination.totalPages}
+                  <span className="text-sm text-secondary">
+                    Halaman <strong>{currentPage}</strong> dari{" "}
+                    <strong>{pagination.totalPages}</strong>
                   </span>
                   <button
                     onClick={handleNextPage}
-                    disabled={currentPage >= pagination.totalPages}
-                    className={`px-4 py-2 rounded-md transition-colors ${
-                      currentPage >= pagination.totalPages
-                        ? "bg-gray-200 dark:bg-gray-700 text-gray-500 cursor-not-allowed"
-                        : "bg-accent text-white hover:bg-accent-dark"
-                    }`}
+                    disabled={currentPage === pagination.totalPages}
+                    className="btn btn-secondary text-sm"
                   >
                     Berikutnya
                   </button>
@@ -317,7 +309,7 @@ const ManagementStudentPage: React.FC = () => {
           )}
         </div>
 
-        {/* UPDATED MODALS */}
+        {/* Modals */}
         <AddStudentModal
           isOpen={showAddModal}
           onClose={() => setShowAddModal(false)}

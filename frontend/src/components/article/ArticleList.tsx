@@ -1,4 +1,4 @@
-// backend/src/frontend/src/components/article/ArticleList.tsx
+// frontend/src/components/article/ArticleList.tsx
 import React from "react";
 import { Article } from "../../types/articleTypes";
 import ArticleCard from "./ArticleCard";
@@ -17,18 +17,18 @@ const ArticleList: React.FC<ArticleListProps> = ({
 }) => {
   if (loading) {
     return (
-      <div className="text-center py-12">
+      <div className="card p-12 text-center">
         <RefreshCw size={32} className="mx-auto animate-spin text-accent" />
-        <p className="mt-4">Loading articles...</p>
+        <p className="mt-4 text-secondary">Memuat artikel...</p>
       </div>
     );
   }
 
   if (articles.length === 0) {
     return (
-      <div className="text-center py-12">
-        <h3 className="text-xl font-medium text-gray-600 dark:text-gray-400">
-          No articles found with the selected filters.
+      <div className="card p-12 text-center">
+        <h3 className="text-xl font-medium text-secondary">
+          Tidak ada artikel yang ditemukan dengan filter yang dipilih.
         </h3>
       </div>
     );
@@ -41,7 +41,7 @@ const ArticleList: React.FC<ArticleListProps> = ({
   }[columns];
 
   return (
-    <div className={`grid ${gridCols} gap-6 sm:gap-8`}>
+    <div className={`grid ${gridCols} gap-6 sm:gap-8 fade-in`}>
       {articles.map((article) => (
         <ArticleCard key={article.id} article={article} />
       ))}

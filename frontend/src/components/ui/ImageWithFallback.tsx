@@ -75,7 +75,7 @@ const ImageWithFallback: React.FC<ImageWithFallbackProps> = ({
   if (imgError) {
     return (
       <div
-        className={`image-error flex items-center justify-center bg-gray-100 dark:bg-gray-800 text-gray-500 ${className}`}
+        className={`image-error flex items-center justify-center bg-[rgb(var(--color-semi-background))] text-[rgb(var(--color-secondary))] ${className}`}
         style={{
           width: "100%",
           height: "100%",

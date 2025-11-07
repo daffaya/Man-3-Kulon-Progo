@@ -1,43 +1,54 @@
-import React, { useState, useEffect } from "react";
+// src/pages/AdminDashboard.tsx
+
+import React from "react";
 import { useNavigate } from "react-router-dom";
-import { Archive, Clipboard, Users, BookOpen, Image } from "lucide-react";
+import {
+  Archive,
+  Clipboard,
+  Users,
+  BookOpen,
+  Image,
+  LogIn,
+} from "lucide-react";
 import AppCard from "../../components/ui/AppCard";
 import { useAuth } from "../../contexts/AuthContext";
 import { useToastMessage } from "../../hooks/useToastMessage";
 import AdminLayout from "../../components/layout/AdminLayout";
-import type { UserRole } from "../../types/userTypes"; // ✅ import UserRole
+import type { UserRole } from "../../types/userTypes";
 
 const AdminDashboard: React.FC = () => {
   const navigate = useNavigate();
   const { user, isLoggedIn, isLoadingAuth } = useAuth();
   const { showErrorToast } = useToastMessage();
 
-  const renderLoadingState = () => (
-    <div className="pt min-h-screen bg-gray-50 dark:bg-gray-900 py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-4xl mx-auto">
-        <div className="mb-8 animate-pulse">
-          <div className="h-8 bg-gray-300 dark:bg-gray-700 rounded w-1/2 mb-2"></div>
-          <div className="h-4 bg-gray-300 dark:bg-gray-700 rounded w-1/4"></div>
-        </div>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-          {[...Array(3)].map((_, index) => (
-            <div
-              key={index}
-              className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 flex flex-col items-center animate-pulse"
-            >
-              <div className="w-12 h-12 rounded-full bg-gray-300 dark:bg-gray-700 mb-4"></div>
-              <div className="h-6 bg-gray-300 dark:bg-gray-700 rounded w-3/4 mb-2"></div>
-              <div className="h-4 bg-gray-300 dark:bg-gray-700 rounded w-full"></div>
+  if (isLoadingAuth) {
+    return (
+      <AdminLayout>
+        <div className="container mx-auto px-4 py-12">
+          <div className="animate-pulse space-y-6">
+            <div className="h-8 bg-semibackground rounded w-64"></div>
+            <div className="h-4 bg-semibackground rounded w-48"></div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mt-8">
+              {[...Array(6)].map((_, i) => (
+                <div key={i} className="card p-6">
+                  <div className="flex items-center space-x-4">
+                    <div className="w-12 h-12 bg-semibackground rounded-full"></div>
+                    <div className="space-y-2 flex-1">
+                      <div className="h-5 bg-semibackground rounded w-3/4"></div>
+                      <div className="h-4 bg-semibackground rounded w-full"></div>
+                    </div>
+                  </div>
+                </div>
+              ))}
             </div>
-          ))}
+          </div>
         </div>
-      </div>
-    </div>
-  );
+      </AdminLayout>
+    );
+  }
 
-  if (isLoadingAuth) return renderLoadingState();
   if (!isLoggedIn) {
-    navigate("/login");
+    navigate("/login", { state: { redirectTo: "/atmin" } });
     return null;
   }
 
@@ -50,7 +61,7 @@ const AdminDashboard: React.FC = () => {
       title: "Artikel Sekolah",
       description: "Buat dan kelola artikel untuk website sekolah",
       icon: <BookOpen className="w-6 h-6" />,
-      requiredRole: "jurnalis",
+      requiredRole: "jurnalis" as UserRole,
       to: "/atmin/articles",
     },
     {
@@ -58,7 +69,7 @@ const AdminDashboard: React.FC = () => {
       title: "Manajemen Arsip",
       description: "Kelola dokumen dan arsip sekolah dengan mudah",
       icon: <Archive className="w-6 h-6" />,
-      requiredRole: "arsiparis",
+      requiredRole: "arsiparis" as UserRole,
       to: "/archives",
     },
     {
@@ -66,7 +77,7 @@ const AdminDashboard: React.FC = () => {
       title: "Presensi Siswa",
       description: "Rekap presensi dan kehadiran siswa",
       icon: <Users className="w-6 h-6" />,
-      requiredRole: "guru_bk",
+      requiredRole: "guru_bk" as UserRole,
       to: "/atmin/presensi",
     },
     {
@@ -74,7 +85,7 @@ const AdminDashboard: React.FC = () => {
       title: "Manajemen User",
       description: "Kelola pengguna sistem",
       icon: <Users className="w-6 h-6" />,
-      requiredRole: "super_admin",
+      requiredRole: "super_admin" as UserRole,
       to: "/atmin/users",
     },
     {
@@ -82,10 +93,9 @@ const AdminDashboard: React.FC = () => {
       title: "Inventaris",
       description: "Pantau dan kelola barang inventaris sekolah",
       icon: <Clipboard className="w-6 h-6" />,
-      requiredRole: "pengelola_bmn",
+      requiredRole: "pengelola_bmn" as UserRole,
       to: "/atmin/inventory",
     },
-
     {
       id: "galeri",
       title: "Galeri Sekolah",
@@ -104,72 +114,61 @@ const AdminDashboard: React.FC = () => {
     },
   ];
 
-  const hasAccess = (requiredRole: string | string[]): boolean => {
+  const hasAccess = (requiredRole: UserRole | UserRole[]): boolean => {
     if (userRole === "super_admin") return true;
     if (Array.isArray(requiredRole)) return requiredRole.includes(userRole);
     return userRole === requiredRole;
   };
 
-  const handleAppClick = (
-    appId: string,
-    requiredRole: string | string[],
-    to?: string
-  ) => {
-    if (!userRole) {
-      navigate("/login", { state: { redirectTo: to || `/atmin/${appId}` } });
-      return;
-    }
-
+  const handleAppClick = (requiredRole: UserRole | UserRole[], to: string) => {
     if (!hasAccess(requiredRole)) {
       showErrorToast("Anda tidak memiliki akses ke aplikasi ini");
       return;
     }
-
-    navigate(to || `/atmin/${appId}`);
+    navigate(to);
   };
 
   const visibleApps = apps.filter((app) => hasAccess(app.requiredRole));
 
   return (
     <AdminLayout>
-      <div className="pt-8 min-h-screen bg-background dark:bg-background py-12 px-4 sm:px-6 lg:px-8">
-        <div className="max-w-6xl mx-auto">
-          <div className="mb-8">
-            <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
-              Admin Dashboard
-            </h1>
-            <p className="mt-2 text-gray-600 dark:text-gray-400">
-              Selamat datang, {username}
+      <div className="container mx-auto px-4 sm:px-6 py-8 fade-in">
+        <div className="mb-10">
+          <h1 className="text-3xl md:text-4xl font-serif font-bold text-foreground mb-2">
+            Dashboard Admin
+          </h1>
+          <p className="text-lg text-secondary">
+            Selamat datang kembali,{" "}
+            <span className="font-medium">{username}</span>
+          </p>
+        </div>
+
+        {visibleApps.length > 0 ? (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            {visibleApps.map((app) => (
+              <AppCard
+                key={app.id}
+                title={app.title}
+                description={app.description}
+                icon={app.icon}
+                onClick={() => handleAppClick(app.requiredRole, app.to)}
+              />
+            ))}
+          </div>
+        ) : (
+          <div className="card p-12 text-center">
+            <div className="mx-auto w-20 h-20 bg-semibackground/50 rounded-full flex items-center justify-center mb-5">
+              <LogIn className="h-10 w-10 text-secondary/60" />
+            </div>
+            <h3 className="text-xl font-semibold text-foreground mb-2">
+              Tidak Ada Akses Aplikasi
+            </h3>
+            <p className="text-secondary max-w-md mx-auto">
+              Role Anda saat ini tidak memiliki akses ke aplikasi admin. Hubungi
+              super admin untuk penyesuaian.
             </p>
           </div>
-
-          {visibleApps.length > 0 ? (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-              {visibleApps.map((app) => (
-                <AppCard
-                  key={app.id}
-                  title={app.title}
-                  description={app.description}
-                  icon={app.icon}
-                  onClick={() =>
-                    handleAppClick(app.id, app.requiredRole, app.to)
-                  }
-                />
-              ))}
-            </div>
-          ) : (
-            <div className="flex flex-col items-center justify-center h-96 text-center text-gray-500 dark:text-gray-400">
-              <Clipboard
-                size={64}
-                className="mb-4 text-gray-400 dark:text-gray-500"
-              />
-              <h2 className="text-xl font-semibold mb-2">
-                Tidak Ada Aplikasi yang Tersedia
-              </h2>
-              <p>Anda tidak memiliki akses ke aplikasi apa pun.</p>
-            </div>
-          )}
-        </div>
+        )}
       </div>
     </AdminLayout>
   );

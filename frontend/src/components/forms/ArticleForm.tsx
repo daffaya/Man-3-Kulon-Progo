@@ -6,11 +6,10 @@ import "react-quill/dist/quill.snow.css";
 import { Article, ArticleFormData } from "../../types/articleTypes";
 import { useArticles } from "../../contexts/ArticleContext";
 import { useAuth } from "../../contexts/AuthContext";
-import { RefreshCw, X, Upload, Image } from "lucide-react";
-import ImageWithFallback from "../ui/ImageWithFallback";
-import ImageUploader from "../ui/ImageUploader"; // Tambahkan import ini
+import { RefreshCw, X } from "lucide-react";
+import ImageUploader from "../ui/ImageUploader";
 
-/** Props for the ArticleForm component. */
+/** Props for ArticleForm component. */
 interface ArticleFormProps {
   /** The article data to pre-fill the form for editing. */
   article?: Article;
@@ -49,8 +48,7 @@ const ArticleForm: React.FC<ArticleFormProps> = ({
   });
 
   const [tagInput, setTagInput] = useState("");
-  const [selectedFile, setSelectedFile] = useState<File | null>(null); // Tetap diperlukan untuk submit
-  const fileInputRef = useRef<HTMLInputElement>(null); // Tetap diperlukan untuk akses file input
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
 
   /** Configuration for the React Quill rich text editor toolbar. */
   const quillModules = {
@@ -174,7 +172,7 @@ const ArticleForm: React.FC<ArticleFormProps> = ({
   };
 
   /**
-   * Handles image change from ImageUploader component.
+   * Handles image change from the ImageUploader component.
    * @param file - The selected file (if any).
    * @param url - The image URL (if any).
    */
@@ -213,9 +211,12 @@ const ArticleForm: React.FC<ArticleFormProps> = ({
 
   if (state.adminCategoriesLoading && state.adminCategories.length === 0) {
     return (
-      <div className="text-center p-6">
-        <RefreshCw size={32} className="mx-auto animate-spin text-accent" />
-        <p className="mt-4">Memuat kategori...</p>
+      <div className="card p-8 text-center">
+        <RefreshCw
+          size={32}
+          className="mx-auto animate-spin text-[rgb(var(--color-accent))]"
+        />
+        <p className="mt-4 text-secondary">Memuat kategori...</p>
       </div>
     );
   }
@@ -223,8 +224,11 @@ const ArticleForm: React.FC<ArticleFormProps> = ({
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
       <div>
-        <label htmlFor="title" className="block text-sm font-medium mb-1">
-          Judul <span className="text-error">*</span>
+        <label
+          htmlFor="title"
+          className="block text-sm font-medium mb-1 text-foreground"
+        >
+          Judul <span className="text-[rgb(var(--color-error))]">*</span>
         </label>
         <input
           type="text"
@@ -239,8 +243,11 @@ const ArticleForm: React.FC<ArticleFormProps> = ({
       </div>
 
       <div>
-        <label htmlFor="overview" className="block text-sm font-medium mb-1">
-          Ringkasan <span className="text-error">*</span>
+        <label
+          htmlFor="overview"
+          className="block text-sm font-medium mb-1 text-foreground"
+        >
+          Ringkasan <span className="text-[rgb(var(--color-error))]">*</span>
         </label>
         <textarea
           id="overview"
@@ -252,12 +259,12 @@ const ArticleForm: React.FC<ArticleFormProps> = ({
           required
           disabled={isLoading}
         />
-        <p className="text-xs text-gray-500 mt-1">
+        <p className="text-xs text-secondary mt-1">
           Ringkasan singkat artikel (ditampilkan pada bagian preview)
         </p>
       </div>
 
-      {/* Ganti bagian cover image dengan ImageUploader */}
+      {/* Cover Image */}
       <div>
         <ImageUploader
           currentImage={formData.coverImage}
@@ -269,8 +276,11 @@ const ArticleForm: React.FC<ArticleFormProps> = ({
       </div>
 
       <div>
-        <label htmlFor="content" className="block text-sm font-medium mb-1">
-          Konten <span className="text-error">*</span>
+        <label
+          htmlFor="content"
+          className="block text-sm font-medium mb-1 text-foreground"
+        >
+          Konten <span className="text-[rgb(var(--color-error))]">*</span>
         </label>
         <ReactQuill
           value={formData.content}
@@ -284,23 +294,26 @@ const ArticleForm: React.FC<ArticleFormProps> = ({
       </div>
 
       <div>
-        <label htmlFor="tags" className="block text-sm font-medium mb-1">
+        <label
+          htmlFor="tags"
+          className="block text-sm font-medium mb-1 text-foreground"
+        >
           Tag
         </label>
         <div className="mb-2 flex flex-wrap gap-2">
           {formData.tags.map((tag) => (
             <span
               key={tag}
-              className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 dark:bg-gray-800"
+              className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-[rgb(var(--color-secondary-button))] text-[rgb(var(--color-foreground))]"
             >
               {tag}
               <button
                 type="button"
                 onClick={() => handleRemoveTag(tag)}
-                className="ml-1.5 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300"
+                className="ml-1.5 hover:bg-[rgb(var(--color-foreground))] hover:text-[rgb(var(--color-background))] rounded-full p-0.5 transition-colors"
                 disabled={isLoading}
               >
-                <X size={14} />
+                <X size={12} />
               </button>
             </span>
           ))}
@@ -318,7 +331,10 @@ const ArticleForm: React.FC<ArticleFormProps> = ({
       </div>
 
       <div className="mb-4">
-        <label htmlFor="category_id" className="block text-sm font-medium mb-1">
+        <label
+          htmlFor="category_id"
+          className="block text-sm font-medium mb-1 text-foreground"
+        >
           Kategori
         </label>
         <select
@@ -337,7 +353,7 @@ const ArticleForm: React.FC<ArticleFormProps> = ({
           ))}
         </select>
         {state.adminCategoriesLoading && state.adminCategories.length === 0 && (
-          <p className="mt-2 text-sm text-gray-500 dark:text-gray-400 flex items-center">
+          <p className="mt-2 text-sm text-secondary flex items-center">
             <RefreshCw size={14} className="animate-spin mr-1" /> Memuat
             kategori...
           </p>
@@ -347,7 +363,7 @@ const ArticleForm: React.FC<ArticleFormProps> = ({
       <div>
         <label
           htmlFor="publishedDate"
-          className="block text-sm font-medium mb-1"
+          className="block text-sm font-medium mb-1 text-foreground"
         >
           Tanggal Publikasi
         </label>
@@ -373,7 +389,7 @@ const ArticleForm: React.FC<ArticleFormProps> = ({
             className="w-4 h-4 rounded"
             disabled={isLoading}
           />
-          <span className="ml-2 text-sm">Terbitkan</span>
+          <span className="ml-2 text-sm text-foreground">Terbitkan</span>
         </label>
 
         <label className="flex items-center h-10">
@@ -386,7 +402,7 @@ const ArticleForm: React.FC<ArticleFormProps> = ({
             className="w-4 h-4 rounded"
             disabled={isLoading}
           />
-          <span className="ml-2 text-sm">Sematkan</span>
+          <span className="ml-2 text-sm text-foreground">Sematkan</span>
         </label>
       </div>
 

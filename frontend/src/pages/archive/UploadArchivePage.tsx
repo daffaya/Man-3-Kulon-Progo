@@ -1,7 +1,7 @@
+// src/pages/UploadArchivePage.tsx
 import React, { useState, useEffect } from "react";
 import { useAuth } from "../../contexts/AuthContext";
-import { Upload, LogIn, ArrowLeft, ChevronLeft } from "lucide-react";
-import Layout from "../../components/layout/Layout";
+import { Upload, ArrowLeft } from "lucide-react";
 import AdminLayout from "../../components/layout/AdminLayout";
 import { Navigate, useNavigate, Link } from "react-router-dom";
 import { Category } from "../../types/archiveTypes";
@@ -30,7 +30,6 @@ const UploadArchivePage: React.FC = () => {
 
   const isAdminOrArsiparis = hasEditAccess(isLoggedIn, user?.role);
 
-  // Fetch categories
   useEffect(() => {
     const loadCategories = async () => {
       try {
@@ -48,7 +47,6 @@ const UploadArchivePage: React.FC = () => {
     setFile(selectedFile);
 
     if (selectedFile) {
-      // Validasi jenis file
       const allowedTypes = [
         "application/pdf",
         "application/msword",
@@ -60,40 +58,23 @@ const UploadArchivePage: React.FC = () => {
           "error"
         );
         setFile(null);
-        const fileInput = e.target as HTMLInputElement;
-        fileInput.value = ""; // Reset input
+        e.target.value = "";
         return;
       }
 
-      // Validasi ukuran file (10MB = 10 * 1024 * 1024 bytes)
       const maxSize = 10 * 1024 * 1024;
       if (selectedFile.size > maxSize) {
         showToast("Ukuran file tidak boleh lebih dari 10MB", "error");
         setFile(null);
-        const fileInput = e.target as HTMLInputElement;
-        fileInput.value = ""; // Reset input
+        e.target.value = "";
         return;
       }
     }
   };
 
-  // Handle form submit
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
     setLoading(true);
-
-    if (!isLoggedIn) {
-      showToast("Silakan login untuk mengunggah arsip", "error");
-      navigate("/login", { state: { redirectTo: "/atmin/uploadArchive" } });
-      setLoading(false);
-      return;
-    }
-
-    if (!isAdminOrArsiparis) {
-      showToast("Anda tidak memiliki akses untuk mengunggah arsip", "error");
-      setLoading(false);
-      return;
-    }
 
     if (!file) {
       showToast("File wajib diisi", "error");
@@ -106,7 +87,7 @@ const UploadArchivePage: React.FC = () => {
       return;
     }
     if (!categoryId) {
-      showToast("Kategori wajib diisi", "error");
+      showToast("Kategori wajib dipilih", "error");
       setLoading(false);
       return;
     }
@@ -141,19 +122,10 @@ const UploadArchivePage: React.FC = () => {
 
       if (response.ok && data.success) {
         showToast(data.message || "Arsip berhasil diunggah", "success");
-        // Reset form
-        setFile(null);
-        setDescription("");
-        setCategoryId("");
-        setDocumentNumber("");
-        setDocumentDate("");
-        const fileInput = document.getElementById("file") as HTMLInputElement;
-        if (fileInput) fileInput.value = "";
         setTimeout(() => {
           navigate("/archives", { replace: true });
         }, 1000);
       } else {
-        // Tampilkan pesan error spesifik dari backend
         showToast(data.error || "Gagal mengunggah arsip", "error");
       }
     } catch (err) {
@@ -162,8 +134,6 @@ const UploadArchivePage: React.FC = () => {
       setLoading(false);
     }
   };
-
-  const SelectedLayout = isAdminOrArsiparis ? AdminLayout : Layout;
 
   if (!isLoggedIn) {
     return (
@@ -179,30 +149,28 @@ const UploadArchivePage: React.FC = () => {
   }
 
   return (
-    <SelectedLayout>
+    <AdminLayout>
       <div className="container mx-auto px-4 sm:px-6 py-12 fade-in">
-        {isAdminOrArsiparis && (
-          <div className="flex items-center mb-4">
-            {" "}
-            <Link
-              to="/archives"
-              className="mr-4 text-gray-600 dark:text-gray-400 hover:text-accent dark:hover:text-accent transition-colors"
-            >
-              <ChevronLeft size={20} />{" "}
-            </Link>{" "}
-            <h1 className="text-3xl font-serif font-bold">
-              Tambahkan Arsip Baru
-            </h1>{" "}
-          </div>
-        )}
-        <div className="bg-white dark:bg-semibackground rounded-xl shadow-md p-6">
-          <form onSubmit={handleSubmit} className="space-y-4">
+        <div className="flex items-center mb-6">
+          <Link
+            to="/archives"
+            className="mr-4 text-secondary hover:text-accent transition-colors"
+          >
+            <ArrowLeft size={20} />
+          </Link>
+          <h1 className="text-3xl font-serif font-bold text-foreground">
+            Unggah Arsip Baru
+          </h1>
+        </div>
+
+        <div className="card p-6 max-w-4xl mx-auto">
+          <form onSubmit={handleSubmit} className="space-y-6">
             <div>
               <label
                 htmlFor="file"
                 className="block text-sm font-medium text-foreground"
               >
-                File (PDF/Word): <span className="text-red-500">*</span>
+                File (PDF/Word): <span className="text-error">*</span>
               </label>
               <input
                 type="file"
@@ -211,17 +179,19 @@ const UploadArchivePage: React.FC = () => {
                 className="form-input w-full mt-1"
                 onChange={handleFileChange}
                 disabled={loading}
+                required
               />
-              <p className="text-sm text-gray-500 mt-1">
-                Hanya file PDF atau Word (.doc, .docx), maksimum 10MB.
+              <p className="mt-1 text-sm text-secondary">
+                Maksimal 10MB. Hanya PDF atau Word (.doc, .docx)
               </p>
             </div>
+
             <div>
               <label
                 htmlFor="description"
                 className="block text-sm font-medium text-foreground"
               >
-                Deskripsi: <span className="text-red-500">*</span>
+                Deskripsi: <span className="text-error">*</span>
               </label>
               <input
                 type="text"
@@ -230,14 +200,16 @@ const UploadArchivePage: React.FC = () => {
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
                 disabled={loading}
+                required
               />
             </div>
+
             <div>
               <label
                 htmlFor="category"
                 className="block text-sm font-medium text-foreground"
               >
-                Kategori: <span className="text-red-500">*</span>
+                Kategori: <span className="text-error">*</span>
               </label>
               <select
                 id="category"
@@ -245,6 +217,7 @@ const UploadArchivePage: React.FC = () => {
                 value={categoryId}
                 onChange={(e) => setCategoryId(e.target.value)}
                 disabled={loading}
+                required
               >
                 <option value="">Pilih Kategori</option>
                 {categories.map((cat) => (
@@ -254,12 +227,13 @@ const UploadArchivePage: React.FC = () => {
                 ))}
               </select>
             </div>
+
             <div>
               <label
                 htmlFor="documentNumber"
                 className="block text-sm font-medium text-foreground"
               >
-                Nomor Dokumen: <span className="text-red-500">*</span>
+                Nomor Dokumen: <span className="text-error">*</span>
               </label>
               <input
                 type="text"
@@ -268,14 +242,16 @@ const UploadArchivePage: React.FC = () => {
                 value={documentNumber}
                 onChange={(e) => setDocumentNumber(e.target.value)}
                 disabled={loading}
+                required
               />
             </div>
+
             <div>
               <label
                 htmlFor="documentDate"
                 className="block text-sm font-medium text-foreground"
               >
-                Tanggal Dokumen: <span className="text-red-500">*</span>
+                Tanggal Dokumen: <span className="text-error">*</span>
               </label>
               <input
                 type="date"
@@ -284,12 +260,14 @@ const UploadArchivePage: React.FC = () => {
                 value={documentDate}
                 onChange={(e) => setDocumentDate(e.target.value)}
                 disabled={loading}
+                required
               />
             </div>
-            <div className="flex justify-end space-x-4">
+
+            <div className="flex justify-end gap-4 pt-4">
               <button
                 type="button"
-                onClick={() => navigate("/archives", { replace: true })}
+                onClick={() => navigate("/archives")}
                 className="btn btn-secondary"
                 disabled={loading}
               >
@@ -301,11 +279,14 @@ const UploadArchivePage: React.FC = () => {
                 disabled={loading}
               >
                 {loading ? (
-                  "Uploading..."
+                  <>
+                    <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin mr-2" />
+                    Mengunggah...
+                  </>
                 ) : (
                   <>
-                    <Upload className="h-5 w-5 mr-2" />
-                    Upload
+                    <Upload size={18} className="mr-2" />
+                    Unggah Arsip
                   </>
                 )}
               </button>
@@ -313,7 +294,7 @@ const UploadArchivePage: React.FC = () => {
           </form>
         </div>
       </div>
-    </SelectedLayout>
+    </AdminLayout>
   );
 };
 

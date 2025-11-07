@@ -9,7 +9,6 @@ import {
   Users,
   Calendar,
   BookOpen,
-  Award,
 } from "lucide-react";
 import Layout from "../../components/layout/Layout";
 import AdminLayout from "../../components/layout/AdminLayout";
@@ -19,7 +18,6 @@ import AlumniTable from "../../components/tables/AlumniTable";
 import { alumniService } from "../../services/alumniService";
 import { useToast } from "../../contexts/ToastContext";
 
-export const API_URL = import.meta.env.VITE_BACKEND_API_URL;
 export const ALLOWED_ROLES = ["guru_bk", "super_admin"] as const;
 
 interface Alumni {
@@ -58,7 +56,6 @@ const AlumniPage: React.FC = () => {
         );
         setAlumni(data.data);
 
-        // Tampilkan pesan kosong jika tidak ada hasil
         if (data.data.length === 0) {
           setShowEmptyState(true);
         }
@@ -79,12 +76,11 @@ const AlumniPage: React.FC = () => {
       }
       return;
     }
-    navigate(`/admin/alumni/${alumni.id}/edit`, { state: { alumni } });
+    navigate(`/atmin/alumni/${alumni.id}/edit`, { state: { alumni } });
   };
 
   const SelectedLayout = isAdminOrGuruBK ? AdminLayout : Layout;
 
-  // Mendapatkan tahun unik untuk filter
   const uniqueYears = [...new Set(alumni.map((a) => a.graduation_year))].sort(
     (a, b) => parseInt(b) - parseInt(a)
   );
@@ -94,69 +90,69 @@ const AlumniPage: React.FC = () => {
       <div className="container mx-auto px-4 sm:px-6 py-8 fade-in">
         {isAdminOrGuruBK && (
           <Link
-            to="/admin"
-            className="text-sm text-gray-600 dark:text-gray-400 hover:text-primary dark:hover:text-primary flex items-center mb-4 transition-colors"
+            to="/atmin"
+            className="text-sm text-secondary hover:text-accent flex items-center mb-4 transition-colors"
           >
             <ArrowLeft className="h-4 w-4 mr-1" />
-            Kembali ke admin dashboard
+            Kembali ke dashboard admin
           </Link>
         )}
 
-        <div className="text-center mb-8">
-          <h1 className="text-4xl md:text-5xl font-serif font-bold mb-4">
+        <div className="text-center mb-10">
+          <h1 className="text-4xl md:text-5xl font-serif font-bold mb-3 text-foreground">
             Jejak Alumni
           </h1>
-          <p className="text-lg text-gray-600 dark:text-gray-400 max-w-2xl mx-auto">
-            Temukan teman seangkatanmu dan lihat prestasi alumni MAN 3 Kulon
-            Progo.
+          <p className="text-lg text-secondary max-w-2xl mx-auto">
+            Temukan teman seangkatan dan kenang masa indah di MAN 3 Kulon Progo.
           </p>
         </div>
 
         {/* Statistik Alumni */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
-          <div className="bg-white dark:bg-semibackground rounded-xl shadow-md p-6 flex items-center">
-            <div className="bg-accent/10 p-3 rounded-full mr-4">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
+          <div className="card p-6 flex items-center">
+            <div className="p-3 rounded-full bg-accent/10 mr-4">
               <Users className="h-6 w-6 text-accent" />
             </div>
             <div>
-              <p className="text-sm text-gray-600 dark:text-gray-400">
-                Total Alumni
+              <p className="text-sm text-secondary">Total Alumni</p>
+              <p className="text-2xl font-bold text-foreground">
+                {alumni.length}
               </p>
-              <p className="text-2xl font-bold">{alumni.length}</p>
             </div>
           </div>
 
-          <div className="bg-white dark:bg-semibackground rounded-xl shadow-md p-6 flex items-center">
-            <div className="bg-accent/10 p-3 rounded-full mr-4">
+          <div className="card p-6 flex items-center">
+            <div className="p-3 rounded-full bg-accent/10 mr-4">
               <Calendar className="h-6 w-6 text-accent" />
             </div>
             <div>
-              <p className="text-sm text-gray-600 dark:text-gray-400">
-                Angkatan Terbaru
-              </p>
-              <p className="text-2xl font-bold">
+              <p className="text-sm text-secondary">Angkatan Terbaru</p>
+              <p className="text-2xl font-bold text-foreground">
                 {uniqueYears.length > 0 ? uniqueYears[0] : "-"}
               </p>
             </div>
           </div>
 
-          <div className="bg-white dark:bg-semibackground rounded-xl shadow-md p-6 flex items-center">
-            <div className="bg-accent/10 p-3 rounded-full mr-4">
+          <div className="card p-6 flex items-center">
+            <div className="p-3 rounded-full bg-accent/10 mr-4">
               <BookOpen className="h-6 w-6 text-accent" />
             </div>
             <div>
-              <p className="text-sm text-gray-600 dark:text-gray-400">
-                Total Angkatan
+              <p className="text-sm text-secondary">Total Angkatan</p>
+              <p className="text-2xl font-bold text-foreground">
+                {uniqueYears.length}
               </p>
-              <p className="text-2xl font-bold">{uniqueYears.length}</p>
             </div>
           </div>
         </div>
 
-        <div className="bg-white dark:bg-semibackground rounded-xl shadow-md p-6 mb-8">
-          <div className="flex items-center mb-4">
-            <Search className="h-5 w-5 text-gray-500 mr-2" />
-            <h2 className="text-xl font-semibold">Cari Alumni</h2>
+        {/* Filter Section */}
+        <div className="card p-6 mb-8">
+          <div className="flex items-center mb-5">
+            <Search className="h-5 w-5 text-secondary mr-2" />
+            <h2 className="text-xl font-semibold text-foreground">
+              Cari Alumni
+            </h2>
           </div>
 
           <Filters
@@ -168,18 +164,18 @@ const AlumniPage: React.FC = () => {
           />
         </div>
 
-        {/* Tabel Alumni atau Pesan Kosong */}
-        {showEmptyState && !loading ? (
-          <div className="bg-white dark:bg-semibackground rounded-xl shadow-md p-12 text-center mb-8">
-            <div className="mx-auto w-24 h-24 bg-gray-100 dark:bg-gray-800 rounded-full flex items-center justify-center mb-4">
-              <Search className="h-12 w-12 text-gray-400" />
+        {/* Empty State */}
+        {showEmptyState && !loading && (
+          <div className="card p-12 text-center">
+            <div className="mx-auto w-24 h-24 bg-semibackground rounded-full flex items-center justify-center mb-5">
+              <Search className="h-12 w-12 text-secondary/50" />
             </div>
-            <h3 className="text-xl font-semibold mb-2">
+            <h3 className="text-xl font-semibold text-foreground mb-2">
               Tidak ada alumni yang ditemukan
             </h3>
-            <p className="text-gray-600 dark:text-gray-400 mb-4">
-              Coba ubah filter pencarian atau kata kunci untuk menemukan alumni
-              yang kamu cari.
+            <p className="text-secondary mb-5 max-w-md mx-auto">
+              Coba ubah kata kunci atau filter angkatan untuk hasil yang lebih
+              luas.
             </p>
             <button
               onClick={() => {
@@ -191,8 +187,11 @@ const AlumniPage: React.FC = () => {
               Reset Filter
             </button>
           </div>
-        ) : (
-          <div className="bg-white dark:bg-semibackground rounded-xl shadow-md p-6 mb-8">
+        )}
+
+        {/* Alumni Table */}
+        {!showEmptyState && (
+          <div className="card p-6">
             <AlumniTable
               alumni={alumni}
               loading={loading}
@@ -202,36 +201,37 @@ const AlumniPage: React.FC = () => {
           </div>
         )}
 
+        {/* Access Info */}
         {!isAdminOrGuruBK && (
-          <div className="bg-white dark:bg-semibackground rounded-xl shadow-md p-8 text-center">
-            <div className="mx-auto w-16 h-16 bg-accent/10 p-3 rounded-full flex items-center justify-center mb-4">
-              <Award className="h-10 w-10 text-accent" />
+          <div className="card p-8 text-center mt-10">
+            <div className="mx-auto w-16 h-16 bg-accent/10 p-3 rounded-full flex items-center justify-center mb-5">
+              <Users className="h-10 w-10 text-accent" />
             </div>
 
             {isLoggedIn ? (
               <>
-                <h3 className="text-xl font-semibold mb-2">
-                  Ingin mengupdate data alumni?
+                <h3 className="text-xl font-semibold text-foreground mb-2">
+                  Ingin mengelola data alumni?
                 </h3>
-                <p className="text-gray-600 dark:text-gray-400 mb-4">
-                  Hanya guru BK atau super admin yang dapat mengedit data
-                  alumni.
+                <p className="text-secondary mb-4">
+                  Hanya guru BK atau super admin yang dapat mengedit dan
+                  mengelola data alumni.
                 </p>
               </>
             ) : (
               <>
-                <h3 className="text-xl font-semibold mb-2">
-                  Ingin mengupdate data alumni?
+                <h3 className="text-xl font-semibold text-foreground mb-2">
+                  Login untuk mengelola data alumni
                 </h3>
-                <p className="text-gray-600 dark:text-gray-400 mb-4">
-                  Login terlebih dahulu untuk mengedit data alumni dan terhubung
-                  dengan teman-temanmu.
+                <p className="text-secondary mb-5">
+                  Akses penuh untuk mengedit dan menambahkan data alumni
+                  tersedia setelah login.
                 </p>
                 <button
                   onClick={() =>
                     navigate("/login", { state: { redirectTo: "/alumni" } })
                   }
-                  className="btn btn-primary flex items-center justify-center mx-auto w-fit"
+                  className="btn btn-primary flex items-center mx-auto w-fit"
                 >
                   <LogIn className="h-5 w-5 mr-2" />
                   Login Sekarang

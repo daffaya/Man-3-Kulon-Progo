@@ -1,67 +1,36 @@
-/**
- * @file styles.css
- * @description Global styles and Tailwind CSS customizations for the application.
- * Includes theme variables, base styles, component classes, and third-party overrides.
- */
-
-/* Tailwind CSS Base Imports */
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-/* ==========================================================================
-   # THEME VARIABLES
-   ========================================================================== */
-
-/**
- * CSS Custom Properties for theming.
- * Defines color palettes for both light and dark modes.
- * Values are stored as RGB numbers to work with Tailwind's `rgb()` function.
- */
-
 :root {
-  /* --- Core Colors --- */
   --color-primary: 25, 26, 27;
   --color-secondary: 102, 102, 102;
   --color-accent: 67, 163, 103;
   --color-success: 34, 197, 94;
   --color-warning: 234, 179, 8;
   --color-error: 239, 68, 68;
-
-  /* --- Surface Colors --- */
   --color-background: 251, 251, 251;
   --color-semi-background: 243, 243, 243;
   --color-foreground: 25, 26, 27;
-
-  /* --- Interactive States --- */
   --color-hover: 2, 165, 40;
   --color-secondary-button: 238, 238, 238;
   --color-secondary-hover: 220, 220, 220;
 }
 
 .dark {
-  /* --- Core Colors --- */
   --color-primary: 229, 231, 235;
   --color-secondary: 156, 163, 175;
-  --color-accent: 0, 170, 19;
-  --color-success: 34, 197, 94;
-  --color-warning: 234, 179, 8;
-  --color-error: 239, 68, 68;
-
-  /* --- Surface Colors --- */
-  --color-background: 7, 7, 9;
-  --color-semi-background: 20, 20, 20;
-  --color-foreground: 229, 231, 235;
-
-  /* --- Interactive States --- */
+  --color-accent: 34, 197, 94;
+  --color-success: 74, 222, 128;
+  --color-warning: 250, 204, 21;
+  --color-error: 248, 113, 113;
+  --color-background: 10, 10, 12;
+  --color-semi-background: 23, 23, 26;
+  --color-foreground: 238, 238, 240;
   --color-hover: 34, 197, 94;
-  --color-secondary-button: 24, 24, 27;
-  --color-secondary-hover: 36, 36, 39;
+  --color-secondary-button: 38, 38, 42;
+  --color-secondary-hover: 55, 55, 60;
 }
-
-/* ==========================================================================
-   # CUSTOM UTILITY CLASSES
-   ========================================================================== */
 
 .fade-text {
   display: -webkit-box;
@@ -82,16 +51,18 @@
   );
 }
 
-/* ==========================================================================
-   # BASE STYLES (@layer base)
-   ========================================================================== */
-
 @layer base {
   body {
     @apply bg-background text-foreground font-sans antialiased;
     transition: background-color 0.3s ease, color 0.3s ease;
   }
-
+  .dark body {
+    background: linear-gradient(
+      135deg,
+      rgb(10, 10, 12) 0%,
+      rgb(15, 15, 18) 100%
+    );
+  }
   h1,
   h2,
   h3,
@@ -101,185 +72,138 @@
     @apply font-serif font-bold;
     line-height: 1.2;
   }
-
   h1 {
     @apply text-4xl sm:text-5xl lg:text-6xl;
   }
-
   h2 {
     @apply text-3xl sm:text-4xl;
   }
-
   h3 {
     @apply text-2xl sm:text-3xl;
   }
-
   p {
     @apply leading-relaxed;
   }
 }
 
-/* ==========================================================================
-   # COMPONENT CLASSES (@layer components)
-   ========================================================================== */
-
 @layer components {
   .container-narrow {
     @apply w-full max-w-3xl mx-auto px-4 sm:px-6;
   }
-
   .btn {
     @apply px-4 py-2 rounded-md font-medium transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2;
   }
-
   .btn-primary {
-    @apply bg-accent text-white hover:bg-hover hover:font-semibold focus:ring-accent/50;
+    @apply bg-accent text-white hover:bg-hover hover:font-semibold focus:ring-accent/40;
   }
-
   .btn-secondary {
-    @apply bg-secondarybutton text-gray-800 hover:bg-secondaryhover dark:bg-secondarybutton dark:text-gray-200 dark:hover:bg-secondaryhover focus:ring-gray-500/50 hover:font-semibold hover:underline underline-offset-4;
+    @apply bg-secondarybutton text-primary hover:bg-secondaryhover dark:bg-secondarybutton dark:text-gray-200 dark:hover:bg-secondaryhover focus:ring-gray-500/30 hover:font-semibold transition-all;
   }
-
   .btn-danger {
     @apply bg-error text-white hover:bg-error/90 focus:ring-error/50;
   }
-
   .form-input {
-    @apply w-full px-3 py-2 pr-8 rounded-md border border-gray-300 dark:border-gray-700 bg-white dark:bg-semibackground text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-accent/50 focus:border-transparent transition duration-200;
+    @apply w-full px-3 py-2 pr-8 rounded-md border border-gray-300 dark:border-zinc-700 bg-white dark:bg-semibackground text-gray-900 dark:text-foreground focus:outline-none focus:ring-2 focus:ring-accent/50 focus:border-transparent transition duration-200;
   }
-
   .form-textarea {
     @apply form-input min-h-[150px];
   }
-
   .article-content {
     @apply prose dark:prose-invert prose-lg max-w-none;
   }
-
   .article-content h1 {
     @apply mt-6 mb-4;
   }
-
   .article-content h2,
   .article-content h3 {
     @apply mt-5 mb-3;
   }
-
   .article-content p {
     @apply my-4;
   }
-
   .article-content a {
     @apply text-accent hover:text-accent/80 transition-colors duration-200;
   }
-
   .article-content ul,
   .article-content ol {
     @apply my-4 ml-6;
   }
-
   .article-content li {
     @apply mb-2;
   }
-
   .article-content blockquote {
-    @apply pl-4 border-l-4 border-gray-300 dark:border-gray-700 italic my-6;
+    @apply pl-4 border-l-4 border-gray-300 dark:border-zinc-700 italic my-6;
   }
-
   .article-content img {
     @apply rounded-lg my-6 max-w-full mx-auto;
   }
-
   .article-content pre {
-    @apply p-4 bg-gray-100 dark:bg-gray-800 rounded-md overflow-x-auto my-6;
+    @apply p-4 bg-gray-100 dark:bg-zinc-800 rounded-md overflow-x-auto my-6;
   }
-
   .article-content code {
-    @apply bg-gray-100 dark:bg-gray-800 px-1 py-0.5 rounded text-sm;
+    @apply bg-gray-100 dark:bg-zinc-800 px-1 py-0.5 rounded text-sm;
+  }
+  .card {
+    @apply bg-[rgb(var(--color-semi-background))] border border-zinc-800 rounded-lg p-4 shadow-lg backdrop-blur-sm;
   }
 }
-
-/* ==========================================================================
-   # THIRD-PARTY OVERRIDES
-   ========================================================================== */
 
 .ql-container {
-  @apply border border-gray-300 dark:border-gray-700 bg-white dark:bg-semibackground rounded-md focus:outline-none focus:ring-2 focus:ring-accent/50 focus:border-transparent transition duration-200;
+  @apply border border-gray-300 dark:border-zinc-700 bg-white dark:bg-semibackground rounded-md focus:outline-none focus:ring-2 focus:ring-accent/50 focus:border-transparent transition duration-200;
 }
-
 .ql-editor {
   @apply px-3 py-2 text-gray-900 dark:text-foreground min-h-[150px] focus:outline-none font-sans leading-relaxed;
 }
-
 .ql-container.ql-focus {
   @apply ring-2 ring-accent/50 border-transparent;
 }
-
 .ql-toolbar {
-  @apply bg-white dark:bg-semibackground border border-gray-300 dark:border-gray-700 rounded-t-md;
+  @apply bg-white dark:bg-semibackground border border-gray-300 dark:border-zinc-700 rounded-t-md;
 }
-
 .ql-toolbar .ql-formats button {
   @apply text-gray-900 dark:text-foreground hover:bg-gray-100 dark:hover:bg-secondaryhover transition duration-200;
 }
-
 .ql-toolbar .ql-formats .ql-active {
   @apply bg-gray-200 dark:bg-secondaryhover;
 }
-
 .ql-toolbar + .ql-container {
   @apply border-t-0 rounded-t-none;
 }
-
 .ql-editor.ql-blank::before {
   @apply text-gray-500 dark:text-gray-400 !important;
   content: attr(data-placeholder) !important;
 }
-
 .ql-snow .ql-picker {
   @apply text-gray-900 dark:text-foreground;
 }
-
 .ql-snow .ql-picker-label {
   @apply text-gray-900 dark:text-foreground;
 }
-
 .ql-snow .ql-picker-options {
-  @apply bg-white dark:bg-semibackground border-gray-300 dark:border-gray-700 !important;
+  @apply bg-white dark:bg-semibackground border-gray-300 dark:border-zinc-700 !important;
 }
-
 .ql-snow .ql-picker-item {
   @apply text-gray-900 dark:text-foreground !important;
 }
-
 .ql-snow .ql-picker-item:hover {
   @apply bg-gray-100 dark:bg-secondaryhover !important;
 }
-
 .ql-snow .ql-picker-item.ql-selected {
   @apply bg-gray-200 dark:bg-secondaryhover !important;
 }
-
 .ql-snow .ql-stroke {
   @apply stroke-gray-900 dark:stroke-foreground;
 }
-
 .ql-snow .ql-fill {
   @apply fill-gray-900 dark:fill-foreground;
 }
 
-/* ==========================================================================
-   # ANIMATIONS
-   ========================================================================== */
-
 .fade-in {
   animation: fadeIn 0.5s ease-in-out;
 }
-
 .slide-up {
   animation: slideUp 0.5s ease-in-out;
 }
-
 @keyframes fadeIn {
   from {
     opacity: 0;
@@ -288,7 +212,6 @@
     opacity: 1;
   }
 }
-
 @keyframes slideUp {
   from {
     opacity: 0;
@@ -300,26 +223,16 @@
   }
 }
 
-/* ==========================================================================
-   # ADDITIONAL EFFECTS (from index.css)
-   ========================================================================== */
-
-/* Efek backdrop blur untuk tombol */
 .backdrop-blur-md {
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
 }
-
-/* Animasi untuk gambar */
 .image-hover {
   transition: transform 0.5s ease;
 }
-
 .image-hover:hover {
   transform: scale(1.05);
 }
-
-/* Efek pulse untuk skeleton loading */
 @keyframes pulse {
   0%,
   100% {
@@ -329,28 +242,21 @@
     opacity: 0.5;
   }
 }
-
 .animate-pulse {
   animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
 }
-
-/* Efek untuk tombol dengan bayangan */
 .shadow-md {
   box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1),
     0 2px 4px -1px rgba(0, 0, 0, 0.06);
 }
-
 .shadow-lg {
   box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1),
     0 4px 6px -2px rgba(0, 0, 0, 0.05);
 }
-
 .shadow-xl {
   box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1),
     0 10px 10px -5px rgba(0, 0, 0, 0.04);
 }
-
-/* Transisi untuk tombol */
 .transition-all {
   transition-property: all;
   transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);

@@ -6,6 +6,8 @@ import {
 } from "../../api/attendanceApi";
 import { useAuth } from "../../contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
+import AdminLayout from "../../components/layout/AdminLayout";
+import { RefreshCw, Download, FileText } from "lucide-react";
 
 interface RecapData {
   id: number;
@@ -48,7 +50,6 @@ const AttendanceRecap = () => {
 
   useEffect(() => {
     const loadClasses = async () => {
-      // Skip jika token null
       if (!token) return;
 
       try {
@@ -64,7 +65,6 @@ const AttendanceRecap = () => {
 
   useEffect(() => {
     const fetchRecapData = async () => {
-      // Skip jika token null atau classId kosong
       if (!token || !classId) return;
 
       setLoading(true);
@@ -90,8 +90,8 @@ const AttendanceRecap = () => {
   }, [classId, period, startDate, endDate, token]);
 
   const exportData = async (format: "excel" | "pdf") => {
-    // Skip jika token null
     if (!token) {
+      // Using a toast would be better, but alert is simpler for this example
       alert("Sesi telah berakhir. Silakan login kembali.");
       navigate("/login");
       return;
@@ -115,143 +115,208 @@ const AttendanceRecap = () => {
   };
 
   return (
-    <div className="p-6">
-      <h1 className="text-2xl font-bold mb-6">Rekap Presensi</h1>
+    <AdminLayout>
+      <div className="container-narrow py-12 fade-in">
+        <h1 className="text-3xl font-serif font-bold text-foreground mb-6">
+          Rekap Presensi
+        </h1>
 
-      {/* Filter Controls */}
-      <div className="mb-6 grid grid-cols-1 md:grid-cols-4 gap-4">
-        <div>
-          <label className="block text-sm font-medium mb-1">Kelas</label>
-          <select
-            value={classId}
-            onChange={(e) => setClassId(e.target.value)}
-            className="w-full border rounded p-2"
+        {/* Filter Controls */}
+        <div className="card p-6 mb-6">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <div>
+              <label className="block text-sm font-medium mb-1 text-foreground">
+                Kelas
+              </label>
+              <select
+                value={classId}
+                onChange={(e) => setClassId(e.target.value)}
+                className="form-input"
+              >
+                <option value="">Pilih Kelas</option>
+                {classes.map((cls) => (
+                  <option key={cls.id} value={cls.id}>
+                    {cls.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium mb-1 text-foreground">
+                Periode
+              </label>
+              <select
+                value={period}
+                onChange={(e) =>
+                  setPeriod(e.target.value as "daily" | "monthly" | "semester")
+                }
+                className="form-input"
+              >
+                <option value="daily">Harian</option>
+                <option value="monthly">Bulanan</option>
+                <option value="semester">Semester</option>
+              </select>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium mb-1 text-foreground">
+                Tanggal Mulai
+              </label>
+              <input
+                type="date"
+                value={startDate}
+                onChange={(e) => setStartDate(e.target.value)}
+                className="form-input"
+              />
+            </div>
+
+            {period !== "daily" && (
+              <div>
+                <label className="block text-sm font-medium mb-1 text-foreground">
+                  Tanggal Selesai
+                </label>
+                <input
+                  type="date"
+                  value={endDate}
+                  onChange={(e) => setEndDate(e.target.value)}
+                  className="form-input"
+                />
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Export Buttons */}
+        <div className="mb-6 flex gap-2">
+          <button
+            onClick={() => exportData("excel")}
+            className="bg-[rgb(var(--color-success))] text-white px-4 py-2 rounded-md font-medium transition-colors duration-200 hover:bg-[rgb(var(--color-success)),0.9] focus:outline-none focus:ring-2 focus:ring-[rgb(var(--color-success)),0.5] disabled:opacity-50 flex items-center"
+            disabled={!classId}
           >
-            <option value="">Pilih Kelas</option>
-            {classes.map((cls) => (
-              <option key={cls.id} value={cls.id}>
-                {cls.name}
-              </option>
-            ))}
-          </select>
-        </div>
-
-        <div>
-          <label className="block text-sm font-medium mb-1">Periode</label>
-          <select
-            value={period}
-            onChange={(e) =>
-              setPeriod(e.target.value as "daily" | "monthly" | "semester")
-            }
-            className="w-full border rounded p-2"
+            <Download size={16} className="mr-2" />
+            Export Excel
+          </button>
+          <button
+            onClick={() => exportData("pdf")}
+            className="bg-[rgb(var(--color-error))] text-white px-4 py-2 rounded-md font-medium transition-colors duration-200 hover:bg-[rgb(var(--color-error)),0.9] focus:outline-none focus:ring-2 focus:ring-[rgb(var(--color-error)),0.5] disabled:opacity-50 flex items-center"
+            disabled={!classId}
           >
-            <option value="daily">Harian</option>
-            <option value="monthly">Bulanan</option>
-            <option value="semester">Semester</option>
-          </select>
+            <FileText size={16} className="mr-2" />
+            Export PDF
+          </button>
         </div>
 
-        <div>
-          <label className="block text-sm font-medium mb-1">
-            Tanggal Mulai
-          </label>
-          <input
-            type="date"
-            value={startDate}
-            onChange={(e) => setStartDate(e.target.value)}
-            className="w-full border rounded p-2"
-          />
-        </div>
-
-        {period !== "daily" && (
-          <div>
-            <label className="block text-sm font-medium mb-1">
-              Tanggal Selesai
-            </label>
-            <input
-              type="date"
-              value={endDate}
-              onChange={(e) => setEndDate(e.target.value)}
-              className="w-full border rounded p-2"
+        {/* Recap Table */}
+        {loading ? (
+          <div className="card p-12 text-center">
+            <RefreshCw
+              size={32}
+              className="mx-auto animate-spin text-[rgb(var(--color-accent))]"
             />
+            <p className="mt-4 text-secondary">Memuat data...</p>
+          </div>
+        ) : (
+          <div className="card overflow-x-auto">
+            <table className="min-w-full divide-y divide-zinc-800">
+              <thead className="bg-[rgb(var(--color-semi-background))]">
+                <tr>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider">
+                    NISN
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider">
+                    Nama
+                  </th>
+                  {period === "daily" ? (
+                    <>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider">
+                        Tanggal
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider">
+                        Status
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider">
+                        Keterangan
+                      </th>
+                    </>
+                  ) : (
+                    <>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider">
+                        Total Hari
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider">
+                        Hadir
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider">
+                        Izin
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider">
+                        Sakit
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider">
+                        Alpa
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider">
+                        Persentase
+                      </th>
+                    </>
+                  )}
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-zinc-800">
+                {recapData.map((student) => (
+                  <tr
+                    key={student.id}
+                    className="hover:bg-[rgb(var(--color-secondary-hover))]"
+                  >
+                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-foreground">
+                      {student.nisn}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-foreground">
+                      {student.name}
+                    </td>
+                    {period === "daily" ? (
+                      <>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-secondary">
+                          {student.date}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-secondary">
+                          {student.status}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-secondary">
+                          {student.notes}
+                        </td>
+                      </>
+                    ) : (
+                      <>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-secondary">
+                          {student.total_hari}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-secondary">
+                          {student.hadir}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-secondary">
+                          {student.izin}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-secondary">
+                          {student.sakit}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-secondary">
+                          {student.alpa}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-secondary">
+                          {student.persentase_kehadiran}%
+                        </td>
+                      </>
+                    )}
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
         )}
       </div>
-
-      {/* Export Buttons */}
-      <div className="mb-4 flex gap-2">
-        <button
-          onClick={() => exportData("excel")}
-          className="bg-green-500 text-white px-4 py-2 rounded"
-          disabled={!classId}
-        >
-          Export Excel
-        </button>
-        <button
-          onClick={() => exportData("pdf")}
-          className="bg-red-500 text-white px-4 py-2 rounded"
-          disabled={!classId}
-        >
-          Export PDF
-        </button>
-      </div>
-
-      {/* Recap Table */}
-      {loading ? (
-        <div>Loading...</div>
-      ) : (
-        <table className="w-full border-collapse">
-          <thead>
-            <tr>
-              <th className="border p-2">NISN</th>
-              <th className="border p-2">Nama</th>
-              {period === "daily" ? (
-                <>
-                  <th className="border p-2">Tanggal</th>
-                  <th className="border p-2">Status</th>
-                  <th className="border p-2">Keterangan</th>
-                </>
-              ) : (
-                <>
-                  <th className="border p-2">Total Hari</th>
-                  <th className="border p-2">Hadir</th>
-                  <th className="border p-2">Izin</th>
-                  <th className="border p-2">Sakit</th>
-                  <th className="border p-2">Alpa</th>
-                  <th className="border p-2">Persentase</th>
-                </>
-              )}
-            </tr>
-          </thead>
-          <tbody>
-            {recapData.map((student) => (
-              <tr key={student.id}>
-                <td className="border p-2">{student.nisn}</td>
-                <td className="border p-2">{student.name}</td>
-                {period === "daily" ? (
-                  <>
-                    <td className="border p-2">{student.date}</td>
-                    <td className="border p-2">{student.status}</td>
-                    <td className="border p-2">{student.notes}</td>
-                  </>
-                ) : (
-                  <>
-                    <td className="border p-2">{student.total_hari}</td>
-                    <td className="border p-2">{student.hadir}</td>
-                    <td className="border p-2">{student.izin}</td>
-                    <td className="border p-2">{student.sakit}</td>
-                    <td className="border p-2">{student.alpa}</td>
-                    <td className="border p-2">
-                      {student.persentase_kehadiran}%
-                    </td>
-                  </>
-                )}
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      )}
-    </div>
+    </AdminLayout>
   );
 };
 

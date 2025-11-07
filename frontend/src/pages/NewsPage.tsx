@@ -97,7 +97,7 @@ const NewsPage: React.FC = () => {
       <Layout>
         <div className="container mx-auto px-4 py-12 text-center">
           <RefreshCw size={32} className="mx-auto animate-spin text-accent" />
-          <p className="mt-4 text-gray-600 dark:text-gray-400">{message}</p>
+          <p className="mt-4 text-secondary">{message}</p>
         </div>
       </Layout>
     );
@@ -119,7 +119,7 @@ const NewsPage: React.FC = () => {
     return (
       <Layout>
         <div className="container mx-auto px-4 py-12 text-center">
-          <p className="text-xl text-gray-600 dark:text-gray-400">{message}</p>
+          <p className="text-xl text-secondary">{message}</p>
           {hasFilters && (
             <button
               onClick={() => applyFilters(null, null, 1)}
@@ -137,13 +137,13 @@ const NewsPage: React.FC = () => {
     <Layout>
       <div className="container mx-auto px-4 py-8 fade-in">
         <div className="text-center mb-6">
-          <h1 className="text-4xl md:text-5xl font-serif font-bold mb-4">
+          <h1 className="text-4xl md:text-5xl font-serif font-bold mb-4 text-foreground">
             Berita & Artikel
           </h1>
 
           {hasFilters ? (
             <div className="flex flex-col items-center">
-              <p className="text-lg text-gray-600 dark:text-gray-400 mb-4">
+              <p className="text-lg text-secondary mb-4">
                 Menampilkan artikel berdasarkan filter:
               </p>
               {activeTag && (
@@ -172,13 +172,13 @@ const NewsPage: React.FC = () => {
               )}
               <button
                 onClick={() => applyFilters(null, null, 1)}
-                className="mt-2 text-gray-600 dark:text-gray-400 hover:underline flex items-center justify-center mx-auto"
+                className="mt-2 text-secondary hover:underline flex items-center justify-center mx-auto"
               >
                 <X size={16} className="mr-1" /> Hapus semua filter
               </button>
             </div>
           ) : (
-            <p className="text-lg text-gray-600 dark:text-gray-400">
+            <p className="text-lg text-secondary">
               Lihat semua artikel atau pilih kategori dan tag favoritmu.
             </p>
           )}
@@ -212,9 +212,7 @@ const NewsPage: React.FC = () => {
                 applyFilters(tag, null, 1);
               }}
               className={`px-3 py-1 rounded-full text-sm font-medium transition-colors ${
-                activeTag === tag
-                  ? "bg-accent text-white"
-                  : "bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-800 dark:text-gray-200"
+                activeTag === tag ? "bg-accent text-white" : "btn btn-secondary"
               }`}
             >
               {tag}
@@ -236,10 +234,8 @@ const NewsPage: React.FC = () => {
               <button
                 onClick={() => handlePageChange(currentPage - 1)}
                 disabled={currentPage === 1}
-                className={`flex items-center px-4 py-2 rounded-lg ${
-                  currentPage === 1
-                    ? "text-gray-400 cursor-not-allowed"
-                    : "text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-800"
+                className={`btn btn-secondary px-4 py-2 flex items-center ${
+                  currentPage === 1 ? "opacity-50 cursor-not-allowed" : ""
                 }`}
               >
                 <ChevronLeft size={20} />
@@ -259,13 +255,15 @@ const NewsPage: React.FC = () => {
                     if (index > 0 && page - array[index - 1] > 1) {
                       return (
                         <React.Fragment key={`ellipsis-${page}`}>
-                          <span className="px-3 py-2 text-gray-500">...</span>
+                          <span className="px-3 py-2 text-secondary/60">
+                            ...
+                          </span>
                           <button
                             onClick={() => handlePageChange(page)}
-                            className={`px-4 py-2 rounded-lg ${
+                            className={`px-4 py-2 rounded-lg transition-all ${
                               currentPage === page
-                                ? "bg-accent text-white"
-                                : "text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-800"
+                                ? "btn btn-primary"
+                                : "btn btn-secondary"
                             }`}
                           >
                             {page}
@@ -277,10 +275,10 @@ const NewsPage: React.FC = () => {
                       <button
                         key={page}
                         onClick={() => handlePageChange(page)}
-                        className={`px-4 py-2 rounded-lg ${
+                        className={`px-4 py-2 rounded-lg transition-all ${
                           currentPage === page
-                            ? "bg-accent text-white"
-                            : "text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-800"
+                            ? "btn btn-primary"
+                            : "btn btn-secondary"
                         }`}
                       >
                         {page}
@@ -292,10 +290,10 @@ const NewsPage: React.FC = () => {
               <button
                 onClick={() => handlePageChange(currentPage + 1)}
                 disabled={currentPage === pagination.totalPages}
-                className={`flex items-center px-4 py-2 rounded-lg ${
+                className={`btn btn-secondary px-4 py-2 flex items-center ${
                   currentPage === pagination.totalPages
-                    ? "text-gray-400 cursor-not-allowed"
-                    : "text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-800"
+                    ? "opacity-50 cursor-not-allowed"
+                    : ""
                 }`}
               >
                 <span className="mr-1">Berikutnya</span>
@@ -306,7 +304,7 @@ const NewsPage: React.FC = () => {
         )}
 
         {pagination && (
-          <div className="text-center mt-4 text-sm text-gray-600 dark:text-gray-400">
+          <div className="text-center mt-4 text-sm text-secondary/70">
             Menampilkan {articles.length} dari {pagination.totalArticles}{" "}
             artikel
             {pagination.totalPages > 1 && (

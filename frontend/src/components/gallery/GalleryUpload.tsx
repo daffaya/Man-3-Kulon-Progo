@@ -49,7 +49,6 @@ const GalleryUpload: React.FC<GalleryUploadProps> = ({
   };
 
   const handleFiles = (files: FileList) => {
-    console.log("handleFiles called with:", files);
     const newFiles = Array.from(files);
     const newErrors: string[] = [];
 
@@ -75,9 +74,6 @@ const GalleryUpload: React.FC<GalleryUploadProps> = ({
       return true;
     });
 
-    console.log("Valid files:", validFiles);
-    console.log("New errors:", newErrors);
-
     setErrors(newErrors);
     setSelectedFiles((prev) => [...prev, ...validFiles].slice(0, maxFiles));
   };
@@ -86,18 +82,11 @@ const GalleryUpload: React.FC<GalleryUploadProps> = ({
     setSelectedFiles((prev) => prev.filter((_, i) => i !== index));
   };
 
-  // Di GalleryUpload component, tambahkan console.log di handleUpload:
   const handleUpload = () => {
-    console.log("GalleryUpload handleUpload called");
-    console.log("Selected files:", selectedFiles);
-
     if (selectedFiles.length > 0) {
-      console.log("Calling onUpload with files:", selectedFiles);
       onUpload(selectedFiles);
       setSelectedFiles([]);
       setErrors([]);
-    } else {
-      console.log("No files selected");
     }
   };
 
@@ -111,8 +100,8 @@ const GalleryUpload: React.FC<GalleryUploadProps> = ({
       <div
         className={`relative border-2 border-dashed rounded-lg p-8 text-center transition-colors ${
           dragActive
-            ? "border-accent bg-accent/5"
-            : "border-gray-300 dark:border-gray-600 hover:border-gray-400 dark:hover:border-gray-500"
+            ? "border-[rgb(var(--color-accent))] bg-[rgb(var(--color-accent)),0.05]"
+            : "border-[rgb(var(--color-secondary-button))] hover:border-[rgb(var(--color-secondary-hover))]"
         } ${loading ? "pointer-events-none opacity-50" : ""}`}
         onDragEnter={handleDrag}
         onDragLeave={handleDrag}
@@ -131,19 +120,19 @@ const GalleryUpload: React.FC<GalleryUploadProps> = ({
 
         <div className="space-y-4">
           <div className="flex justify-center">
-            <Upload className="h-12 w-12 text-gray-400" />
+            <Upload className="h-12 w-12 text-[rgb(var(--color-secondary))]" />
           </div>
 
           <div>
-            <p className="text-lg font-medium text-gray-900 dark:text-gray-100">
+            <p className="text-lg font-medium text-foreground">
               Drag & drop foto di sini
             </p>
-            <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+            <p className="text-sm text-secondary mt-1">
               atau klik untuk memilih file
             </p>
           </div>
 
-          <div className="text-xs text-gray-500 dark:text-gray-400">
+          <div className="text-xs text-secondary">
             <p>Maksimal {maxFiles} foto</p>
             <p>Ukuran maksimal {maxSize}MB per foto</p>
             <p>Format: JPG, PNG, GIF, WebP</p>
@@ -162,14 +151,14 @@ const GalleryUpload: React.FC<GalleryUploadProps> = ({
 
       {/* Errors */}
       {errors.length > 0 && (
-        <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4">
+        <div className="bg-[rgb(var(--color-error)),0.1] border border-[rgb(var(--color-error))] rounded-lg p-4">
           <div className="flex items-start">
-            <AlertCircle className="h-5 w-5 text-red-400 mt-0.5" />
+            <AlertCircle className="h-5 w-5 text-[rgb(var(--color-error))] mt-0.5" />
             <div className="ml-3">
-              <h3 className="text-sm font-medium text-red-800 dark:text-red-200">
+              <h3 className="text-sm font-medium text-[rgb(var(--color-error))]">
                 Error Upload
               </h3>
-              <div className="mt-2 text-sm text-red-700 dark:text-red-300">
+              <div className="mt-2 text-sm text-[rgb(var(--color-error))]">
                 <ul className="list-disc list-inside space-y-1">
                   {errors.map((error, index) => (
                     <li key={index}>{error}</li>
@@ -185,12 +174,12 @@ const GalleryUpload: React.FC<GalleryUploadProps> = ({
       {selectedFiles.length > 0 && (
         <div className="space-y-4">
           <div className="flex items-center justify-between">
-            <h3 className="text-lg font-medium">
+            <h3 className="text-lg font-medium text-foreground">
               Foto Terpilih ({selectedFiles.length})
             </h3>
             <button
               onClick={() => setSelectedFiles([])}
-              className="text-sm text-red-600 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300"
+              className="text-sm text-[rgb(var(--color-error))] hover:opacity-80"
             >
               Hapus Semua
             </button>
@@ -199,7 +188,7 @@ const GalleryUpload: React.FC<GalleryUploadProps> = ({
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
             {selectedFiles.map((file, index) => (
               <div key={index} className="relative group">
-                <div className="aspect-square rounded-lg overflow-hidden bg-gray-100 dark:bg-gray-800">
+                <div className="aspect-square rounded-lg overflow-hidden bg-[rgb(var(--color-semi-background))]">
                   <img
                     src={URL.createObjectURL(file)}
                     alt={file.name}
@@ -209,17 +198,15 @@ const GalleryUpload: React.FC<GalleryUploadProps> = ({
 
                 <button
                   onClick={() => removeFile(index)}
-                  className="absolute -top-2 -right-2 bg-red-600 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
+                  className="absolute -top-2 -right-2 bg-[rgb(var(--color-error))] text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
                   aria-label="Hapus foto"
                 >
                   <X size={16} />
                 </button>
 
                 <div className="mt-2">
-                  <p className="text-xs text-gray-600 dark:text-gray-400 truncate">
-                    {file.name}
-                  </p>
-                  <p className="text-xs text-gray-500">
+                  <p className="text-xs text-secondary truncate">{file.name}</p>
+                  <p className="text-xs text-secondary">
                     {(file.size / 1024 / 1024).toFixed(2)} MB
                   </p>
                 </div>

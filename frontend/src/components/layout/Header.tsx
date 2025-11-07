@@ -64,7 +64,7 @@ const Header: React.FC = () => {
     <header
       className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
         isScrolled
-          ? "bg-white dark:bg-semibackground shadow-md py-2 opacity-95"
+          ? "bg-[rgb(var(--color-background))] shadow-md py-2 opacity-95"
           : "bg-transparent py-4"
       }`}
     >
@@ -110,7 +110,7 @@ const Header: React.FC = () => {
           <ThemeToggle />
           <button
             onClick={() => setIsMenuOpen(!isMenuOpen)}
-            className="p-2 text-gray-700 dark:text-gray-200"
+            className="p-2 text-foreground"
             aria-label="Toggle menu"
           >
             {isMenuOpen ? <X size={24} /> : <Menu size={24} />}
@@ -150,11 +150,11 @@ const NavLink: React.FC<NavLinkProps> = ({ to, label, icon, isMobile }) => {
   const baseClasses =
     "flex items-center space-x-2 font-medium transition-colors";
   const activeClasses = isActive
-    ? "text-accent"
-    : "text-gray-700 dark:text-gray-200 hover:text-accent dark:hover:text-accent";
+    ? "text-[rgb(var(--color-accent))]"
+    : "text-foreground hover:text-[rgb(var(--color-accent))]";
 
   const mobileClasses = isMobile
-    ? "p-2 rounded-md hover:bg-gray-100 dark:hover:bg-gray-800"
+    ? "p-2 rounded-md hover:bg-[rgb(var(--color-secondary-hover))]"
     : "";
 
   return (
@@ -183,7 +183,7 @@ const ProfileDropdown: React.FC<ProfileDropdownProps> = ({
   <div className="relative" ref={dropdownRef}>
     <button
       onClick={toggle}
-      className={`flex items-center space-x-1 font-medium transition-colors text-gray-700 dark:text-gray-200 hover:text-accent dark:hover:text-accent`}
+      className={`flex items-center space-x-1 font-medium transition-colors text-foreground hover:text-[rgb(var(--color-accent))]`}
     >
       <User size={18} />
       <span>Profil</span>
@@ -194,12 +194,12 @@ const ProfileDropdown: React.FC<ProfileDropdownProps> = ({
     </button>
 
     {isOpen && (
-      <div className="absolute top-full left-0 mt-2 w-56 bg-white dark:bg-gray-900 rounded-md shadow-lg py-1 z-50">
+      <div className="absolute top-full left-0 mt-2 w-56 card shadow-lg py-1 z-50">
         {items.map((item) => (
           <Link
             key={item.to}
             to={item.to}
-            className="block px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800"
+            className="block px-4 py-2 text-sm text-foreground hover:bg-[rgb(var(--color-secondary-hover))]"
           >
             {item.label}
           </Link>
@@ -220,7 +220,7 @@ const MobileMenu: React.FC<MobileMenuProps> = ({
   isProfileOpen,
   toggleProfile,
 }) => (
-  <div className="md:hidden bg-white dark:bg-gray-900 shadow-lg">
+  <div className="md:hidden card shadow-lg">
     <nav className="container mx-auto px-4 py-4 flex flex-col space-y-4">
       <NavLink to="/" label="Home" icon={<Home size={18} />} isMobile />
       <NavLink
@@ -239,7 +239,7 @@ const MobileMenu: React.FC<MobileMenuProps> = ({
       <div>
         <button
           onClick={toggleProfile}
-          className="flex items-center justify-between w-full p-2 text-left text-gray-700 dark:text-gray-200"
+          className="flex items-center justify-between w-full p-2 text-left text-foreground"
         >
           <div className="flex items-center space-x-2">
             <User size={18} />
@@ -258,7 +258,7 @@ const MobileMenu: React.FC<MobileMenuProps> = ({
               <Link
                 key={item.to}
                 to={item.to}
-                className="block py-2 px-4 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800 rounded"
+                className="block py-2 px-4 text-sm text-foreground hover:bg-[rgb(var(--color-secondary-hover))] rounded"
               >
                 {item.label}
               </Link>

@@ -95,19 +95,17 @@ const UserManagementForm: React.FC<UserManagementFormProps> = ({
    * Utility function to determine icon color based on focus.
    */
   const getIconColor = (field: string) =>
-    focusedField === field
-      ? "text-[rgba(var(--color-accent),1)]"
-      : "text-secondary";
+    focusedField === field ? "text-accent" : "text-secondary";
 
   return (
-    <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6 w-full max-w-md">
+    <div className="card p-6 w-full max-w-md">
       <div className="flex justify-between items-center mb-6">
-        <h3 className="text-xl font-semibold text-gray-900 dark:text-white">
+        <h3 className="text-xl font-semibold text-foreground">
           {initialData ? "Edit User" : "Tambah User Baru"}
         </h3>
         <button
           onClick={onCancel}
-          className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300 transition-colors"
+          className="text-secondary hover:text-foreground transition-colors"
           aria-label="Close"
         >
           <X size={24} />
@@ -115,7 +113,7 @@ const UserManagementForm: React.FC<UserManagementFormProps> = ({
       </div>
 
       {error && (
-        <div className="bg-red-50 dark:bg-red-900/30 text-red-700 dark:text-red-300 p-3 rounded-md text-sm mb-4 border border-red-200 dark:border-red-800">
+        <div className="bg-[rgb(var(--color-error),0.1)] text-[rgb(var(--color-error))] p-3 rounded-md text-sm mb-4 border border-[rgb(var(--color-error),0.3)]">
           {error}
         </div>
       )}
@@ -124,7 +122,7 @@ const UserManagementForm: React.FC<UserManagementFormProps> = ({
         <div>
           <label
             htmlFor="username"
-            className="block text-sm font-medium text-foreground dark:text-foreground mb-2"
+            className="block text-sm font-medium text-foreground mb-2"
           >
             Username
           </label>
@@ -158,7 +156,7 @@ const UserManagementForm: React.FC<UserManagementFormProps> = ({
         <div>
           <label
             htmlFor="full_name"
-            className="block text-sm font-medium text-foreground dark:text-foreground mb-2"
+            className="block text-sm font-medium text-foreground mb-2"
           >
             Full Name
           </label>
@@ -183,7 +181,7 @@ const UserManagementForm: React.FC<UserManagementFormProps> = ({
         <div>
           <label
             htmlFor="role"
-            className="block text-sm font-medium text-foreground dark:text-foreground mb-2"
+            className="block text-sm font-medium text-foreground mb-2"
           >
             Role
           </label>
@@ -221,7 +219,7 @@ const UserManagementForm: React.FC<UserManagementFormProps> = ({
         <div>
           <label
             htmlFor="password"
-            className="block text-sm font-medium text-foreground dark:text-foreground mb-2"
+            className="block text-sm font-medium text-foreground mb-2"
           >
             Password {initialData && "(Kosongkan jika tidak ingin mengubah)"}
           </label>
@@ -268,7 +266,7 @@ const UserManagementForm: React.FC<UserManagementFormProps> = ({
           <div>
             <label
               htmlFor="confirmPassword"
-              className="block text-sm font-medium text-foreground dark:text-foreground mb-2"
+              className="block text-sm font-medium text-foreground mb-2"
             >
               Confirm Password
             </label>
@@ -328,7 +326,7 @@ const UserManagementForm: React.FC<UserManagementFormProps> = ({
           >
             {isLoading ? (
               <>
-                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-[rgb(var(--color-background))] mr-2"></div>
                 Menyimpan...
               </>
             ) : (

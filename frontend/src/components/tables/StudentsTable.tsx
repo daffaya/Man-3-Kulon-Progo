@@ -27,7 +27,9 @@ const StudentsTable: React.FC<StudentsTableProps> = ({
   const getStatusBadge = (isActive: boolean) => (
     <span
       className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
-        isActive ? "bg-green-100 text-green-800" : "bg-red-100 text-red-800"
+        isActive
+          ? "bg-[rgb(var(--color-success),0.1)] text-[rgb(var(--color-success))]"
+          : "bg-[rgb(var(--color-error),0.1)] text-[rgb(var(--color-error))]"
       }`}
     >
       {isActive ? "Aktif" : "Tidak Aktif"}
@@ -36,50 +38,48 @@ const StudentsTable: React.FC<StudentsTableProps> = ({
 
   if (loading) {
     return (
-      <div className="overflow-x-auto rounded-lg border border-gray-200 dark:border-gray-800 relative min-h-[200px] flex items-center justify-center">
-        <RefreshCw size={40} className="animate-spin text-accent" />
-        <p className="mt-4 text-gray-600 dark:text-gray-400 absolute bottom-4">
-          Memuat data siswa...
-        </p>
+      <div className="card p-8 min-h-[200px] flex flex-col items-center justify-center">
+        <RefreshCw
+          size={40}
+          className="animate-spin text-[rgb(var(--color-accent))]"
+        />
+        <p className="mt-4 text-secondary">Memuat data siswa...</p>
       </div>
     );
   }
 
   return (
-    <div className="overflow-x-auto rounded-lg border border-gray-200 dark:border-gray-800 relative">
-      <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
-        <thead className="bg-gray-50 dark:bg-gray-800">
+    <div className="card overflow-hidden">
+      <table className="min-w-full divide-y divide-zinc-800">
+        <thead className="bg-[rgb(var(--color-semi-background))]">
           <tr>
-            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+            <th className="px-6 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider">
               No
             </th>
-            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+            <th className="px-6 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider">
               NISN
             </th>
-            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+            <th className="px-6 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider">
               Nama
             </th>
-            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+            <th className="px-6 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider">
               Kelas
             </th>
-            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+            <th className="px-6 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider">
               Angkatan
             </th>
-            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+            <th className="px-6 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider">
               Status
             </th>
-            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+            <th className="px-6 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider">
               Aksi
             </th>
           </tr>
         </thead>
-        <tbody className="bg-white dark:bg-gray-900 divide-y divide-gray-200 dark:divide-gray-700">
+        <tbody className="divide-y divide-zinc-800">
           {students.length === 0 ? (
             <tr>
-              <td
-                colSpan={7} // Perbarui colSpan karena ada tambahan kolom
-                className="px-6 py-4 text-center text-gray-500 dark:text-gray-400"
-              >
+              <td colSpan={7} className="px-6 py-4 text-center text-secondary">
                 Tidak ada data siswa
               </td>
             </tr>
@@ -87,21 +87,21 @@ const StudentsTable: React.FC<StudentsTableProps> = ({
             students.map((student, index) => (
               <tr
                 key={student.id}
-                className="hover:bg-gray-50 dark:hover:bg-gray-800"
+                className="hover:bg-[rgb(var(--color-secondary-hover))]"
               >
-                <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-white">
+                <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-foreground">
                   {(currentPage - 1) * itemsPerPage + index + 1}
                 </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-white">
+                <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-foreground">
                   {student.nisn}
                 </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-secondary">
                   {student.name}
                 </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-secondary">
                   {student.class_name || "-"}
                 </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-secondary">
                   {student.angkatan || "-"}
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm">
@@ -111,7 +111,7 @@ const StudentsTable: React.FC<StudentsTableProps> = ({
                   <div className="flex space-x-2">
                     <button
                       onClick={() => onEdit(student)}
-                      className="text-blue-600 hover:text-blue-900 dark:text-blue-400 dark:hover:text-blue-300"
+                      className="text-[rgb(var(--color-accent))] hover:text-[rgb(var(--color-hover))]"
                       title="Edit siswa"
                     >
                       <Edit className="h-4 w-4" />
@@ -119,7 +119,7 @@ const StudentsTable: React.FC<StudentsTableProps> = ({
 
                     <button
                       onClick={() => onDelete(student.id)}
-                      className="text-red-600 hover:text-red-900 dark:text-red-400 dark:hover:text-red-300"
+                      className="text-[rgb(var(--color-error))] hover:opacity-80"
                       title="Hapus siswa"
                     >
                       <Trash2 className="h-4 w-4" />
@@ -128,7 +128,7 @@ const StudentsTable: React.FC<StudentsTableProps> = ({
                     {canEditClasses && (
                       <button
                         onClick={() => onMoveClass(student)}
-                        className="text-green-600 hover:text-green-900 dark:text-green-400 dark:hover:text-green-300"
+                        className="text-[rgb(var(--color-success))] hover:opacity-80"
                         title="Pindah kelas"
                       >
                         <Users className="h-4 w-4" />

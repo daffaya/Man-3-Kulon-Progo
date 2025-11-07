@@ -8,7 +8,7 @@ interface StatCardProps {
 const StatCard: React.FC<StatCardProps> = ({ title, value, color }) => {
   return (
     <div
-      className={`bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 ${color}`}
+      className={`bg-background dark:bg-semibackground rounded-lg shadow-md p-6 ${color}`}
     >
       <h3 className="text-lg font-semibold text-gray-700 dark:text-gray-300 mb-2">
         {title}

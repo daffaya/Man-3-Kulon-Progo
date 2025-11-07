@@ -4,7 +4,7 @@ import { useNavigate, useLocation, Navigate } from "react-router-dom";
 import { useAuth } from "../../contexts/AuthContext";
 import LoginForm from "../../components/forms/auth/LoginForm";
 import ThemeToggle from "../../components/ui/ThemeToggle";
-import { User } from "../../types/userTypes";
+import { User, UserRole } from "../../types/userTypes";
 
 import illustration from "/login_illustration.png";
 
@@ -33,13 +33,33 @@ const LoginPage: React.FC = () => {
     user: { username: string; role: string };
     token: string;
   }) => {
+    // Validasi role dari API
+    const validRoles: UserRole[] = [
+      "super_admin",
+      "jurnalis",
+      "arsiparis",
+      "guru_bk",
+      "pengelola_bmn",
+      "operator",
+      "kepala_sekolah",
+    ];
+
+    const role = data.user.role as UserRole;
+    if (!validRoles.includes(role)) {
+      console.error("Invalid role from API:", data.user.role);
+      // Bisa throw error atau set default
+      throw new Error("Role tidak valid");
+    }
+
     const user: User = {
-      id: 0, // Placeholder, replace with real user ID if available
-      full_name: data.user.username,
+      id: 0,
+      username: data.user.username,
+      full_name: data.user.username, // atau ambil dari data lain jika ada
       avatar: null,
-      ...data.user,
-      created_at: "",
+      role, // sekarang pasti UserRole
+      created_at: new Date().toISOString(), // atau dari API jika ada
     };
+
     login(user, data.token);
   };
 
@@ -89,12 +109,11 @@ const LoginPage: React.FC = () => {
               onLoginError={handleLoginError}
             />
           </div>
-
-          {/* Theme toggle */}
-          <div className="flex justify-end mt-4">
-            <ThemeToggle />
-          </div>
         </div>
+      </div>
+      {/* Theme toggle */}
+      <div className="absolute top-4 right-4 z-50">
+        <ThemeToggle />
       </div>
     </div>
   );

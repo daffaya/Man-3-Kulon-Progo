@@ -68,7 +68,6 @@ const AdminHeader: React.FC = () => {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  // frontend/src/components/layout/AdminHeader.tsx
   /**
    * Mendapatkan nama pengguna dari objek user (dengan aman)
    */
@@ -114,7 +113,7 @@ const AdminHeader: React.FC = () => {
     <header
       className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
         isScrolled
-          ? "bg-white dark:bg-semibackground shadow-md py-2 opacity-95"
+          ? "bg-[rgb(var(--color-background))] shadow-md py-2 opacity-95 backdrop-blur-md"
           : "bg-transparent py-4"
       }`}
     >
@@ -123,7 +122,7 @@ const AdminHeader: React.FC = () => {
         <div className="flex items-center">
           <button
             onClick={() => setIsMenuOpen(!isMenuOpen)}
-            className="mr-4 md:hidden text-gray-600 dark:text-gray-300"
+            className="mr-4 md:hidden text-secondary hover:text-foreground transition-colors"
             aria-label="Toggle navigation"
           >
             {isMenuOpen ? <X size={24} /> : <Menu size={24} />}
@@ -141,11 +140,11 @@ const AdminHeader: React.FC = () => {
         <div className="flex items-center space-x-4 ml-auto">
           {/* Notifications */}
           <button
-            className="relative p-1 text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white"
+            className="relative p-1 text-secondary hover:text-foreground transition-colors"
             aria-label="Notifications"
           >
             <Bell size={20} />
-            <span className="absolute top-0 right-0 block h-2 w-2 rounded-full bg-red-500" />
+            <span className="absolute top-0 right-0 block h-2 w-2 rounded-full bg-error" />
           </button>
 
           {/* Theme Toggle */}
@@ -155,9 +154,9 @@ const AdminHeader: React.FC = () => {
           <div className="relative" ref={dropdownRef}>
             <button
               onClick={() => setIsProfileDropdownOpen(!isProfileDropdownOpen)}
-              className="flex items-center space-x-1 font-medium text-gray-700 dark:text-gray-200 hover:text-accent dark:hover:text-accent"
+              className="flex items-center space-x-1 font-medium text-foreground hover:text-accent transition-colors"
             >
-              <div className="h-8 w-8 rounded-full bg-gray-200 dark:bg-gray-600 flex items-center justify-center overflow-hidden">
+              <div className="h-8 w-8 rounded-full bg-[rgb(var(--color-secondary-button))] flex items-center justify-center overflow-hidden">
                 {userAvatar ? (
                   <img
                     src={userAvatar}
@@ -165,7 +164,7 @@ const AdminHeader: React.FC = () => {
                     className="w-full h-full object-cover"
                   />
                 ) : (
-                  <User size={18} />
+                  <User size={18} className="text-secondary" />
                 )}
               </div>
               <span className="hidden md:block">{displayName}</span>
@@ -179,10 +178,10 @@ const AdminHeader: React.FC = () => {
 
             {/* Dropdown Menu */}
             {isProfileDropdownOpen && (
-              <div className="absolute right-0 mt-2 w-48 bg-white dark:bg-gray-700 rounded-md shadow-lg py-1 z-50">
+              <div className="absolute right-0 mt-2 w-48 card shadow-xl z-50">
                 {/* Profile Info */}
-                <div className="px-4 py-2 border-b border-gray-200 dark:border-gray-600 flex items-center space-x-3">
-                  <div className="h-10 w-10 rounded-full bg-gray-200 dark:bg-gray-600 flex items-center justify-center overflow-hidden">
+                <div className="px-4 py-2 border-b border-[rgb(var(--color-secondary-button),0.3)] flex items-center space-x-3">
+                  <div className="h-10 w-10 rounded-full bg-[rgb(var(--color-secondary-button))] flex items-center justify-center overflow-hidden">
                     {userAvatar ? (
                       <img
                         src={userAvatar}
@@ -190,23 +189,21 @@ const AdminHeader: React.FC = () => {
                         className="w-full h-full object-cover"
                       />
                     ) : (
-                      <User size={20} />
+                      <User size={20} className="text-secondary" />
                     )}
                   </div>
                   <div>
-                    <p className="text-sm font-medium text-gray-900 dark:text-white">
+                    <p className="text-sm font-medium text-foreground">
                       {displayName}
                     </p>
-                    <p className="text-xs text-gray-500 dark:text-gray-400">
-                      {displayRole}
-                    </p>
+                    <p className="text-xs text-secondary">{displayRole}</p>
                   </div>
                 </div>
 
                 {/* Menu Items */}
                 <Link
                   to="/atmin/userProfile"
-                  className="block px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-600"
+                  className="block px-4 py-2 text-sm text-foreground hover:bg-[rgb(var(--color-secondary-button),0.5)] transition-colors"
                   onClick={() => setIsProfileDropdownOpen(false)}
                 >
                   <div className="flex items-center">
@@ -215,7 +212,7 @@ const AdminHeader: React.FC = () => {
                 </Link>
                 <Link
                   to="/atmin/settings"
-                  className="block px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-600"
+                  className="block px-4 py-2 text-sm text-foreground hover:bg-[rgb(var(--color-secondary-button),0.5)] transition-colors"
                   onClick={() => setIsProfileDropdownOpen(false)}
                 >
                   <div className="flex items-center">
@@ -224,7 +221,7 @@ const AdminHeader: React.FC = () => {
                 </Link>
                 <button
                   onClick={handleLogout}
-                  className="block w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-600"
+                  className="block w-full text-left px-4 py-2 text-sm text-foreground hover:bg-[rgb(var(--color-secondary-button),0.5)] transition-colors"
                 >
                   <div className="flex items-center">
                     <LogOut size={16} className="mr-2" /> Logout
@@ -238,11 +235,11 @@ const AdminHeader: React.FC = () => {
 
       {/* === Mobile Menu Section === */}
       {isMenuOpen && (
-        <div className="md:hidden bg-white dark:bg-gray-900 shadow-lg">
+        <div className="md:hidden card shadow-lg mt-2">
           <nav className="container mx-auto px-4 py-4 flex flex-col space-y-4">
             {/* Mobile Profile Info */}
-            <div className="flex items-center space-x-3 p-2 border-b border-gray-200 dark:border-gray-700">
-              <div className="h-12 w-12 rounded-full bg-gray-200 dark:bg-gray-600 flex items-center justify-center overflow-hidden">
+            <div className="flex items-center space-x-3 p-2 border-b border-[rgb(var(--color-secondary-button),0.3)]">
+              <div className="h-12 w-12 rounded-full bg-[rgb(var(--color-secondary-button))] flex items-center justify-center overflow-hidden">
                 {userAvatar ? (
                   <img
                     src={userAvatar}
@@ -250,16 +247,14 @@ const AdminHeader: React.FC = () => {
                     className="w-full h-full object-cover"
                   />
                 ) : (
-                  <User size={24} />
+                  <User size={24} className="text-secondary" />
                 )}
               </div>
               <div>
-                <p className="text-sm font-medium text-gray-900 dark:text-white">
+                <p className="text-sm font-medium text-foreground">
                   {displayName}
                 </p>
-                <p className="text-xs text-gray-500 dark:text-gray-400">
-                  {displayRole}
-                </p>
+                <p className="text-xs text-secondary">{displayRole}</p>
               </div>
             </div>
 
@@ -267,7 +262,7 @@ const AdminHeader: React.FC = () => {
             <div>
               <button
                 onClick={() => setIsProfileDropdownOpen(!isProfileDropdownOpen)}
-                className="flex items-center justify-between w-full p-2 text-left text-gray-700 dark:text-gray-200"
+                className="flex items-center justify-between w-full p-2 text-left text-foreground"
               >
                 <div className="flex items-center space-x-2">
                   <User size={18} />
@@ -285,21 +280,21 @@ const AdminHeader: React.FC = () => {
                 <div className="pl-6 mt-1 space-y-1">
                   <Link
                     to="/atmin/userProfile"
-                    className="block py-2 px-4 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800 rounded"
+                    className="block py-2 px-4 text-sm text-foreground hover:bg-[rgb(var(--color-secondary-button),0.5)] rounded transition-colors"
                     onClick={() => setIsProfileDropdownOpen(false)}
                   >
                     Profile
                   </Link>
                   <Link
                     to="/atmin/settings"
-                    className="block py-2 px-4 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800 rounded"
+                    className="block py-2 px-4 text-sm text-foreground hover:bg-[rgb(var(--color-secondary-button),0.5)] rounded transition-colors"
                     onClick={() => setIsProfileDropdownOpen(false)}
                   >
                     Settings
                   </Link>
                   <button
                     onClick={handleLogout}
-                    className="block w-full text-left py-2 px-4 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800 rounded"
+                    className="block w-full text-left py-2 px-4 text-sm text-foreground hover:bg-[rgb(var(--color-secondary-button),0.5)] rounded transition-colors"
                   >
                     Logout
                   </button>

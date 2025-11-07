@@ -44,7 +44,7 @@ const LoginForm: React.FC<LoginFormProps> = ({
 
   /**
    * Handles form submission and performs login request.
-   * Calls the appropriate callback based on success/failure.
+   * Calls appropriate callback based on success/failure.
    */
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
@@ -98,9 +98,7 @@ const LoginForm: React.FC<LoginFormProps> = ({
    * Utility function to determine icon color based on focus.
    */
   const getIconColor = (field: "username" | "password") =>
-    focusedField === field
-      ? "text-[rgba(var(--color-accent),1)]"
-      : "text-secondary";
+    focusedField === field ? "text-accent" : "text-secondary";
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
@@ -108,7 +106,7 @@ const LoginForm: React.FC<LoginFormProps> = ({
       <div>
         <label
           htmlFor="username"
-          className="block text-sm font-medium text-foreground dark:text-foreground mb-2"
+          className="block text-sm font-medium text-foreground mb-2"
         >
           Username
         </label>
@@ -124,9 +122,7 @@ const LoginForm: React.FC<LoginFormProps> = ({
             type="text"
             id="username"
             className={`form-input pl-10 ${
-              focusedField === "username"
-                ? "ring-2 ring-[rgba(var(--color-accent),0.5)]"
-                : ""
+              focusedField === "username" ? "ring-2 ring-accent/50" : ""
             }`}
             placeholder="Masukkan username"
             value={username}
@@ -142,7 +138,7 @@ const LoginForm: React.FC<LoginFormProps> = ({
       <div>
         <label
           htmlFor="password"
-          className="block text-sm font-medium text-foreground dark:text-foreground mb-2"
+          className="block text-sm font-medium text-foreground mb-2"
         >
           Password
         </label>
@@ -158,9 +154,7 @@ const LoginForm: React.FC<LoginFormProps> = ({
             type={showPassword ? "text" : "password"}
             id="password"
             className={`form-input pl-10 pr-10 ${
-              focusedField === "password"
-                ? "ring-2 ring-[rgba(var(--color-accent),0.5)]"
-                : ""
+              focusedField === "password" ? "ring-2 ring-accent/50" : ""
             }`}
             placeholder="Masukkan password"
             value={password}

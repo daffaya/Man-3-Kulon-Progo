@@ -45,17 +45,17 @@ const NewArticlePage: React.FC = () => {
           <div className="flex items-center">
             <Link
               to="/atmin/articles"
-              className="mr-4 text-gray-600 dark:text-gray-400 hover:text-accent dark:hover:text-accent transition-colors"
+              className="mr-4 text-secondary hover:text-accent transition-colors"
             >
               <ChevronLeft size={20} />
             </Link>
-            <h1 className="text-3xl font-serif font-bold">
-              Create New Article
+            <h1 className="text-3xl font-serif font-bold text-foreground">
+              Buat Artikel Baru
             </h1>
           </div>
         </div>
 
-        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-md p-6">
+        <div className="card p-6">
           <ArticleForm onSubmit={handleSubmit} isLoading={isLoading} />
         </div>
       </div>

@@ -1,11 +1,12 @@
 // src/pages/admin/attendance/AttendanceRecapPage.tsx
 import React, { useState, useEffect } from "react";
-import { useNavigate, useLocation } from "react-router-dom";
+import { useNavigate, useLocation, Link } from "react-router-dom";
 import { useAuth } from "../../../contexts/AuthContext";
 import AdminLayout from "../../../components/layout/AdminLayout";
 import { useToast } from "../../../contexts/ToastContext";
 import { format, parseISO } from "date-fns";
 import { id } from "date-fns/locale";
+import { ChevronLeft } from "lucide-react";
 
 interface RecapData {
   id: number;
@@ -60,7 +61,6 @@ const AttendanceRecapPage: React.FC = () => {
 
   const isAdminOrGuruBK = hasEditAccess(isLoggedIn, user?.role);
 
-  // Get classId from URL params
   useEffect(() => {
     const params = new URLSearchParams(location.search);
     const classId = params.get("classId");
@@ -69,7 +69,6 @@ const AttendanceRecapPage: React.FC = () => {
     }
   }, [location.search]);
 
-  // Fetch classes
   useEffect(() => {
     const fetchClasses = async () => {
       try {
@@ -95,7 +94,6 @@ const AttendanceRecapPage: React.FC = () => {
     }
   }, [isLoggedIn, token, showToast]);
 
-  // Fetch recap data
   useEffect(() => {
     const fetchRecapData = async () => {
       if (!selectedClass || !recapPeriod || !recapStartDate) return;
@@ -140,7 +138,6 @@ const AttendanceRecapPage: React.FC = () => {
     showToast,
   ]);
 
-  // Export data
   const exportData = async (format: "excel" | "pdf") => {
     if (!selectedClass || !recapPeriod || !recapStartDate) {
       showToast("Pilih kelas, periode, dan tanggal terlebih dahulu", "error");
@@ -163,7 +160,6 @@ const AttendanceRecapPage: React.FC = () => {
       });
 
       if (response.ok) {
-        // Get filename from response headers
         const contentDisposition = response.headers.get("Content-Disposition");
         let filename = `rekap_presensi_${recapPeriod}_${selectedClass}.${
           format === "excel" ? "xlsx" : "pdf"
@@ -176,7 +172,6 @@ const AttendanceRecapPage: React.FC = () => {
           }
         }
 
-        // Create blob and download
         const blob = await response.blob();
         const downloadUrl = URL.createObjectURL(blob);
         const link = document.createElement("a");
@@ -208,7 +203,6 @@ const AttendanceRecapPage: React.FC = () => {
     }
   };
 
-  // Update recap end date when period changes
   useEffect(() => {
     if (recapPeriod === "daily") {
       setRecapEndDate(recapStartDate);
@@ -231,35 +225,35 @@ const AttendanceRecapPage: React.FC = () => {
     }
   }, [recapPeriod, recapStartDate]);
 
-  const SelectedLayout = isAdminOrGuruBK ? AdminLayout : AdminLayout;
-
   if (!isLoggedIn) {
     navigate("/login");
     return null;
   }
 
   return (
-    <SelectedLayout>
+    <AdminLayout>
       <div className="container mx-auto px-4 sm:px-6 py-12 fade-in">
-        <div className="flex items-center mb-6">
-          <button
-            onClick={() => navigate("/atmin/presensi")}
-            className="mr-4 text-gray-600 dark:text-gray-400 hover:text-accent dark:hover:text-accent transition-colors"
+        <div className="mb-8">
+          <Link
+            to="/atmin/presensi"
+            className="text-sm text-secondary hover:text-accent flex items-center mb-4 transition-colors"
           >
-            ← Kembali
-          </button>
-          <h1 className="text-3xl font-serif font-bold">
-            Rekap Presensi Siswa
-          </h1>
+            <ChevronLeft className="h-4 w-4 mr-1" />
+            Kembali
+          </Link>
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
+            <h1 className="text-3xl font-serif font-bold text-foreground mb-4 sm:mb-0">
+              Rekap Presensi Siswa
+            </h1>
+          </div>
         </div>
 
-        <div className="bg-white dark:bg-semibackground rounded-xl shadow-md p-6">
-          {/* Filters */}
+        <div className="card p-6">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
             <div>
               <label
                 htmlFor="class"
-                className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
+                className="block text-sm font-medium text-foreground mb-1"
               >
                 Kelas
               </label>
@@ -282,7 +276,7 @@ const AttendanceRecapPage: React.FC = () => {
             <div>
               <label
                 htmlFor="period"
-                className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
+                className="block text-sm font-medium text-foreground mb-1"
               >
                 Periode
               </label>
@@ -306,7 +300,7 @@ const AttendanceRecapPage: React.FC = () => {
             <div>
               <label
                 htmlFor="startDate"
-                className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
+                className="block text-sm font-medium text-foreground mb-1"
               >
                 Tanggal Mulai
               </label>
@@ -324,7 +318,7 @@ const AttendanceRecapPage: React.FC = () => {
               <div>
                 <label
                   htmlFor="endDate"
-                  className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
+                  className="block text-sm font-medium text-foreground mb-1"
                 >
                   Tanggal Selesai
                 </label>
@@ -340,7 +334,6 @@ const AttendanceRecapPage: React.FC = () => {
             )}
           </div>
 
-          {/* Export buttons */}
           {isAdminOrGuruBK && (
             <div className="flex justify-end mb-6">
               <div className="flex space-x-2">
@@ -364,22 +357,27 @@ const AttendanceRecapPage: React.FC = () => {
             </div>
           )}
 
-          {/* Recap Table */}
           {selectedClass > 0 ? (
             recapData.length > 0 ? (
               <div className="overflow-x-auto">
-                <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
-                  <thead className="bg-gray-50 dark:bg-gray-800">
+                <table className="min-w-full divide-y divide-[rgb(var(--color-secondary)/0.2)]">
+                  <thead className="bg-[rgb(var(--color-semi-background))]">
                     <tr>
                       <th
                         scope="col"
-                        className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider"
+                        className="px-2 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider"
+                      >
+                        No
+                      </th>
+                      <th
+                        scope="col"
+                        className="px-6 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider"
                       >
                         NISN
                       </th>
                       <th
                         scope="col"
-                        className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider"
+                        className="px-6 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider"
                       >
                         Nama
                       </th>
@@ -387,37 +385,37 @@ const AttendanceRecapPage: React.FC = () => {
                         <>
                           <th
                             scope="col"
-                            className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider"
+                            className="px-6 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider"
                           >
                             Total Hari
                           </th>
                           <th
                             scope="col"
-                            className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider"
+                            className="px-6 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider"
                           >
                             Hadir
                           </th>
                           <th
                             scope="col"
-                            className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider"
+                            className="px-6 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider"
                           >
                             Izin
                           </th>
                           <th
                             scope="col"
-                            className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider"
+                            className="px-6 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider"
                           >
                             Sakit
                           </th>
                           <th
                             scope="col"
-                            className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider"
+                            className="px-6 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider"
                           >
                             Alpa
                           </th>
                           <th
                             scope="col"
-                            className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider"
+                            className="px-6 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider"
                           >
                             %
                           </th>
@@ -427,13 +425,13 @@ const AttendanceRecapPage: React.FC = () => {
                         <>
                           <th
                             scope="col"
-                            className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider"
+                            className="px-6 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider"
                           >
                             Status
                           </th>
                           <th
                             scope="col"
-                            className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider"
+                            className="px-6 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider"
                           >
                             Keterangan
                           </th>
@@ -441,33 +439,36 @@ const AttendanceRecapPage: React.FC = () => {
                       )}
                     </tr>
                   </thead>
-                  <tbody className="bg-white dark:bg-gray-900 divide-y divide-gray-200 dark:divide-gray-700">
-                    {recapData.map((student) => (
+                  <tbody className="divide-y divide-[rgb(var(--color-secondary)/0.1)]">
+                    {recapData.map((student, index) => (
                       <tr key={student.id}>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
+                        <td className="px-2 py-4 whitespace-nowrap text-sm text-secondary">
+                          {index + 1}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-secondary">
                           {student.nisn}
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-white">
+                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-foreground">
                           {student.name}
                         </td>
                         {recapPeriod !== "daily" && (
                           <>
-                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
+                            <td className="px-6 py-4 whitespace-nowrap text-sm text-secondary">
                               {student.total_hari}
                             </td>
-                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
+                            <td className="px-6 py-4 whitespace-nowrap text-sm text-secondary">
                               {student.hadir}
                             </td>
-                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
+                            <td className="px-6 py-4 whitespace-nowrap text-sm text-secondary">
                               {student.izin}
                             </td>
-                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
+                            <td className="px-6 py-4 whitespace-nowrap text-sm text-secondary">
                               {student.sakit}
                             </td>
-                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
+                            <td className="px-6 py-4 whitespace-nowrap text-sm text-secondary">
                               {student.alpa}
                             </td>
-                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
+                            <td className="px-6 py-4 whitespace-nowrap text-sm text-secondary">
                               {student.persentase_kehadiran}%
                             </td>
                           </>
@@ -478,18 +479,18 @@ const AttendanceRecapPage: React.FC = () => {
                               <span
                                 className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
                                   student.status === "hadir"
-                                    ? "bg-green-100 text-green-800"
+                                    ? "bg-success/10 text-success"
                                     : student.status === "izin"
-                                    ? "bg-yellow-100 text-yellow-800"
+                                    ? "bg-warning/10 text-warning"
                                     : student.status === "sakit"
-                                    ? "bg-blue-100 text-blue-800"
-                                    : "bg-red-100 text-red-800"
+                                    ? "bg-info/10 text-info"
+                                    : "bg-error/10 text-error"
                                 }`}
                               >
                                 {student.status}
                               </span>
                             </td>
-                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
+                            <td className="px-6 py-4 whitespace-nowrap text-sm text-secondary">
                               {student.notes || "-"}
                             </td>
                           </>
@@ -501,21 +502,21 @@ const AttendanceRecapPage: React.FC = () => {
               </div>
             ) : (
               <div className="text-center py-8">
-                <p className="text-gray-500 dark:text-gray-400">
+                <p className="text-secondary">
                   Tidak ada data presensi untuk periode yang dipilih
                 </p>
               </div>
             )
           ) : (
             <div className="text-center py-8">
-              <p className="text-gray-500 dark:text-gray-400">
+              <p className="text-secondary">
                 Silakan pilih kelas terlebih dahulu
               </p>
             </div>
           )}
         </div>
       </div>
-    </SelectedLayout>
+    </AdminLayout>
   );
 };
 

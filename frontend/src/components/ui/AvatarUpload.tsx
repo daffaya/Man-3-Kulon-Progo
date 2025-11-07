@@ -1,6 +1,6 @@
 // frontend/src/components/ui/AvatarUpload.tsx
 import React, { useState, useRef } from "react";
-import { Camera, X, Loader2 } from "lucide-react";
+import { Camera, X, Loader2, User } from "lucide-react";
 import userApi from "../../api/userApi";
 
 interface AvatarUploadProps {
@@ -23,13 +23,13 @@ const AvatarUpload: React.FC<AvatarUploadProps> = ({
 
     // Validate file type
     if (!file.type.match("image.*")) {
-      alert("Please select an image file");
+      console.error("Please select an image file");
       return;
     }
 
     // Validate file size (max 15MB)
     if (file.size > 15 * 1024 * 1024) {
-      alert("File size must be less than 15MB");
+      console.error("File size must be less than 15MB");
       return;
     }
 
@@ -73,7 +73,7 @@ const AvatarUpload: React.FC<AvatarUploadProps> = ({
   return (
     <div className="relative">
       <div
-        className="w-32 h-32 rounded-full overflow-hidden border-4 border-white dark:border-gray-800 shadow-lg group cursor-pointer"
+        className="w-32 h-32 rounded-full overflow-hidden border-4 border-[rgb(var(--color-background))] shadow-lg group cursor-pointer"
         onMouseEnter={() => setIsHovering(true)}
         onMouseLeave={() => setIsHovering(false)}
         onClick={triggerFileInput}
@@ -85,10 +85,11 @@ const AvatarUpload: React.FC<AvatarUploadProps> = ({
             className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110"
           />
         ) : (
-          <div className="w-full h-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center transition-colors duration-300 group-hover:bg-gray-300 dark:group-hover:bg-gray-600">
-            <span className="text-gray-500 dark:text-gray-400 text-4xl transition-colors duration-300 group-hover:text-gray-600 dark:group-hover:text-gray-300">
-              {currentAvatar?.charAt(0).toUpperCase() || "U"}
-            </span>
+          <div className="w-full h-full bg-[rgb(var(--color-semi-background))] flex items-center justify-center transition-colors duration-300 group-hover:bg-[rgb(var(--color-secondary-hover))]">
+            <User
+              size={48}
+              className="text-[rgb(var(--color-secondary))] transition-colors duration-300 group-hover:text-[rgb(var(--color-foreground))]"
+            />
           </div>
         )}
 
@@ -111,7 +112,7 @@ const AvatarUpload: React.FC<AvatarUploadProps> = ({
           type="button"
           onClick={triggerFileInput}
           disabled={isUploading}
-          className="bg-accent text-white rounded-full p-2.5 shadow-lg hover:bg-hover transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-accent focus:ring-offset-2 disabled:opacity-50 transform hover:scale-110"
+          className="bg-[rgb(var(--color-accent))] text-white rounded-full p-2.5 shadow-lg hover:bg-[rgb(var(--color-hover))] transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-[rgb(var(--color-accent),0.5)] focus:ring-offset-2 disabled:opacity-50 transform hover:scale-110"
           aria-label="Upload avatar"
         >
           {isUploading ? (
@@ -126,7 +127,7 @@ const AvatarUpload: React.FC<AvatarUploadProps> = ({
             type="button"
             onClick={handleRemoveAvatar}
             disabled={isUploading}
-            className="bg-error text-white rounded-full p-2.5 shadow-lg hover:bg-red-600 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-error focus:ring-offset-2 disabled:opacity-50 transform hover:scale-110"
+            className="bg-[rgb(var(--color-error))] text-white rounded-full p-2.5 shadow-lg hover:bg-[rgb(var(--color-error)),0.9] transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-[rgb(var(--color-error)),0.5] focus:ring-offset-2 disabled:opacity-50 transform hover:scale-110"
             aria-label="Remove avatar"
           >
             <X size={16} />

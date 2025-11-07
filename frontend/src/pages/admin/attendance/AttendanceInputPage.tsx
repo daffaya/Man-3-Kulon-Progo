@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from "react";
-import { useNavigate, useLocation } from "react-router-dom";
+import { useNavigate, useLocation, Link } from "react-router-dom";
 import { useAuth } from "../../../contexts/AuthContext";
 import { useToastMessage } from "../../../hooks/useToastMessage";
 import AdminLayout from "../../../components/layout/AdminLayout";
 import { format } from "date-fns";
 import { id } from "date-fns/locale";
+import { ChevronLeft } from "lucide-react";
 
 interface Student {
   id: number;
@@ -51,7 +52,6 @@ const AttendanceInputPage: React.FC = () => {
 
   const isAdminOrGuruBK = hasEditAccess(isLoggedIn, user?.role);
 
-  // Get classId from URL params
   useEffect(() => {
     const params = new URLSearchParams(location.search);
     const classId = params.get("classId");
@@ -60,7 +60,6 @@ const AttendanceInputPage: React.FC = () => {
     }
   }, [location.search]);
 
-  // Fetch classes
   useEffect(() => {
     const fetchClasses = async () => {
       try {
@@ -86,7 +85,6 @@ const AttendanceInputPage: React.FC = () => {
     }
   }, [isLoggedIn, token, showErrorToast]);
 
-  // Fetch students when class is selected
   useEffect(() => {
     const fetchStudents = async () => {
       if (!selectedClass) return;
@@ -105,7 +103,6 @@ const AttendanceInputPage: React.FC = () => {
           const data = await response.json();
           setStudents(data);
 
-          // Initialize attendances with default status "hadir"
           const initialAttendances: Attendance[] = data.map(
             (student: Student) => ({
               student_id: student.id,
@@ -126,7 +123,6 @@ const AttendanceInputPage: React.FC = () => {
     }
   }, [isLoggedIn, selectedClass, token, showErrorToast]);
 
-  // Fetch attendance for selected date
   useEffect(() => {
     const fetchAttendance = async () => {
       if (!selectedClass || !selectedDate) return;
@@ -145,7 +141,6 @@ const AttendanceInputPage: React.FC = () => {
           const data = await response.json();
 
           if (data.length > 0) {
-            // Update attendances with fetched data
             const updatedAttendances = attendances.map((att) => {
               const fetchedAtt = data.find(
                 (d: Attendance) => d.student_id === att.student_id
@@ -172,7 +167,6 @@ const AttendanceInputPage: React.FC = () => {
     }
   }, [isLoggedIn, selectedClass, selectedDate, token, attendances]);
 
-  // Handle attendance status change
   const handleStatusChange = (
     studentId: number,
     status: "hadir" | "izin" | "sakit" | "alpa"
@@ -184,7 +178,6 @@ const AttendanceInputPage: React.FC = () => {
     );
   };
 
-  // Handle notes change
   const handleNotesChange = (studentId: number, notes: string) => {
     setAttendances((prev) =>
       prev.map((att) =>
@@ -193,7 +186,6 @@ const AttendanceInputPage: React.FC = () => {
     );
   };
 
-  // Save attendance
   const saveAttendance = async () => {
     if (!selectedClass || !selectedDate) {
       showErrorToast("Pilih kelas dan tanggal terlebih dahulu");
@@ -234,35 +226,35 @@ const AttendanceInputPage: React.FC = () => {
     }
   };
 
-  const SelectedLayout = isAdminOrGuruBK ? AdminLayout : AdminLayout;
-
   if (!isLoggedIn) {
     navigate("/login");
     return null;
   }
 
   return (
-    <SelectedLayout>
-      <div className="container mx-auto px-4 sm:px-6 py-12 fade-in">
-        <div className="flex items-center mb-6">
-          <button
-            onClick={() => navigate("/atmin/presensi")}
-            className="mr-4 text-gray-600 dark:text-gray-400 hover:text-accent dark:hover:text-accent transition-colors"
+    <AdminLayout>
+      <div className="container mx-auto px-4 sm:px-6 py-8 fade-in">
+        <div className="mb-8">
+          <Link
+            to="/atmin/presensi"
+            className="text-sm text-secondary hover:text-accent flex items-center mb-4 transition-colors"
           >
-            ← Kembali
-          </button>
-          <h1 className="text-3xl font-serif font-bold">
-            Input Presensi Siswa
-          </h1>
+            <ChevronLeft className="h-4 w-4 mr-1" />
+            Kembali
+          </Link>
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
+            <h1 className="text-3xl font-serif font-bold text-foreground mb-4 sm:mb-0">
+              Input Presensi Siswa
+            </h1>
+          </div>
         </div>
 
-        <div className="bg-white dark:bg-semibackground rounded-xl shadow-md p-6">
-          {/* Class and Date Selection */}
+        <div className="card p-6">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
             <div>
               <label
                 htmlFor="class"
-                className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
+                className="block text-sm font-medium text-foreground mb-1"
               >
                 Kelas
               </label>
@@ -285,7 +277,7 @@ const AttendanceInputPage: React.FC = () => {
             <div>
               <label
                 htmlFor="date"
-                className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
+                className="block text-sm font-medium text-foreground mb-1"
               >
                 Tanggal
               </label>
@@ -300,52 +292,60 @@ const AttendanceInputPage: React.FC = () => {
             </div>
           </div>
 
-          {/* Attendance Form */}
           {selectedClass > 0 ? (
             <>
               {isAdminOrGuruBK ? (
                 <>
                   <div className="overflow-x-auto">
-                    <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
-                      <thead className="bg-gray-50 dark:bg-gray-800">
+                    <table className="min-w-full divide-y divide-[rgb(var(--color-secondary)/0.2)]">
+                      <thead className="bg-[rgb(var(--color-semi-background))]">
                         <tr>
                           <th
                             scope="col"
-                            className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider"
+                            className="px-2 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider"
+                          >
+                            No
+                          </th>
+                          <th
+                            scope="col"
+                            className="px-6 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider"
                           >
                             NISN
                           </th>
                           <th
                             scope="col"
-                            className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider"
+                            className="px-6 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider"
                           >
                             Nama
                           </th>
                           <th
                             scope="col"
-                            className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider"
+                            className="px-6 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider"
                           >
                             Status
                           </th>
                           <th
                             scope="col"
-                            className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider"
+                            className="px-6 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider"
                           >
                             Keterangan
                           </th>
                         </tr>
                       </thead>
-                      <tbody className="bg-white dark:bg-gray-900 divide-y divide-gray-200 dark:divide-gray-700">
-                        {students.map((student) => {
+                      <tbody className="divide-y divide-[rgb(var(--color-secondary)/0.1)]">
+                        {students.map((student, index) => {
                           const attendance = attendances.find(
                             (a) => a.student_id === student.id
                           ) || { status: "hadir", notes: "" };
                           return (
                             <tr key={student.id}>
-                              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
+                              <td className="px-2 py-4 whitespace-nowrap text-sm text-secondary">
+                                {index + 1} {/* Kolom nomor */}
+                              </td>
+                              <td className="px-6 py-4 whitespace-nowrap text-sm text-secondary">
                                 {student.nisn}
                               </td>
-                              <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-white">
+                              <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-foreground">
                                 {student.name}
                               </td>
                               <td className="px-6 py-4 whitespace-nowrap text-sm">
@@ -405,7 +405,7 @@ const AttendanceInputPage: React.FC = () => {
                 </>
               ) : (
                 <div className="text-center py-8">
-                  <p className="text-gray-500 dark:text-gray-400">
+                  <p className="text-secondary">
                     Anda tidak memiliki akses untuk input presensi. Silakan
                     hubungi Guru BK atau Super Admin.
                   </p>
@@ -414,14 +414,14 @@ const AttendanceInputPage: React.FC = () => {
             </>
           ) : (
             <div className="text-center py-8">
-              <p className="text-gray-500 dark:text-gray-400">
+              <p className="text-secondary">
                 Silakan pilih kelas terlebih dahulu
               </p>
             </div>
           )}
         </div>
       </div>
-    </SelectedLayout>
+    </AdminLayout>
   );
 };
 

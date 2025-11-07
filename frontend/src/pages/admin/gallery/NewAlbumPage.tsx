@@ -1,3 +1,4 @@
+// frontend/src/pages/admin/gallery/NewAlbumPage.tsx
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { ChevronLeft } from "lucide-react";
@@ -13,14 +14,11 @@ const NewAlbumPage: React.FC = () => {
   const [isLoading, setIsLoading] = useState(false);
   const { showSuccessToast, showErrorToast } = useToastMessage();
 
-  // Di NewAlbumPage handleSubmit
   const handleSubmit = async (formData: AlbumFormData) => {
     setIsLoading(true);
-
     try {
       const albumId = await createAlbum(formData);
       showSuccessToast("Album berhasil dibuat!");
-      // Redirect ke halaman detail album
       setTimeout(
         () => navigate(`/atmin/gallery/${albumId}/photos`, { replace: true }),
         1500
@@ -44,19 +42,19 @@ const NewAlbumPage: React.FC = () => {
         <div className="mb-8">
           <Link
             to="/atmin/gallery"
-            className="text-sm text-gray-600 dark:text-gray-400 hover:text-primary dark:hover:text-primary flex items-center mb-4 transition-colors"
+            className="text-sm text-secondary hover:text-accent flex items-center mb-4 transition-colors"
           >
             <ChevronLeft className="h-4 w-4 mr-1" />
             Kembali ke gallery
           </Link>
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
-            <h1 className="text-3xl font-serif font-bold mb-4 sm:mb-0">
+            <h1 className="text-3xl font-serif font-bold text-foreground mb-4 sm:mb-0">
               Buat Album Baru
             </h1>
           </div>
         </div>
 
-        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-md">
+        <div className="card">
           <AlbumForm
             onSubmit={handleSubmit}
             isLoading={isLoading}

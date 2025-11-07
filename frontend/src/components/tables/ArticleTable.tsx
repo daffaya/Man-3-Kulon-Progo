@@ -1,4 +1,3 @@
-// frontend/src/components/tables/ArticleTable.tsx
 import React from "react";
 import { Link } from "react-router-dom";
 import { Edit, Trash2, Eye, ArrowUp, RefreshCw } from "lucide-react";
@@ -21,16 +20,16 @@ interface ArticleTableProps {
 const StatusBadge: React.FC<{ article: Article }> = ({ article }) => (
   <div className="flex items-center">
     {article.published ? (
-      <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200">
+      <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-[rgb(var(--color-success),0.1)] text-[rgb(var(--color-success))] text-success">
         Published
       </span>
     ) : (
-      <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-300">
+      <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-gray-100 dark:bg-gray-900 text-secondary">
         Draft
       </span>
     )}
     {article.featured && (
-      <span className="ml-2 px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 items-center">
+      <span className="ml-2 px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-blue-100 dark:bg-blue-900 text-primary items-center">
         <ArrowUp size={12} className="mr-1" />
         Featured
       </span>
@@ -49,7 +48,7 @@ const ActionButtons: React.FC<{
   if (!article.id) {
     return (
       <div className="flex justify-end space-x-2">
-        <span className="text-red-500 text-xs">ID Missing</span>
+        <span className="text-error text-xs">ID Missing</span>
       </div>
     );
   }
@@ -58,7 +57,7 @@ const ActionButtons: React.FC<{
     <div className="flex justify-end space-x-2">
       <Link
         to={`/berita/${article.slug}`}
-        className="text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-100"
+        className="text-secondary hover:text-foreground transition-colors"
         aria-label="View article"
         title="View article"
       >
@@ -67,7 +66,7 @@ const ActionButtons: React.FC<{
 
       <Link
         to={`/atmin/articles/${article.id}/edit`}
-        className="text-blue-500 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300"
+        className="text-accent hover:text-hover transition-colors"
         aria-label="Edit article"
         title="Edit article"
       >
@@ -76,7 +75,7 @@ const ActionButtons: React.FC<{
 
       <button
         onClick={() => onDelete(article.id)}
-        className="text-red-500 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300"
+        className="text-error hover:text-error/80 transition-colors"
         aria-label="Delete article"
         title="Delete article"
       >
@@ -97,9 +96,9 @@ const ArticleTable: React.FC<ArticleTableProps> = ({
 }) => {
   if (loading) {
     return (
-      <div className="overflow-x-auto rounded-lg border border-gray-200 dark:border-gray-800 relative min-h-[200px] flex items-center justify-center">
+      <div className="overflow-x-auto rounded-lg border border-zinc-800 relative min-h-[200px] flex items-center justify-center">
         <RefreshCw size={40} className="animate-spin text-accent" />
-        <p className="mt-4 text-gray-600 dark:text-gray-400 absolute bottom-4">
+        <p className="mt-4 text-secondary absolute bottom-4">
           Loading articles...
         </p>
       </div>
@@ -109,7 +108,7 @@ const ArticleTable: React.FC<ArticleTableProps> = ({
   if (articles.length === 0) {
     return (
       <div className="text-center py-12">
-        <h3 className="text-xl font-medium text-gray-600 dark:text-gray-400">
+        <h3 className="text-xl font-medium text-secondary">
           No articles found matching filters.
         </h3>
       </div>
@@ -117,35 +116,35 @@ const ArticleTable: React.FC<ArticleTableProps> = ({
   }
 
   return (
-    <div className="overflow-x-auto rounded-lg border border-gray-200 dark:border-gray-800 relative">
-      <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-800">
-        <thead className="bg-gray-50 dark:bg-gray-900">
+    <div className="overflow-x-auto rounded-lg border border-zinc-800 relative">
+      <table className="min-w-full divide-y divide-zinc-800">
+        <thead className="bg-semibackground">
           <tr>
-            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+            <th className="px-6 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider">
               Title
             </th>
-            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+            <th className="px-6 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider">
               Status
             </th>
-            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+            <th className="px-6 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider">
               Tags
             </th>
-            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+            <th className="px-6 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider">
               Category
             </th>
-            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+            <th className="px-6 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider">
               Date
             </th>
-            <th className="px-6 py-4 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+            <th className="px-6 py-4 text-right text-xs font-medium text-secondary uppercase tracking-wider">
               Actions
             </th>
           </tr>
         </thead>
-        <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
+        <tbody className="divide-y divide-zinc-800">
           {articles.map((article) => (
             <tr
               key={article.id}
-              className="hover:bg-gray-50 dark:hover:bg-gray-700"
+              className="hover:bg-semibackground transition-colors"
             >
               <td className="px-6 py-4 whitespace-nowrap">
                 <div className="flex items-center">
@@ -157,10 +156,10 @@ const ArticleTable: React.FC<ArticleTableProps> = ({
                     />
                   </div>
                   <div className="ml-4">
-                    <div className="text-sm font-medium">
+                    <div className="text-sm font-medium text-foreground">
                       {truncateText(article.title, 40)}
                     </div>
-                    <div className="text-sm text-gray-500 dark:text-gray-400">
+                    <div className="text-sm text-secondary">
                       {article.readingTime} min read
                     </div>
                   </div>
@@ -177,22 +176,22 @@ const ArticleTable: React.FC<ArticleTableProps> = ({
                     article.tags.map((tag, index) => (
                       <span
                         key={index}
-                        className="px-2 py-1 text-xs bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 rounded-full"
+                        className="px-2 py-1 text-xs bg-accent/20 text-accent rounded-full"
                       >
                         {tag}
                       </span>
                     ))
                   ) : (
-                    <span className="text-gray-500 text-sm">No tags</span>
+                    <span className="text-secondary text-sm">No tags</span>
                   )}
                 </div>
               </td>
 
-              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
+              <td className="px-6 py-4 whitespace-nowrap text-sm text-secondary">
                 {article.category ? article.category.name : "-"}
               </td>
 
-              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
+              <td className="px-6 py-4 whitespace-nowrap text-sm text-secondary">
                 {formatDate(article.publishedDate)}
               </td>
 

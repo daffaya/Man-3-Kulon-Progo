@@ -13,12 +13,10 @@ const GalleryPage: React.FC = () => {
   const [debouncedKeyword, setDebouncedKeyword] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
 
-  // Update document title
   useEffect(() => {
     document.title = "Galeri Foto - MAN 3 Kulon Progo";
   }, []);
 
-  // Debounce pencarian
   useEffect(() => {
     const timer = setTimeout(() => {
       setDebouncedKeyword(searchKeyword);
@@ -27,7 +25,6 @@ const GalleryPage: React.FC = () => {
     return () => clearTimeout(timer);
   }, [searchKeyword]);
 
-  // Fetch album
   useEffect(() => {
     fetchAlbums({
       keyword: debouncedKeyword,
@@ -44,32 +41,28 @@ const GalleryPage: React.FC = () => {
     [publicPagination.totalPages]
   );
 
-  // Loading State
   if (loading && albums.length === 0) {
     return (
       <Layout>
         <div className="container mx-auto px-4 py-12 text-center">
           <RefreshCw size={32} className="mx-auto animate-spin text-accent" />
-          <p className="mt-4 text-gray-600 dark:text-gray-400">
-            Memuat galeri...
-          </p>
+          <p className="mt-4 text-secondary">Memuat galeri...</p>
         </div>
       </Layout>
     );
   }
 
-  // No Results
   if (!loading && albums.length === 0) {
     return (
       <Layout>
         <div className="container mx-auto px-4 py-12 text-center">
-          <p className="text-xl text-gray-600 dark:text-gray-400 mb-4">
+          <p className="text-xl text-secondary mb-4">
             Tidak ada album ditemukan.
           </p>
           {debouncedKeyword && (
             <button
               onClick={() => setSearchKeyword("")}
-              className="inline-flex items-center text-accent hover:underline"
+              className="inline-flex items-center text-accent hover:underline font-medium"
             >
               <X size={16} className="mr-1" /> Hapus pencarian
             </button>
@@ -84,10 +77,10 @@ const GalleryPage: React.FC = () => {
       <div className="container mx-auto px-4 py-12 fade-in">
         {/* Header */}
         <div className="text-center mb-8">
-          <h1 className="text-4xl md:text-5xl font-serif font-bold mb-4">
+          <h1 className="text-4xl md:text-5xl font-serif font-bold mb-4 text-foreground">
             Galeri Foto
           </h1>
-          <p className="text-lg text-gray-600 dark:text-gray-400 max-w-2xl mx-auto">
+          <p className="text-lg text-secondary max-w-2xl mx-auto">
             Dokumentasi kegiatan, prestasi, dan momen berharga di MAN 3 Kulon
             Progo
           </p>
@@ -97,7 +90,7 @@ const GalleryPage: React.FC = () => {
         <div className="max-w-md mx-auto mb-10">
           <div className="relative">
             <Search
-              className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"
+              className="absolute left-3 top-1/2 transform -translate-y-1/2 text-secondary/60"
               size={20}
             />
             <input
@@ -105,12 +98,12 @@ const GalleryPage: React.FC = () => {
               placeholder="Cari album..."
               value={searchKeyword}
               onChange={(e) => setSearchKeyword(e.target.value)}
-              className="form-input w-full pl-10 pr-10 py-3 rounded-lg border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 focus:ring-accent focus:border-accent transition-colors"
+              className="form-input w-full pl-10 pr-10 py-3"
             />
             {searchKeyword && (
               <button
                 onClick={() => setSearchKeyword("")}
-                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-secondary/60 hover:text-foreground transition-colors"
               >
                 <X size={18} />
               </button>
@@ -129,10 +122,10 @@ const GalleryPage: React.FC = () => {
               <button
                 onClick={() => handlePageChange(currentPage - 1)}
                 disabled={publicPagination.currentPage === 1}
-                className={`flex items-center px-4 py-2 rounded-lg ${
+                className={`btn btn-secondary px-4 py-2 flex items-center ${
                   publicPagination.currentPage === 1
-                    ? "text-gray-400 cursor-not-allowed"
-                    : "text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-800"
+                    ? "opacity-50 cursor-not-allowed"
+                    : ""
                 }`}
               >
                 <ChevronLeft size={20} />
@@ -156,13 +149,15 @@ const GalleryPage: React.FC = () => {
                     if (index > 0 && page - array[index - 1] > 1) {
                       return (
                         <React.Fragment key={`ellipsis-${page}`}>
-                          <span className="px-3 py-2 text-gray-500">...</span>
+                          <span className="px-3 py-2 text-secondary/60">
+                            ...
+                          </span>
                           <button
                             onClick={() => handlePageChange(page)}
-                            className={`px-4 py-2 rounded-lg ${
+                            className={`px-4 py-2 rounded-lg transition-all ${
                               currentPage === page
-                                ? "bg-accent text-white"
-                                : "text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-800"
+                                ? "btn btn-primary"
+                                : "btn btn-secondary"
                             }`}
                           >
                             {page}
@@ -174,10 +169,10 @@ const GalleryPage: React.FC = () => {
                       <button
                         key={page}
                         onClick={() => handlePageChange(page)}
-                        className={`px-4 py-2 rounded-lg ${
+                        className={`px-4 py-2 rounded-lg transition-all ${
                           currentPage === page
-                            ? "bg-accent text-white"
-                            : "text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-800"
+                            ? "btn btn-primary"
+                            : "btn btn-secondary"
                         }`}
                       >
                         {page}
@@ -192,10 +187,10 @@ const GalleryPage: React.FC = () => {
                 disabled={
                   publicPagination.currentPage === publicPagination.totalPages
                 }
-                className={`flex items-center px-4 py-2 rounded-lg ${
+                className={`btn btn-secondary px-4 py-2 flex items-center ${
                   publicPagination.currentPage === publicPagination.totalPages
-                    ? "text-gray-400 cursor-not-allowed"
-                    : "text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-800"
+                    ? "opacity-50 cursor-not-allowed"
+                    : ""
                 }`}
               >
                 <span className="mr-1">Berikutnya</span>
@@ -207,7 +202,7 @@ const GalleryPage: React.FC = () => {
 
         {/* Pagination Info */}
         {publicPagination.totalPages > 1 && (
-          <div className="text-center mt-4 text-sm text-gray-600 dark:text-gray-400">
+          <div className="text-center mt-4 text-sm text-secondary/70">
             Menampilkan halaman {currentPage} dari {publicPagination.totalPages}
           </div>
         )}

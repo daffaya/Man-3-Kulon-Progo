@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../../../contexts/AuthContext";
 import { useToastMessage } from "../../../hooks/useToastMessage";
 import { fetchClasses, fetchTodayStats } from "../../../api/attendanceApi";
@@ -16,6 +16,7 @@ import {
   Upload,
   Users,
   UserPlus,
+  ChevronLeft,
 } from "lucide-react";
 import ImportStudentPage from "../../../components/modals/ImportStudentPage";
 
@@ -56,14 +57,12 @@ const AttendanceStudentPage: React.FC = () => {
   const hasEditAccess =
     isLoggedIn && ["guru_bk", "super_admin"].includes(user?.role || "");
 
-  // 🔹 Redirect if not logged in (after render)
   useEffect(() => {
     if (!isLoggedIn) {
       navigate("/login");
     }
   }, [isLoggedIn, navigate]);
 
-  // 🔹 Initial data fetching
   useEffect(() => {
     const fetchData = async () => {
       if (!token) return;
@@ -84,7 +83,6 @@ const AttendanceStudentPage: React.FC = () => {
     if (isLoggedIn && token) fetchData();
   }, [isLoggedIn, token, showErrorToast]);
 
-  // 🔹 Handle refresh after modal actions
   useEffect(() => {
     if (refreshData && token) {
       const refreshClasses = async () => {
@@ -167,7 +165,7 @@ const AttendanceStudentPage: React.FC = () => {
   if (loading) {
     return (
       <AdminLayout>
-        <div className="flex items-center justify-center min-h-screen text-gray-500">
+        <div className="flex items-center justify-center min-h-screen text-secondary">
           Memuat data...
         </div>
       </AdminLayout>
@@ -176,55 +174,57 @@ const AttendanceStudentPage: React.FC = () => {
 
   return (
     <AdminLayout>
-      <div className="pt-8 min-h-screen bg-background dark:bg-background py-12 px-4 sm:px-6 lg:px-8">
+      <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-12 fade-in">
         <div className="max-w-6xl mx-auto">
-          {/* Header */}
           <div className="mb-8">
-            <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
+            <Link
+              to="/atmin"
+              className="text-sm text-secondary hover:text-accent flex items-center mb-8 transition-colors"
+            >
+              <ChevronLeft className="h-4 w-4 mr-1" />
+              Kembali ke Admin Dashboard
+            </Link>
+            <h1 className="text-3xl font-serif font-bold text-foreground">
               Dashboard Guru BK
             </h1>
-            <p className="mt-2 text-gray-600 dark:text-gray-400">
-              Selamat datang, {username}!
-            </p>
+            <p className="mt-2 text-secondary">Selamat datang, {username}!</p>
           </div>
 
-          {/* Statistik Hari Ini */}
           <section className="mb-8">
-            <h2 className="text-xl font-semibold text-gray-700 dark:text-gray-300 mb-4">
+            <h2 className="text-xl font-semibold text-foreground mb-4">
               Statistik Presensi Hari Ini
             </h2>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-6">
               <StatCard
                 title="Hadir"
                 value={todayStats.totalHadir}
-                color="border-l-4 border-green-500"
+                color="border-l-4 border-success"
               />
               <StatCard
                 title="Izin"
                 value={todayStats.totalIzin}
-                color="border-l-4 border-yellow-500"
+                color="border-l-4 border-warning"
               />
               <StatCard
                 title="Sakit"
                 value={todayStats.totalSakit}
-                color="border-l-4 border-blue-500"
+                color="border-l-4 border-info"
               />
               <StatCard
                 title="Alpa"
                 value={todayStats.totalAlpa}
-                color="border-l-4 border-red-500"
+                color="border-l-4 border-error"
               />
               <StatCard
                 title="Libur"
                 value={todayStats.totalLibur}
-                color="border-l-4 border-purple-500"
+                color="border-l-4 border-accent"
               />
             </div>
           </section>
 
-          {/* Fitur Presensi */}
           <section className="mb-8">
-            <h2 className="text-xl font-semibold text-gray-700 dark:text-gray-300 mb-4">
+            <h2 className="text-xl font-semibold text-foreground mb-4">
               Fitur Presensi
             </h2>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -240,10 +240,9 @@ const AttendanceStudentPage: React.FC = () => {
             </div>
           </section>
 
-          {/* Quick Actions */}
           {hasEditAccess && (
             <section className="mb-8">
-              <h2 className="text-xl font-semibold text-gray-700 dark:text-gray-300 mb-4">
+              <h2 className="text-xl font-semibold text-foreground mb-4">
                 Quick Actions - Manajemen Siswa
               </h2>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -262,22 +261,22 @@ const AttendanceStudentPage: React.FC = () => {
             </section>
           )}
 
-          {/* Daftar Kelas */}
           <section>
-            <h2 className="text-xl font-semibold text-gray-700 dark:text-gray-300 mb-4">
+            <h2 className="text-xl font-semibold text-foreground mb-4">
               Daftar Kelas
             </h2>
             {classes.length === 0 ? (
-              <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-8 text-center">
-                <p className="text-gray-500 dark:text-gray-400">
-                  Tidak ada kelas yang tersedia
-                </p>
+              <div className="card p-8 text-center">
+                <p className="text-secondary">Tidak ada kelas yang tersedia</p>
               </div>
             ) : (
-              <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden">
-                <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
-                  <thead className="bg-gray-50 dark:bg-gray-700">
+              <div className="card overflow-hidden">
+                <table className="min-w-full divide-y divide-[rgb(var(--color-secondary)/0.2)]">
+                  <thead className="bg-[rgb(var(--color-semi-background))]">
                     <tr>
+                      <th className="px-2 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider">
+                        No
+                      </th>
                       {[
                         "Kelas",
                         "Tahun Ajaran",
@@ -287,29 +286,32 @@ const AttendanceStudentPage: React.FC = () => {
                       ].map((header) => (
                         <th
                           key={header}
-                          className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider"
+                          className="px-6 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider"
                         >
                           {header}
                         </th>
                       ))}
                     </tr>
                   </thead>
-                  <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
-                    {classes.map((classItem) => (
+                  <tbody className="divide-y divide-[rgb(var(--color-secondary)/0.1)]">
+                    {classes.map((classItem, index) => (
                       <tr
                         key={classItem.id}
-                        className="hover:bg-gray-50 dark:hover:bg-gray-700"
+                        className="hover:bg-[rgb(var(--color-semi-background))]"
                       >
-                        <td className="px-6 py-4 text-sm font-medium text-gray-900 dark:text-white">
+                        <td className="px-2 py-4 text-sm text-secondary">
+                          {index + 1}
+                        </td>
+                        <td className="px-6 py-4 text-sm font-medium text-foreground">
                           {classItem.name}
                         </td>
-                        <td className="px-6 py-4 text-sm text-gray-500 dark:text-gray-400">
+                        <td className="px-6 py-4 text-sm text-secondary">
                           {classItem.academic_year}
                         </td>
-                        <td className="px-6 py-4 text-sm text-gray-500 dark:text-gray-400">
+                        <td className="px-6 py-4 text-sm text-secondary">
                           {classItem.semester}
                         </td>
-                        <td className="px-6 py-4 text-sm text-gray-500 dark:text-gray-400">
+                        <td className="px-6 py-4 text-sm text-secondary">
                           {classItem.total_siswa} siswa
                         </td>
                         <td className="px-6 py-4 text-sm font-medium">
@@ -319,7 +321,7 @@ const AttendanceStudentPage: React.FC = () => {
                                 `/atmin/presensi/input?classId=${classItem.id}`
                               )
                             }
-                            className="text-blue-600 hover:text-blue-900 dark:text-blue-400 dark:hover:text-blue-300 mr-3"
+                            className="text-info hover:text-info/80 mr-3 transition-colors"
                           >
                             Input
                           </button>
@@ -329,7 +331,7 @@ const AttendanceStudentPage: React.FC = () => {
                                 `/atmin/presensi/recap?classId=${classItem.id}`
                               )
                             }
-                            className="text-green-600 hover:text-green-900 dark:text-green-400 dark:hover:text-green-300"
+                            className="text-success hover:text-success/80 transition-colors"
                           >
                             Rekap
                           </button>
@@ -344,14 +346,12 @@ const AttendanceStudentPage: React.FC = () => {
         </div>
       </div>
 
-      {/* 🔹 Add Student Modal */}
       <AddStudentModal
         isOpen={showAddStudentModal}
         onClose={() => setShowAddStudentModal(false)}
         onSuccess={() => setRefreshData(true)}
       />
 
-      {/* 🔹 Import Student Modal */}
       <ImportStudentPage
         isOpen={showImportModal}
         onClose={() => setShowImportModal(false)}

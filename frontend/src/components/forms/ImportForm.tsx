@@ -181,29 +181,29 @@ export const ImportForm: React.FC<ImportFormProps> = ({ onSuccess }) => {
 
   return (
     <div
-      className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
+      className="fixed inset-0 bg-black/50 flex items-center justify-center z-50"
       onClick={handleClickOutside}
     >
       <div
         ref={modalRef}
-        className="max-w-5xl w-full mx-auto p-6 bg-white dark:bg-gray-800 rounded-lg shadow-md max-h-[90vh] overflow-y-auto relative"
+        className="max-w-5xl w-full mx-auto p-6 card max-h-[90vh] overflow-y-auto relative"
       >
         {/* Close Button */}
         <button
           type="button"
           onClick={onSuccess}
-          className="absolute top-4 right-4 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300"
+          className="absolute top-4 right-4 text-secondary hover:text-foreground transition-colors"
         >
           <X className="h-6 w-6" />
         </button>
 
-        <h2 className="text-2xl font-bold mb-6">Import Data Siswa</h2>
+        <h2 className="text-2xl font-bold mb-6 text-foreground">
+          Import Data Siswa
+        </h2>
 
-        <div className="mb-6 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
-          <h3 className="font-semibold text-blue-800 dark:text-blue-300 mb-2">
-            Petunjuk Import:
-          </h3>
-          <ol className="list-decimal pl-5 space-y-1 text-blue-700 dark:text-blue-400">
+        <div className="mb-6 p-4 bg-accent/10 rounded-lg">
+          <h3 className="font-semibold text-accent mb-2">Petunjuk Import:</h3>
+          <ol className="list-decimal pl-5 space-y-1 text-accent/80">
             <li>Unduh template Excel yang telah disediakan</li>
             <li>
               Isi data siswa dengan format: NISN, Nama Lengkap, Tingkat-Rombel,
@@ -217,7 +217,7 @@ export const ImportForm: React.FC<ImportFormProps> = ({ onSuccess }) => {
           <div className="mt-3">
             <button
               onClick={downloadTemplate}
-              className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
+              className="inline-flex items-center px-4 py-2 btn btn-primary"
             >
               <Download className="h-5 w-5 mr-2" />
               Download Template
@@ -230,34 +230,34 @@ export const ImportForm: React.FC<ImportFormProps> = ({ onSuccess }) => {
             {...getRootProps()}
             className={`border-2 border-dashed rounded-lg p-8 text-center cursor-pointer transition-colors ${
               isDragActive
-                ? "border-blue-500 bg-blue-50 dark:bg-blue-900/20"
-                : "border-gray-300 dark:border-gray-600 hover:border-blue-400"
+                ? "border-accent bg-accent/10"
+                : "border-zinc-800 hover:border-accent"
             }`}
           >
             <input
               {...(getInputProps() as React.InputHTMLAttributes<HTMLInputElement>)}
             />
 
-            <Upload className="h-12 w-12 mx-auto text-gray-400 dark:text-gray-500 mb-3" />
-            <p className="text-sm text-gray-600 dark:text-gray-400">
+            <Upload className="h-12 w-12 mx-auto text-secondary mb-3" />
+            <p className="text-sm text-secondary">
               {isDragActive
                 ? "Drop file Excel di sini..."
                 : "Drag & drop file Excel di sini, atau klik untuk browse"}
             </p>
-            <p className="text-xs text-gray-500 dark:text-gray-500 mt-1">
+            <p className="text-xs text-secondary/60 mt-1">
               Hanya file .xlsx atau .xls, maksimal 5MB
             </p>
           </div>
 
           {file && (
-            <div className="mt-4 p-3 bg-gray-50 dark:bg-gray-700 rounded-md flex items-center justify-between">
+            <div className="mt-4 p-3 bg-semibackground rounded-md flex items-center justify-between">
               <div className="flex items-center">
-                <FileText className="h-5 w-5 text-gray-500 dark:text-gray-400 mr-2" />
+                <FileText className="h-5 w-5 text-secondary mr-2" />
                 <div>
-                  <p className="text-sm font-medium text-gray-900 dark:text-white">
+                  <p className="text-sm font-medium text-foreground">
                     {file.name}
                   </p>
-                  <p className="text-xs text-gray-500 dark:text-gray-400">
+                  <p className="text-xs text-secondary">
                     {(file.size / 1024 / 1024).toFixed(2)} MB
                   </p>
                 </div>
@@ -265,7 +265,7 @@ export const ImportForm: React.FC<ImportFormProps> = ({ onSuccess }) => {
               <button
                 type="button"
                 onClick={removeFile}
-                className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300"
+                className="text-secondary hover:text-foreground transition-colors"
               >
                 <X className="h-5 w-5" />
               </button>
@@ -278,11 +278,11 @@ export const ImportForm: React.FC<ImportFormProps> = ({ onSuccess }) => {
             type="button"
             onClick={handleImport}
             disabled={!file || loading}
-            className={`px-6 py-2 rounded-md text-white font-medium ${
+            className={`px-6 py-2 rounded-md text-white font-medium transition-colors ${
               !file || loading
-                ? "bg-gray-400 cursor-not-allowed"
-                : "bg-blue-600 hover:bg-blue-700"
-            } transition-colors`}
+                ? "bg-secondarybutton text-secondary cursor-not-allowed"
+                : "bg-accent hover:bg-hover"
+            }`}
           >
             {loading ? (
               <span className="flex items-center">
@@ -317,62 +317,62 @@ export const ImportForm: React.FC<ImportFormProps> = ({ onSuccess }) => {
         {result && (
           <div className="mt-8">
             <div className="flex items-center mb-6">
-              <CheckCircle className="h-6 w-6 text-green-500 mr-2" />
-              <h3 className="text-lg font-semibold">Hasil Import:</h3>
+              <CheckCircle className="h-6 w-6 text-success mr-2" />
+              <h3 className="text-lg font-semibold text-foreground">
+                Hasil Import:
+              </h3>
             </div>
 
             {/* Summary Cards */}
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-              <div className="bg-green-50 dark:bg-green-900/20 p-4 rounded-lg">
+              <div className="bg-success/10 p-4 rounded-lg">
                 <div className="flex items-center">
-                  <UserPlus className="h-6 w-6 text-green-600 dark:text-green-400 mr-2" />
+                  <UserPlus className="h-6 w-6 text-success mr-2" />
                   <div>
-                    <p className="text-green-800 dark:text-green-300 font-medium text-sm">
+                    <p className="text-success/80 font-medium text-sm">
                       Berhasil Ditambahkan
                     </p>
-                    <p className="text-2xl font-bold text-green-600 dark:text-green-400">
+                    <p className="text-2xl font-bold text-success">
                       {result.success}
                     </p>
                   </div>
                 </div>
               </div>
 
-              <div className="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-lg">
+              <div className="bg-accent/10 p-4 rounded-lg">
                 <div className="flex items-center">
-                  <Users className="h-6 w-6 text-blue-600 dark:text-blue-400 mr-2" />
+                  <Users className="h-6 w-6 text-accent mr-2" />
                   <div>
-                    <p className="text-blue-800 dark:text-blue-300 font-medium text-sm">
+                    <p className="text-accent/80 font-medium text-sm">
                       Diupdate
                     </p>
-                    <p className="text-2xl font-bold text-blue-600 dark:text-blue-400">
+                    <p className="text-2xl font-bold text-accent">
                       {result.updated}
                     </p>
                   </div>
                 </div>
               </div>
 
-              <div className="bg-yellow-50 dark:bg-yellow-900/20 p-4 rounded-lg">
+              <div className="bg-warning/10 p-4 rounded-lg">
                 <div className="flex items-center">
-                  <UserMinus className="h-6 w-6 text-yellow-600 dark:text-yellow-400 mr-2" />
+                  <UserMinus className="h-6 w-6 text-warning mr-2" />
                   <div>
-                    <p className="text-yellow-800 dark:text-yellow-300 font-medium text-sm">
+                    <p className="text-warning/80 font-medium text-sm">
                       Dilewati (Duplikat)
                     </p>
-                    <p className="text-2xl font-bold text-yellow-600 dark:text-yellow-400">
+                    <p className="text-2xl font-bold text-warning">
                       {result.skipped}
                     </p>
                   </div>
                 </div>
               </div>
 
-              <div className="bg-red-50 dark:bg-red-900/20 p-4 rounded-lg">
+              <div className="bg-error/10 p-4 rounded-lg">
                 <div className="flex items-center">
-                  <AlertTriangle className="h-6 w-6 text-red-600 dark:text-red-400 mr-2" />
+                  <AlertTriangle className="h-6 w-6 text-error mr-2" />
                   <div>
-                    <p className="text-red-800 dark:text-red-300 font-medium text-sm">
-                      Gagal
-                    </p>
-                    <p className="text-2xl font-bold text-red-600 dark:text-red-400">
+                    <p className="text-error/80 font-medium text-sm">Gagal</p>
+                    <p className="text-2xl font-bold text-error">
                       {result.failed}
                     </p>
                   </div>
@@ -383,7 +383,7 @@ export const ImportForm: React.FC<ImportFormProps> = ({ onSuccess }) => {
             {/* Skip Breakdown Cards */}
             {result && result.skipBreakdown && (
               <div className="mt-6">
-                <h4 className="font-medium text-gray-900 dark:text-white mb-3">
+                <h4 className="font-medium text-foreground mb-3">
                   Alasan Skip Terperinci:
                 </h4>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -391,33 +391,34 @@ export const ImportForm: React.FC<ImportFormProps> = ({ onSuccess }) => {
                     {
                       key: "duplicates",
                       label: "Duplikat NISN",
-                      color: "yellow",
+                      color: "warning",
                     },
                     {
                       key: "summaryRows",
                       label: "Footer/Summary",
-                      color: "gray",
+                      color: "secondary",
                     },
                     {
                       key: "classNotFound",
                       label: "Kelas Salah",
-                      color: "orange",
+                      color: "warning",
                     },
-                    { key: "missingData", label: "Data Kosong", color: "red" },
+                    {
+                      key: "missingData",
+                      label: "Data Kosong",
+                      color: "error",
+                    },
                     {
                       key: "genderInvalid",
                       label: "Gender Salah",
-                      color: "purple",
+                      color: "warning",
                     },
                   ].map(({ key, label, color }) => (
-                    <div
-                      key={key}
-                      className={`bg-${color}-50 dark:bg-${color}-900/20 p-4 rounded-lg`}
-                    >
-                      <p className="text-sm font-medium text-gray-600 dark:text-gray-400">
+                    <div key={key} className={`bg-${color}/10 p-4 rounded-lg`}>
+                      <p className="text-sm font-medium text-secondary">
                         {label}
                       </p>
-                      <p className="text-2xl font-bold text-gray-900 dark:text-white">
+                      <p className="text-2xl font-bold text-foreground">
                         {result.skipBreakdown[key] || 0}
                       </p>
                     </div>
@@ -429,7 +430,7 @@ export const ImportForm: React.FC<ImportFormProps> = ({ onSuccess }) => {
             {result.worksheetDetails &&
               Object.keys(result.worksheetDetails).length > 0 && (
                 <div className="mb-6">
-                  <h4 className="font-medium text-gray-900 dark:text-white mb-3">
+                  <h4 className="font-medium text-foreground mb-3">
                     Detail per Worksheet:
                   </h4>
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -437,33 +438,27 @@ export const ImportForm: React.FC<ImportFormProps> = ({ onSuccess }) => {
                       ([wsName, wsResult]: [string, any]) => (
                         <div
                           key={wsName}
-                          className="bg-gray-50 dark:bg-gray-700 p-4 rounded-lg"
+                          className="bg-semibackground p-4 rounded-lg"
                         >
-                          <h5 className="font-medium text-gray-900 dark:text-white mb-2">
+                          <h5 className="font-medium text-foreground mb-2">
                             {wsName}
                           </h5>
                           <div className="grid grid-cols-2 gap-2 text-sm">
                             <div>
-                              <span className="text-gray-600 dark:text-gray-400">
-                                Sukses:
-                              </span>
-                              <span className="ml-1 font-medium text-green-600 dark:text-green-400">
+                              <span className="text-secondary">Sukses:</span>
+                              <span className="ml-1 font-medium text-success">
                                 {wsResult.success}
                               </span>
                             </div>
                             <div>
-                              <span className="text-gray-600 dark:text-gray-400">
-                                Gagal:
-                              </span>
-                              <span className="ml-1 font-medium text-red-600 dark:text-red-400">
+                              <span className="text-secondary">Gagal:</span>
+                              <span className="ml-1 font-medium text-error">
                                 {wsResult.failed}
                               </span>
                             </div>
                             <div>
-                              <span className="text-gray-600 dark:text-gray-400">
-                                Skip:
-                              </span>
-                              <span className="ml-1 font-medium text-yellow-600 dark:text-yellow-400">
+                              <span className="text-secondary">Skip:</span>
+                              <span className="ml-1 font-medium text-warning">
                                 {wsResult.skipped}
                               </span>
                             </div>
@@ -477,35 +472,33 @@ export const ImportForm: React.FC<ImportFormProps> = ({ onSuccess }) => {
 
             {/* Error Details */}
             {result.errors.length > 0 && (
-              <div className="bg-yellow-50 dark:bg-yellow-900/20 p-4 rounded-lg">
-                <h4 className="font-medium text-yellow-800 dark:text-yellow-300 mb-2">
-                  Detail Error:
-                </h4>
+              <div className="bg-warning/10 p-4 rounded-lg">
+                <h4 className="font-medium text-warning mb-2">Detail Error:</h4>
                 <div className="max-h-60 overflow-y-auto">
-                  <table className="min-w-full divide-y divide-yellow-200 dark:divide-yellow-800">
-                    <thead className="bg-yellow-100 dark:bg-yellow-900/50">
+                  <table className="min-w-full divide-y divide-warning/20">
+                    <thead className="bg-warning/5">
                       <tr>
-                        <th className="px-4 py-2 text-left text-xs font-medium text-yellow-800 dark:text-yellow-300 uppercase tracking-wider">
+                        <th className="px-4 py-2 text-left text-xs font-medium text-warning uppercase tracking-wider">
                           Worksheet
                         </th>
-                        <th className="px-4 py-2 text-left text-xs font-medium text-yellow-800 dark:text-yellow-300 uppercase tracking-wider">
+                        <th className="px-4 py-2 text-left text-xs font-medium text-warning uppercase tracking-wider">
                           Baris
                         </th>
-                        <th className="px-4 py-2 text-left text-xs font-medium text-yellow-800 dark:text-yellow-300 uppercase tracking-wider">
+                        <th className="px-4 py-2 text-left text-xs font-medium text-warning uppercase tracking-wider">
                           Error
                         </th>
                       </tr>
                     </thead>
-                    <tbody className="divide-y divide-yellow-200 dark:divide-yellow-800">
+                    <tbody className="divide-y divide-warning/20">
                       {result.errors.map((error: any, index: number) => (
                         <tr key={index}>
-                          <td className="px-4 py-2 whitespace-nowrap text-sm text-yellow-700 dark:text-yellow-400">
+                          <td className="px-4 py-2 whitespace-nowrap text-sm text-warning/80">
                             {error.worksheet || "-"}
                           </td>
-                          <td className="px-4 py-2 whitespace-nowrap text-sm text-yellow-700 dark:text-yellow-400">
+                          <td className="px-4 py-2 whitespace-nowrap text-sm text-warning/80">
                             {error.row}
                           </td>
-                          <td className="px-4 py-2 text-sm text-yellow-700 dark:text-yellow-400">
+                          <td className="px-4 py-2 text-sm text-warning/80">
                             {error.error}
                           </td>
                         </tr>

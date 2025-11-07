@@ -3,6 +3,7 @@ import StudentForm from "../forms/StudentForm";
 import { useAuth } from "../../contexts/AuthContext";
 import { useToastMessage } from "../../hooks/useToastMessage";
 import { studentService } from "../../services/studentService";
+import { X } from "lucide-react";
 
 interface AddStudentModalProps {
   isOpen: boolean;
@@ -21,15 +22,26 @@ const AddStudentModal: React.FC<AddStudentModalProps> = ({
   if (!isOpen || !token) return null;
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div className="bg-white dark:bg-gray-800 rounded-lg p-6 w-full max-w-md">
+    <div
+      className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4 transition-all"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="add-student-modal-title"
+    >
+      <div className="card p-6 w-full max-w-md transform transition-all">
         <div className="flex justify-between items-center mb-4">
-          <h3 className="text-lg font-semibold">Tambah Siswa Baru</h3>
+          <h3
+            id="add-student-modal-title"
+            className="text-lg font-semibold text-foreground"
+          >
+            Tambah Siswa Baru
+          </h3>
           <button
             onClick={onClose}
-            className="text-gray-500 hover:text-gray-700"
+            className="text-secondary hover:text-foreground p-1 rounded-full hover:bg-[rgb(var(--color-secondary-hover))] transition-colors"
+            aria-label="Tutup modal"
           >
-            ×
+            <X size={20} />
           </button>
         </div>
 

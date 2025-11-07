@@ -215,32 +215,6 @@ const BulkMoveClassModal: React.FC<BulkMoveClassModalProps> = ({
     }
   }, [formData.classIdFrom, filteredClasses.from]); // Ini hanya untuk fromClassLevel
 
-  {
-    formData.classIdFrom && (
-      <div className="mb-4">
-        <label className="block text-sm font-medium">Aksi</label>
-        <select
-          value={formData.action}
-          onChange={(e) => {
-            console.log("Action changed to:", e.target.value);
-            setFormData({
-              ...formData,
-              action: e.target.value as "move" | "graduate",
-            });
-          }}
-          className="form-input w-full"
-          required
-        >
-          <option value="move">Naik Kelas</option>
-          {/* Hanya tampilkan opsi "Luluskan" jika kelas asal adalah XII */}
-          {fromClassLevel === "XII" && (
-            <option value="graduate">Luluskan</option>
-          )}
-        </select>
-      </div>
-    );
-  }
-
   // Fetch count of students to move when class or angkatan changes
   useEffect(() => {
     console.log("🔍 useEffect for fetchStudentsToMoveCount triggered");
@@ -392,13 +366,15 @@ const BulkMoveClassModal: React.FC<BulkMoveClassModalProps> = ({
   );
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div className="bg-white dark:bg-gray-800 rounded-lg p-6 w-full max-w-md">
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+      <div className="card p-6 w-full max-w-md">
         <div className="flex justify-between items-center mb-4">
-          <h3 className="text-lg font-semibold">Kenaikan Kelas / Kelulusan</h3>
+          <h3 className="text-lg font-semibold text-foreground">
+            Kenaikan Kelas / Kelulusan
+          </h3>
           <button
             onClick={onClose}
-            className="text-gray-500 hover:text-gray-700"
+            className="text-secondary hover:text-foreground transition-colors"
           >
             <X size={24} />
           </button>
@@ -406,7 +382,9 @@ const BulkMoveClassModal: React.FC<BulkMoveClassModalProps> = ({
 
         <form onSubmit={handleSubmit}>
           <div className="mb-4">
-            <label className="block text-sm font-medium">Angkatan</label>
+            <label className="block text-sm font-medium text-foreground mb-1">
+              Angkatan
+            </label>
             <select
               value={formData.angkatan}
               onChange={(e) =>
@@ -423,14 +401,16 @@ const BulkMoveClassModal: React.FC<BulkMoveClassModalProps> = ({
               ))}
             </select>
             {angkatans.length === 0 && (
-              <p className="text-sm text-red-500 mt-1">
+              <p className="text-sm text-error mt-1">
                 Tidak ada data angkatan yang tersedia
               </p>
             )}
           </div>
 
           <div className="mb-4">
-            <label className="block text-sm font-medium">Kelas Asal</label>
+            <label className="block text-sm font-medium text-foreground mb-1">
+              Kelas Asal
+            </label>
             <select
               value={formData.classIdFrom}
               onChange={(e) =>
@@ -450,14 +430,16 @@ const BulkMoveClassModal: React.FC<BulkMoveClassModalProps> = ({
             {formData.angkatan &&
               filteredClasses.from.length === 0 &&
               !loadingClasses && (
-                <p className="text-sm text-red-500 mt-1">
+                <p className="text-sm text-error mt-1">
                   Tidak ada kelas untuk angkatan ini
                 </p>
               )}
           </div>
 
           <div className="mb-4">
-            <label className="block text-sm font-medium">Aksi</label>
+            <label className="block text-sm font-medium text-foreground mb-1">
+              Aksi
+            </label>
             <select
               value={formData.action}
               onChange={(e) => {
@@ -478,7 +460,7 @@ const BulkMoveClassModal: React.FC<BulkMoveClassModalProps> = ({
               )}
             </select>
             {formData.classIdFrom && fromClassLevel !== "XII" && (
-              <p className="text-sm text-gray-500 mt-1">
+              <p className="text-sm text-secondary mt-1">
                 Opsi "Luluskan" hanya tersedia untuk kelas XII
               </p>
             )}
@@ -486,7 +468,9 @@ const BulkMoveClassModal: React.FC<BulkMoveClassModalProps> = ({
 
           {formData.action === "move" && (
             <div className="mb-4">
-              <label className="block text-sm font-medium">Kelas Tujuan</label>
+              <label className="block text-sm font-medium text-foreground mb-1">
+                Kelas Tujuan
+              </label>
               <select
                 value={formData.classIdTo}
                 onChange={(e) =>
@@ -506,7 +490,7 @@ const BulkMoveClassModal: React.FC<BulkMoveClassModalProps> = ({
               {formData.classIdFrom &&
                 filteredClasses.to.length === 0 &&
                 !loadingClasses && (
-                  <p className="text-sm text-red-500 mt-1">
+                  <p className="text-sm text-error mt-1">
                     Tidak ada kelas tujuan yang tersedia
                   </p>
                 )}
@@ -514,7 +498,9 @@ const BulkMoveClassModal: React.FC<BulkMoveClassModalProps> = ({
           )}
 
           <div className="mb-4">
-            <label className="block text-sm font-medium">Tahun Ajaran</label>
+            <label className="block text-sm font-medium text-foreground mb-1">
+              Tahun Ajaran
+            </label>
             <input
               type="text"
               value={formData.academicYear}
@@ -528,8 +514,8 @@ const BulkMoveClassModal: React.FC<BulkMoveClassModalProps> = ({
           </div>
 
           {formData.classIdFrom && formData.angkatan && (
-            <div className="mb-4 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-md">
-              <p className="text-sm text-blue-700 dark:text-blue-300">
+            <div className="mb-4 p-3 bg-accent/10 rounded-md">
+              <p className="text-sm text-accent">
                 {studentsToMoveCount} siswa akan diproses dari kelas{" "}
                 {fromClass?.name || "yang dipilih"}
               </p>
@@ -561,10 +547,12 @@ const BulkMoveClassModal: React.FC<BulkMoveClassModalProps> = ({
         </form>
 
         {showConfirmation && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-            <div className="bg-white dark:bg-gray-800 rounded-lg p-6 max-w-md w-full">
-              <h3 className="text-xl font-bold mb-4">Konfirmasi</h3>
-              <p className="mb-6 text-gray-600 dark:text-gray-400">
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+            <div className="card p-6 max-w-md w-full">
+              <h3 className="text-xl font-bold mb-4 text-foreground">
+                Konfirmasi
+              </h3>
+              <p className="mb-6 text-secondary">
                 Apakah Anda yakin ingin{" "}
                 {formData.action === "move" ? "menaikkan kelas" : "meluluskan"}{" "}
                 {studentsToMoveCount} siswa Angkatan {formData.angkatan} dari

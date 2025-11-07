@@ -3,7 +3,6 @@ import Layout from "../components/layout/Layout";
 import { Link } from "react-router-dom";
 import { Mail, Github, Twitter, Linkedin } from "lucide-react";
 
-// Extracted content constants
 const SCHOOL_HISTORY = [
   "Sejarah berdirinya MAN 3 Kulon Progo tidak akan terlepas dari kondisi umat yang berada di wilayah Kulon Progo bagian utara, Kecamatan Nanggulan, Samigaluh dan Kalibawang merupakan home base bagi kaum non muslim, sehingga secara umum, pada daerah ini kaum non muslim relatif lebih banyak.",
   "Sebagai langkah antisipasi pada tahun 1984, Pengawas Pendidikan Islam di Kulon Progo Utara, Drs. Abdul Mukti bersama-sama dengan beberapa Tokoh dan Guru Agama Islam, seperti H. Muh. Karsidi (Penilik Guru Pendidikan Agama Islam Kalibawang), Drs. Muzilanto (SMP Muh. Kalibawang), S. Siswo Pranoto (Ka. SD. Dekso I), H.A. Priharsoyo (Guru SD Sokorini), H.Yasmin, B.A. (Ka. SD Muh. Bendo), Mujono (Kepala KUA Kecamatan Kalibawang), H. Mahmud (Staf KUA Kalibawang), H. Kasil Subekti, S.H. ( Staf Kantor Kecamatan Kalibawang), berniat mendirikan Madrasah Aliyah. Pada saat itu Camat Kalibawang, Adam Nurjati menyetujui rencana pendirian Madrasah Aliyah di Kalibawang. Namun dengan catatan Madrasah Aliyah itu harus negeri.",
@@ -81,7 +80,6 @@ const STRATEGIES = [
   "Melengkapi sarana dan prasarana pembelajaran sesuai perkembangan zaman",
 ];
 
-// Reusable components
 const Card = React.memo(
   ({
     children,
@@ -91,7 +89,7 @@ const Card = React.memo(
     className?: string;
   }) => (
     <div
-      className={`p-6 bg-white text-gray-800 space-y-4 leading-relaxed text-justify ${className}`}
+      className={`card p-6 space-y-4 leading-relaxed text-justify ${className}`}
     >
       {children}
     </div>
@@ -102,7 +100,11 @@ const SectionHeader: React.FC<{ title: string; className?: string }> = ({
   title,
   className = "",
 }) => (
-  <h3 className={`text-center font-serif font-bold ${className}`}>{title}</h3>
+  <h3
+    className={`text-center font-serif font-bold text-foreground ${className}`}
+  >
+    {title}
+  </h3>
 );
 
 const ImageContainer: React.FC<{ src: string; alt: string }> = ({
@@ -110,7 +112,7 @@ const ImageContainer: React.FC<{ src: string; alt: string }> = ({
   alt,
 }) => (
   <div
-    className="w-full sm:w-3/4 md:w-3/5 lg:w-1/2 mx-auto overflow-hidden shadow-lg"
+    className="w-full sm:w-3/4 md:w-3/5 lg:w-1/2 mx-auto overflow-hidden rounded-xl shadow-xl"
     role="img"
     aria-label={alt}
   >
@@ -123,8 +125,8 @@ const ListSection: React.FC<{ title: string; items: string[] }> = ({
   items,
 }) => (
   <div className="mb-2">
-    <h5 className="mb-2">{title}</h5>
-    <ul className="list-disc list-inside ml-4">
+    <h5 className="mb-2 font-semibold text-foreground">{title}</h5>
+    <ul className="list-disc list-inside ml-4 text-secondary">
       {items.map((item, index) => (
         <li key={index}>{item}</li>
       ))}
@@ -132,12 +134,13 @@ const ListSection: React.FC<{ title: string; items: string[] }> = ({
   </div>
 );
 
-// Main component sections
 const SchoolHistory: React.FC = () => (
   <Card>
-    <h3 className="text-center">Sejarah</h3>
+    <h3 className="text-center text-foreground">Sejarah</h3>
     {SCHOOL_HISTORY.map((paragraph, index) => (
-      <p key={`history-${index}`}>{paragraph}</p>
+      <p key={`history-${index}`} className="text-secondary">
+        {paragraph}
+      </p>
     ))}
   </Card>
 );
@@ -145,11 +148,11 @@ const SchoolHistory: React.FC = () => (
 const VisionMission: React.FC = () => (
   <Card>
     <section className="text-center mb-4">
-      <h3 className="mb-2">VISI</h3>
-      <p>{VISION}</p>
+      <h3 className="mb-2 text-foreground">VISI</h3>
+      <p className="text-secondary">{VISION}</p>
     </section>
     <section className="mb-4">
-      <h3 className="text-center mb-2">MISI</h3>
+      <h3 className="text-center mb-2 text-foreground">MISI</h3>
       <div className="space-y-2">
         {MISSION_ITEMS.map((mission, index) => (
           <ListSection
@@ -162,15 +165,21 @@ const VisionMission: React.FC = () => (
     </section>
 
     <div>
-      <h3 className="text-center font-bold mb-2">TUJUAN DAN STRATEGI</h3>
+      <h3 className="text-center font-bold mb-2 text-foreground">
+        TUJUAN DAN STRATEGI
+      </h3>
       <div className="space-y-4">
         <div>
-          <h5 className="font-semibold underline">Tujuan Jangka Panjang:</h5>
-          <p>{LONG_TERM_GOAL}</p>
+          <h5 className="font-semibold underline text-foreground">
+            Tujuan Jangka Panjang:
+          </h5>
+          <p className="text-secondary">{LONG_TERM_GOAL}</p>
         </div>
         <div>
-          <h5 className="font-semibold underline">Tujuan Jangka Pendek:</h5>
-          <ul className="list-disc list-inside ml-4">
+          <h5 className="font-semibold underline text-foreground">
+            Tujuan Jangka Pendek:
+          </h5>
+          <ul className="list-disc list-inside ml-4 text-secondary">
             {SHORT_TERM_GOALS.map((goal, index) => (
               <li key={index}>{goal}</li>
             ))}
@@ -179,11 +188,11 @@ const VisionMission: React.FC = () => (
       </div>
     </div>
 
-    <div>
-      <h2 className="text-xl font-bold mb-2">
+    <div className="mt-6">
+      <h2 className="text-xl font-bold mb-2 text-foreground">
         Strategi Pelaksanaan Visi dan Misi:
       </h2>
-      <ul className="list-disc list-inside ml-4 space-y-1">
+      <ul className="list-disc list-inside ml-4 space-y-1 text-secondary">
         {STRATEGIES.map((strategy, index) => (
           <li key={index}>{strategy}</li>
         ))}
@@ -193,16 +202,16 @@ const VisionMission: React.FC = () => (
 );
 
 const ContactSection: React.FC = () => (
-  <section className="py-10 bg-gray-50 dark:bg-semibackground rounded-xl px-8 text-center">
-    <h2 className="text-2xl font-serif font-bold mb-4">
-      Want to work together?
+  <section className="py-10 bg-semibackground/50 rounded-xl px-8 text-center">
+    <h2 className="text-2xl font-serif font-bold mb-4 text-foreground">
+      Ingin Berkontribusi?
     </h2>
-    <p className="text-lg text-gray-600 dark:text-gray-400 mb-6 max-w-xl mx-auto">
-      I`m always open to interesting collaborations, speaking opportunities, and
-      consulting projects.
+    <p className="text-lg text-secondary mb-6 max-w-xl mx-auto">
+      Kami terbuka untuk kolaborasi, kunjungan, atau pertanyaan terkait
+      pendidikan dan pengembangan madrasah.
     </p>
-    <Link to="/contact" className="btn btn-primary">
-      Get in Touch
+    <Link to="/kontak" className="btn btn-primary">
+      Hubungi Kami
     </Link>
   </section>
 );
@@ -212,10 +221,14 @@ const ProfilePage: React.FC = () => {
     <Layout>
       <div className="container mx-auto px-4 sm:px-6 py-12 max-w-4xl fade-in">
         <section className="mb-12">
-          <SectionHeader title="Tentang Kami" className="mb-4" />
+          <SectionHeader title="Tentang Kami" className="mb-4 text-2xl" />
           <ImageContainer src="/MAN3_1.png" alt="MAN 3 Kulon Progo" />
-          <SchoolHistory />
-          <VisionMission />
+          <div className="mt-8">
+            <SchoolHistory />
+          </div>
+          <div className="mt-8">
+            <VisionMission />
+          </div>
         </section>
         <ContactSection />
       </div>

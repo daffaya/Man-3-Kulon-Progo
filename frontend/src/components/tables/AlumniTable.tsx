@@ -22,39 +22,58 @@ const AlumniTable: React.FC<AlumniTableProps> = ({
   handleEditClick,
 }) => {
   return (
-    <div className="overflow-x-auto">
+    <div className="overflow-x-auto rounded-lg border border-zinc-800">
       {loading ? (
         <div className="text-center py-8">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600 dark:text-gray-400">
-            Memuat data alumni...
-          </p>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-accent mx-auto"></div>
+          <p className="mt-4 text-secondary">Memuat data alumni...</p>
         </div>
       ) : (
         <table className="w-full text-sm">
-          <thead>
-            <tr className="border-b">
-              <th className="text-left py-3 px-4">No</th>
-              <th className="text-left py-3 px-4">NISN</th>
-              <th className="text-left py-3 px-4">Nama</th>
-              <th className="text-left py-3 px-4">Tahun Lulus</th>
-              <th className="text-left py-3 px-4">Kelas Terakhir</th>
-              {isAdminOrGuruBK && <th className="text-left py-3 px-4">Aksi</th>}
+          <thead className="bg-semibackground">
+            <tr className="border-b border-zinc-800">
+              <th className="text-left py-3 px-4 font-medium text-secondary">
+                No
+              </th>
+              <th className="text-left py-3 px-4 font-medium text-secondary">
+                NISN
+              </th>
+              <th className="text-left py-3 px-4 font-medium text-secondary">
+                Nama
+              </th>
+              <th className="text-left py-3 px-4 font-medium text-secondary">
+                Tahun Lulus
+              </th>
+              <th className="text-left py-3 px-4 font-medium text-secondary">
+                Kelas Terakhir
+              </th>
+              {isAdminOrGuruBK && (
+                <th className="text-left py-3 px-4 font-medium text-secondary">
+                  Aksi
+                </th>
+              )}
             </tr>
           </thead>
-          <tbody>
+          <tbody className="divide-y divide-zinc-800">
             {alumni.map((alum, index) => (
-              <tr key={alum.id} className="border-b">
-                <td className=" py-3 px-4">{index + 1}</td>
-                <td className="py-3 px-4">{alum.nisn}</td>
-                <td className="py-3 px-4">{alum.name}</td>
-                <td className="py-3 px-4">{alum.graduation_year}</td>
-                <td className="py-3 px-4">{alum.last_class_name || "-"}</td>
+              <tr
+                key={alum.id}
+                className="hover:bg-semibackground transition-colors"
+              >
+                <td className="py-3 px-4 text-foreground">{index + 1}</td>
+                <td className="py-3 px-4 text-foreground">{alum.nisn}</td>
+                <td className="py-3 px-4 text-foreground">{alum.name}</td>
+                <td className="py-3 px-4 text-foreground">
+                  {alum.graduation_year}
+                </td>
+                <td className="py-3 px-4 text-foreground">
+                  {alum.last_class_name || "-"}
+                </td>
                 {isAdminOrGuruBK && (
                   <td className="py-3 px-4">
                     <button
                       onClick={() => handleEditClick(alum)}
-                      className="text-blue-600 hover:underline"
+                      className="text-accent hover:text-hover transition-colors"
                     >
                       Edit
                     </button>

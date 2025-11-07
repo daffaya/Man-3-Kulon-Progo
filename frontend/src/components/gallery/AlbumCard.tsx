@@ -70,7 +70,7 @@ const AlbumCard: React.FC<AlbumCardProps> = ({
             </Link>
           </h3>
 
-          <div className="flex items-center gap-1 text-sm text-gray-500 dark:text-gray-400 bg-gray-100 dark:bg-gray-700 px-2 py-1 rounded-full">
+          <div className="flex items-center gap-1 text-sm text-secondary bg-[rgb(var(--color-secondary-button),0.5)] px-2 py-1 rounded-full">
             <Image size={14} />
             <span>{photo_count}</span>
           </div>

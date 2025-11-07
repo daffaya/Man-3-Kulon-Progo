@@ -1,7 +1,8 @@
 // frontend/src/pages/admin/user/UserManagementPage.tsx
+
 import React, { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
-import { Plus, RefreshCw, X, ArrowLeft } from "lucide-react";
+import { Plus, RefreshCw, X, ArrowLeft, Users, Search } from "lucide-react";
 import { useAuth } from "../../../contexts/AuthContext";
 import { useToast } from "../../../contexts/ToastContext";
 import AdminLayout from "../../../components/layout/AdminLayout";
@@ -15,139 +16,128 @@ const UserManagementPage: React.FC = () => {
   const { user, isLoggedIn } = useAuth();
   const { showToast } = useToast();
 
-  // State untuk data user
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
-
-  // State untuk form
   const [showForm, setShowForm] = useState(false);
   const [editingUser, setEditingUser] = useState<User | null>(null);
   const [formLoading, setFormLoading] = useState(false);
-
-  // State untuk filter
   const [keyword, setKeyword] = useState("");
   const [selectedRole, setSelectedRole] = useState<string>("all");
   const [debouncedKeyword, setDebouncedKeyword] = useState("");
-
-  // State untuk pagination
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(0);
-  const usersPerPage = 10;
-
-  // State untuk konfirmasi hapus
   const [showConfirmation, setShowConfirmation] = useState(false);
   const [userToDelete, setUserToDelete] = useState<number | null>(null);
 
-  // Redirect if not logged in or not super_admin
+  const usersPerPage = 10;
+
+  // Redirect if not super_admin
   useEffect(() => {
     if (!isLoggedIn) {
-      navigate("/login");
+      navigate("/login", { state: { redirectTo: "/atmin/users" } });
       return;
     }
-
     if (user?.role !== "super_admin") {
+      showToast(
+        "Akses ditolak. Hanya Super Admin yang dapat mengelola user.",
+        "error"
+      );
       navigate("/atmin");
       return;
     }
+  }, [isLoggedIn, user, navigate, showToast]);
 
-    fetchUsers();
-  }, [isLoggedIn, user, navigate]);
-
-  // Effect for debouncing the keyword input
+  // Debounce search input
   useEffect(() => {
-    const handler = setTimeout(() => {
-      setDebouncedKeyword(keyword);
-    }, 500);
-
-    return () => {
-      clearTimeout(handler);
-    };
+    const timer = setTimeout(() => setDebouncedKeyword(keyword), 400);
+    return () => clearTimeout(timer);
   }, [keyword]);
 
-  // Effect to fetch users when filters or pagination change
-  useEffect(() => {
-    if (isLoggedIn && user?.role === "super_admin") {
-      fetchUsers();
-    }
-  }, [debouncedKeyword, selectedRole, currentPage, isLoggedIn, user]);
+  // Fetch users with filters & pagination
+  const fetchUsers = useCallback(async () => {
+    if (!isLoggedIn || user?.role !== "super_admin") return;
 
-  const fetchUsers = async () => {
+    setLoading(true);
     try {
-      setLoading(true);
       const response = await userApi.getAllUsers();
-
-      if (response && response.success && Array.isArray(response.data)) {
-        let filteredUsers = response.data;
-
-        // Filter by keyword
-        if (debouncedKeyword.trim() !== "") {
-          const keywordLower = debouncedKeyword.toLowerCase();
-          filteredUsers = filteredUsers.filter(
-            (user) =>
-              user.username.toLowerCase().includes(keywordLower) ||
-              (user.full_name &&
-                user.full_name.toLowerCase().includes(keywordLower))
-          );
-        }
-
-        // Filter by role
-        if (selectedRole !== "all") {
-          filteredUsers = filteredUsers.filter(
-            (user) => user.role === selectedRole
-          );
-        }
-
-        // Calculate pagination
-        const totalItems = filteredUsers.length;
-        const totalPagesCount = Math.ceil(totalItems / usersPerPage);
-        setTotalPages(totalPagesCount);
-
-        // Apply pagination
-        const startIndex = (currentPage - 1) * usersPerPage;
-        const endIndex = startIndex + usersPerPage;
-        const paginatedUsers = filteredUsers.slice(startIndex, endIndex);
-
-        setUsers(paginatedUsers);
-      } else {
-        console.error("Invalid API response format:", response);
-        setUsers([]);
-        showToast("Invalid data format received from server", "error");
+      if (!response?.success || !Array.isArray(response.data)) {
+        throw new Error("Format data tidak valid");
       }
-    } catch (error: any) {
-      console.error("Error fetching users:", error);
+
+      let filtered = response.data;
+
+      // Apply search filter
+      if (debouncedKeyword.trim()) {
+        const term = debouncedKeyword.toLowerCase();
+        filtered = filtered.filter(
+          (u: User) =>
+            u.username.toLowerCase().includes(term) ||
+            (u.full_name && u.full_name.toLowerCase().includes(term))
+        );
+      }
+
+      // Apply role filter
+      if (selectedRole !== "all") {
+        filtered = filtered.filter((u: User) => u.role === selectedRole);
+      }
+
+      // Pagination
+      const total = Math.ceil(filtered.length / usersPerPage);
+      setTotalPages(total || 1);
+
+      const start = (currentPage - 1) * usersPerPage;
+      const paginated = filtered.slice(start, start + usersPerPage);
+
+      setUsers(paginated);
+    } catch (err: any) {
+      showToast(err.message || "Gagal memuat data user", "error");
       setUsers([]);
-      showToast(error.message || "Failed to fetch users", "error");
     } finally {
       setLoading(false);
     }
-  };
+  }, [
+    debouncedKeyword,
+    selectedRole,
+    currentPage,
+    isLoggedIn,
+    user?.role,
+    showToast,
+  ]);
 
-  const handleCreateUser = async (userData: UserFormData) => {
+  useEffect(() => {
+    fetchUsers();
+  }, [fetchUsers]);
+
+  // Reset page on filter change
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [debouncedKeyword, selectedRole]);
+
+  const handleCreateUser = async (data: UserFormData) => {
+    setFormLoading(true);
     try {
-      setFormLoading(true);
-      const response = await userApi.createUser(userData);
-      showToast(response.message || "User created successfully", "success");
+      const res = await userApi.createUser(data);
+      showToast(res.message || "User berhasil dibuat", "success");
       setShowForm(false);
       fetchUsers();
-    } catch (error: any) {
-      showToast(error.message || "Failed to create user", "error");
+    } catch (err: any) {
+      showToast(err.message || "Gagal membuat user", "error");
     } finally {
       setFormLoading(false);
     }
   };
 
-  const handleUpdateUser = async (userData: UserFormData) => {
+  const handleUpdateUser = async (data: UserFormData) => {
     if (!editingUser) return;
-
+    setFormLoading(true);
     try {
-      setFormLoading(true);
-      const response = await userApi.updateUser(editingUser.id, userData);
-      showToast(response.message || "User updated successfully", "success");
+      const res = await userApi.updateUser(editingUser.id, data);
+      showToast(res.message || "User berhasil diperbarui", "success");
       setShowForm(false);
       setEditingUser(null);
       fetchUsers();
-    } catch (error: any) {
-      showToast(error.message || "Failed to update user", "error");
+    } catch (err: any) {
+      showToast(err.message || "Gagal memperbarui user", "error");
     } finally {
       setFormLoading(false);
     }
@@ -158,24 +148,17 @@ const UserManagementPage: React.FC = () => {
     setShowConfirmation(true);
   };
 
-  const confirmDelete = useCallback(async () => {
-    if (userToDelete) {
-      try {
-        const response = await userApi.deleteUser(userToDelete);
-        showToast(response.message || "User deleted successfully", "success");
-        setShowConfirmation(false);
-        setUserToDelete(null);
-        fetchUsers();
-      } catch (error: any) {
-        showToast(error.message || "Failed to delete user", "error");
-        console.error("Error deleting user:", error);
-      }
+  const confirmDelete = async () => {
+    if (!userToDelete) return;
+    try {
+      const res = await userApi.deleteUser(userToDelete);
+      showToast(res.message || "User berhasil dihapus", "success");
+      setShowConfirmation(false);
+      setUserToDelete(null);
+      fetchUsers();
+    } catch (err: any) {
+      showToast(err.message || "Gagal menghapus user", "error");
     }
-  }, [userToDelete, fetchUsers, showToast]);
-
-  const cancelDelete = () => {
-    setShowConfirmation(false);
-    setUserToDelete(null);
   };
 
   const handleEditUser = (user: User) => {
@@ -193,77 +176,55 @@ const UserManagementPage: React.FC = () => {
     setEditingUser(null);
   };
 
-  const handleRemoveFilters = () => {
+  const resetFilters = () => {
     setKeyword("");
     setSelectedRole("all");
     setCurrentPage(1);
   };
 
-  const handleKeywordInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setKeyword(e.target.value);
-  };
+  const hasActiveFilters = keyword.trim() || selectedRole !== "all";
 
-  const handleKeywordInputKeyPress = (
-    e: React.KeyboardEvent<HTMLInputElement>
-  ) => {
-    if (e.key === "Enter") {
-      e.preventDefault();
-      setCurrentPage(1);
-    }
-  };
-
-  const handleRoleChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    setSelectedRole(e.target.value);
-    setCurrentPage(1);
-  };
-
-  const handlePreviousPage = () => {
-    if (currentPage > 1) {
-      setCurrentPage(currentPage - 1);
-    }
-  };
-
-  const handleNextPage = () => {
-    if (currentPage < totalPages) {
-      setCurrentPage(currentPage + 1);
-    }
-  };
-
-  const hasActiveFilters = keyword.trim() !== "" || selectedRole !== "all";
-  const isPreviousDisabled = loading || currentPage <= 1;
-  const isNextDisabled = loading || currentPage >= totalPages;
-
-  if (!loading && users.length === 0 && hasActiveFilters) {
+  // Empty state: no users at all
+  if (!loading && users.length === 0 && !hasActiveFilters) {
     return (
       <AdminLayout>
-        <div className="container mx-auto px-4 sm:px-6 py-12 text-center">
-          <p className="text-xl text-gray-600 dark:text-gray-400">
-            Tidak ada user yang cocok dengan filter.
-          </p>
-          <button
-            onClick={handleRemoveFilters}
-            className="mt-4 text-accent hover:underline flex items-center justify-center mx-auto"
-          >
-            <X size={16} className="mr-1" /> Hapus Filter
-          </button>
+        <div className="container mx-auto px-4 py-12 text-center">
+          <div className="card p-12 max-w-md mx-auto">
+            <Users className="h-16 w-16 text-secondary/40 mx-auto mb-4" />
+            <h3 className="text-xl font-semibold text-foreground mb-2">
+              Belum Ada User
+            </h3>
+            <p className="text-secondary mb-6">
+              Mulai tambahkan user pertama untuk mengelola sistem.
+            </p>
+            <button onClick={handleAddUser} className="btn btn-primary">
+              <Plus size={18} className="mr-2" />
+              Tambah User Pertama
+            </button>
+          </div>
         </div>
       </AdminLayout>
     );
   }
 
-  if (!loading && users.length === 0 && !hasActiveFilters) {
+  // Empty state: filtered results
+  if (!loading && users.length === 0 && hasActiveFilters) {
     return (
       <AdminLayout>
-        <div className="container mx-auto px-4 sm:px-6 py-12 text-center">
-          <p className="text-xl text-gray-600 dark:text-gray-400">
-            Belum ada user yang ditemukan.
-          </p>
-          <button
-            onClick={handleAddUser}
-            className="mt-4 inline-block btn btn-primary flex items-center justify-center mx-auto w-fit"
-          >
-            <Plus size={18} className="mr-1" /> Buat User Pertama Anda
-          </button>
+        <div className="container mx-auto px-4 py-12 text-center">
+          <div className="card p-12 max-w-md mx-auto">
+            <Search className="h-16 w-16 text-secondary/40 mx-auto mb-4" />
+            <h3 className="text-xl font-semibold text-foreground mb-2">
+              Tidak Ada Hasil
+            </h3>
+            <p className="text-secondary mb-6">
+              Tidak ada user yang cocok dengan filter yang diterapkan.
+            </p>
+            <button onClick={resetFilters} className="btn btn-secondary">
+              <X size={18} className="mr-2" />
+              Hapus Filter
+            </button>
+          </div>
         </div>
       </AdminLayout>
     );
@@ -271,73 +232,60 @@ const UserManagementPage: React.FC = () => {
 
   return (
     <AdminLayout>
-      <div className="container mx-auto px-4 sm:px-6 py-12 fade-in">
+      <div className="container mx-auto px-4 sm:px-6 py-8 fade-in">
         <button
           onClick={() => navigate("/atmin")}
-          className="text-sm text-gray-600 dark:text-gray-400 hover:text-primary dark:hover:text-primary flex items-center mb-4 transition-colors"
+          className="text-sm text-secondary hover:text-accent flex items-center mb-6 transition-colors"
         >
           <ArrowLeft className="h-4 w-4 mr-1" />
-          Kembali ke admin dashboard
+          Kembali ke Dashboard
         </button>
 
-        <div className="flex flex-col mx-4 sm:flex-row sm:items-center sm:justify-between mb-8">
-          <h1 className="text-3xl font-serif font-bold mb-4 sm:mb-0">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-8 gap-4">
+          <h1 className="text-3xl font-serif font-bold text-foreground">
             Manajemen User
           </h1>
-
-          <div className="flex space-x-2">
-            <button
-              onClick={handleAddUser}
-              className="btn btn-primary flex items-center"
-            >
-              <Plus size={18} className="mr-1" /> User Baru
-            </button>
-          </div>
+          <button
+            onClick={handleAddUser}
+            className="btn btn-primary flex items-center"
+          >
+            <Plus size={18} className="mr-2" />
+            User Baru
+          </button>
         </div>
 
-        <div className="bg-white dark:bg-semibackground rounded-xl shadow-md p-6">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
-            {hasActiveFilters && (
-              <button
-                onClick={handleRemoveFilters}
-                className="btn btn-secondary py-1 text-sm"
-              >
-                Hapus Filter
-              </button>
-            )}
-          </div>
-
-          <div className="mb-6 grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="card p-6">
+          {/* Filters */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
             <div>
               <label
-                htmlFor="keyword"
-                className="block text-sm font-medium mb-1"
+                htmlFor="search"
+                className="block text-sm font-medium text-foreground mb-1"
               >
-                Cari User{" "}
-                <span className="text-xs text-gray-500">(Tekan Enter)</span>
+                Cari User
               </label>
               <input
+                id="search"
                 type="text"
-                id="keyword"
                 value={keyword}
-                onChange={handleKeywordInputChange}
-                onKeyPress={handleKeywordInputKeyPress}
-                placeholder="Cari username, nama..."
+                onChange={(e) => setKeyword(e.target.value)}
+                onKeyPress={(e) => e.key === "Enter" && setCurrentPage(1)}
+                placeholder="Username atau nama..."
                 className="form-input w-full"
               />
             </div>
 
             <div>
               <label
-                htmlFor="roleFilter"
-                className="block text-sm font-medium mb-1"
+                htmlFor="role"
+                className="block text-sm font-medium text-foreground mb-1"
               >
-                Filter Berdasarkan Role
+                Filter Role
               </label>
               <select
-                id="roleFilter"
+                id="role"
                 value={selectedRole}
-                onChange={handleRoleChange}
+                onChange={(e) => setSelectedRole(e.target.value)}
                 className="form-input w-full"
               >
                 <option value="all">Semua Role</option>
@@ -346,62 +294,75 @@ const UserManagementPage: React.FC = () => {
                 <option value="pengelola_bmn">Pengelola BMN</option>
                 <option value="guru_bk">Guru BK</option>
                 <option value="jurnalis">Jurnalis</option>
+                <option value="operator">Operator</option>
+                <option value="kepala_sekolah">Kepala Sekolah</option>
               </select>
             </div>
           </div>
 
-          {loading ? (
-            <div className="text-center py-12">
-              <RefreshCw
-                size={32}
-                className="mx-auto animate-spin text-accent"
-              />
-              <p className="mt-4">Memuat user...</p>
+          {hasActiveFilters && (
+            <div className="flex justify-end mb-4">
+              <button
+                onClick={resetFilters}
+                className="text-sm text-secondary hover:text-accent flex items-center"
+              >
+                <X size={16} className="mr-1" />
+                Hapus Filter
+              </button>
             </div>
-          ) : (
-            <UserTable
-              users={users}
-              onDelete={handleDeleteClick}
-              onEdit={handleEditUser}
-              loading={loading}
-            />
           )}
 
-          {totalPages > 1 && (
-            <div className="flex justify-center items-center mt-6 space-x-4">
-              <button
-                onClick={handlePreviousPage}
-                disabled={isPreviousDisabled}
-                className={`px-4 py-2 rounded-md transition-colors ${
-                  isPreviousDisabled
-                    ? "bg-gray-200 dark:bg-gray-700 text-gray-500 cursor-not-allowed"
-                    : "bg-accent text-white hover:bg-accent-dark"
-                }`}
-              >
-                Sebelumnya
-              </button>
-              <span className="text-gray-700 dark:text-gray-300">
-                Halaman {currentPage} dari {totalPages}
-              </span>
-              <button
-                onClick={handleNextPage}
-                disabled={isNextDisabled}
-                className={`px-4 py-2 rounded-md transition-colors ${
-                  isNextDisabled
-                    ? "bg-gray-200 dark:bg-gray-700 text-gray-500 cursor-not-allowed"
-                    : "bg-accent text-white hover:bg-accent-dark"
-                }`}
-              >
-                Berikutnya
-              </button>
+          {/* Loading State */}
+          {loading ? (
+            <div className="text-center py-12">
+              <RefreshCw className="h-8 w-8 text-accent animate-spin mx-auto mb-3" />
+              <p className="text-secondary">Memuat data user...</p>
             </div>
+          ) : (
+            <>
+              <UserTable
+                users={users}
+                onEdit={handleEditUser}
+                onDelete={handleDeleteClick}
+                loading={loading}
+              />
+
+              {/* Pagination */}
+              {totalPages > 1 && (
+                <div className="flex items-center justify-center gap-3 mt-6">
+                  <button
+                    onClick={() =>
+                      setCurrentPage((prev) => Math.max(1, prev - 1))
+                    }
+                    disabled={currentPage === 1}
+                    className="btn btn-secondary text-sm"
+                  >
+                    Sebelumnya
+                  </button>
+                  <span className="text-sm text-secondary">
+                    Halaman <strong>{currentPage}</strong> dari{" "}
+                    <strong>{totalPages}</strong>
+                  </span>
+                  <button
+                    onClick={() =>
+                      setCurrentPage((prev) => Math.min(totalPages, prev + 1))
+                    }
+                    disabled={currentPage === totalPages}
+                    className="btn btn-secondary text-sm"
+                  >
+                    Berikutnya
+                  </button>
+                </div>
+              )}
+            </>
           )}
         </div>
       </div>
 
+      {/* Form Modal */}
       {showForm && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white dark:bg-gray-800 rounded-lg max-w-md w-full max-h-[90vh] overflow-y-auto">
+          <div className="card max-w-lg w-full max-h-[90vh] overflow-y-auto p-6">
             <UserManagementForm
               onSubmit={editingUser ? handleUpdateUser : handleCreateUser}
               onCancel={handleCancelForm}
@@ -412,16 +373,21 @@ const UserManagementPage: React.FC = () => {
         </div>
       )}
 
+      {/* Delete Confirmation */}
       {showConfirmation && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white dark:bg-gray-800 rounded-lg p-6 max-w-md w-full">
-            <h3 className="text-xl font-bold mb-4">Konfirmasi Hapus</h3>
-            <p className="mb-6 text-gray-600 dark:text-gray-400">
-              Apakah Anda yakin ingin menghapus user ini? Tindakan ini tidak
-              dapat dibatalkan.
+          <div className="card p-6 max-w-sm w-full">
+            <h3 className="text-lg font-semibold text-foreground mb-3">
+              Konfirmasi Hapus
+            </h3>
+            <p className="text-secondary mb-6">
+              User ini akan dihapus permanen. Lanjutkan?
             </p>
-            <div className="flex justify-end space-x-4">
-              <button onClick={cancelDelete} className="btn btn-secondary">
+            <div className="flex justify-end gap-3">
+              <button
+                onClick={() => setShowConfirmation(false)}
+                className="btn btn-secondary"
+              >
                 Batal
               </button>
               <button onClick={confirmDelete} className="btn btn-danger">

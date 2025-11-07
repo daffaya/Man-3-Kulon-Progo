@@ -9,15 +9,15 @@ import { FaTiktok } from "react-icons/fa";
  */
 const Footer: React.FC = () => {
   return (
-    <footer className="bg-gray-100 dark:bg-semibackground pt-12 pb-4 mt-12">
+    <footer className="bg-semibackground pt-12 pb-4">
       <div className="container max-w-6xl mx-auto px-4 sm:px-6">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
           {/* School Info & Social Media */}
           <div className="md:col-span-2">
-            <h3 className="text-xl font-serif font-bold mb-4">
+            <h3 className="text-xl font-serif font-bold mb-4 text-foreground">
               MAN 3 Kulon Progo
             </h3>
-            <p className="text-gray-600 dark:text-gray-400 mb-4 max-w-md">
+            <p className="text-secondary mb-4 max-w-md">
               Tempat di mana mimpi dirangkum dengan doa, tawa pecah di sela
               pelajaran, dan kebersamaan jadi fondasi kita. Bukan sekadar
               sekolah—ini rumah untuk belajar menjadi diri yang lebih baik,
@@ -49,7 +49,9 @@ const Footer: React.FC = () => {
 
           {/* Navigation Links */}
           <div>
-            <h4 className="text-lg font-bold mb-4">Navigation</h4>
+            <h4 className="text-lg font-bold mb-4 text-foreground">
+              Navigation
+            </h4>
             <nav className="flex flex-col space-y-2">
               <FooterLink to="/" label="Beranda" />
               <FooterLink to="/berita" label="Berita" />
@@ -61,7 +63,7 @@ const Footer: React.FC = () => {
 
           {/* Contact Info */}
           <div>
-            <h4 className="text-lg font-bold mb-4">Kontak</h4>
+            <h4 className="text-lg font-bold mb-4 text-foreground">Kontak</h4>
             <address className="not-italic space-y-2 text-sm text-foreground">
               <p className="flex items-center space-x-2">
                 <MapPin className="w-5 h-5 text-accent flex-shrink-0" />
@@ -80,7 +82,7 @@ const Footer: React.FC = () => {
                 <Mail className="w-5 h-5 text-accent" />
                 <a
                   href="mailto:man3kulonprogo@gmail.com"
-                  className="underline hover:text-accent-dark"
+                  className="underline hover:text-hover transition-colors"
                 >
                   man3kulonprogo@gmail.com
                 </a>
@@ -89,7 +91,7 @@ const Footer: React.FC = () => {
           </div>
         </div>
 
-        <div className="border-t border-gray-200 dark:border-gray-800 mt-8 pt-8 text-center text-gray-600 dark:text-gray-400">
+        <div className="border-t border-zinc-800 mt-8 pt-8 text-center text-secondary">
           <p className="text-sm">
             Copyright &copy; MAN 3 Kulon Progo {new Date().getFullYear()}
           </p>
@@ -113,7 +115,7 @@ const SocialIcon: React.FC<SocialIconProps> = ({ href, icon, label }) => (
     target="_blank"
     rel="noopener noreferrer"
     aria-label={label}
-    className="p-2 bg-white dark:bg-background rounded-full hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-200 transition-colors"
+    className="p-2 bg-background rounded-full hover:bg-secondary-hover text-foreground transition-colors"
   >
     {icon}
   </a>
@@ -127,10 +129,7 @@ interface FooterLinkProps {
   label: string;
 }
 const FooterLink: React.FC<FooterLinkProps> = ({ to, label }) => (
-  <Link
-    to={to}
-    className="text-gray-600 dark:text-gray-400 hover:text-accent dark:hover:text-accent transition-colors"
-  >
+  <Link to={to} className="text-secondary hover:text-hover transition-colors">
     {label}
   </Link>
 );

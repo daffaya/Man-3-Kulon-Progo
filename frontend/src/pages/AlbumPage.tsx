@@ -29,20 +29,17 @@ const AlbumPage: React.FC = () => {
   const [viewCount, setViewCount] = useState(0);
   const { showErrorToast, showSuccessToast } = useToastMessage();
 
-  // Update document title
   useEffect(() => {
     document.title = currentAlbum
       ? `${currentAlbum.title} - Galeri Foto - MAN 3 Kulon Progo`
       : "Album - Galeri Foto - MAN 3 Kulon Progo";
   }, [currentAlbum]);
 
-  // Fetch album data
   useEffect(() => {
     if (slug) fetchPublicAlbumById(slug);
     return () => clearCurrentAlbum();
   }, [slug, fetchPublicAlbumById, clearCurrentAlbum]);
 
-  // Simulate view count
   useEffect(() => {
     if (currentAlbum) {
       setViewCount(Math.floor(Math.random() * 500) + 100);
@@ -86,37 +83,30 @@ const AlbumPage: React.FC = () => {
   };
 
   const handleDownload = () => {
-    // Implement download functionality
     showSuccessToast("Fitur unduh akan segera tersedia");
   };
 
-  // Loading State with Skeleton
   if (loading) {
     return (
       <Layout>
-        <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
-          {/* Hero Skeleton */}
-          <div className="relative h-72 md:h-96 bg-gray-200 dark:bg-gray-700 animate-pulse"></div>
-
-          {/* Album Info Skeleton */}
+        <div className="min-h-screen bg-background">
+          <div className="relative h-72 md:h-96 bg-semibackground animate-pulse"></div>
           <div className="container max-w-4xl mx-auto px-4 -mt-12 relative z-10">
-            <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 md:p-8 animate-pulse">
-              <div className="h-6 bg-gray-200 dark:bg-gray-700 rounded w-1/4 mb-4"></div>
-              <div className="h-6 bg-gray-200 dark:bg-gray-700 rounded w-1/4"></div>
+            <div className="card p-6 md:p-8 animate-pulse">
+              <div className="h-6 bg-semibackground rounded w-1/4 mb-4"></div>
+              <div className="h-6 bg-semibackground rounded w-1/4"></div>
               <div className="flex gap-3 mt-6">
-                <div className="h-10 bg-gray-200 dark:bg-gray-700 rounded w-32"></div>
-                <div className="h-10 bg-gray-200 dark:bg-gray-700 rounded w-40"></div>
+                <div className="h-10 bg-semibackground rounded w-32"></div>
+                <div className="h-10 bg-semibackground rounded w-40"></div>
               </div>
             </div>
           </div>
-
-          {/* Photos Grid Skeleton */}
           <div className="container max-w-6xl mx-auto px-4 sm:px-6 py-12">
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
               {[...Array(8)].map((_, i) => (
                 <div
                   key={i}
-                  className="aspect-square bg-gray-200 dark:bg-gray-700 rounded-lg animate-pulse"
+                  className="aspect-square bg-semibackground rounded-lg animate-pulse"
                 ></div>
               ))}
             </div>
@@ -126,24 +116,23 @@ const AlbumPage: React.FC = () => {
     );
   }
 
-  // Not Found
   if (!currentAlbum) {
     return (
       <Layout>
-        <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
+        <div className="min-h-screen bg-background flex items-center justify-center">
           <div className="text-center max-w-md mx-auto px-4">
-            <div className="w-24 h-24 mx-auto mb-6 bg-gray-200 dark:bg-gray-700 rounded-full flex items-center justify-center">
-              <Image size={40} className="text-gray-400 dark:text-gray-500" />
+            <div className="w-24 h-24 mx-auto mb-6 bg-semibackground rounded-full flex items-center justify-center">
+              <Image size={40} className="text-secondary/50" />
             </div>
-            <h1 className="text-2xl font-bold mb-4 text-gray-700 dark:text-gray-200">
+            <h1 className="text-2xl font-bold mb-4 text-foreground">
               Album tidak ditemukan
             </h1>
-            <p className="text-gray-500 dark:text-gray-400 mb-6">
+            <p className="text-secondary mb-6">
               Maaf, album yang Anda cari tidak tersedia atau telah dihapus.
             </p>
             <Link
               to="/galeri"
-              className="inline-flex items-center gap-2 px-5 py-2 bg-accent hover:bg-accent/90 rounded-full text-white shadow transition-all"
+              className="btn btn-primary inline-flex items-center gap-2"
             >
               <ArrowLeft size={16} /> Kembali ke Galeri
             </Link>
@@ -155,8 +144,7 @@ const AlbumPage: React.FC = () => {
 
   return (
     <Layout>
-      <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
-        {/* Hero Header with Gradient Overlay */}
+      <div className="min-h-screen bg-background">
         <div className="relative h-72 md:h-96 overflow-hidden group">
           <ImageWithFallback
             src={
@@ -170,15 +158,13 @@ const AlbumPage: React.FC = () => {
           />
           <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent"></div>
 
-          {/* Back Button */}
           <Link
             to="/galeri"
-            className="absolute top-4 left-4 z-10 inline-flex items-center gap-2 px-4 py-2 bg-white/20 backdrop-blur-md rounded-full text-white shadow-lg hover:bg-white/30 transition-all"
+            className="absolute top-4 left-4 z-10 btn btn-secondary backdrop-blur-md text-white bg-white/20 hover:bg-white/30"
           >
             <ArrowLeft size={16} /> Kembali
           </Link>
 
-          {/* Title and Description */}
           <div className="absolute bottom-0 left-0 right-0 p-6 md:p-10 text-white">
             <div className="container max-w-4xl mx-auto px-4 mb-4">
               <h1 className="text-3xl md:text-5xl font-serif font-bold mb-3 drop-shadow-lg">
@@ -193,19 +179,17 @@ const AlbumPage: React.FC = () => {
           </div>
         </div>
 
-        {/* Album Info Card with Enhanced Design */}
         <div className="container max-w-4xl mx-auto px-4 -mt-8 relative z-10">
-          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-xl p-6 md:p-8 border border-gray-100 dark:border-gray-700">
-            {/* Stats Row */}
-            <div className="flex flex-wrap justify-between items-center pb-6 border-b border-gray-100 dark:border-gray-700">
+          <div className="card p-6 md:p-8">
+            <div className="flex flex-wrap justify-between items-center pb-6 border-b border-semibackground/20">
               <div className="flex items-center gap-6 text-sm">
-                <div className="flex items-center gap-2 text-gray-600 dark:text-gray-400">
+                <div className="flex items-center gap-2 text-secondary">
                   <Image size={18} className="text-accent" />
                   <span className="font-medium">
                     {currentAlbum.photo_count} foto
                   </span>
                 </div>
-                <div className="flex items-center gap-2 text-gray-600 dark:text-gray-400">
+                <div className="flex items-center gap-2 text-secondary">
                   <Calendar size={18} className="text-accent" />
                   <span className="font-medium">
                     {formatDate(currentAlbum.created_at)}
@@ -214,17 +198,16 @@ const AlbumPage: React.FC = () => {
               </div>
             </div>
 
-            {/* Action Buttons */}
-            <div className="flex flex-wrap gap-3">
+            <div className="flex flex-wrap gap-3 mt-6">
               <button
                 onClick={handleCopyLink}
-                className="flex items-center gap-2 text-sm px-4 py-2 rounded-md bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 border border-gray-200 dark:border-gray-600 hover:bg-gray-200 dark:hover:bg-gray-600 transition-all"
+                className="btn btn-secondary text-sm flex items-center gap-2"
               >
                 <Copy size={16} /> Salin tautan
               </button>
               <button
                 onClick={handleShareWhatsApp}
-                className="flex items-center gap-2 text-sm px-4 py-2 rounded-md bg-green-500 hover:bg-green-600 text-white transition-all shadow-md hover:shadow-lg"
+                className="btn btn-primary text-sm flex items-center gap-2 bg-green-500 hover:bg-green-600"
               >
                 <Share2 size={16} /> Bagikan via WhatsApp
               </button>
@@ -232,15 +215,14 @@ const AlbumPage: React.FC = () => {
           </div>
         </div>
 
-        {/* Photos Grid with Enhanced Design */}
         <div className="container max-w-6xl mx-auto px-4 sm:px-6 py-12">
           {currentPhotos.length > 0 ? (
             <>
               <div className="mb-8 text-center">
-                <h2 className="text-2xl font-serif font-bold text-gray-800 dark:text-gray-200 mb-2">
+                <h2 className="text-2xl font-serif font-bold text-foreground mb-2">
                   Koleksi Foto
                 </h2>
-                <p className="text-gray-600 dark:text-gray-400 max-w-2xl mx-auto">
+                <p className="text-secondary max-w-2xl mx-auto">
                   Jelajahi momen-momen berharga yang telah kami abadikan dalam
                   album ini
                 </p>
@@ -252,13 +234,13 @@ const AlbumPage: React.FC = () => {
             </>
           ) : (
             <div className="text-center py-20">
-              <div className="w-28 h-28 mx-auto mb-6 bg-gray-100 dark:bg-gray-800 rounded-full flex items-center justify-center">
-                <Image size={40} className="text-gray-400 dark:text-gray-500" />
+              <div className="w-28 h-28 mx-auto mb-6 bg-semibackground rounded-full flex items-center justify-center">
+                <Image size={40} className="text-secondary/50" />
               </div>
-              <h3 className="text-xl font-semibold text-gray-700 dark:text-gray-300 mb-2">
+              <h3 className="text-xl font-semibold text-foreground mb-2">
                 Belum ada foto di album ini
               </h3>
-              <p className="text-gray-500 dark:text-gray-400 max-w-md mx-auto">
+              <p className="text-secondary max-w-md mx-auto">
                 Silakan kembali lagi nanti untuk melihat foto-foto terbaru dari
                 kegiatan sekolah.
               </p>
@@ -266,7 +248,6 @@ const AlbumPage: React.FC = () => {
           )}
         </div>
 
-        {/* Photo Lightbox */}
         <PhotoLightbox
           photos={currentPhotos}
           currentPhotoIndex={currentPhotoIndex}

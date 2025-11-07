@@ -117,7 +117,7 @@ const AlbumForm: React.FC<AlbumFormProps> = ({
           type="button"
           onClick={onCancel}
           disabled={isLoading}
-          className="btn btn-secondary flex items-center"
+          className="btn btn-secondary text-primary flex items-center"
         >
           <X size={18} className="mr-1" />
           Batal

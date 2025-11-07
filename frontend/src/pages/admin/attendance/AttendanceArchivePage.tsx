@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../../../contexts/AuthContext";
 import { useToastMessage } from "../../../hooks/useToastMessage";
 import AdminLayout from "../../../components/layout/AdminLayout";
 import { format } from "date-fns";
+import { ChevronLeft } from "lucide-react";
 
 interface ArchiveData {
   id: number;
@@ -54,7 +55,6 @@ const AttendanceArchivePage: React.FC = () => {
 
   const isAdminOrGuruBK = hasEditAccess(isLoggedIn, user?.role);
 
-  // Fetch classes
   useEffect(() => {
     const fetchClasses = async () => {
       try {
@@ -80,7 +80,6 @@ const AttendanceArchivePage: React.FC = () => {
     }
   }, [isLoggedIn, token, showErrorToast]);
 
-  // Fetch archive data
   useEffect(() => {
     const fetchArchiveData = async () => {
       try {
@@ -119,7 +118,6 @@ const AttendanceArchivePage: React.FC = () => {
     showErrorToast,
   ]);
 
-  // Archive data
   const handleArchiveData = async () => {
     if (!selectedYear || !selectedSemester) {
       showErrorToast("Pilih tahun ajaran dan semester terlebih dahulu");
@@ -146,7 +144,6 @@ const AttendanceArchivePage: React.FC = () => {
       if (response.ok && data.success) {
         showSuccessToast(data.message || "Data presensi berhasil diarsipkan");
 
-        // Refresh archive data
         const archiveResponse = await fetch(
           `${API_URL}/api/attendance/archive?academicYear=${selectedYear}&semester=${selectedSemester}`,
           {
@@ -170,35 +167,35 @@ const AttendanceArchivePage: React.FC = () => {
     }
   };
 
-  const SelectedLayout = isAdminOrGuruBK ? AdminLayout : AdminLayout;
-
   if (!isLoggedIn) {
     navigate("/login");
     return null;
   }
 
   return (
-    <SelectedLayout>
+    <AdminLayout>
       <div className="container mx-auto px-4 sm:px-6 py-12 fade-in">
-        <div className="flex items-center mb-6">
-          <button
-            onClick={() => navigate("/atmin/presensi")}
-            className="mr-4 text-gray-600 dark:text-gray-400 hover:text-accent dark:hover:text-accent transition-colors"
+        <div className="mb-8">
+          <Link
+            to="/atmin/presensi"
+            className="text-sm text-secondary hover:text-accent flex items-center mb-4 transition-colors"
           >
-            ← Kembali
-          </button>
-          <h1 className="text-3xl font-serif font-bold">
-            Arsip Presensi Siswa
-          </h1>
+            <ChevronLeft className="h-4 w-4 mr-1" />
+            Kembali
+          </Link>
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
+            <h1 className="text-3xl font-serif font-bold text-foreground mb-4 sm:mb-0">
+              Arsip Presensi Siswa
+            </h1>
+          </div>
         </div>
 
-        <div className="bg-white dark:bg-semibackground rounded-xl shadow-md p-6">
-          {/* Filters */}
+        <div className="card p-6">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
             <div>
               <label
                 htmlFor="year"
-                className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
+                className="block text-sm font-medium text-foreground mb-1"
               >
                 Tahun Ajaran
               </label>
@@ -216,7 +213,7 @@ const AttendanceArchivePage: React.FC = () => {
             <div>
               <label
                 htmlFor="semester"
-                className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
+                className="block text-sm font-medium text-foreground mb-1"
               >
                 Semester
               </label>
@@ -235,7 +232,7 @@ const AttendanceArchivePage: React.FC = () => {
             <div>
               <label
                 htmlFor="class"
-                className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
+                className="block text-sm font-medium text-foreground mb-1"
               >
                 Kelas (Opsional)
               </label>
@@ -269,87 +266,86 @@ const AttendanceArchivePage: React.FC = () => {
             )}
           </div>
 
-          {/* Archive Table */}
           {archiveRecords.length > 0 ? (
             <div className="overflow-x-auto">
-              <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
-                <thead className="bg-gray-50 dark:bg-gray-800">
+              <table className="min-w-full divide-y divide-[rgb(var(--color-secondary)/0.2)]">
+                <thead className="bg-[rgb(var(--color-semi-background))]">
                   <tr>
                     <th
                       scope="col"
-                      className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider"
+                      className="px-6 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider"
                     >
                       NISN
                     </th>
                     <th
                       scope="col"
-                      className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider"
+                      className="px-6 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider"
                     >
                       Nama
                     </th>
                     <th
                       scope="col"
-                      className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider"
+                      className="px-6 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider"
                     >
                       Kelas
                     </th>
                     <th
                       scope="col"
-                      className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider"
+                      className="px-6 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider"
                     >
                       Hadir
                     </th>
                     <th
                       scope="col"
-                      className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider"
+                      className="px-6 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider"
                     >
                       Izin
                     </th>
                     <th
                       scope="col"
-                      className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider"
+                      className="px-6 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider"
                     >
                       Sakit
                     </th>
                     <th
                       scope="col"
-                      className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider"
+                      className="px-6 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider"
                     >
                       Alpa
                     </th>
                     <th
                       scope="col"
-                      className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider"
+                      className="px-6 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider"
                     >
                       %
                     </th>
                   </tr>
                 </thead>
-                <tbody className="bg-white dark:bg-gray-900 divide-y divide-gray-200 dark:divide-gray-700">
+                <tbody className="divide-y divide-[rgb(var(--color-secondary)/0.1)]">
                   {archiveRecords.map((student) => (
                     <tr key={student.id}>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-secondary">
                         {student.nisn}
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-white">
+                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-foreground">
                         {student.name}
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-secondary">
                         {student.class_name}
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-secondary">
                         {student.total_hadir}
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-secondary">
                         {student.total_izin}
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-secondary">
                         {student.total_sakit}
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-secondary">
                         {student.total_alpa}
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-secondary">
                         {student.percentage_kehadiran}%
                       </td>
                     </tr>
@@ -359,14 +355,14 @@ const AttendanceArchivePage: React.FC = () => {
             </div>
           ) : (
             <div className="text-center py-8">
-              <p className="text-gray-500 dark:text-gray-400">
+              <p className="text-secondary">
                 Tidak ada data arsip untuk filter yang dipilih
               </p>
             </div>
           )}
         </div>
       </div>
-    </SelectedLayout>
+    </AdminLayout>
   );
 };
 

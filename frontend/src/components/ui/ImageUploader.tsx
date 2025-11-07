@@ -41,7 +41,6 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({
 
   useEffect(() => {
     return () => {
-      console.log("Preview URL changed:", previewUrl);
       if (previewUrl && previewUrl.startsWith("blob:")) {
         URL.revokeObjectURL(previewUrl);
       }
@@ -80,7 +79,6 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({
 
   const processFileUpload = useCallback(
     (file: File) => {
-      // Revoke previous blob URL if exists
       if (previewUrl && previewUrl.startsWith("blob:")) {
         URL.revokeObjectURL(previewUrl);
       }
@@ -140,14 +138,11 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({
 
   const validateImageUrl = async (url: string): Promise<boolean> => {
     try {
-      // Coba load gambar untuk memastikan bisa diakses
       return new Promise((resolve) => {
         const img = new Image();
         img.onload = () => resolve(true);
         img.onerror = () => resolve(false);
         img.src = url;
-
-        // Timeout setelah 5 detik
         setTimeout(() => resolve(false), 5000);
       });
     } catch (error) {
@@ -168,7 +163,6 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({
       setIsLoadingUrl(true);
       new URL(imageUrl);
 
-      // Validasi apakah URL benar-benar mengarah ke gambar
       const isValidImage = await validateImageUrl(imageUrl);
       if (!isValidImage) {
         setUrlError(
@@ -197,7 +191,6 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({
 
   const processImageUrl = useCallback(
     (url: string) => {
-      console.log("Processing image URL:", url);
       setPreviewUrl(url);
       setSelectedFile(null);
       onImageChange(undefined, url);
@@ -243,8 +236,9 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({
 
   return (
     <div>
-      <label className="block text-sm font-medium mb-1">
-        {label} {required && <span className="text-error">*</span>}
+      <label className="block text-sm font-medium mb-1 text-foreground">
+        {label}{" "}
+        {required && <span className="text-[rgb(var(--color-error))]">*</span>}
       </label>
 
       <input
@@ -257,7 +251,7 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({
       />
 
       {/* Tabs for Desktop */}
-      <div className="hidden sm:flex border-b border-gray-200 dark:border-gray-700 mb-4">
+      <div className="hidden sm:flex border-b border-zinc-800 mb-4">
         <button
           type="button"
           role="tab"
@@ -266,8 +260,8 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({
           tabIndex={activeTab === "upload" ? 0 : -1}
           className={`py-2 px-4 font-medium text-sm rounded-t-lg transition-all duration-200 ${
             activeTab === "upload"
-              ? "text-blue-600 bg-blue-50 dark:bg-blue-900/20 border-b-2 border-blue-600 dark:border-blue-400 shadow-sm"
-              : "text-gray-500 hover:text-gray-700 hover:bg-gray-50 dark:text-gray-400 dark:hover:text-gray-300 dark:hover:bg-gray-800"
+              ? "text-[rgb(var(--color-accent))] bg-[rgb(var(--color-accent),0.1)] border-b-2 border-[rgb(var(--color-accent))]"
+              : "text-secondary hover:text-foreground hover:bg-[rgb(var(--color-secondary-hover))]"
           }`}
           onClick={() => setActiveTab("upload")}
           disabled={disabled}
@@ -282,8 +276,8 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({
           tabIndex={activeTab === "url" ? 0 : -1}
           className={`py-2 px-4 font-medium text-sm rounded-t-lg transition-all duration-200 ${
             activeTab === "url"
-              ? "text-blue-600 bg-blue-50 dark:bg-blue-900/20 border-b-2 border-blue-600 dark:border-blue-400 shadow-sm"
-              : "text-gray-500 hover:text-gray-700 hover:bg-gray-50 dark:text-gray-400 dark:hover:text-gray-300 dark:hover:bg-gray-800"
+              ? "text-[rgb(var(--color-accent))] bg-[rgb(var(--color-accent),0.1)] border-b-2 border-[rgb(var(--color-accent))]"
+              : "text-secondary hover:text-foreground hover:bg-[rgb(var(--color-secondary-hover))]"
           }`}
           onClick={() => setActiveTab("url")}
           disabled={disabled}
@@ -303,8 +297,8 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({
             tabIndex={activeTab === "upload" ? 0 : -1}
             className={`px-4 py-2 text-sm font-medium rounded-l-lg transition-all duration-200 ${
               activeTab === "upload"
-                ? "bg-blue-600 text-white"
-                : "bg-white text-gray-700 hover:bg-gray-100 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700"
+                ? "bg-[rgb(var(--color-accent))] text-white"
+                : "bg-[rgb(var(--color-secondary-button))] text-secondary hover:bg-[rgb(var(--color-secondary-hover))]"
             }`}
             onClick={() => setActiveTab("upload")}
             disabled={disabled}
@@ -319,8 +313,8 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({
             tabIndex={activeTab === "url" ? 0 : -1}
             className={`px-4 py-2 text-sm font-medium rounded-r-lg transition-all duration-200 ${
               activeTab === "url"
-                ? "bg-blue-600 text-white"
-                : "bg-white text-gray-700 hover:bg-gray-100 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700"
+                ? "bg-[rgb(var(--color-accent))] text-white"
+                : "bg-[rgb(var(--color-secondary-button))] text-secondary hover:bg-[rgb(var(--color-secondary-hover))]"
             }`}
             onClick={() => setActiveTab("url")}
             disabled={disabled}
@@ -330,12 +324,15 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({
         </div>
       </div>
 
-      {/* Help Text - Ringkas */}
-      <div className="mb-4 text-xs text-gray-600 dark:text-gray-400 flex items-center gap-1">
+      {/* Help Text */}
+      <div className="mb-4 text-xs text-secondary flex items-center gap-1">
         <span>Format: JPG, PNG, GIF, WebP • Maks: 15MB</span>
         <div className="relative group">
-          <HelpCircle size={14} className="text-gray-400 cursor-help" />
-          <div className="absolute hidden group-hover:block bg-gray-800 text-white text-xs rounded p-2 -top-10 left-1/2 -translate-x-1/2 whitespace-nowrap z-10">
+          <HelpCircle
+            size={14}
+            className="text-[rgb(var(--color-secondary))] cursor-help"
+          />
+          <div className="absolute hidden group-hover:block bg-[rgb(var(--color-foreground))] text-white text-xs rounded p-2 -top-10 left-1/2 -translate-x-1/2 whitespace-nowrap z-10">
             Drag & drop atau klik untuk upload
           </div>
         </div>
@@ -357,10 +354,10 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({
           <div
             className={`mt-2 w-full aspect-[16/9] max-h-64 rounded-md border-2 flex flex-col items-center justify-center cursor-pointer transition-all duration-200 ${
               isDragging
-                ? "border-blue-500 bg-blue-50 dark:bg-blue-900/20 scale-[1.02]"
+                ? "border-[rgb(var(--color-accent))] bg-[rgb(var(--color-accent),0.1)] scale-[1.02]"
                 : previewUrl
                 ? "border-none p-0"
-                : "border-dashed border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-700"
+                : "border-dashed border-[rgb(var(--color-secondary-button))] bg-[rgb(var(--color-semi-background))] hover:bg-gray-100 dark:hover:bg-gray-700"
             }`}
             onDragOver={handleDragOver}
             onDragLeave={handleDragLeave}
@@ -393,11 +390,14 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({
               </div>
             ) : (
               <>
-                <ImageIcon size={32} className="text-gray-400 mb-2" />
-                <p className="text-sm text-gray-500 dark:text-gray-400">
+                <ImageIcon
+                  size={32}
+                  className="text-[rgb(var(--color-secondary))] mb-2"
+                />
+                <p className="text-sm text-secondary">
                   {isDragging ? "Lepaskan di sini" : "Belum ada gambar"}
                 </p>
-                <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">
+                <p className="text-xs text-[rgb(var(--color-secondary))] mt-1">
                   Klik atau drag gambar
                 </p>
               </>
@@ -458,7 +458,9 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({
               onChange={handleImageUrlChange}
               placeholder="https://example.com/image.jpg"
               className={`form-input rounded-r-none flex-grow ${
-                urlError ? "border-red-500 focus:ring-red-500" : ""
+                urlError
+                  ? "border-[rgb(var(--color-error))] focus:ring-[rgb(var(--color-error)),0.5]"
+                  : ""
               }`}
               disabled={disabled}
               aria-describedby={urlError ? "url-error" : undefined}
@@ -501,7 +503,7 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({
           {urlError && (
             <p
               id="url-error"
-              className="text-xs text-red-600 mb-2 -mt-2 flex items-center"
+              className="text-xs text-[rgb(var(--color-error))] mb-2 -mt-2 flex items-center"
             >
               <AlertTriangle size={12} className="mr-1 flex-shrink-0" />
               {urlError}
@@ -524,7 +526,7 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({
 
           {previewUrl && (
             <div className="mt-3">
-              <p className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              <p className="text-sm font-medium text-foreground mb-2">
                 Pratinjau:
               </p>
               <div className="mt-2 w-full aspect-[16/9] max-h-64 rounded-md border-2 flex flex-col items-center justify-center cursor-pointer transition-all duration-200">
@@ -561,38 +563,27 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({
       {/* Confirmation Dialog */}
       {showConfirmDialog && (
         <div
-          className="fixed inset-0 bg-black bg-opacity-0 flex items-center justify-center z-50 p-4 transition-all duration-300"
-          style={{
-            backgroundColor: showConfirmDialog
-              ? "rgba(0, 0, 0, 0.5)"
-              : "rgba(0, 0, 0, 0)",
-          }}
+          className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4 transition-all duration-300"
           role="dialog"
           aria-modal="true"
           aria-labelledby="dialog-title"
         >
-          <div
-            className="bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-md w-full p-6 transform transition-all duration-300 scale-95 opacity-0"
-            style={{
-              transform: showConfirmDialog ? "scale(1)" : "scale(0.95)",
-              opacity: showConfirmDialog ? 1 : 0,
-            }}
-          >
+          <div className="card max-w-md w-full p-6 transform transition-all duration-300 scale-100 opacity-100">
             <div className="flex items-center mb-4">
               <div className="flex-shrink-0">
-                <AlertTriangle className="h-6 w-6 text-yellow-400" />
+                <AlertTriangle className="h-6 w-6 text-[rgb(var(--color-warning))]" />
               </div>
               <div className="ml-3">
                 <h3
                   id="dialog-title"
-                  className="text-lg font-medium text-gray-900 dark:text-white"
+                  className="text-lg font-medium text-foreground"
                 >
                   Ganti Gambar?
                 </h3>
               </div>
             </div>
             <div className="mb-4">
-              <p className="text-sm text-gray-500 dark:text-gray-400">
+              <p className="text-sm text-secondary">
                 Gambar saat ini akan diganti. Lanjutkan?
               </p>
             </div>

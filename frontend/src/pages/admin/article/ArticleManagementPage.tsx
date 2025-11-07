@@ -276,17 +276,19 @@ const ArticleManagementPage: React.FC = () => {
     return (
       <AdminLayout>
         <div className="container mx-auto px-4 sm:px-6 py-12 text-center">
-          <p className="text-xl text-gray-600 dark:text-gray-400">
-            Tidak ada artikel yang cocok dengan filter.
-          </p>
-          {hasActiveFilters && (
-            <button
-              onClick={handleRemoveFilters}
-              className="mt-4 text-accent hover:underline flex items-center justify-center mx-auto"
-            >
-              <X size={16} className="mr-1" /> Hapus Filter
-            </button>
-          )}
+          <div className="card p-12">
+            <p className="text-xl text-secondary">
+              Tidak ada artikel yang cocok dengan filter.
+            </p>
+            {hasActiveFilters && (
+              <button
+                onClick={handleRemoveFilters}
+                className="mt-4 text-accent hover:underline flex items-center justify-center mx-auto"
+              >
+                <X size={16} className="mr-1" /> Hapus Filter
+              </button>
+            )}
+          </div>
         </div>
       </AdminLayout>
     );
@@ -300,15 +302,17 @@ const ArticleManagementPage: React.FC = () => {
     return (
       <AdminLayout>
         <div className="container mx-auto px-4 sm:px-6 py-12 text-center">
-          <p className="text-xl text-gray-600 dark:text-gray-400">
-            Belum ada artikel yang ditemukan.
-          </p>
-          <Link
-            to="/atmin/articles/new"
-            className="mt-4 inline-block btn btn-primary flex items-center justify-center mx-auto w-fit"
-          >
-            <Plus size={18} className="mr-1" /> Buat Artikel Pertama Anda
-          </Link>
+          <div className="card p-12">
+            <p className="text-xl text-secondary">
+              Belum ada artikel yang ditemukan.
+            </p>
+            <Link
+              to="/atmin/articles/new"
+              className="mt-4 inline-block btn btn-primary flex items-center justify-center mx-auto w-fit"
+            >
+              <Plus size={18} className="mr-1" /> Buat Artikel Pertama Anda
+            </Link>
+          </div>
         </div>
       </AdminLayout>
     );
@@ -325,13 +329,13 @@ const ArticleManagementPage: React.FC = () => {
       <div className="container mx-auto px-4 sm:px-6 py-12 fade-in">
         <Link
           to="/atmin"
-          className="text-sm text-gray-600 dark:text-gray-400 hover:text-primary dark:hover:text-primary flex items-center mb-4 transition-colors"
+          className="text-sm text-secondary hover:text-accent flex items-center mb-4 transition-colors"
         >
           <ArrowLeft className="h-4 w-4 mr-1" />
           Kembali ke admin dashboard
         </Link>
         <div className="flex flex-col mx-4 sm:flex-row sm:items-center sm:justify-between mb-8">
-          <h1 className="text-3xl font-serif font-bold mb-4 sm:mb-0">
+          <h1 className="text-3xl font-serif font-bold mb-4 sm:mb-0 text-foreground">
             Manajemen Artikel
           </h1>
 
@@ -354,7 +358,7 @@ const ArticleManagementPage: React.FC = () => {
           </div>
         </div>
 
-        <div className="bg-white dark:bg-semibackground rounded-xl shadow-md p-6">
+        <div className="card p-6">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6">
             {hasActiveFilters && (
               <button
@@ -369,10 +373,10 @@ const ArticleManagementPage: React.FC = () => {
             <div>
               <label
                 htmlFor="tagInput"
-                className="block text-sm font-medium mb-1"
+                className="block text-sm font-medium mb-1 text-foreground"
               >
                 Cari Kata Kunci{" "}
-                <span className="text-xs text-gray-500">(Tekan Enter)</span>
+                <span className="text-xs text-secondary">(Tekan Enter)</span>
               </label>
 
               <input
@@ -388,7 +392,7 @@ const ArticleManagementPage: React.FC = () => {
             <div>
               <label
                 htmlFor="publishedStatus"
-                className="block text-sm font-medium mb-1"
+                className="block text-sm font-medium mb-1 text-foreground"
               >
                 Status Publikasi
               </label>
@@ -407,7 +411,7 @@ const ArticleManagementPage: React.FC = () => {
             <div>
               <label
                 htmlFor="categoryFilter"
-                className="block text-sm font-medium mb-1"
+                className="block text-sm font-medium mb-1 text-foreground"
               >
                 Filter Berdasarkan Kategori
               </label>
@@ -425,7 +429,7 @@ const ArticleManagementPage: React.FC = () => {
                 ))}
               </select>
               {adminCategoriesLoading && state.adminCategories.length === 0 && (
-                <p className="mt-2 text-sm text-gray-500 dark:text-gray-400 flex items-center">
+                <p className="mt-2 text-sm text-secondary flex items-center">
                   <RefreshCw size={14} className="animate-spin mr-1" /> Memuat
                   kategori...
                 </p>
@@ -434,10 +438,10 @@ const ArticleManagementPage: React.FC = () => {
             <div className="md:col-span-2 lg:col-span-1">
               <label
                 htmlFor="tagInput"
-                className="block text-sm font-medium mb-1"
+                className="block text-sm font-medium mb-1 text-foreground"
               >
                 Filter Berdasarkan Tag{" "}
-                <span className="text-xs text-gray-500">(Tekan Enter)</span>
+                <span className="text-xs text-secondary">(Tekan Enter)</span>
               </label>
 
               <input
@@ -453,13 +457,13 @@ const ArticleManagementPage: React.FC = () => {
                 {selectedTags.map((tag) => (
                   <span
                     key={tag}
-                    className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-300"
+                    className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-[rgb(var(--color-secondary-button))] text-[rgb(var(--color-foreground))]"
                   >
                     {tag}{" "}
                     <button
                       type="button"
                       onClick={() => handleRemoveTag(tag)}
-                      className="flex-shrink-0 ml-1 h-3 w-3 rounded-full inline-flex items-center justify-center text-white hover:bg-primary-dark hover:text-gray-200 focus:outline-none focus:bg-primary-dark"
+                      className="flex-shrink-0 ml-1 h-3 w-3 rounded-full inline-flex items-center justify-center hover:bg-[rgb(var(--color-foreground))] hover:text-[rgb(var(--color-background))] focus:outline-none"
                     >
                       <span className="sr-only">Hapus tag</span>
                       <X size={10} />
@@ -475,7 +479,7 @@ const ArticleManagementPage: React.FC = () => {
                 size={32}
                 className="mx-auto animate-spin text-accent"
               />
-              <p className="mt-4">Memuat artikel...</p>
+              <p className="mt-4 text-secondary">Memuat artikel...</p>
             </div>
           ) : (
             <ArticleTable
@@ -491,13 +495,13 @@ const ArticleManagementPage: React.FC = () => {
                 disabled={isPreviousDisabled}
                 className={`px-4 py-2 rounded-md transition-colors ${
                   isPreviousDisabled
-                    ? "bg-gray-200 dark:bg-gray-700 text-gray-500 cursor-not-allowed"
-                    : "bg-accent text-white hover:bg-accent-dark"
+                    ? "bg-[rgb(var(--color-secondary-button))] text-[rgb(var(--color-secondary))] cursor-not-allowed"
+                    : "bg-[rgb(var(--color-accent))] text-white hover:bg-[rgb(var(--color-hover))]"
                 }`}
               >
                 Sebelumnya
               </button>
-              <span className="text-gray-700 dark:text-gray-300">
+              <span className="text-foreground">
                 Halaman {state.adminPagination.currentPage} dari{" "}
                 {state.adminPagination.totalPages}
               </span>
@@ -506,8 +510,8 @@ const ArticleManagementPage: React.FC = () => {
                 disabled={isNextDisabled}
                 className={`px-4 py-2 rounded-md transition-colors ${
                   isNextDisabled
-                    ? "bg-gray-200 dark:bg-gray-700 text-gray-500 cursor-not-allowed"
-                    : "bg-accent text-white hover:bg-accent-dark"
+                    ? "bg-[rgb(var(--color-secondary-button))] text-[rgb(var(--color-secondary))] cursor-not-allowed"
+                    : "bg-[rgb(var(--color-accent))] text-white hover:bg-[rgb(var(--color-hover))]"
                 }`}
               >
                 Berikutnya
@@ -519,9 +523,11 @@ const ArticleManagementPage: React.FC = () => {
 
       {showConfirmation && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white dark:bg-gray-800 rounded-lg p-6 max-w-md w-full">
-            <h3 className="text-xl font-bold mb-4">Konfirmasi Hapus</h3>
-            <p className="mb-6 text-gray-600 dark:text-gray-400">
+          <div className="card p-6 max-w-md w-full">
+            <h3 className="text-xl font-bold mb-4 text-foreground">
+              Konfirmasi Hapus
+            </h3>
+            <p className="mb-6 text-secondary">
               Apakah Anda yakin ingin menghapus artikel ini? Tindakan ini tidak
               dapat dibatalkan.
             </p>

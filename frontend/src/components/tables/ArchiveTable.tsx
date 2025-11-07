@@ -25,67 +25,65 @@ const ArchiveTable: React.FC<ArchiveTableProps> = ({
 }) => {
   if (loading) {
     return (
-      <div className="text-center py-12">
+      <div className="card p-12 text-center">
         <RefreshCw size={40} className="mx-auto animate-spin text-accent" />
-        <p className="mt-4 text-gray-600 dark:text-gray-400">Memuat arsip...</p>
+        <p className="mt-4 text-secondary">Memuat arsip...</p>
       </div>
     );
   }
 
   if (archives.length === 0) {
     return (
-      <div className="text-center py-12">
-        <p className="text-xl text-gray-600 dark:text-gray-400">
-          Tidak ada arsip yang ditemukan
-        </p>
+      <div className="card p-12 text-center">
+        <p className="text-xl text-secondary">Tidak ada arsip yang ditemukan</p>
       </div>
     );
   }
 
   return (
-    <div className="overflow-x-auto rounded-lg border border-gray-200 dark:border-gray-800">
-      <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-800">
-        <thead className="bg-gray-50 dark:bg-gray-900">
+    <div className="card overflow-x-auto">
+      <table className="min-w-full divide-y divide-zinc-800">
+        <thead className="bg-[rgb(var(--color-semi-background))]">
           <tr>
-            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+            <th className="px-6 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider">
               Nama File
             </th>
-            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+            <th className="px-6 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider">
               Kategori
             </th>
-            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+            <th className="px-6 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider">
               Deskripsi
             </th>
-            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+            <th className="px-6 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider">
               Nomor Dokumen
             </th>
-            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+            <th className="px-6 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider">
               Tanggal Dokumen
             </th>
-            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+            <th className="px-6 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider">
               Aksi
             </th>
           </tr>
         </thead>
-        <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
+        <tbody className="divide-y divide-zinc-800">
           {archives.map((archive) => (
             <tr
               key={archive.id}
-              className="hover:bg-gray-50 dark:hover:bg-gray-700"
+              className="hover:bg-[rgb(var(--color-secondary-hover))]"
             >
               <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-foreground">
                 {truncateText(archive.file_name, 25)}
               </td>
-              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
+              <td className="px-6 py-4 whitespace-nowrap text-sm text-secondary">
                 {archive.category_name || "-"}
               </td>
-              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
+              <td className="px-6 py-4 whitespace-nowrap text-sm text-secondary">
                 {archive.description || "-"}
               </td>
-              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
+              <td className="px-6 py-4 whitespace-nowrap text-sm text-secondary">
                 {archive.document_number || "-"}
               </td>
-              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
+              <td className="px-6 py-4 whitespace-nowrap text-sm text-secondary">
                 {formatDate(archive.document_date)}
               </td>
               <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
@@ -94,7 +92,7 @@ const ArchiveTable: React.FC<ArchiveTableProps> = ({
                     onClick={() =>
                       handleDownload(archive.id, archive.file_name)
                     }
-                    className="text-accent hover:text-hover dark:text-accent dark:hover:text-hover"
+                    className="hover:text-hover"
                     aria-label="Download archive"
                   >
                     <Download size={18} />
@@ -103,14 +101,14 @@ const ArchiveTable: React.FC<ArchiveTableProps> = ({
                     <>
                       <button
                         onClick={() => handleEditClick(archive)}
-                        className="text-blue-500 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300"
+                        className="text-accent hover:text-hover"
                         aria-label="Edit archive"
                       >
                         <Edit size={18} />
                       </button>
                       <button
                         onClick={() => handleDelete(archive.id)}
-                        className="text-red-500 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300"
+                        className="text-error hover:opacity-80"
                         aria-label="Delete archive"
                       >
                         <Trash size={18} />

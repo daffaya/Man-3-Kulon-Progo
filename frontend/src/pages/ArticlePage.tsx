@@ -8,10 +8,6 @@ import ArticleCard from "../components/article/ArticleCard";
 import { useArticles } from "../contexts/ArticleContext";
 import { Article } from "../types/articleTypes";
 
-/**
- * Halaman detail artikel berdasarkan slug.
- * Menampilkan konten utama artikel serta daftar artikel terkait.
- */
 const ArticlePage: React.FC = () => {
   const { slug } = useParams<{ slug: string }>();
   const navigate = useNavigate();
@@ -24,9 +20,6 @@ const ArticlePage: React.FC = () => {
   const [articleError, setArticleError] = useState<string | null>(null);
   const hasFetched = useRef(false);
 
-  /**
-   * Mengambil daftar artikel terkait berdasarkan tag yang sama.
-   */
   const getRelatedArticles = useMemo(
     () =>
       (target: Article): Article[] => {
@@ -45,9 +38,6 @@ const ArticlePage: React.FC = () => {
     [state.articles]
   );
 
-  /**
-   * Mengambil data artikel berdasarkan slug URL dan menyiapkan artikel terkait.
-   */
   useEffect(() => {
     if (!slug || hasFetched.current) return;
     hasFetched.current = true;
@@ -66,7 +56,6 @@ const ArticlePage: React.FC = () => {
 
         setArticle(fetched);
 
-        // Pastikan daftar artikel tersedia agar bisa mencari related
         if (articles.length < 10) {
           await fetchArticles({ limit: 20 });
         }
@@ -82,32 +71,27 @@ const ArticlePage: React.FC = () => {
 
     fetchArticleData();
 
-    // Reset flag saat slug berubah
     return () => {
       hasFetched.current = false;
     };
   }, [slug]);
 
-  /** State: Loading */
   if (articleLoading || (loading && !article)) {
     return (
       <Layout>
         <div className="container-narrow py-20 text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-accent mx-auto"></div>
-          <p className="mt-4">Loading article...</p>
+          <p className="mt-4 text-secondary">Loading article...</p>
         </div>
       </Layout>
     );
   }
 
-  /** State: Error */
   if (articleError) {
     return (
       <Layout>
         <div className="container-narrow py-20 text-center">
-          <p className="text-xl text-red-600 dark:text-red-400 mb-4">
-            {articleError}
-          </p>
+          <p className="text-xl text-error mb-4">{articleError}</p>
           <Link to="/berita" className="text-accent hover:underline">
             Kembali ke halaman berita
           </Link>
@@ -116,14 +100,11 @@ const ArticlePage: React.FC = () => {
     );
   }
 
-  /** State: Tidak ditemukan */
   if (!article) {
     return (
       <Layout>
         <div className="container-narrow py-20 text-center">
-          <p className="text-xl text-gray-600 dark:text-gray-400">
-            Article not found.
-          </p>
+          <p className="text-xl text-secondary">Article not found.</p>
           <Link
             to="/berita"
             className="text-accent hover:underline mt-4 inline-block"
@@ -135,7 +116,6 @@ const ArticlePage: React.FC = () => {
     );
   }
 
-  /** Render konten artikel */
   return (
     <Layout>
       <div className="container-narrow max-w-4xl py-4 slide-up">
@@ -143,14 +123,14 @@ const ArticlePage: React.FC = () => {
           <div className="flex items-center justify-between mb-4">
             <Link
               to="/berita"
-              className="flex items-center text-gray-600 dark:text-gray-400 hover:text-accent transition-colors"
+              className="flex items-center text-secondary hover:text-accent transition-colors"
             >
               <ChevronLeft size={20} /> <span>Kembali ke halaman berita</span>
             </Link>
           </div>
 
           {article.category && (
-            <div className="ml-5 mb-6 text-sm text-gray-600 dark:text-gray-400">
+            <div className="ml-5 mb-6 text-sm text-secondary">
               Category:{" "}
               <Link
                 to={`/berita?category=${encodeURIComponent(
@@ -168,7 +148,7 @@ const ArticlePage: React.FC = () => {
 
         {relatedArticles.length > 0 && (
           <div className="mt-16">
-            <h3 className="text-2xl font-serif font-bold mb-6">
+            <h3 className="text-2xl font-serif font-bold mb-6 text-foreground">
               Related Articles
             </h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">

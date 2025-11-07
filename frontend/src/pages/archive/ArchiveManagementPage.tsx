@@ -1,3 +1,4 @@
+// src/pages/ArchiveManagementPage.tsx
 import React, { useState, useEffect } from "react";
 import { useAuth } from "../../contexts/AuthContext";
 import { File, LogIn, ArrowLeft, Plus } from "lucide-react";
@@ -15,25 +16,13 @@ import {
 } from "../../api/archiveApi";
 import { useToast } from "../../contexts/ToastContext";
 
-export const API_URL = import.meta.env.VITE_BACKEND_API_URL;
-/** Roles that are permitted to manage archives. */
 export const ALLOWED_ROLES = ["arsiparis", "super_admin"] as const;
 
-/**
- * Checks if a user has permission to manage archives based on their login status and role.
- * @param isLoggedIn - The user's login status.
- * @param role - The user's role.
- * @returns True if the user has management access, otherwise false.
- */
 const hasEditAccess = (isLoggedIn: boolean, role?: string): boolean =>
   isLoggedIn && role
     ? ALLOWED_ROLES.includes(role as (typeof ALLOWED_ROLES)[number])
     : false;
 
-/**
- * A page component for managing archives in the admin panel.
- * It provides functionality to view, filter, download, edit, and delete archives.
- */
 const ArchiveManagementPage: React.FC = () => {
   const { isLoggedIn, user, token } = useAuth();
   const navigate = useNavigate();
@@ -48,7 +37,6 @@ const ArchiveManagementPage: React.FC = () => {
 
   const isAdminOrArsiparis = hasEditAccess(isLoggedIn, user?.role);
 
-  // Fetches categories from the API when the component mounts.
   useEffect(() => {
     const loadCategories = async () => {
       try {
@@ -61,7 +49,6 @@ const ArchiveManagementPage: React.FC = () => {
     loadCategories();
   }, [showToast]);
 
-  // Fetches archives whenever the search query or category filter changes.
   useEffect(() => {
     const loadArchives = async () => {
       setLoading(true);
@@ -77,11 +64,6 @@ const ArchiveManagementPage: React.FC = () => {
     loadArchives();
   }, [searchQuery, categoryId, showToast]);
 
-  /**
-   * Handles the download action for a specific archive.
-   * @param id - The ID of the archive to download.
-   * @param fileName - The original filename of the archive.
-   */
   const handleDownloadClick = async (id: number, fileName: string) => {
     try {
       await downloadArchive(id, fileName);
@@ -90,10 +72,6 @@ const ArchiveManagementPage: React.FC = () => {
     }
   };
 
-  /**
-   * Handles navigation to the edit page for a specific archive after checking permissions.
-   * @param archive - The archive object to edit.
-   */
   const handleEditClick = (archive: Archive) => {
     if (!isAdminOrArsiparis) {
       showToast("Anda tidak memiliki akses untuk mengedit arsip", "error");
@@ -102,13 +80,9 @@ const ArchiveManagementPage: React.FC = () => {
       }
       return;
     }
-    navigate(`/atmin/editArchive/${archive.id}`, { state: { archive } });
+    navigate(`/atmin/archives/:id/edit`, { state: { archive } });
   };
 
-  /**
-   * Shows the delete confirmation modal for a specific archive after checking permissions.
-   * @param id - The ID of the archive to delete.
-   */
   const handleDeleteClick = (id: number) => {
     if (!isAdminOrArsiparis) {
       showToast("Anda tidak memiliki akses untuk menghapus arsip", "error");
@@ -121,9 +95,6 @@ const ArchiveManagementPage: React.FC = () => {
     setShowConfirmation(true);
   };
 
-  /**
-   * Confirms and executes the deletion of the selected archive.
-   */
   const confirmDelete = async () => {
     if (archiveToDelete === null) return;
     try {
@@ -140,13 +111,11 @@ const ArchiveManagementPage: React.FC = () => {
     }
   };
 
-  /** Hides the delete confirmation modal. */
   const cancelDelete = () => {
     setShowConfirmation(false);
     setArchiveToDelete(null);
   };
 
-  // Dynamically selects the layout component based on user permissions.
   const SelectedLayout = isAdminOrArsiparis ? AdminLayout : Layout;
 
   return (
@@ -155,14 +124,14 @@ const ArchiveManagementPage: React.FC = () => {
         {isAdminOrArsiparis && (
           <Link
             to="/atmin"
-            className="text-sm text-gray-600 dark:text-gray-400 hover:text-primary dark:hover:text-primary flex items-center mb-4 transition-colors"
+            className="text-sm text-secondary hover:text-accent flex items-center mb-4 transition-colors"
           >
             <ArrowLeft className="h-4 w-4 mr-1" />
             Kembali ke admin dashboard
           </Link>
         )}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-8">
-          <h1 className="text-3xl font-serif font-bold mb-4 sm:mb-0">
+          <h1 className="text-3xl font-serif font-bold mb-4 sm:mb-0 text-foreground">
             Daftar Arsip
           </h1>
           {isAdminOrArsiparis && (
@@ -174,7 +143,7 @@ const ArchiveManagementPage: React.FC = () => {
             </button>
           )}
         </div>
-        <div className="bg-white dark:bg-semibackground rounded-xl shadow-md p-6">
+        <div className="card p-6">
           <Filters
             searchQuery={searchQuery}
             setSearchQuery={setSearchQuery}
@@ -194,13 +163,13 @@ const ArchiveManagementPage: React.FC = () => {
         {!isAdminOrArsiparis && (
           <div className="mt-8 text-center">
             {isLoggedIn ? (
-              <p className="text-gray-600 dark:text-gray-400 mb-4">
+              <p className="text-secondary mb-4">
                 Hanya arsiparis atau super admin yang dapat mengedit atau
                 menghapus arsip.
               </p>
             ) : (
               <>
-                <p className="text-gray-600 dark:text-gray-400 mb-4">
+                <p className="text-secondary mb-4">
                   Silakan login untuk mengedit atau menghapus arsip.
                 </p>
                 <button
@@ -219,9 +188,11 @@ const ArchiveManagementPage: React.FC = () => {
       </div>
       {showConfirmation && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white dark:bg-gray-800 rounded-lg p-6 max-w-md w-full">
-            <h3 className="text-xl font-bold mb-4">Konfirmasi Hapus</h3>
-            <p className="mb-6 text-gray-600 dark:text-gray-400">
+          <div className="card p-6 max-w-md w-full">
+            <h3 className="text-xl font-bold mb-4 text-foreground">
+              Konfirmasi Hapus
+            </h3>
+            <p className="mb-6 text-secondary">
               Apakah Anda yakin ingin menghapus arsip ini? Tindakan ini tidak
               dapat dibatalkan.
             </p>

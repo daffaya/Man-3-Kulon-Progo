@@ -8,26 +8,15 @@ import AdminLayout from "../components/layout/AdminLayout";
 import { Link, useNavigate } from "react-router-dom";
 import { useToastMessage } from "../hooks/useToastMessage";
 
-/** Roles that are permitted to manage categories. */
 export const ALLOWED_ROLES = ["super_admin", "jurnalis"] as const;
 
-/**
- * Checks if a user has permission to manage categories based on their login status and role.
- * @param isLoggedIn - The user's login status.
- * @param role - The user's role.
- * @returns True if the user has management access, otherwise false.
- */
 const hasEditAccess = (isLoggedIn: boolean, role?: string): boolean =>
   isLoggedIn && role
     ? ALLOWED_ROLES.includes(role as (typeof ALLOWED_ROLES)[number])
     : false;
 
-/**
- * A page component for managing article categories in the admin panel.
- * It provides functionality to view, create, edit, and delete categories.
- */
 const AdminCategoriesPage: React.FC = () => {
-  const { isLoggedIn, user, token } = useAuth();
+  const { isLoggedIn, user } = useAuth();
   const navigate = useNavigate();
   const {
     state,
@@ -58,14 +47,12 @@ const AdminCategoriesPage: React.FC = () => {
 
   const isAdminOrJurnalis = hasEditAccess(isLoggedIn, user?.role);
 
-  // Fetches categories when the component mounts.
   useEffect(() => {
     fetchAdminCategories().catch(() => {
       showErrorToast("Failed to fetch categories");
     });
   }, [fetchAdminCategories, showErrorToast]);
 
-  /** Opens the modal to add a new category after checking permissions. */
   const handleAddClick = () => {
     if (!isAdminOrJurnalis) {
       showErrorToast("Anda tidak memiliki akses untuk menambah kategori");
@@ -81,7 +68,6 @@ const AdminCategoriesPage: React.FC = () => {
     setShowAddModal(true);
   };
 
-  /** Handles the API call to create a new category. */
   const handleSaveNewCategory = async () => {
     setErrorMessage(null);
 
@@ -101,20 +87,16 @@ const AdminCategoriesPage: React.FC = () => {
       setShowAddModal(false);
       showSuccessToast("Kategori berhasil dibuat");
     } catch (error) {
-      setErrorMessage(
-        "Failed to create category. Please try again. (Check backend logs for details)"
-      );
+      setErrorMessage("Failed to create category. Please try again.");
       showErrorToast("Gagal membuat kategori");
     }
   };
 
-  /** Closes the add category modal and resets its state. */
   const handleCancelAdd = () => {
     setShowAddModal(false);
     setErrorMessage(null);
   };
 
-  /** Opens the modal to edit an existing category after checking permissions. */
   const handleEditClick = (category: Category) => {
     if (!isAdminOrJurnalis) {
       showErrorToast("Anda tidak memiliki akses untuk mengedit kategori");
@@ -129,7 +111,6 @@ const AdminCategoriesPage: React.FC = () => {
     setShowEditModal(true);
   };
 
-  /** Handles the API call to update an existing category. */
   const handleSaveEditedCategory = async () => {
     if (!editingCategory) return;
     setErrorMessage(null);
@@ -151,21 +132,17 @@ const AdminCategoriesPage: React.FC = () => {
       setEditingCategory(null);
       showSuccessToast("Kategori berhasil diperbarui");
     } catch (error) {
-      setErrorMessage(
-        "Failed to update category. Please try again. (Check backend logs for details)"
-      );
+      setErrorMessage("Failed to update category. Please try again.");
       showErrorToast("Gagal memperbarui kategori");
     }
   };
 
-  /** Closes the edit category modal and resets its state. */
   const handleCancelEdit = () => {
     setShowEditModal(false);
     setEditingCategory(null);
     setErrorMessage(null);
   };
 
-  /** Opens the delete confirmation modal for a specific category. */
   const handleDeleteClick = (category: Category) => {
     if (!isAdminOrJurnalis) {
       showErrorToast("Anda tidak memiliki akses untuk menghapus kategori");
@@ -180,7 +157,6 @@ const AdminCategoriesPage: React.FC = () => {
     setShowDeleteConfirmation(true);
   };
 
-  /** Handles the API call to delete a category. */
   const confirmDelete = async () => {
     if (!categoryToDelete) return;
     setErrorMessage(null);
@@ -192,21 +168,17 @@ const AdminCategoriesPage: React.FC = () => {
       setCategoryToDelete(null);
       showSuccessToast("Kategori berhasil dihapus");
     } catch (error) {
-      setErrorMessage(
-        "Failed to delete category. Please try again. (Check backend logs for details)"
-      );
+      setErrorMessage("Failed to delete category. Please try again.");
       showErrorToast("Gagal menghapus kategori");
     }
   };
 
-  /** Closes the delete confirmation modal. */
   const cancelDelete = () => {
     setShowDeleteConfirmation(false);
     setCategoryToDelete(null);
     setErrorMessage(null);
   };
 
-  // Dynamically selects the layout component based on user permissions.
   const SelectedLayout = isAdminOrJurnalis ? AdminLayout : Layout;
 
   if (adminCategoriesLoading) {
@@ -214,7 +186,7 @@ const AdminCategoriesPage: React.FC = () => {
       <SelectedLayout>
         <div className="container mx-auto px-4 sm:px-6 py-12 text-center">
           <RefreshCw size={32} className="mx-auto animate-spin text-accent" />
-          <p className="mt-4">Loading categories...</p>
+          <p className="mt-4 text-secondary">Loading categories...</p>
         </div>
       </SelectedLayout>
     );
@@ -226,7 +198,7 @@ const AdminCategoriesPage: React.FC = () => {
         {isAdminOrJurnalis && (
           <Link
             to="/atmin"
-            className="text-sm text-gray-600 dark:text-gray-400 hover:text-primary dark:hover:text-primary flex items-center mb-4 transition-colors"
+            className="text-sm text-secondary hover:text-accent flex items-center mb-4 transition-colors"
           >
             <ArrowLeft className="h-4 w-4 mr-1" />
             Kembali ke admin dashboard
@@ -234,7 +206,7 @@ const AdminCategoriesPage: React.FC = () => {
         )}
 
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-8">
-          <h1 className="text-3xl font-serif font-bold mb-4 sm:mb-0">
+          <h1 className="text-3xl font-serif font-bold mb-4 sm:mb-0 text-foreground">
             Manage Categories
           </h1>
           {isAdminOrJurnalis && (
@@ -247,59 +219,47 @@ const AdminCategoriesPage: React.FC = () => {
           )}
         </div>
 
-        <div className="bg-white dark:bg-semibackground rounded-xl shadow-md p-6">
-          <h2 className="text-xl font-bold mb-4">Category List</h2>
+        <div className="card p-6">
+          <h2 className="text-xl font-bold mb-4 text-foreground">
+            Category List
+          </h2>
           {adminCategories.length === 0 ? (
-            <p className="text-gray-600 dark:text-gray-400">
-              No categories found.
-            </p>
+            <p className="text-secondary">No categories found.</p>
           ) : (
             <div className="overflow-x-auto">
-              <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
-                <thead className="bg-gray-50 dark:bg-gray-700">
+              <table className="min-w-full divide-y divide-semibackground/20">
+                <thead className="bg-semibackground">
                   <tr>
-                    <th
-                      scope="col"
-                      className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider"
-                    >
+                    <th className="px-6 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider">
                       Name
                     </th>
-                    <th
-                      scope="col"
-                      className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider"
-                    >
+                    <th className="px-6 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider">
                       Slug
                     </th>
-                    <th
-                      scope="col"
-                      className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider"
-                    >
+                    <th className="px-6 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider">
                       Description
                     </th>
-                    <th
-                      scope="col"
-                      className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider"
-                    >
+                    <th className="px-6 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider">
                       Created At
                     </th>
-                    <th scope="col" className="relative px-6 py-3">
+                    <th className="relative px-6 py-3">
                       <span className="sr-only">Actions</span>
                     </th>
                   </tr>
                 </thead>
-                <tbody className="bg-white dark:bg-semibackground divide-y divide-gray-200 dark:divide-gray-700">
+                <tbody className="divide-y divide-semibackground/20">
                   {adminCategories.map((category) => (
                     <tr key={category.id}>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-white">
+                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-foreground">
                         {category.name}
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300">
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-secondary">
                         {category.slug}
                       </td>
-                      <td className="px-6 py-4 text-sm text-gray-500 dark:text-gray-300 max-w-xs truncate">
+                      <td className="px-6 py-4 text-sm text-secondary max-w-xs truncate">
                         {category.description || "-"}
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300">
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-secondary">
                         {category.created_at
                           ? new Date(category.created_at).toLocaleDateString()
                           : "-"}
@@ -307,7 +267,7 @@ const AdminCategoriesPage: React.FC = () => {
                       <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                         <button
                           onClick={() => handleEditClick(category)}
-                          className="text-accent hover:text-accent-dark mr-4"
+                          className="text-accent hover:text-hover mr-4"
                           disabled={!isAdminOrJurnalis}
                         >
                           <Edit size={18} />
@@ -315,7 +275,7 @@ const AdminCategoriesPage: React.FC = () => {
                         </button>
                         <button
                           onClick={() => handleDeleteClick(category)}
-                          className="text-error hover:text-error-dark"
+                          className="text-error hover:text-error/80"
                           disabled={!isAdminOrJurnalis}
                         >
                           <Trash2 size={18} />
@@ -333,13 +293,13 @@ const AdminCategoriesPage: React.FC = () => {
         {!isAdminOrJurnalis && (
           <div className="mt-8 text-center">
             {isLoggedIn ? (
-              <p className="text-gray-600 dark:text-gray-400 mb-4">
+              <p className="text-secondary mb-4">
                 Hanya super admin atau jurnalis yang dapat mengedit atau
                 menghapus kategori.
               </p>
             ) : (
               <>
-                <p className="text-gray-600 dark:text-gray-400 mb-4">
+                <p className="text-secondary mb-4">
                   Silakan login untuk mengedit atau menghapus kategori.
                 </p>
                 <button
@@ -359,8 +319,10 @@ const AdminCategoriesPage: React.FC = () => {
 
         {showAddModal && (
           <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-            <div className="bg-white dark:bg-gray-800 rounded-lg p-6 max-w-md w-full">
-              <h3 className="text-xl font-bold mb-4">Add New Category</h3>
+            <div className="card p-6 max-w-md w-full">
+              <h3 className="text-xl font-bold mb-4 text-foreground">
+                Add New Category
+              </h3>
               {errorMessage && (
                 <div className="bg-error/10 border border-error text-error px-4 py-3 rounded mb-4 text-sm">
                   {errorMessage}
@@ -369,7 +331,7 @@ const AdminCategoriesPage: React.FC = () => {
               <div className="mb-4">
                 <label
                   htmlFor="newCategoryName"
-                  className="block text-sm font-medium mb-1"
+                  className="block text-sm font-medium mb-1 text-foreground"
                 >
                   Category Name
                 </label>
@@ -385,7 +347,7 @@ const AdminCategoriesPage: React.FC = () => {
               <div className="mb-4">
                 <label
                   htmlFor="newCategoryDescription"
-                  className="block text-sm font-medium mb-1"
+                  className="block text-sm font-medium mb-1 text-foreground"
                 >
                   Description (Optional)
                 </label>
@@ -414,8 +376,10 @@ const AdminCategoriesPage: React.FC = () => {
 
         {showEditModal && editingCategory && (
           <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-            <div className="bg-white dark:bg-gray-800 rounded-lg p-6 max-w-md w-full">
-              <h3 className="text-xl font-bold mb-4">Edit Category</h3>
+            <div className="card p-6 max-w-md w-full">
+              <h3 className="text-xl font-bold mb-4 text-foreground">
+                Edit Category
+              </h3>
               {errorMessage && (
                 <div className="bg-error/10 border border-error text-error px-4 py-3 rounded mb-4 text-sm">
                   {errorMessage}
@@ -424,7 +388,7 @@ const AdminCategoriesPage: React.FC = () => {
               <div className="mb-4">
                 <label
                   htmlFor="editCategoryName"
-                  className="block text-sm font-medium mb-1"
+                  className="block text-sm font-medium mb-1 text-foreground"
                 >
                   Category Name
                 </label>
@@ -445,7 +409,7 @@ const AdminCategoriesPage: React.FC = () => {
               <div className="mb-4">
                 <label
                   htmlFor="editCategorySlug"
-                  className="block text-sm font-medium mb-1"
+                  className="block text-sm font-medium mb-1 text-foreground"
                 >
                   Slug (Generated)
                 </label>
@@ -453,14 +417,14 @@ const AdminCategoriesPage: React.FC = () => {
                   type="text"
                   id="editCategorySlug"
                   value={editingCategory.slug}
-                  className="form-input w-full bg-gray-100 dark:bg-gray-700 cursor-not-allowed"
+                  className="form-input w-full bg-semibackground cursor-not-allowed"
                   disabled
                 />
               </div>
               <div className="mb-4">
                 <label
                   htmlFor="editCategoryDescription"
-                  className="block text-sm font-medium mb-1"
+                  className="block text-sm font-medium mb-1 text-foreground"
                 >
                   Description (Optional)
                 </label>
@@ -497,14 +461,16 @@ const AdminCategoriesPage: React.FC = () => {
 
         {showDeleteConfirmation && categoryToDelete && (
           <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-            <div className="bg-white dark:bg-gray-800 rounded-lg p-6 max-w-md w-full">
-              <h3 className="text-xl font-bold mb-4">Confirm Deletion</h3>
+            <div className="card p-6 max-w-md w-full">
+              <h3 className="text-xl font-bold mb-4 text-foreground">
+                Confirm Deletion
+              </h3>
               {errorMessage && (
                 <div className="bg-error/10 border border-error text-error px-4 py-3 rounded mb-4 text-sm">
                   {errorMessage}
                 </div>
               )}
-              <p className="mb-6 text-gray-600 dark:text-gray-400">
+              <p className="mb-6 text-secondary">
                 Are you sure you want to delete the category "
                 <strong>{categoryToDelete.name}</strong>"? Articles currently
                 assigned to this category will have their category removed. This

@@ -8,23 +8,20 @@ import { useAuth } from "../contexts/AuthContext";
 import { useToastMessage } from "../hooks/useToastMessage";
 import type { UserRole } from "../types/userTypes";
 
-// Interface tetap kita gunakan untuk konsistensi dan type safety
 interface AppItem {
   id: string;
   title: string;
   description: string;
   icon: React.ReactNode;
-  // requiredRole tetap kita simpan, karena akan digunakan di halaman tujuan
   requiredRole: string | string[];
   to: string;
 }
 
 const WebAppPage: React.FC = () => {
-  const { isLoggedIn } = useAuth(); // Kita hanya butuh status login
-  const { showInfoToast } = useToastMessage(); // Gunakan info toast untuk memberi tahu user
+  const { isLoggedIn } = useAuth();
+  const { showInfoToast } = useToastMessage();
   const navigate = useNavigate();
 
-  // Daftar SEMUA aplikasi yang tersedia, seperti katalog publik
   const apps: AppItem[] = [
     {
       id: "articles",
@@ -71,7 +68,7 @@ const WebAppPage: React.FC = () => {
       title: "Perpus Digital",
       description: "Akses perpustakaan digital sekolah secara online",
       icon: <Book className="w-6 h-6" />,
-      requiredRole: [], // Akses publik
+      requiredRole: [],
       to: "https://perpustakaan.man3kulonprogo.sch.id/",
     },
     {
@@ -79,7 +76,7 @@ const WebAppPage: React.FC = () => {
       title: "Persuratan",
       description: "Kelola surat menyurat sekolah secara online",
       icon: <Clipboard className="w-6 h-6" />,
-      requiredRole: [], // Akses publik
+      requiredRole: [],
       to: "http://persuratan.man3kulonprogo.sch.id/",
     },
     {
@@ -87,17 +84,15 @@ const WebAppPage: React.FC = () => {
       title: "Rapor Siswa",
       description: "Akses informasi rapor dan nilai siswa",
       icon: <BookOpen className="w-6 h-6" />,
-      requiredRole: [], // Akses publik
+      requiredRole: [],
       to: "http://raport.man3kulonprogo.sch.id/",
     },
   ];
 
   const handleAppClick = (app: AppItem) => {
     if (app.to.startsWith("http")) {
-      // Link eksternal: buka langsung
-      window.open(app.to, "_blank"); // atau window.location.href = app.to
+      window.open(app.to, "_blank");
     } else {
-      // Link internal: pakai navigate
       if (isLoggedIn) {
         navigate(app.to);
       } else {
@@ -109,24 +104,20 @@ const WebAppPage: React.FC = () => {
     }
   };
 
-  // Tidak perlu loading state atau empty state di sini karena ini adalah halaman publik
-  // yang selalu menampilkan katalog aplikasi.
-
   return (
     <Layout>
-      <div className="min-h-screen py-12 px-4 sm:px-6 lg:px-8 bg-background dark:bg-semibackground">
+      <div className="min-h-screen py-12 px-4 sm:px-6 lg:px-8 bg-background">
         <div className="max-w-4xl mx-auto">
           <div className="text-center mb-12">
             <h1 className="text-3xl font-bold text-foreground mb-4">
               Aplikasi Sekolah
             </h1>
-            <p className="text-muted max-w-2xl mx-auto">
+            <p className="text-secondary max-w-2xl mx-auto">
               Kelola berbagai aspek sekolah dengan aplikasi digital terintegrasi
               kami
             </p>
           </div>
 
-          {/* Tampilkan SEMUA aplikasi, tanpa filter */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
             {apps.map((app) => (
               <AppCard

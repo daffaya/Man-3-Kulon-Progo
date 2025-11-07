@@ -1,3 +1,5 @@
+// frontend/src/pages/EditAlumniPage.tsx
+
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "../../contexts/AuthContext";
@@ -7,7 +9,6 @@ import AdminLayout from "../../components/layout/AdminLayout";
 import { alumniService } from "../../services/alumniService";
 import { studentService } from "../../services/studentService";
 
-export const API_URL = import.meta.env.VITE_BACKEND_API_URL;
 export const ALLOWED_ROLES = ["guru_bk", "super_admin"] as const;
 
 interface Alumni {
@@ -36,9 +37,8 @@ const hasEditAccess = (isLoggedIn: boolean, role?: string): boolean =>
     : false;
 
 const EditAlumniPage: React.FC = () => {
-  const { id } = useParams();
+  const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const { state } = useLocation();
   const { isLoggedIn, user, token } = useAuth();
   const { showSuccessToast, showErrorToast } = useToastMessage();
   const [formData, setFormData] = useState<Alumni>({
@@ -50,66 +50,61 @@ const EditAlumniPage: React.FC = () => {
     last_class_name: "",
     last_academic_year: "",
   });
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
 
   const isAdminOrGuruBK = hasEditAccess(isLoggedIn, user?.role);
 
   useEffect(() => {
-    if (!isAdminOrGuruBK) {
-      showErrorToast("Anda tidak memiliki akses untuk mengedit alumni");
+    if (!isAdminOrGuruBK || !token || !id) {
+      showErrorToast("Akses ditolak atau data tidak valid");
       navigate("/alumni");
       return;
     }
 
-    if (id && token) {
+    const loadAlumniData = async () => {
       setLoading(true);
-      alumniService
-        .getAlumni({}, token)
-        .then((data) => {
-          const alum = data.data.find((a: Alumni) => a.id === Number(id));
-          if (alum) {
-            studentService
-              .getStudents({ token, search: alum.nisn })
-              .then((studentData) => {
-                const student = studentData[0];
-                if (student) {
-                  setFormData({
-                    ...alum,
-                    nik: student.nik || "",
-                    birthplace: student.birth_place || "",
-                    birthdate: student.birth_date || "",
-                    gender: student.jenis_kelamin || "",
-                    address: student.address || "",
-                    phone: student.phone || "",
-                  });
-                } else {
-                  showErrorToast("Data siswa tidak ditemukan");
-                  navigate("/alumni");
-                }
-              })
-              .catch((error) => {
-                showErrorToast(error.message || "Gagal memuat data siswa");
-                navigate("/alumni");
-              });
-          } else {
-            showErrorToast("Alumni tidak ditemukan");
-            navigate("/alumni");
-          }
-        })
-        .catch((error) => {
-          showErrorToast(error.message || "Gagal memuat data alumni");
+      try {
+        const alumniResponse = await alumniService.getAlumni({}, token);
+        const alum = alumniResponse.data.find(
+          (a: Alumni) => a.id === Number(id)
+        );
+
+        if (!alum) {
+          showErrorToast("Alumni tidak ditemukan");
           navigate("/alumni");
-        })
-        .finally(() => setLoading(false));
-    }
-  }, [id, token, navigate, isAdminOrGuruBK, showErrorToast]);
+          return;
+        }
+
+        const studentResponse = await studentService.getStudents({
+          token,
+          search: alum.nisn,
+        });
+        const student = studentResponse[0];
+
+        setFormData({
+          ...alum,
+          nik: student?.nik || "",
+          birthplace: student?.birth_place || "",
+          birthdate: student?.birth_date || "",
+          gender: student?.jenis_kelamin || "",
+          address: student?.address || "",
+          phone: student?.phone || "",
+        });
+      } catch (error: any) {
+        showErrorToast(error.message || "Gagal memuat data alumni");
+        navigate("/alumni");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadAlumniData();
+  }, [id, token, isAdminOrGuruBK, navigate, showErrorToast]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!token) {
-      showErrorToast("Token tidak ditemukan");
-      return;
-    }
+    if (!token || !id) return;
+
     setLoading(true);
     try {
       await alumniService.updateAlumni(
@@ -125,201 +120,270 @@ const EditAlumniPage: React.FC = () => {
       showSuccessToast("Data alumni berhasil diperbarui");
       navigate("/alumni");
     } catch (error: any) {
-      showErrorToast(error.message || "Gagal memperbarui data alumni");
+      showErrorToast(error.message || "Gagal menyimpan perubahan");
     } finally {
       setLoading(false);
     }
   };
+
+  if (loading) {
+    return (
+      <AdminLayout>
+        <div className="container mx-auto px-4 py-12 text-center">
+          <div className="inline-flex items-center justify-center w-12 h-12 border-4 border-accent/20 border-t-accent rounded-full animate-spin" />
+          <p className="mt-4 text-secondary">Memuat data alumni...</p>
+        </div>
+      </AdminLayout>
+    );
+  }
 
   return (
     <AdminLayout>
       <div className="container mx-auto px-4 sm:px-6 py-8 fade-in">
         <button
           onClick={() => navigate("/alumni")}
-          className="text-sm text-gray-600 dark:text-gray-400 hover:text-primary dark:hover:text-primary flex items-center mb-4 transition-colors"
+          className="text-sm text-secondary hover:text-accent flex items-center mb-6 transition-colors"
         >
           <ArrowLeft className="h-4 w-4 mr-1" />
           Kembali ke Daftar Alumni
         </button>
-        <h1 className="text-3xl font-serif font-bold mb-6">Edit Data Alumni</h1>
-        <div className="bg-white dark:bg-semibackground rounded-xl shadow-md p-6">
-          {loading ? (
-            <div className="text-center py-8">
-              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
-              <p className="mt-4 text-gray-600 dark:text-gray-400">
-                Memuat data...
-              </p>
-            </div>
-          ) : (
-            <form onSubmit={handleSubmit} className="max-w-md">
-              <div className="mb-4">
-                <label className="block text-sm font-medium">NISN</label>
+
+        <h1 className="text-3xl font-serif font-bold text-foreground mb-8">
+          Edit Data Alumni
+        </h1>
+
+        <div className="card p-6 max-w-4xl mx-auto">
+          <form
+            onSubmit={handleSubmit}
+            className="grid grid-cols-1 md:grid-cols-2 gap-6"
+          >
+            {/* Informasi Dasar - Readonly */}
+            <div className="md:col-span-2 space-y-4 p-5 bg-semibackground/50 rounded-lg">
+              <h3 className="text-lg font-semibold text-foreground col-span-2 mb-3">
+                Informasi Dasar (Tidak Dapat Diubah)
+              </h3>
+              <div>
+                <label className="block text-sm font-medium text-secondary">
+                  NISN
+                </label>
                 <input
                   type="text"
                   value={formData.nisn}
                   disabled
-                  className="form-input w-full bg-gray-100"
+                  className="form-input w-full bg-semibackground text-secondary"
                 />
               </div>
-              <div className="mb-4">
-                <label className="block text-sm font-medium">Nama</label>
+              <div>
+                <label className="block text-sm font-medium text-secondary">
+                  Nama
+                </label>
                 <input
                   type="text"
                   value={formData.name}
                   disabled
-                  className="form-input w-full bg-gray-100"
+                  className="form-input w-full bg-semibackground text-secondary"
                 />
               </div>
-              <div className="mb-4">
-                <label className="block text-sm font-medium">Tahun Lulus</label>
+              <div>
+                <label className="block text-sm font-medium text-secondary">
+                  Tahun Lulus
+                </label>
                 <input
                   type="text"
                   value={formData.graduation_year}
                   disabled
-                  className="form-input w-full bg-gray-100"
+                  className="form-input w-full bg-semibackground text-secondary"
                 />
               </div>
-              <div className="mb-4">
-                <label className="block text-sm font-medium">
+              <div>
+                <label className="block text-sm font-medium text-secondary">
                   Kelas Terakhir
                 </label>
                 <input
                   type="text"
-                  value={formData.last_class_name || ""}
+                  value={formData.last_class_name || "-"}
                   disabled
-                  className="form-input w-full bg-gray-100"
+                  className="form-input w-full bg-semibackground text-secondary"
                 />
               </div>
-              <div className="mb-4">
-                <label className="block text-sm font-medium">NIK</label>
+            </div>
+
+            {/* Data Pribadi - Readonly */}
+            <div className="md:col-span-2 space-y-4 p-5 bg-semibackground/30 rounded-lg">
+              <h3 className="text-lg font-semibold text-foreground col-span-2 mb-3">
+                Data Pribadi
+              </h3>
+              <div>
+                <label className="block text-sm font-medium text-secondary">
+                  NIK
+                </label>
                 <input
                   type="text"
-                  value={formData.nik || ""}
+                  value={formData.nik || "-"}
                   disabled
-                  className="form-input w-full bg-gray-100"
+                  className="form-input w-full bg-semibackground text-secondary"
                 />
               </div>
-              <div className="mb-4">
-                <label className="block text-sm font-medium">
+              <div>
+                <label className="block text-sm font-medium text-secondary">
                   Tempat Lahir
                 </label>
                 <input
                   type="text"
-                  value={formData.birthplace || ""}
+                  value={formData.birthplace || "-"}
                   disabled
-                  className="form-input w-full bg-gray-100"
+                  className="form-input w-full bg-semibackground text-secondary"
                 />
               </div>
-              <div className="mb-4">
-                <label className="block text-sm font-medium">
+              <div>
+                <label className="block text-sm font-medium text-secondary">
                   Tanggal Lahir
                 </label>
                 <input
                   type="text"
-                  value={formData.birthdate || ""}
+                  value={formData.birthdate || "-"}
                   disabled
-                  className="form-input w-full bg-gray-100"
+                  className="form-input w-full bg-semibackground text-secondary"
                 />
               </div>
-              <div className="mb-4">
-                <label className="block text-sm font-medium">
+              <div>
+                <label className="block text-sm font-medium text-secondary">
                   Jenis Kelamin
                 </label>
                 <input
                   type="text"
-                  value={formData.gender || ""}
+                  value={formData.gender || "-"}
                   disabled
-                  className="form-input w-full bg-gray-100"
+                  className="form-input w-full bg-semibackground text-secondary"
                 />
               </div>
-              <div className="mb-4">
-                <label className="block text-sm font-medium">Alamat</label>
+              <div className="md:col-span-2">
+                <label className="block text-sm font-medium text-secondary">
+                  Alamat
+                </label>
                 <input
                   type="text"
-                  value={formData.address || ""}
+                  value={formData.address || "-"}
                   disabled
-                  className="form-input w-full bg-gray-100"
+                  className="form-input w-full bg-semibackground text-secondary"
                 />
               </div>
-              <div className="mb-4">
-                <label className="block text-sm font-medium">No Telepon</label>
+              <div>
+                <label className="block text-sm font-medium text-secondary">
+                  No. Telepon
+                </label>
                 <input
                   type="text"
-                  value={formData.phone || ""}
+                  value={formData.phone || "-"}
                   disabled
-                  className="form-input w-full bg-gray-100"
+                  className="form-input w-full bg-semibackground text-secondary"
                 />
               </div>
-              <div className="mb-4">
-                <label className="block text-sm font-medium">Status</label>
+            </div>
+
+            {/* Status & Aktivitas Saat Ini - Editable */}
+            <div className="md:col-span-2 space-y-4 p-5 bg-white dark:bg-semibackground rounded-lg border border-accent/20">
+              <h3 className="text-lg font-semibold text-foreground col-span-2 mb-3">
+                Status & Aktivitas Saat Ini
+              </h3>
+              <div>
+                <label className="block text-sm font-medium text-foreground">
+                  Status
+                </label>
                 <select
                   value={formData.status || ""}
                   onChange={(e) =>
                     setFormData({ ...formData, status: e.target.value })
                   }
                   className="form-input w-full"
+                  required
                 >
                   <option value="">Pilih Status</option>
                   <option value="Bekerja">Bekerja</option>
-                  <option value="Usaha">Usaha</option>
+                  <option value="Usaha">Berwirausaha</option>
                   <option value="Kuliah">Kuliah</option>
                   <option value="Lainnya">Lainnya</option>
                 </select>
               </div>
-              <div className="mb-4">
-                <label className="block text-sm font-medium">
-                  Tempat Kerja
-                </label>
-                <input
-                  type="text"
-                  value={formData.workplace || ""}
-                  onChange={(e) =>
-                    setFormData({ ...formData, workplace: e.target.value })
-                  }
-                  className="form-input w-full"
-                />
-              </div>
-              <div className="mb-4">
-                <label className="block text-sm font-medium">Usaha</label>
-                <input
-                  type="text"
-                  value={formData.business || ""}
-                  onChange={(e) =>
-                    setFormData({ ...formData, business: e.target.value })
-                  }
-                  className="form-input w-full"
-                />
-              </div>
-              <div className="mb-4">
-                <label className="block text-sm font-medium">Universitas</label>
-                <input
-                  type="text"
-                  value={formData.university || ""}
-                  onChange={(e) =>
-                    setFormData({ ...formData, university: e.target.value })
-                  }
-                  className="form-input w-full"
-                />
-              </div>
-              <div className="flex justify-end space-x-4">
-                <button
-                  type="button"
-                  onClick={() => navigate("/alumni")}
-                  className="btn btn-secondary"
-                  disabled={loading}
-                >
-                  Batal
-                </button>
-                <button
-                  type="submit"
-                  className="btn btn-primary"
-                  disabled={loading}
-                >
-                  {loading ? "Menyimpan..." : "Simpan"}
-                </button>
-              </div>
-            </form>
-          )}
+
+              {formData.status === "Bekerja" && (
+                <div>
+                  <label className="block text-sm font-medium text-foreground">
+                    Tempat Kerja
+                  </label>
+                  <input
+                    type="text"
+                    value={formData.workplace || ""}
+                    onChange={(e) =>
+                      setFormData({ ...formData, workplace: e.target.value })
+                    }
+                    className="form-input w-full"
+                    placeholder="Nama perusahaan/instansi"
+                  />
+                </div>
+              )}
+
+              {formData.status === "Usaha" && (
+                <div>
+                  <label className="block text-sm font-medium text-foreground">
+                    Nama Usaha
+                  </label>
+                  <input
+                    type="text"
+                    value={formData.business || ""}
+                    onChange={(e) =>
+                      setFormData({ ...formData, business: e.target.value })
+                    }
+                    className="form-input w-full"
+                    placeholder="Jenis usaha atau nama bisnis"
+                  />
+                </div>
+              )}
+
+              {formData.status === "Kuliah" && (
+                <div>
+                  <label className="block text-sm font-medium text-foreground">
+                    Universitas
+                  </label>
+                  <input
+                    type="text"
+                    value={formData.university || ""}
+                    onChange={(e) =>
+                      setFormData({ ...formData, university: e.target.value })
+                    }
+                    className="form-input w-full"
+                    placeholder="Nama perguruan tinggi"
+                  />
+                </div>
+              )}
+            </div>
+
+            {/* Tombol Aksi */}
+            <div className="md:col-span-2 flex justify-end gap-4 pt-4">
+              <button
+                type="button"
+                onClick={() => navigate("/alumni")}
+                className="btn btn-secondary"
+                disabled={loading}
+              >
+                Batal
+              </button>
+              <button
+                type="submit"
+                className="btn btn-primary"
+                disabled={loading}
+              >
+                {loading ? (
+                  <>
+                    <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin mr-2" />
+                    Menyimpan...
+                  </>
+                ) : (
+                  "Simpan Perubahan"
+                )}
+              </button>
+            </div>
+          </form>
         </div>
       </div>
     </AdminLayout>

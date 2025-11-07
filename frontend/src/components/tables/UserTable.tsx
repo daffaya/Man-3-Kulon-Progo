@@ -24,32 +24,34 @@ const RoleBadge: React.FC<{ role: string }> = ({ role }) => {
     super_admin: {
       label: "Super Admin",
       color:
-        "bg-purple-100 dark:bg-purple-900 text-purple-800 dark:text-purple-200",
+        "bg-[rgb(var(--color-primary),0.1)] text-[rgb(var(--color-primary))]",
     },
     arsiparis: {
       label: "Arsiparis",
-      color: "bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200",
+      color:
+        "bg-[rgb(var(--color-accent),0.1)] text-[rgb(var(--color-accent))]",
     },
     pengelola_bmn: {
       label: "Pengelola BMN",
       color:
-        "bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200",
+        "bg-[rgb(var(--color-success),0.1)] text-[rgb(var(--color-success))]",
     },
     guru_bk: {
       label: "Guru BK",
       color:
-        "bg-yellow-100 dark:bg-yellow-900 text-yellow-800 dark:text-yellow-200",
+        "bg-[rgb(var(--color-warning),0.1)] text-[rgb(var(--color-warning))]",
     },
     jurnalis: {
       label: "Jurnalis",
-      color: "bg-red-100 dark:bg-red-900 text-red-800 dark:text-red-200",
+      color: "bg-[rgb(var(--color-error),0.1)] text-[rgb(var(--color-error))]",
     },
   };
 
   const normalizedRole = role.toLowerCase();
   const roleInfo = roleMap[normalizedRole] || {
     label: role,
-    color: "bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-300",
+    color:
+      "bg-[rgb(var(--color-secondary-button))] text-[rgb(var(--color-secondary))]",
   };
 
   return (
@@ -78,7 +80,7 @@ const ActionButtons: React.FC<{
   <div className="flex justify-end space-x-2">
     <button
       onClick={() => onEdit(user)}
-      className="text-blue-500 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300"
+      className="text-[rgb(var(--color-accent))] hover:text-[rgb(var(--color-hover))]"
       aria-label="Edit user"
       title="Edit user"
     >
@@ -86,7 +88,7 @@ const ActionButtons: React.FC<{
     </button>
     <button
       onClick={() => onDelete(user.id)}
-      className="text-red-500 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300"
+      className="text-[rgb(var(--color-error))] hover:text-[rgb(var(--color-error)),0.8]"
       aria-label="Delete user"
       title="Delete user"
     >
@@ -118,11 +120,9 @@ const UserTable: React.FC<UserTableProps> = ({
 
   if (loading) {
     return (
-      <div className="overflow-x-auto rounded-lg border border-gray-200 dark:border-gray-800 relative min-h-[200px] flex items-center justify-center">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-accent"></div>
-        <p className="mt-4 text-gray-600 dark:text-gray-400 absolute bottom-4">
-          Loading users...
-        </p>
+      <div className="card p-8 min-h-[200px] flex flex-col items-center justify-center">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[rgb(var(--color-accent))]"></div>
+        <p className="mt-4 text-secondary">Loading users...</p>
       </div>
     );
   }
@@ -130,42 +130,38 @@ const UserTable: React.FC<UserTableProps> = ({
   if (!Array.isArray(users)) {
     console.error("Invalid user data:", users);
     return (
-      <div className="text-center py-12">
-        <h3 className="text-xl font-medium text-gray-600 dark:text-gray-400 mt-4">
+      <div className="card p-12 text-center">
+        <h3 className="text-xl font-medium text-foreground mt-4">
           Error loading users.
         </h3>
-        <p className="text-gray-500 dark:text-gray-500 mt-2">
-          Please try again later.
-        </p>
+        <p className="text-secondary mt-2">Please try again later.</p>
       </div>
     );
   }
 
   if (filteredUsers.length === 0) {
     return (
-      <div className="text-center py-12">
-        <UserPlus size={48} className="mx-auto text-gray-400" />
-        <h3 className="text-xl font-medium text-gray-600 dark:text-gray-400 mt-4">
+      <div className="card p-12 text-center">
+        <UserPlus size={48} className="mx-auto text-secondary" />
+        <h3 className="text-xl font-medium text-foreground mt-4">
           No users found.
         </h3>
-        <p className="text-gray-500 dark:text-gray-500 mt-2">
-          Create a new user to get started.
-        </p>
+        <p className="text-secondary mt-2">Create a new user to get started.</p>
       </div>
     );
   }
 
   return (
-    <div className="overflow-x-auto rounded-lg border border-gray-200 dark:border-gray-800 relative">
-      <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-800">
-        <thead className="bg-gray-50 dark:bg-gray-900">
+    <div className="card overflow-hidden border-none  ">
+      <table className="min-w-full divide-y divide-zinc-800">
+        <thead className="bg-[rgb(var(--color-semi-background))]">
           <tr>
             {["User", "Role", "Created At", "Actions"].map((header) => (
               <th
                 key={header}
                 className={`px-6 py-3 ${
                   header === "Actions" ? "text-right" : "text-left"
-                } text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider`}
+                } text-xs font-medium text-secondary uppercase tracking-wider`}
               >
                 {header}
               </th>
@@ -173,11 +169,11 @@ const UserTable: React.FC<UserTableProps> = ({
           </tr>
         </thead>
 
-        <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
+        <tbody className="divide-y divide-zinc-800">
           {filteredUsers.map((user) => (
             <tr
               key={user.id}
-              className="hover:bg-gray-50 dark:hover:bg-gray-700"
+              className="hover:bg-[rgb(var(--color-secondary-hover))]"
             >
               <td className="px-6 py-4 whitespace-nowrap">
                 <div className="flex items-center">
@@ -189,10 +185,10 @@ const UserTable: React.FC<UserTableProps> = ({
                     />
                   </div>
                   <div className="ml-4">
-                    <div className="text-sm font-medium text-gray-900 dark:text-white">
+                    <div className="text-sm font-medium text-foreground">
                       {user.username}
                     </div>
-                    <div className="text-sm text-gray-500 dark:text-gray-400">
+                    <div className="text-sm text-secondary">
                       {user.full_name}
                     </div>
                   </div>
@@ -203,7 +199,7 @@ const UserTable: React.FC<UserTableProps> = ({
                 <RoleBadge role={user.role} />
               </td>
 
-              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
+              <td className="px-6 py-4 whitespace-nowrap text-sm text-secondary">
                 {formatDate(user.created_at)}
               </td>
 

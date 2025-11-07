@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../../../contexts/AuthContext";
 import { useToastMessage } from "../../../hooks/useToastMessage";
 import AdminLayout from "../../../components/layout/AdminLayout";
 import { format, parseISO } from "date-fns";
 import { id } from "date-fns/locale";
+import { ChevronLeft } from "lucide-react";
 
 interface Holiday {
   id: number;
@@ -35,7 +36,6 @@ const AttendanceHolidaysPage: React.FC = () => {
 
   const isAdminOrGuruBK = hasEditAccess(isLoggedIn, user?.role);
 
-  // Fetch holidays
   useEffect(() => {
     const fetchHolidays = async () => {
       try {
@@ -61,7 +61,6 @@ const AttendanceHolidaysPage: React.FC = () => {
     }
   }, [isLoggedIn, token, showErrorToast]);
 
-  // Add holiday
   const addHoliday = async () => {
     if (!newHoliday.date || !newHoliday.description) {
       showErrorToast("Tanggal dan keterangan harus diisi");
@@ -90,7 +89,6 @@ const AttendanceHolidaysPage: React.FC = () => {
         showSuccessToast(data.message || "Hari libur berhasil ditambahkan");
         setNewHoliday({ date: "", description: "" });
 
-        // Refresh holidays list
         const holidaysResponse = await fetch(
           `${API_URL}/api/attendance/holidays`,
           {
@@ -114,7 +112,6 @@ const AttendanceHolidaysPage: React.FC = () => {
     }
   };
 
-  // Delete holiday
   const deleteHoliday = async (id: number) => {
     if (!window.confirm("Apakah Anda yakin ingin menghapus hari libur ini?")) {
       return;
@@ -135,7 +132,6 @@ const AttendanceHolidaysPage: React.FC = () => {
       if (response.ok && data.success) {
         showSuccessToast(data.message || "Hari libur berhasil dihapus");
 
-        // Refresh holidays list
         const holidaysResponse = await fetch(
           `${API_URL}/api/attendance/holidays`,
           {
@@ -159,179 +155,182 @@ const AttendanceHolidaysPage: React.FC = () => {
     }
   };
 
-  const SelectedLayout = isAdminOrGuruBK ? AdminLayout : AdminLayout;
-
   if (!isLoggedIn) {
     navigate("/login");
     return null;
   }
 
   return (
-    <SelectedLayout>
+    <AdminLayout>
       <div className="container mx-auto px-4 sm:px-6 py-12 fade-in">
-        <div className="flex items-center mb-6">
-          <button
-            onClick={() => navigate("/atmin/presensi")}
-            className="mr-4 text-gray-600 dark:text-gray-400 hover:text-accent dark:hover:text-accent transition-colors"
+        <div className="mb-8">
+          <Link
+            to="/atmin/presensi"
+            className="text-sm text-secondary hover:text-accent flex items-center mb-4 transition-colors"
           >
-            ← Kembali
-          </button>
-          <h1 className="text-3xl font-serif font-bold">
-            Manajemen Hari Libur
-          </h1>
-        </div>
+            <ChevronLeft className="h-4 w-4 mr-1" />
+            Kembali
+          </Link>
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
+            <h1 className="text-3xl font-serif font-bold text-foreground mb-4 sm:mb-0">
+              Manajemen Hari Libur
+            </h1>
+          </div>
 
-        <div className="bg-white dark:bg-semibackground rounded-xl shadow-md p-6">
-          {isAdminOrGuruBK ? (
-            <>
-              {/* Add Holiday Form */}
-              <div className="mb-8">
-                <h2 className="text-xl font-semibold mb-4">
-                  Tambah Hari Libur
-                </h2>
+          <div className="card p-6 mt-8">
+            {isAdminOrGuruBK ? (
+              <>
+                <div className="mb-8">
+                  <h2 className="text-xl font-semibold text-foreground mb-4">
+                    Tambah Hari Libur
+                  </h2>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-                  <div>
-                    <label
-                      htmlFor="holidayDate"
-                      className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
-                    >
-                      Tanggal
-                    </label>
-                    <input
-                      type="date"
-                      id="holidayDate"
-                      className="form-input w-full"
-                      value={newHoliday.date}
-                      onChange={(e) =>
-                        setNewHoliday({ ...newHoliday, date: e.target.value })
-                      }
-                      disabled={loading}
-                    />
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                    <div>
+                      <label
+                        htmlFor="holidayDate"
+                        className="block text-sm font-medium text-foreground mb-1"
+                      >
+                        Tanggal
+                      </label>
+                      <input
+                        type="date"
+                        id="holidayDate"
+                        className="form-input w-full"
+                        value={newHoliday.date}
+                        onChange={(e) =>
+                          setNewHoliday({ ...newHoliday, date: e.target.value })
+                        }
+                        disabled={loading}
+                      />
+                    </div>
+
+                    <div>
+                      <label
+                        htmlFor="holidayDescription"
+                        className="block text-sm font-medium text-foreground mb-1"
+                      >
+                        Keterangan
+                      </label>
+                      <input
+                        type="text"
+                        id="holidayDescription"
+                        className="form-input w-full"
+                        value={newHoliday.description}
+                        onChange={(e) =>
+                          setNewHoliday({
+                            ...newHoliday,
+                            description: e.target.value,
+                          })
+                        }
+                        placeholder="Contoh: Hari Raya Idul Fitri"
+                        disabled={loading}
+                      />
+                    </div>
                   </div>
 
-                  <div>
-                    <label
-                      htmlFor="holidayDescription"
-                      className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
-                    >
-                      Keterangan
-                    </label>
-                    <input
-                      type="text"
-                      id="holidayDescription"
-                      className="form-input w-full"
-                      value={newHoliday.description}
-                      onChange={(e) =>
-                        setNewHoliday({
-                          ...newHoliday,
-                          description: e.target.value,
-                        })
-                      }
-                      placeholder="Contoh: Hari Raya Idul Fitri"
+                  <div className="flex justify-end">
+                    <button
+                      type="button"
+                      className="btn btn-primary"
+                      onClick={addHoliday}
                       disabled={loading}
-                    />
+                    >
+                      {loading ? "Menyimpan..." : "Tambah Hari Libur"}
+                    </button>
                   </div>
                 </div>
 
-                <div className="flex justify-end">
-                  <button
-                    type="button"
-                    className="btn btn-primary"
-                    onClick={addHoliday}
-                    disabled={loading}
-                  >
-                    {loading ? "Menyimpan..." : "Tambah Hari Libur"}
-                  </button>
-                </div>
-              </div>
+                <div>
+                  <h2 className="text-xl font-semibold text-foreground mb-4">
+                    Daftar Hari Libur
+                  </h2>
 
-              {/* Holidays List */}
-              <div>
-                <h2 className="text-xl font-semibold mb-4">
-                  Daftar Hari Libur
-                </h2>
-
-                {holidays.length > 0 ? (
-                  <div className="overflow-x-auto">
-                    <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
-                      <thead className="bg-gray-50 dark:bg-gray-800">
-                        <tr>
-                          <th
-                            scope="col"
-                            className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider"
-                          >
-                            Tanggal
-                          </th>
-                          <th
-                            scope="col"
-                            className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider"
-                          >
-                            Keterangan
-                          </th>
-                          <th
-                            scope="col"
-                            className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider"
-                          >
-                            Tahun Ajaran
-                          </th>
-                          <th
-                            scope="col"
-                            className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider"
-                          >
-                            Aksi
-                          </th>
-                        </tr>
-                      </thead>
-                      <tbody className="bg-white dark:bg-gray-900 divide-y divide-gray-200 dark:divide-gray-700">
-                        {holidays.map((holiday) => (
-                          <tr key={holiday.id}>
-                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
-                              {format(parseISO(holiday.date), "dd MMMM yyyy", {
-                                locale: id,
-                              })}
-                            </td>
-                            <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-white">
-                              {holiday.description}
-                            </td>
-                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
-                              {holiday.academic_year}
-                            </td>
-                            <td className="px-6 py-4 whitespace-nowrap text-sm">
-                              <button
-                                type="button"
-                                className="text-red-600 hover:text-red-900 dark:text-red-400 dark:hover:text-red-300"
-                                onClick={() => deleteHoliday(holiday.id)}
-                                disabled={loading}
-                              >
-                                Hapus
-                              </button>
-                            </td>
+                  {holidays.length > 0 ? (
+                    <div className="overflow-x-auto">
+                      <table className="min-w-full divide-y divide-[rgb(var(--color-secondary)/0.2)]">
+                        <thead className="bg-[rgb(var(--color-semi-background))]">
+                          <tr>
+                            <th
+                              scope="col"
+                              className="px-6 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider"
+                            >
+                              Tanggal
+                            </th>
+                            <th
+                              scope="col"
+                              className="px-6 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider"
+                            >
+                              Keterangan
+                            </th>
+                            <th
+                              scope="col"
+                              className="px-6 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider"
+                            >
+                              Tahun Ajaran
+                            </th>
+                            <th
+                              scope="col"
+                              className="px-6 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider"
+                            >
+                              Aksi
+                            </th>
                           </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-                ) : (
-                  <div className="text-center py-8">
-                    <p className="text-gray-500 dark:text-gray-400">
-                      Belum ada data hari libur
-                    </p>
-                  </div>
-                )}
+                        </thead>
+                        <tbody className="divide-y divide-[rgb(var(--color-secondary)/0.1)]">
+                          {holidays.map((holiday) => (
+                            <tr key={holiday.id}>
+                              <td className="px-6 py-4 whitespace-nowrap text-sm text-secondary">
+                                {format(
+                                  parseISO(holiday.date),
+                                  "dd MMMM yyyy",
+                                  {
+                                    locale: id,
+                                  }
+                                )}
+                              </td>
+                              <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-foreground">
+                                {holiday.description}
+                              </td>
+                              <td className="px-6 py-4 whitespace-nowrap text-sm text-secondary">
+                                {holiday.academic_year}
+                              </td>
+                              <td className="px-6 py-4 whitespace-nowrap text-sm">
+                                <button
+                                  type="button"
+                                  className="text-error hover:text-error/80 transition-colors"
+                                  onClick={() => deleteHoliday(holiday.id)}
+                                  disabled={loading}
+                                >
+                                  Hapus
+                                </button>
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  ) : (
+                    <div className="text-center py-8">
+                      <p className="text-secondary">
+                        Belum ada data hari libur
+                      </p>
+                    </div>
+                  )}
+                </div>
+              </>
+            ) : (
+              <div className="text-center py-8">
+                <p className="text-secondary">
+                  Anda tidak memiliki akses untuk mengelola hari libur. Silakan
+                  hubungi Guru BK atau Super Admin.
+                </p>
               </div>
-            </>
-          ) : (
-            <div className="text-center py-8">
-              <p className="text-gray-500 dark:text-gray-400">
-                Anda tidak memiliki akses untuk mengelola hari libur. Silakan
-                hubungi Guru BK atau Super Admin.
-              </p>
-            </div>
-          )}
+            )}
+          </div>
         </div>
       </div>
-    </SelectedLayout>
+    </AdminLayout>
   );
 };
 
