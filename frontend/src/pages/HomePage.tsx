@@ -10,6 +10,10 @@ import {
   Bell,
   Shield,
   CheckCircle,
+  Book,
+  Mail,
+  Phone,
+  MessageCircle,
 } from "lucide-react";
 import Layout from "../components/layout/Layout";
 import ArticleCard from "../components/article/ArticleCard";
@@ -104,56 +108,6 @@ const HomePage: React.FC = () => {
                 ></iframe>
               </div>
             </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Announcements */}
-      <section className="py-12 bg-background">
-        <div className="container max-w-6xl mx-auto px-4 sm:px-6">
-          <div className="flex justify-between items-center mb-8 flex-wrap gap-4">
-            <h2 className="text-2xl md:text-3xl font-serif font-bold flex items-center text-foreground">
-              <Bell size={24} className="mr-2 text-accent" />
-              Pengumuman
-            </h2>
-            <Link
-              to="/pengumuman"
-              className="flex items-center text-accent hover:underline font-medium"
-            >
-              Lihat Semua
-              <ChevronRight size={18} />
-            </Link>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {[
-              {
-                title: "Pendaftaran PPDB 2023/2024 Dibuka",
-                desc: "Pendaftaran peserta didik baru telah dibuka mulai 1 Mei 2023.",
-                time: "2 hari yang lalu",
-              },
-              {
-                title: "Libur Semester Ganjil",
-                desc: "Libur semester ganjil dimulai dari 15 Desember hingga 2 Januari.",
-                time: "1 minggu yang lalu",
-              },
-            ].map((item) => (
-              <div key={item.title} className="card p-6">
-                <div className="flex items-start">
-                  <div className="bg-accent/10 p-2 rounded-full mr-4 flex-shrink-0">
-                    <Bell className="text-accent" />
-                  </div>
-                  <div>
-                    <h3 className="font-bold text-lg mb-2 text-foreground">
-                      {item.title}
-                    </h3>
-                    <p className="text-secondary mb-3">{item.desc}</p>
-                    <span className="text-sm text-secondary/70">
-                      {item.time}
-                    </span>
-                  </div>
-                </div>
-              </div>
-            ))}
           </div>
         </div>
       </section>
@@ -385,8 +339,117 @@ const HomePage: React.FC = () => {
         </div>
       </section>
 
-      {/* Quick Actions */}
+      {/* Serapan Aduan Masyarakat (SEDUM) Section */}
       <section className="py-12 bg-background">
+        <div className="container max-w-6xl mx-auto px-4 sm:px-6">
+          <div className="flex justify-between items-center mb-8 flex-wrap gap-4">
+            <h2 className="text-2xl md:text-3xl font-serif font-bold flex items-center text-foreground">
+              <MessageSquare size={24} className="mr-2 text-accent" />
+              Serapan Aduan Masyarakat
+            </h2>
+            <Link
+              to="/layanan/sedum"
+              className="flex items-center text-accent hover:underline font-medium"
+            >
+              Lihat Detail
+              <ChevronRight size={18} />
+            </Link>
+          </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            {/* Left Column - Description */}
+            <div className="lg:col-span-2">
+              <div className="bg-semibackground p-6 rounded-lg shadow-sm">
+                <h3 className="text-xl font-bold mb-4 text-foreground">
+                  Layanan Pengaduan Masyarakat
+                </h3>
+                <p className="text-secondary mb-4">
+                  MAN 3 Kulon Progo membuka ruang seluas-luasnya bagi masyarakat
+                  (orang tua/wali, siswa, alumni, maupun publik) untuk
+                  menyampaikan aduan, saran, atau masukan konstruktif demi
+                  peningkatan kualitas layanan pendidikan.
+                </p>
+                <p className="text-secondary mb-6">
+                  Setiap masukan akan ditindaklanjuti secara profesional dan
+                  kerahasiaan identitas pelapor akan kami jaga. Aduan akan
+                  diproses maksimal 3x24 jam kerja.
+                </p>
+
+                <div className="flex flex-wrap gap-3">
+                  <Link to="/layanan/sedum" className="btn btn-primary">
+                    Ajukan Aduan/Saran
+                  </Link>
+                  <a
+                    //TODO: ganti link google form
+                    href="https://forms.gle/CONTOHLINK"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="btn btn-secondary"
+                  >
+                    Formulir Online
+                  </a>
+                </div>
+              </div>
+            </div>
+
+            {/* Right Column - Contact Options */}
+            <div>
+              <div className="bg-semibackground p-6 rounded-lg shadow-sm h-full">
+                <h3 className="text-xl font-bold mb-4 text-foreground">
+                  Saluran Pengaduan
+                </h3>
+                <ul className="space-y-4">
+                  <li className="flex items-start">
+                    <div className="bg-accent/10 p-2 rounded-full mr-3">
+                      <Mail className="text-accent" size={18} />
+                    </div>
+                    <div>
+                      <span className="font-medium text-foreground">Email</span>
+                      <p className="text-sm text-secondary">
+                        man3kulonprogo@gmail.com
+                      </p>
+                    </div>
+                  </li>
+                  <li className="flex items-start">
+                    <div className="bg-accent/10 p-2 rounded-full mr-3">
+                      <Phone className="text-accent" size={18} />
+                    </div>
+                    <div>
+                      <span className="font-medium text-foreground">
+                        Hotline
+                      </span>
+                      <p className="text-sm text-secondary">0274-2821138</p>
+                    </div>
+                  </li>
+                  <li className="flex items-start">
+                    <div className="bg-accent/10 p-2 rounded-full mr-3">
+                      <MessageCircle className="text-accent" size={18} />
+                    </div>
+                    <div>
+                      <span className="font-medium text-foreground">
+                        WhatsApp
+                      </span>
+                      <p className="text-sm text-secondary">0812-3456-7890</p>
+                    </div>
+                  </li>
+                </ul>
+
+                <div className="mt-6 pt-4 border-t border-border">
+                  <h4 className="font-bold mb-2 text-foreground">
+                    Kotak Pengaduan Fisik
+                  </h4>
+                  <p className="text-sm text-secondary">
+                    Tersedia di depan ruang Tata Usaha sekolah
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Quick Actions */}
+      <section className="py-12 bg-semibackground">
         <div className="container max-w-6xl mx-auto px-4 sm:px-6">
           <h2 className="text-2xl md:text-3xl font-serif font-bold mb-8 text-center text-foreground">
             Layanan Cepat
@@ -395,27 +458,27 @@ const HomePage: React.FC = () => {
             {[
               {
                 icon: <Users size={24} />,
-                title: "Portal Siswa",
-                desc: "Akses portal siswa",
-                link: "/portal-siswa",
-              },
-              {
-                icon: <MessageSquare size={24} />,
-                title: "E-Learning",
-                desc: "Platform pembelajaran online",
-                link: "/e-learning",
-              },
-              {
-                icon: <Users size={24} />,
                 title: "PPDB Online",
                 desc: "Pendaftaran peserta didik baru",
-                link: "/ppdb",
+                link: "/layanan/ppdb",
               },
               {
                 icon: <Shield size={24} />,
                 title: "Zona Integritas",
                 desc: "Layanan pengaduan",
                 link: "/layanan/zona-integritas",
+              },
+              {
+                icon: <MessageSquare size={24} />,
+                title: "Sedum",
+                desc: "Serapan Aduan Masyarakat",
+                link: "/layanan/sedum",
+              },
+              {
+                icon: <Book size={24} />,
+                title: "Perpustakaan",
+                desc: "Perpustakaan Digital Online",
+                link: "https://perpustakaan.man3kulonprogo.sch.id/",
               },
             ].map((item) => (
               <Link to={item.link} key={item.title} className="block">

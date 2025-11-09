@@ -49,6 +49,7 @@ const integrityAreas: Area[] = [
   <li><strong>Pemantauan dan Evaluasi</strong> - Seluruh kegiatan pembangunan ZI telah dilaksanakan sesuai target yang direncanakan; terdapat monitoring dan evaluasi terhadap pembangunan Zona Integritas menuju WBK/WBBM; hasil monitoring dan evaluasi telah ditindaklanjuti</li>
   <li><strong>Perubahan Pola Pikir dan Budaya Kerja</strong> - Pimpinan berperan sebagai role model dan agen perubahan telah ditetapkan; budaya kerja dan pola pikir telah dibangun di lingkungan organisasi; anggota organisasi terlibat dalam pembangunan Zona Integritas menuju WBK/WBBM</li>
 </ol>`.trim(),
+    //TODO: ganti link google drive
     driveUrl: "https://drive.google.com/drive/folders/your-folder-id-1",
   },
   {
@@ -74,6 +75,7 @@ const integrityAreas: Area[] = [
   <li><strong>Sistem Pemerintahan Berbasis Elektronik (SPBE)</strong> - Sistem pengukuran kinerja, kepegawaian, dan pelayanan publik berbasis TI; monitoring periodik penggunaan TI</li>
   <li><strong>Keterbukaan Informasi Publik</strong> - Kebijakan keterbukaan informasi publik telah diterapkan; monitoring dan evaluasi pelaksanaan kebijakan keterbukaan informasi publik</li>
 </ol>`.trim(),
+    //TODO: ganti link google drive
     driveUrl: "https://drive.google.com/drive/folders/your-folder-id-2",
   },
   {
@@ -104,6 +106,7 @@ const integrityAreas: Area[] = [
   <li><strong>Penegakan Aturan Disiplin/Kode Etik</strong> - Pelaksanaan aturan disiplin/kode etik/kode perilaku; pengurangan pelanggaran disiplin</li>
   <li><strong>Sistem Informasi Kepegawaian</strong> - Sistem informasi kepegawaian dimutakhirkan secara berkala dan terintegrasi</li>
 </ol>`.trim(),
+    //TODO: ganti link google drive
     driveUrl: "https://drive.google.com/drive/folders/your-folder-id-3",
   },
   {
@@ -126,6 +129,7 @@ const integrityAreas: Area[] = [
   <li><strong>Keterlibatan Pimpinan</strong> - Pimpinan terlibat langsung dalam penyusunan perencanaan, penetapan kinerja, dan pemantauan berkala</li>
   <li><strong>Pengelolaan Akuntabilitas Kinerja</strong> - Dokumen perencanaan berorientasi hasil dengan indikator SMART; laporan kinerja tepat waktu; sistem informasi kinerja; peningkatan kapasitas SDM akuntabilitas; kaskade ukuran kinerja hingga individu</li>
 </ol>`.trim(),
+    //TODO: ganti link google drive
     driveUrl: "https://drive.google.com/drive/folders/your-folder-id-4",
   },
   {
@@ -154,6 +158,7 @@ const integrityAreas: Area[] = [
   <li><strong>Penanganan Benturan Kepentingan</strong> - Identifikasi benturan kepentingan; sosialisasi; implementasi; evaluasi dan tindak lanjut</li>
   <li><strong>Penyampaian Laporan Harta Kekayaan pegawai</strong> - Tingkat kepatuhan LHKPN ke KPK dan LHKASN via SiHARKA</li>
 </ol>`.trim(),
+    //TODO: ganti link google drive
     driveUrl: "https://drive.google.com/drive/folders/your-folder-id-5",
   },
   {
@@ -179,6 +184,7 @@ const integrityAreas: Area[] = [
   <li><strong>Budaya Pelayanan Prima</strong> - Sosialisasi/pelatihan etik dan capacity building; akses informasi pelayanan; reward/punishment dan kompensasi; sarana terintegrasi; inovasi pelayanan unik dan replikable</li>
   <li><strong>Penilaian Kepuasan Terhadap Pelayanan</strong> - Survei kepuasan ≥4 kali/tahun; hasil survei terbuka; tindak lanjut hasil; integrasi pengaduan dengan SP4N-Lapor! dan database terintegrasi</li>
 </ol>`.trim(),
+    //TODO: ganti link google drive
     driveUrl: "https://drive.google.com/drive/folders/your-folder-id-6",
   },
 ];
@@ -192,8 +198,19 @@ interface ModalProps {
 const IntegrityModal: React.FC<ModalProps> = ({ area, onClose }) => {
   if (!area) return null;
 
+  // Fungsi untuk menangani klik di luar modal
+  const handleBackdropClick = (e: React.MouseEvent<HTMLDivElement>) => {
+    // Periksa apakah elemen yang diklik adalah backdrop itu sendiri
+    if (e.target === e.currentTarget) {
+      onClose();
+    }
+  };
+
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
+      onClick={handleBackdropClick} // Tambahkan event handler ini
+    >
       <div className="max-h-[90vh] w-full max-w-5xl overflow-y-auto rounded-lg bg-background p-12 shadow-xl">
         <div className="flex items-center justify-between mb-4">
           <h3 className="text-2xl font-bold text-foreground">{area.title}</h3>

@@ -38,6 +38,7 @@ const Header: React.FC = () => {
   const layananDropdownItems: DropdownItem[] = [
     { to: "/layanan/zona-integritas", label: "Zona Integritas" },
     { to: "/layanan/ppdb", label: "PPDB" },
+    { to: "/layanan/sedum", label: "Sedum" },
   ];
 
   useEffect(() => {
