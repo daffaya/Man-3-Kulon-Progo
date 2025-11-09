@@ -87,11 +87,20 @@ const HomePage: React.FC = () => {
               </Link>
             </div>
             <div className="md:w-1/2">
-              <img
-                src="/MAN 3.jpg"
-                alt="MAN 3 Kulon Progo"
-                className="rounded-lg shadow-lg w-full object-cover"
-              />
+              {/* Mengganti gambar dengan video YouTube */}
+              <div
+                className="relative w-full"
+                style={{ paddingBottom: "56.25%" }}
+              >
+                <iframe
+                  className="absolute top-0 left-0 w-full h-full rounded-lg shadow-lg"
+                  src="https://www.youtube.com/embed/Tpn9sT-VDCY"
+                  title="Video Profile MAN 3 Kulon Progo"
+                  frameBorder="0"
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                  allowFullScreen
+                ></iframe>
+              </div>
             </div>
           </div>
         </div>
