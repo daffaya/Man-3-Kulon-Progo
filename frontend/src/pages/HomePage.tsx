@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import {
   ChevronRight,
@@ -22,16 +22,59 @@ import Carousel from "../components/ui/Carousel";
 import Hero from "../components/ui/Hero";
 import { useGallery } from "../contexts/GalleryContext";
 import AlbumCard from "../components/gallery/AlbumCard";
+import { Article, Category } from "../types/articleTypes";
 
 const HomePage: React.FC = () => {
   const { state, fetchArticles } = useArticles();
   const { articles, loading } = state;
   const { state: galleryState, fetchAlbums } = useGallery();
   const { albums: galleryAlbums, loading: galleryLoading } = galleryState;
+  const [achievementArticles, setAchievementArticles] = useState<Article[]>([]);
+  const [achievementLoading, setAchievementLoading] = useState(true);
 
   useEffect(() => {
     fetchArticles({ limit: 10 });
     fetchAlbums({ limit: 6 });
+  }, [fetchArticles, fetchAlbums]);
+
+  useEffect(() => {
+    fetchArticles({ limit: 10 });
+    fetchAlbums({ limit: 6 });
+
+    // Fetch kategori untuk mendapatkan ID kategori "Prestasi"
+    const fetchPrestasiArticles = async () => {
+      try {
+        // Ambil daftar kategori
+        const categoriesResponse = await fetch(
+          `${
+            import.meta.env.VITE_BACKEND_API_URL || "http://localhost:3001"
+          }/api/categories`
+        );
+        const categories = await categoriesResponse.json();
+
+        // Cari kategori "Prestasi"
+        const prestasiCategory = categories.find(
+          (cat: Category) => cat.name === "Prestasi"
+        );
+
+        if (prestasiCategory) {
+          // Ambil artikel dengan kategori "Prestasi"
+          const articlesResponse = await fetch(
+            `${
+              import.meta.env.VITE_BACKEND_API_URL || "http://localhost:3001"
+            }/api/articles?category=${prestasiCategory.slug}&limit=4`
+          );
+          const articlesData = await articlesResponse.json();
+          setAchievementArticles(articlesData.articles || []);
+        }
+        setAchievementLoading(false);
+      } catch (error) {
+        console.error("Error fetching achievement articles:", error);
+        setAchievementLoading(false);
+      }
+    };
+
+    fetchPrestasiArticles();
   }, [fetchArticles, fetchAlbums]);
 
   if (loading) {
@@ -58,8 +101,8 @@ const HomePage: React.FC = () => {
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
             {[
               { label: "Siswa", value: "1,200+" },
-              { label: "Guru & Staf", value: "80+" },
-              { label: "Ekstrakurikuler", value: "15+" },
+              { label: "Guru & Staf", value: "50" },
+              { label: "Ekstrakurikuler", value: "10+" },
               { label: "Prestasi", value: "50+" },
             ].map((item) => (
               <div key={item.label} className="card p-6 text-center">
@@ -257,40 +300,55 @@ const HomePage: React.FC = () => {
               Prestasi Terkini
             </h2>
             <Link
-              to="/prestasi"
+              to="/berita?category=prestasi"
               className="flex items-center text-accent hover:underline font-medium"
             >
               Lihat Semua
               <ChevronRight size={18} />
             </Link>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {[
-              {
-                title: "Juara 1 Olimpiade Sains Nasional",
-                desc: "Tim MAN 3 Kulon Progo berhasil meraih juara 1 OSN tingkat DIY.",
-                time: "1 minggu yang lalu",
-              },
-              {
-                title: "Juara 2 Futsal Antar Madrasah",
-                desc: "Tim futsal MAN 3 Kulon Progo meraih juara 2 se-Kulon Progo.",
-                time: "2 minggu yang lalu",
-              },
-            ].map((item) => (
-              <div key={item.title} className="card p-6 flex items-start">
-                <div className="bg-accent/10 p-3 rounded-full mr-4 flex-shrink-0">
-                  <Award className="text-accent" size={24} />
+
+          {achievementLoading ? (
+            <div className="text-center py-8">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-accent mx-auto"></div>
+              <p className="mt-2 text-secondary">Memuat prestasi...</p>
+            </div>
+          ) : achievementArticles.length > 0 ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {achievementArticles.map((article) => (
+                <div key={article.id} className="card p-6 flex items-start">
+                  <div className="bg-accent/10 p-3 rounded-full mr-4 flex-shrink-0">
+                    <Award className="text-accent" size={24} />
+                  </div>
+                  <div>
+                    <h3 className="font-bold text-lg mb-1 text-foreground">
+                      {article.title}
+                    </h3>
+                    <p className="text-secondary mb-2">{article.overview}</p>
+                    <span className="text-sm text-secondary/70">
+                      {new Date(
+                        article.publishedDate || article.lastModified
+                      ).toLocaleDateString("id-ID", {
+                        year: "numeric",
+                        month: "long",
+                        day: "numeric",
+                      })}
+                    </span>
+                  </div>
                 </div>
-                <div>
-                  <h3 className="font-bold text-lg mb-1 text-foreground">
-                    {item.title}
-                  </h3>
-                  <p className="text-secondary mb-2">{item.desc}</p>
-                  <span className="text-sm text-secondary/70">{item.time}</span>
-                </div>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          ) : (
+            <div className="text-center py-8">
+              <Award size={48} className="mx-auto text-secondary/50 mb-4" />
+              <h3 className="text-xl font-medium text-foreground mb-2">
+                Belum ada prestasi terbaru
+              </h3>
+              <p className="text-secondary">
+                Prestasi siswa akan segera ditampilkan di sini
+              </p>
+            </div>
+          )}
         </div>
       </section>
 
