@@ -52,6 +52,8 @@ import GalleryManagementPage from "./pages/admin/gallery/GalleryManagementPage";
 import NewAlbumPage from "./pages/admin/gallery/NewAlbumPage";
 import EditAlbumPage from "./pages/admin/gallery/EditAlbumPage";
 import AlbumPhotosPage from "./pages/admin/gallery/AlbumPhotosPage";
+import PpdbPage from "./pages/layanan/PpdbPage";
+import ZonaIntegritasPage from "./pages/layanan/ZonaIntegritasPage";
 
 const AdminLayout = () => (
   <ProtectedRoute>
@@ -78,6 +80,11 @@ function App() {
                   <Route path="/contact" element={<ContactPage />} />
                   <Route path="/webApp" element={<WebAppPage />} />
                   <Route path="/login" element={<LoginPage />} />
+                  <Route path="/layanan/ppdb" element={<PpdbPage />} />
+                  <Route
+                    path="/layanan/zona-integritas"
+                    element={<ZonaIntegritasPage />}
+                  />
 
                   {/* Gallery Routes */}
                   <Route path="/galeri" element={<GalleryPage />} />

@@ -29,9 +29,11 @@ const Hero: React.FC = () => {
             </p>
 
             {/* Call-to-Action Button */}
-            <button className="btn-primary text-white font-semi-bold py-3 px-8 rounded-lg text-lg transition duration-300 transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50">
-              Daftarkan Dirimu Sekarang
-            </button>
+            <a href="/layanan/ppdb">
+              <button className="btn-primary text-white font-semi-bold py-3 px-8 rounded-lg text-lg transition duration-300 transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50">
+                Daftarkan Dirimu Sekarang
+              </button>
+            </a>
           </div>
         </div>
       </div>

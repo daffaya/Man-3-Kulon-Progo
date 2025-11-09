@@ -29,7 +29,7 @@ export const Dropdown: React.FC<DropdownProps> = ({
     : "flex items-center space-x-1 font-medium transition-colors text-foreground hover:text-[rgb(var(--color-accent))]";
 
   const contentClasses = isMobile
-    ? "pl-6 mt-1 space-y-1"
+    ? "mt-1 space-y-1"
     : "absolute top-full left-0 mt-2 w-56 card shadow-lg py-1 z-50";
 
   return (

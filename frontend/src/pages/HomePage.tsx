@@ -8,6 +8,8 @@ import {
   Image,
   MessageSquare,
   Bell,
+  Shield,
+  CheckCircle,
 } from "lucide-react";
 import Layout from "../components/layout/Layout";
 import ArticleCard from "../components/article/ArticleCard";
@@ -156,55 +158,96 @@ const HomePage: React.FC = () => {
         </div>
       </section>
 
-      {/* Upcoming Events */}
+      {/* Zona Integritas Section */}
       <section className="py-12 bg-semibackground">
         <div className="container max-w-6xl mx-auto px-4 sm:px-6">
           <div className="flex justify-between items-center mb-8 flex-wrap gap-4">
             <h2 className="text-2xl md:text-3xl font-serif font-bold flex items-center text-foreground">
-              <Calendar size={24} className="mr-2 text-accent" />
-              Agenda Kegiatan
+              <Shield size={24} className="mr-2 text-accent" />
+              Zona Integritas
             </h2>
             <Link
-              to="/agenda"
+              to="/layanan/zona-integritas"
               className="flex items-center text-accent hover:underline font-medium"
             >
-              Lihat Semua
+              Lihat Detail
               <ChevronRight size={18} />
             </Link>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {[
-              {
-                date: "15",
-                month: "Des 2023",
-                title: "Ujian Semester Ganjil",
-                desc: "Pelaksanaan ujian semester ganjil untuk semua tingkat.",
-              },
-              {
-                date: "20",
-                month: "Des 2023",
-                title: "Perayaan Natal",
-                desc: "Perayaan Natal bersama seluruh warga sekolah.",
-              },
-              {
-                date: "5",
-                month: "Jan 2024",
-                title: "Masuk Semester Genap",
-                desc: "Hari pertama masuk semester genap tahun ajaran baru.",
-              },
-            ].map((item) => (
-              <div
-                key={item.title}
-                className="bg-background border-l-4 border-accent p-5 rounded-lg shadow hover:shadow-md transition-shadow"
-              >
-                <div className="text-accent font-bold text-lg">{item.date}</div>
-                <div className="text-secondary text-sm">{item.month}</div>
-                <h3 className="font-bold mt-2 mb-1 text-foreground">
-                  {item.title}
+
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            {/* Left Column - Description */}
+            <div className="lg:col-span-2">
+              <div className="bg-background p-6 rounded-lg shadow-sm">
+                <h3 className="text-xl font-bold mb-4 text-foreground">
+                  Mewujudkan WBK dan WBBM di MAN 3 Kulon Progo
                 </h3>
-                <p className="text-secondary text-sm">{item.desc}</p>
+                <p className="text-secondary mb-4">
+                  Zona Integritas merupakan predikat yang diberikan kepada
+                  instansi pemerintah yang pimpinan dan jajarannya mempunyai
+                  komitmen untuk mewujudkan Wilayah Bebas dari Korupsi (WBK) dan
+                  Wilayah Birokrasi Bersih dan Melayani (WBBM) melalui reformasi
+                  birokrasi.
+                </p>
+                <p className="text-secondary mb-6">
+                  MAN 3 Kulon Progo berkomitmen membangun budaya antikorupsi dan
+                  meningkatkan kualitas pelayanan publik melalui 6 area
+                  pembangunan Zona Integritas sesuai PermenPAN RB No 10 Tahun
+                  2019.
+                </p>
+
+                <div className="flex flex-wrap gap-3">
+                  <Link
+                    to="/layanan/zona-integritas"
+                    className="btn btn-primary"
+                  >
+                    Pelajari Lebih Lanjut
+                  </Link>
+                  <Link
+                    to="/layanan/zona-integritas#pengaduan"
+                    className="btn btn-secondary"
+                  >
+                    Layanan Pengaduan
+                  </Link>
+                </div>
               </div>
-            ))}
+            </div>
+
+            {/* Right Column - 6 Areas */}
+            <div>
+              <div className="bg-background p-6 rounded-lg shadow-sm h-full">
+                <h3 className="text-xl font-bold mb-4 text-foreground">
+                  6 Area Pembangunan ZI
+                </h3>
+                <ul className="space-y-3">
+                  {[
+                    "Manajemen Perubahan",
+                    "Penataan Tatalaksana",
+                    "Penataan Sistem Manajemen SDM",
+                    "Penguatan Akuntabilitas",
+                    "Penguatan Pengawasan",
+                    "Peningkatan Kualitas Pelayanan Publik",
+                  ].map((item, index) => (
+                    <li key={index} className="flex items-start">
+                      <div className="bg-accent/10 p-1 rounded-full mr-3 mt-1">
+                        <CheckCircle size={16} className="text-accent" />
+                      </div>
+                      <span className="text-secondary">{item}</span>
+                    </li>
+                  ))}
+                </ul>
+
+                <div className="mt-6 pt-4 border-t border-border">
+                  <h4 className="font-bold mb-2 text-foreground">
+                    Budaya Antikorupsi
+                  </h4>
+                  <p className="text-sm text-secondary">
+                    Kami membangun nilai-nilai budaya kerja yang Smart,
+                    Akuntabel, Integritas dan Loyalitas.
+                  </p>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </section>
@@ -369,10 +412,10 @@ const HomePage: React.FC = () => {
                 link: "/ppdb",
               },
               {
-                icon: <MessageSquare size={24} />,
-                title: "Kontak Kami",
-                desc: "Hubungi kami",
-                link: "/contact",
+                icon: <Shield size={24} />,
+                title: "Zona Integritas",
+                desc: "Layanan pengaduan",
+                link: "/layanan/zona-integritas",
               },
             ].map((item) => (
               <Link to={item.link} key={item.title} className="block">
