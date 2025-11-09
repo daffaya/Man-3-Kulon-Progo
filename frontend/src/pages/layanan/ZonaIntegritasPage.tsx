@@ -225,7 +225,7 @@ const IntegrityModal: React.FC<ModalProps> = ({ area, onClose }) => {
 
         {/* Konten HTML dengan prose + spacing */}
         <div
-          className="prose prose-sm max-w-none text-foreground"
+          className="prose prose-sm dark:prose-invert max-w-none text-foreground"
           // eslint-disable-next-line react/no-danger
           dangerouslySetInnerHTML={{ __html: area.fullDescription }}
         />
