@@ -1,9 +1,17 @@
 // src/models/alumniModel.js
 const alumniModelFactory = ({ pool }) => {
-  // Get all alumni with filters
+  // Get all alumni with filters and pagination
   const getAlumni = async (filters = {}) => {
-    const { search, graduationYear } = filters;
+    const { search, graduationYear, page = 1, limit = 35 } = filters;
+    const offset = (page - 1) * limit;
 
+    // Query to get the total count of alumni
+    let countQuery = `
+      SELECT COUNT(*) as total
+      FROM alumni a
+      WHERE 1=1`;
+
+    // Query to get the alumni data with pagination
     let query = `
       SELECT 
         a.id, a.student_id, a.nisn, a.name, a.graduation_year, 
@@ -15,19 +23,42 @@ const alumniModelFactory = ({ pool }) => {
     const queryParams = [];
 
     if (search) {
-      query += ` AND (a.nisn LIKE ? OR a.name LIKE ?)`;
+      const searchCondition = ` AND (a.nisn LIKE ? OR a.name LIKE ?)`;
+      countQuery += searchCondition;
+      query += searchCondition;
       queryParams.push(`%${search}%`, `%${search}%`);
     }
 
     if (graduationYear) {
-      query += ` AND a.graduation_year = ?`;
+      const yearCondition = ` AND a.graduation_year = ?`;
+      countQuery += yearCondition;
+      query += yearCondition;
       queryParams.push(graduationYear);
     }
 
-    query += ` ORDER BY a.name`;
+    query += ` ORDER BY a.name LIMIT ? OFFSET ?`;
+    queryParams.push(limit, offset);
 
+    // Execute both queries
+    const [countResult] = await pool.query(
+      countQuery,
+      queryParams.slice(0, -2)
+    );
     const [alumni] = await pool.query(query, queryParams);
-    return alumni;
+
+    const totalAlumni = countResult[0].total;
+    const totalPages = Math.ceil(totalAlumni / limit);
+
+    return {
+      data: alumni,
+      pagination: {
+        currentPage: parseInt(page),
+        totalPages,
+        totalAlumni,
+        hasNextPage: page < totalPages,
+        hasPrevPage: page > 1,
+      },
+    };
   };
 
   // Get alumni by ID

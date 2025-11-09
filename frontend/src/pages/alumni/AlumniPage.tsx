@@ -9,6 +9,8 @@ import {
   Users,
   Calendar,
   BookOpen,
+  ChevronLeft,
+  ChevronRight,
 } from "lucide-react";
 import Layout from "../../components/layout/Layout";
 import AdminLayout from "../../components/layout/AdminLayout";
@@ -28,6 +30,14 @@ interface Alumni {
   last_class_name: string;
 }
 
+interface PaginationInfo {
+  currentPage: number;
+  totalPages: number;
+  totalAlumni: number;
+  hasNextPage: boolean;
+  hasPrevPage: boolean;
+}
+
 const hasEditAccess = (isLoggedIn: boolean, role?: string): boolean =>
   isLoggedIn && role
     ? ALLOWED_ROLES.includes(role as (typeof ALLOWED_ROLES)[number])
@@ -42,6 +52,9 @@ const AlumniPage: React.FC = () => {
   const [graduationYear, setGraduationYear] = useState("");
   const [loading, setLoading] = useState(false);
   const [showEmptyState, setShowEmptyState] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pagination, setPagination] = useState<PaginationInfo | null>(null);
+  const alumniPerPage = 20;
 
   const isAdminOrGuruBK = hasEditAccess(isLoggedIn, user?.role);
 
@@ -51,10 +64,16 @@ const AlumniPage: React.FC = () => {
       setShowEmptyState(false);
       try {
         const data = await alumniService.getAlumni(
-          { search: searchQuery, graduationYear },
+          {
+            search: searchQuery,
+            graduationYear,
+            page: currentPage,
+            limit: alumniPerPage,
+          },
           token
         );
         setAlumni(data.data);
+        setPagination(data.pagination);
 
         if (data.data.length === 0) {
           setShowEmptyState(true);
@@ -66,7 +85,7 @@ const AlumniPage: React.FC = () => {
       }
     };
     loadAlumni();
-  }, [searchQuery, graduationYear, token, showToast]);
+  }, [searchQuery, graduationYear, currentPage, token, showToast]);
 
   const handleEditClick = (alumni: Alumni) => {
     if (!isAdminOrGuruBK) {
@@ -77,6 +96,16 @@ const AlumniPage: React.FC = () => {
       return;
     }
     navigate(`/atmin/alumni/${alumni.id}/edit`, { state: { alumni } });
+  };
+
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
+    window.scrollTo(0, 0);
+  };
+
+  const handleFilterChange = () => {
+    // Reset to first page when filters change
+    setCurrentPage(1);
   };
 
   const SelectedLayout = isAdminOrGuruBK ? AdminLayout : Layout;
@@ -116,7 +145,7 @@ const AlumniPage: React.FC = () => {
             <div>
               <p className="text-sm text-secondary">Total Alumni</p>
               <p className="text-2xl font-bold text-foreground">
-                {alumni.length}
+                {pagination ? pagination.totalAlumni : alumni.length}
               </p>
             </div>
           </div>
@@ -161,6 +190,7 @@ const AlumniPage: React.FC = () => {
             graduationYear={graduationYear}
             setGraduationYear={setGraduationYear}
             years={uniqueYears}
+            onFilterChange={handleFilterChange}
           />
         </div>
 
@@ -181,6 +211,7 @@ const AlumniPage: React.FC = () => {
               onClick={() => {
                 setSearchQuery("");
                 setGraduationYear("");
+                setCurrentPage(1);
               }}
               className="btn btn-secondary"
             >
@@ -198,6 +229,94 @@ const AlumniPage: React.FC = () => {
               isAdminOrGuruBK={isAdminOrGuruBK}
               handleEditClick={handleEditClick}
             />
+          </div>
+        )}
+
+        {/* Pagination */}
+        {pagination && pagination.totalPages > 1 && (
+          <div className="flex justify-center items-center mt-12">
+            <nav className="flex items-center space-x-2">
+              <button
+                onClick={() => handlePageChange(currentPage - 1)}
+                disabled={currentPage === 1}
+                className={`btn btn-secondary px-4 py-2 flex items-center ${
+                  currentPage === 1 ? "opacity-50 cursor-not-allowed" : ""
+                }`}
+              >
+                <ChevronLeft size={20} />
+                <span className="ml-1">Sebelumnya</span>
+              </button>
+
+              <div className="flex items-center space-x-1">
+                {Array.from({ length: pagination.totalPages }, (_, i) => i + 1)
+                  .filter((page) => {
+                    return (
+                      page === 1 ||
+                      page === pagination.totalPages ||
+                      Math.abs(page - currentPage) <= 1
+                    );
+                  })
+                  .map((page, index, array) => {
+                    if (index > 0 && page - array[index - 1] > 1) {
+                      return (
+                        <React.Fragment key={`ellipsis-${page}`}>
+                          <span className="px-3 py-2 text-secondary/60">
+                            ...
+                          </span>
+                          <button
+                            onClick={() => handlePageChange(page)}
+                            className={`px-4 py-2 rounded-lg transition-all ${
+                              currentPage === page
+                                ? "btn btn-primary"
+                                : "btn btn-secondary"
+                            }`}
+                          >
+                            {page}
+                          </button>
+                        </React.Fragment>
+                      );
+                    }
+                    return (
+                      <button
+                        key={page}
+                        onClick={() => handlePageChange(page)}
+                        className={`px-4 py-2 rounded-lg transition-all ${
+                          currentPage === page
+                            ? "btn btn-primary"
+                            : "btn btn-secondary"
+                        }`}
+                      >
+                        {page}
+                      </button>
+                    );
+                  })}
+              </div>
+
+              <button
+                onClick={() => handlePageChange(currentPage + 1)}
+                disabled={currentPage === pagination.totalPages}
+                className={`btn btn-secondary px-4 py-2 flex items-center ${
+                  currentPage === pagination.totalPages
+                    ? "opacity-50 cursor-not-allowed"
+                    : ""
+                }`}
+              >
+                <span className="mr-1">Berikutnya</span>
+                <ChevronRight size={20} />
+              </button>
+            </nav>
+          </div>
+        )}
+
+        {pagination && (
+          <div className="text-center mt-4 text-sm text-secondary/70">
+            Menampilkan {alumni.length} dari {pagination.totalAlumni} alumni
+            {pagination.totalPages > 1 && (
+              <span>
+                {" "}
+                (Halaman {currentPage} dari {pagination.totalPages})
+              </span>
+            )}
           </div>
         )}
 

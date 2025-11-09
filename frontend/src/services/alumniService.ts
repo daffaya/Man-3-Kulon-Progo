@@ -1,14 +1,23 @@
+// frontend/src/services/alumniService.ts
+
 const API_URL = import.meta.env.VITE_BACKEND_API_URL || "http://localhost:3000";
 
 export const alumniService = {
   getAlumni: async (
-    params: { search?: string; graduationYear?: string },
+    params: {
+      search?: string;
+      graduationYear?: string;
+      page?: number;
+      limit?: number;
+    },
     token?: string | null
   ) => {
     const query = new URLSearchParams();
     if (params.search) query.append("search", params.search);
     if (params.graduationYear)
       query.append("graduationYear", params.graduationYear);
+    if (params.page) query.append("page", params.page.toString());
+    if (params.limit) query.append("limit", params.limit.toString());
 
     const response = await fetch(`${API_URL}/api/alumni?${query.toString()}`, {
       headers: token ? { Authorization: `Bearer ${token}` } : {},

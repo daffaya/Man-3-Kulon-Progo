@@ -1,3 +1,5 @@
+// frontend/src/components/alumni/AlumniFilter.tsx
+
 import React from "react";
 import { Search } from "lucide-react";
 
@@ -7,6 +9,7 @@ interface AlumniFilterProps {
   graduationYear: string;
   setGraduationYear: (year: string) => void;
   years: string[];
+  onFilterChange?: () => void; // Tambahkan prop callback ini
 }
 
 const AlumniFilter: React.FC<AlumniFilterProps> = ({
@@ -15,7 +18,22 @@ const AlumniFilter: React.FC<AlumniFilterProps> = ({
   graduationYear,
   setGraduationYear,
   years,
+  onFilterChange, // Tambahkan prop ini
 }) => {
+  // Handler untuk perubahan input pencarian
+  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setSearchQuery(e.target.value);
+    // Panggil callback jika ada
+    if (onFilterChange) onFilterChange();
+  };
+
+  // Handler untuk perubahan pemilihan tahun
+  const handleYearChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    setGraduationYear(e.target.value);
+    // Panggil callback jika ada
+    if (onFilterChange) onFilterChange();
+  };
+
   return (
     <div className="card p-6 mb-6">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -33,7 +51,7 @@ const AlumniFilter: React.FC<AlumniFilterProps> = ({
               type="text"
               placeholder="Cari berdasarkan NISN atau nama..."
               value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
+              onChange={handleSearchChange} // Gunakan handler yang baru
               className="pl-10 form-input w-full"
             />
           </div>
@@ -48,7 +66,7 @@ const AlumniFilter: React.FC<AlumniFilterProps> = ({
           <select
             id="yearSelect"
             value={graduationYear}
-            onChange={(e) => setGraduationYear(e.target.value)}
+            onChange={handleYearChange} // Gunakan handler yang baru
             className="form-input w-full"
           >
             <option value="">Semua Tahun Lulus</option>
