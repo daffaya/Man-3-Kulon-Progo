@@ -178,7 +178,7 @@ const ArticleTable: React.FC<ArticleTableProps> = ({
                         key={index}
                         className="px-2 py-1 text-xs bg-accent/20 text-accent rounded-full"
                       >
-                        {tag}
+                        {truncateText(tag, 10)}
                       </span>
                     ))
                   ) : (
@@ -188,7 +188,10 @@ const ArticleTable: React.FC<ArticleTableProps> = ({
               </td>
 
               <td className="px-6 py-4 whitespace-nowrap text-sm text-secondary">
-                {article.category ? article.category.name : "-"}
+                {truncateText(
+                  article.category ? article.category.name : "-",
+                  10
+                )}
               </td>
 
               <td className="px-6 py-4 whitespace-nowrap text-sm text-secondary">
