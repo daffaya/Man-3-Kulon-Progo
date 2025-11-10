@@ -3,28 +3,13 @@ import React, { useState } from "react";
 import { Eye, EyeOff, User, Lock } from "lucide-react";
 
 interface LoginFormProps {
-  /**
-   * Callback when login is successful.
-   * @param userData - Object containing user info and token
-   */
   onLoginSuccess: (userData: {
-    user: { username: string; role: string };
+    user: { username: string; role: string; avatar?: string };
     token: string;
   }) => void;
-
-  /**
-   * Callback when login fails.
-   * @param message - Error message to display
-   */
   onLoginError: (message: string) => void;
 }
 
-/**
- * LoginForm Component
- *
- * Renders a username/password form with password visibility toggle
- * and handles login API requests.
- */
 const LoginForm: React.FC<LoginFormProps> = ({
   onLoginSuccess,
   onLoginError,
@@ -42,10 +27,6 @@ const LoginForm: React.FC<LoginFormProps> = ({
 
   const togglePasswordVisibility = () => setShowPassword((prev) => !prev);
 
-  /**
-   * Handles form submission and performs login request.
-   * Calls appropriate callback based on success/failure.
-   */
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
     setLoading(true);
@@ -60,6 +41,10 @@ const LoginForm: React.FC<LoginFormProps> = ({
       const data = await response.json();
 
       if (response.ok && data.success) {
+        // Pastikan URL avatar lengkap sebelum menyimpan
+        if (data.user.avatar && !data.user.avatar.startsWith("http")) {
+          data.user.avatar = `${BACKEND_API_URL}${data.user.avatar}`;
+        }
         onLoginSuccess({ user: data.user, token: data.token });
       } else {
         onLoginError(data.message || "Login gagal.");
@@ -94,15 +79,11 @@ const LoginForm: React.FC<LoginFormProps> = ({
     </svg>
   );
 
-  /**
-   * Utility function to determine icon color based on focus.
-   */
   const getIconColor = (field: "username" | "password") =>
     focusedField === field ? "text-accent" : "text-secondary";
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
-      {/* Username Field */}
       <div>
         <label
           htmlFor="username"
@@ -134,7 +115,6 @@ const LoginForm: React.FC<LoginFormProps> = ({
         </div>
       </div>
 
-      {/* Password Field */}
       <div>
         <label
           htmlFor="password"
@@ -176,7 +156,6 @@ const LoginForm: React.FC<LoginFormProps> = ({
         </div>
       </div>
 
-      {/* Submit Button */}
       <div className="pt-2">
         <button
           type="submit"

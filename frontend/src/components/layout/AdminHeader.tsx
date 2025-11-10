@@ -1,14 +1,4 @@
-/**
- * AdminHeader Component
- * ---------------------
- * Komponen header utama untuk halaman admin.
- * Fitur utama:
- * - Sticky header yang berubah gaya saat di-scroll.
- * - Dropdown profil pengguna (desktop dan mobile).
- * - Tombol notifikasi dan pengaturan tema.
- * - Navigasi responsif untuk mobile.
- */
-
+// frontend/src/components/layout/AdminHeader.tsx
 import React, { useState, useEffect, useRef } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import {
@@ -24,37 +14,25 @@ import ThemeToggle from "../ui/ThemeToggle";
 import { useAuth } from "../../contexts/AuthContext";
 
 const AdminHeader: React.FC = () => {
-  // State management
   const [isScrolled, setIsScrolled] = useState(false);
   const [isProfileDropdownOpen, setIsProfileDropdownOpen] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-
-  // Refs dan hooks routing
   const dropdownRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
   const location = useLocation();
   const { user, logout } = useAuth();
 
-  /**
-   * Efek scroll: mengubah gaya header saat pengguna menggulir halaman
-   */
   useEffect(() => {
     const handleScroll = () => setIsScrolled(window.scrollY > 20);
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
-  /**
-   * Tutup menu dan dropdown saat navigasi halaman berubah
-   */
   useEffect(() => {
     setIsMenuOpen(false);
     setIsProfileDropdownOpen(false);
   }, [location.pathname]);
 
-  /**
-   * Tutup dropdown profil jika pengguna mengklik di luar area dropdown
-   */
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (
@@ -68,38 +46,22 @@ const AdminHeader: React.FC = () => {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  /**
-   * Mendapatkan nama pengguna dari objek user (dengan aman)
-   */
   const getUsername = (): string => {
     if (!user) return "Admin";
     return user.username || "Admin";
   };
 
-  /**
-   * Mendapatkan role pengguna dari objek user (dengan aman)
-   */
   const getRole = (): string => {
     if (!user) return "Administrator";
     return user.role || "Administrator";
   };
 
-  /**
-   * Mendapatkan URL avatar pengguna.
-   * Jika URL relatif, maka akan ditambahkan prefix backend API.
-   */
   const getUserAvatar = (): string | null => {
     if (!user || !user.avatar) return null;
-    if (user.avatar.startsWith("http")) return user.avatar;
-
-    const backendUrl =
-      import.meta.env.VITE_BACKEND_API_URL || "http://localhost:3001";
-    return `${backendUrl}${user.avatar}`;
+    // URL sudah lengkap dari AuthContext
+    return user.avatar;
   };
 
-  /**
-   * Logout pengguna dan arahkan ke halaman login
-   */
   const handleLogout = () => {
     logout();
     navigate("/login");
@@ -118,7 +80,6 @@ const AdminHeader: React.FC = () => {
       }`}
     >
       <div className="container max-w-6xl mx-auto px-4 sm:px-6 flex items-center">
-        {/* === Left Section: Logo & Mobile Menu === */}
         <div className="flex items-center">
           <button
             onClick={() => setIsMenuOpen(!isMenuOpen)}
@@ -136,9 +97,7 @@ const AdminHeader: React.FC = () => {
           </Link>
         </div>
 
-        {/* === Right Section: Notification, Theme, and Profile === */}
         <div className="flex items-center space-x-4 ml-auto">
-          {/* Notifications */}
           <button
             className="relative p-1 text-secondary hover:text-foreground transition-colors"
             aria-label="Notifications"
@@ -147,10 +106,8 @@ const AdminHeader: React.FC = () => {
             <span className="absolute top-0 right-0 block h-2 w-2 rounded-full bg-error" />
           </button>
 
-          {/* Theme Toggle */}
           <ThemeToggle />
 
-          {/* Profile Dropdown */}
           <div className="relative" ref={dropdownRef}>
             <button
               onClick={() => setIsProfileDropdownOpen(!isProfileDropdownOpen)}
@@ -176,10 +133,8 @@ const AdminHeader: React.FC = () => {
               />
             </button>
 
-            {/* Dropdown Menu */}
             {isProfileDropdownOpen && (
               <div className="absolute right-0 mt-2 w-48 card shadow-xl z-50">
-                {/* Profile Info */}
                 <div className="px-4 py-2 border-b border-[rgb(var(--color-secondary-button),0.3)] flex items-center space-x-3">
                   <div className="h-10 w-10 rounded-full bg-[rgb(var(--color-secondary-button))] flex items-center justify-center overflow-hidden">
                     {userAvatar ? (
@@ -200,7 +155,6 @@ const AdminHeader: React.FC = () => {
                   </div>
                 </div>
 
-                {/* Menu Items */}
                 <Link
                   to="/atmin/userProfile"
                   className="block px-4 py-2 text-sm text-foreground hover:bg-[rgb(var(--color-secondary-button),0.5)] transition-colors"
@@ -233,11 +187,9 @@ const AdminHeader: React.FC = () => {
         </div>
       </div>
 
-      {/* === Mobile Menu Section === */}
       {isMenuOpen && (
         <div className="md:hidden card shadow-lg mt-2">
           <nav className="container mx-auto px-4 py-4 flex flex-col space-y-4">
-            {/* Mobile Profile Info */}
             <div className="flex items-center space-x-3 p-2 border-b border-[rgb(var(--color-secondary-button),0.3)]">
               <div className="h-12 w-12 rounded-full bg-[rgb(var(--color-secondary-button))] flex items-center justify-center overflow-hidden">
                 {userAvatar ? (
@@ -258,7 +210,6 @@ const AdminHeader: React.FC = () => {
               </div>
             </div>
 
-            {/* Mobile Menu Links */}
             <div>
               <button
                 onClick={() => setIsProfileDropdownOpen(!isProfileDropdownOpen)}

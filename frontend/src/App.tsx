@@ -10,7 +10,7 @@ import { Outlet } from "react-router-dom";
 // Pages
 import HomePage from "./pages/HomePage";
 import NewsPage from "./pages/NewsPage";
-import ArticlePage from "./pages/ArticlePage";
+import NewsDetailPage from "./pages/NewsDetailPage";
 import ProfilePage from "./pages/ProfilePage";
 import ContactPage from "./pages/ContactPage";
 import AdminDashboard from "./pages/admin/AdminDashboard";
@@ -76,7 +76,7 @@ function App() {
                 <Routes>
                   <Route path="/" element={<HomePage />} />
                   <Route path="/berita" element={<NewsPage />} />
-                  <Route path="/berita/:slug" element={<ArticlePage />} />
+                  <Route path="/berita/:slug" element={<NewsDetailPage />} />
                   <Route path="/Profile" element={<ProfilePage />} />
                   <Route path="/contact" element={<ContactPage />} />
                   <Route path="/webApp" element={<WebAppPage />} />

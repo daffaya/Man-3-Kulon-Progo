@@ -1,5 +1,4 @@
 // frontend/src/pages/admin/user/UserProfile.tsx
-
 import React, { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { Save, ArrowLeft } from "lucide-react";
@@ -53,7 +52,7 @@ const UserProfilePage: React.FC = () => {
   );
 
   if (!isLoggedIn || !user) {
-    navigate("/login", { state: { redirectTo: "/atmin/profile" } });
+    navigate("/login", { state: { redirectTo: "/atmin/userProfile" } });
     return null;
   }
 
@@ -75,7 +74,6 @@ const UserProfilePage: React.FC = () => {
 
           <div className="card p-6 md:p-8 max-w-4xl mx-auto">
             <div className="grid md:grid-cols-3 gap-8">
-              {/* Avatar & Info Section */}
               <div className="md:col-span-1 flex flex-col items-center text-center">
                 <AvatarUpload
                   currentAvatar={user.avatar}
@@ -99,7 +97,6 @@ const UserProfilePage: React.FC = () => {
                 </div>
               </div>
 
-              {/* Form Section */}
               <div className="md:col-span-2">
                 <form onSubmit={handleSubmit} className="space-y-6">
                   <div>

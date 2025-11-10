@@ -19,7 +19,12 @@ const __dirname = dirname(__filename);
     const PORT = process.env.PORT || 3001;
 
     // Middleware
-    app.use(cors());
+    app.use(
+      cors({
+        origin: process.env.FRONTEND_URL || "http://localhost:5173", // Sesuaikan dengan URL frontend Anda
+        credentials: true,
+      })
+    );
     app.use(express.json());
 
     // Serve uploads dengan header CORS yang aman
@@ -28,6 +33,7 @@ const __dirname = dirname(__filename);
       "/uploads",
       (req, res, next) => {
         res.setHeader("Cross-Origin-Resource-Policy", "cross-origin");
+        res.setHeader("Cache-Control", "public, max-age=86400");
         next();
       },
       express.static(uploadsPath)

@@ -88,6 +88,15 @@ const authRouterFactory = ({ pool, JWT_SECRET, JWT_EXPIRATION }) => {
       // Return user data without password
       const { password_hash, ...userWithoutPassword } = user;
 
+      if (
+        userWithoutPassword.avatar &&
+        !userWithoutPassword.avatar.startsWith("http")
+      ) {
+        userWithoutPassword.avatar = `${req.protocol}://${req.get("host")}${
+          userWithoutPassword.avatar
+        }`;
+      }
+
       res.json({
         success: true,
         user: userWithoutPassword,

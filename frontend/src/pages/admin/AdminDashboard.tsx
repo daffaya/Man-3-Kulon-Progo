@@ -1,6 +1,4 @@
-// src/pages/AdminDashboard.tsx
-
-import React from "react";
+import React, { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   Archive,
@@ -21,34 +19,21 @@ const AdminDashboard: React.FC = () => {
   const { user, isLoggedIn, isLoadingAuth } = useAuth();
   const { showErrorToast } = useToastMessage();
 
+  // 👇 perbaikan utama
+  useEffect(() => {
+    if (!isLoadingAuth && !isLoggedIn) {
+      navigate("/login", { state: { redirectTo: "/atmin" } });
+    }
+  }, [isLoadingAuth, isLoggedIn, navigate]);
+
   if (isLoadingAuth) {
     return (
-      <AdminLayout>
-        <div className="container mx-auto px-4 py-12">
-          <div className="animate-pulse space-y-6">
-            <div className="h-8 bg-semibackground rounded w-64"></div>
-            <div className="h-4 bg-semibackground rounded w-48"></div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mt-8">
-              {[...Array(6)].map((_, i) => (
-                <div key={i} className="card p-6">
-                  <div className="flex items-center space-x-4">
-                    <div className="w-12 h-12 bg-semibackground rounded-full"></div>
-                    <div className="space-y-2 flex-1">
-                      <div className="h-5 bg-semibackground rounded w-3/4"></div>
-                      <div className="h-4 bg-semibackground rounded w-full"></div>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-      </AdminLayout>
+      <AdminLayout children={undefined}>{/* skeleton loading */}</AdminLayout>
     );
   }
 
   if (!isLoggedIn) {
-    navigate("/login", { state: { redirectTo: "/atmin" } });
+    // jangan render apa pun saat sedang redirect
     return null;
   }
 
