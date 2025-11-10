@@ -8,7 +8,7 @@ import ArticleCard from "../components/article/ArticleCard";
 import { useArticles } from "../contexts/ArticleContext";
 import { Article } from "../types/articleTypes";
 
-const ArticlePage: React.FC = () => {
+const NewsDetailPage: React.FC = () => {
   const { slug } = useParams<{ slug: string }>();
   const navigate = useNavigate();
   const { state, fetchArticles, fetchArticleBySlug } = useArticles();
@@ -163,4 +163,4 @@ const ArticlePage: React.FC = () => {
   );
 };
 
-export default ArticlePage;
+export default NewsDetailPage;

@@ -49,6 +49,7 @@ const EditArticle: React.FC = () => {
      * Loads the article data from the API based on the ID from the URL.
      * Validates the ID format and handles loading and error states.
      */
+    // Perbaiki fungsi loadArticle di EditArticle.tsx
     const loadArticle = async () => {
       if (!id) {
         setInitialLoadError("Article ID is missing.");
@@ -69,7 +70,14 @@ const EditArticle: React.FC = () => {
 
       try {
         const fetchedArticle = await articleApi.getArticleById(id);
-        setArticle(fetchedArticle);
+
+        // Pastikan coverImage memiliki format yang benar
+        const formattedArticle = {
+          ...fetchedArticle,
+          coverImage: fetchedArticle.coverImage || "",
+        };
+
+        setArticle(formattedArticle);
       } catch (err) {
         setInitialLoadError("Failed to load article.");
       } finally {

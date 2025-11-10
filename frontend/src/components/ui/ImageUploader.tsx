@@ -40,6 +40,14 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({
   const MAX_FILE_SIZE = 15 * 1024 * 1024;
 
   useEffect(() => {
+    if (currentImage) {
+      setPreviewUrl(currentImage);
+    } else {
+      setPreviewUrl("");
+    }
+  }, [currentImage]);
+
+  useEffect(() => {
     return () => {
       if (previewUrl && previewUrl.startsWith("blob:")) {
         URL.revokeObjectURL(previewUrl);

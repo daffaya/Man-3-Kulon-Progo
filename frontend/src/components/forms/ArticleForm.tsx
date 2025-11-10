@@ -176,10 +176,11 @@ const ArticleForm: React.FC<ArticleFormProps> = ({
    * @param file - The selected file (if any).
    * @param url - The image URL (if any).
    */
+  // Perbaiki fungsi handleImageChange di ArticleForm.tsx
   const handleImageChange = (file?: File, url?: string) => {
     if (file) {
       setSelectedFile(file);
-      setFormData((prev) => ({ ...prev, coverImage: "" }));
+      setFormData((prev) => ({ ...prev, coverImage: prev.coverImage }));
     } else if (url) {
       setSelectedFile(null);
       setFormData((prev) => ({ ...prev, coverImage: url }));

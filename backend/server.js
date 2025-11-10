@@ -33,7 +33,6 @@ const __dirname = dirname(__filename);
       "/uploads",
       (req, res, next) => {
         res.setHeader("Cross-Origin-Resource-Policy", "cross-origin");
-        res.setHeader("Cache-Control", "public, max-age=86400");
         next();
       },
       express.static(uploadsPath)
