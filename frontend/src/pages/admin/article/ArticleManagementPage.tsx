@@ -71,7 +71,7 @@ const ArticleManagementPage: React.FC = () => {
     useState<string>("all");
   const [appliedFilters, setAppliedFilters] = useState<AppliedFilters>({});
   const [currentPage, setCurrentPage] = useState(1);
-  const articlesPerPage = 10;
+  const articlesPerPage = 8;
   const [debouncedKeyword, setDebouncedKeyword] = useState("");
 
   // Effect for debouncing the keyword input to reduce API calls

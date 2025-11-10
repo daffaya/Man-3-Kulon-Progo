@@ -23,12 +23,14 @@ import Hero from "../components/ui/Hero";
 import { useGallery } from "../contexts/GalleryContext";
 import AlbumCard from "../components/gallery/AlbumCard";
 import { Article, Category } from "../types/articleTypes";
+import { useStudentStats } from "../contexts/StudentStatsContext";
 
 const HomePage: React.FC = () => {
   const { state, fetchArticles } = useArticles();
   const { articles, loading } = state;
   const { state: galleryState, fetchAlbums } = useGallery();
   const { albums: galleryAlbums, loading: galleryLoading } = galleryState;
+  const { state: studentStatsState } = useStudentStats();
   const [achievementArticles, setAchievementArticles] = useState<Article[]>([]);
   const [achievementLoading, setAchievementLoading] = useState(true);
 
@@ -90,6 +92,20 @@ const HomePage: React.FC = () => {
   const featuredArticles = articles.filter((article) => article.featured);
   const recentArticles = articles.slice(0, 6);
 
+  const getStudentStatValue = () => {
+    if (studentStatsState.loading) {
+      return (
+        <div className="flex justify-center">
+          <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-accent"></div>
+        </div>
+      );
+    }
+    if (studentStatsState.error) {
+      return "N/A";
+    }
+    return studentStatsState.totalStudents?.toLocaleString("id-ID") || "0";
+  };
+
   return (
     <Layout>
       <Carousel />
@@ -100,7 +116,10 @@ const HomePage: React.FC = () => {
         <div className="container max-w-6xl mx-auto px-4 sm:px-6">
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
             {[
-              { label: "Siswa", value: "1,200+" },
+              {
+                label: "Siswa",
+                value: getStudentStatValue(), // <-- 4. Ganti dengan fungsi pembantu
+              },
               { label: "Guru & Staf", value: "50" },
               { label: "Ekstrakurikuler", value: "10+" },
               { label: "Prestasi", value: "50+" },

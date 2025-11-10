@@ -279,6 +279,24 @@ const studentControllerFactory = ({ pool, importStudentService }) => {
     }
   };
 
+  const getStudentStats = async (req, res) => {
+    try {
+      // Query untuk menghitung total siswa yang aktif dan tidak dihapus
+      const [rows] = await pool.execute(
+        "SELECT COUNT(*) as total FROM students WHERE is_active = 1 AND is_deleted = 0"
+      );
+
+      const totalStudents = rows[0].total;
+
+      res.status(200).json({
+        totalStudents,
+      });
+    } catch (error) {
+      console.error("Error fetching student stats:", error);
+      res.status(500).json({ error: error.message });
+    }
+  };
+
   const importStudents = async (req, res) => {
     try {
       if (!req.file) {
@@ -318,6 +336,7 @@ const studentControllerFactory = ({ pool, importStudentService }) => {
     createStudent,
     updateStudent,
     deleteStudent,
+    getStudentStats,
     importStudents,
   };
 };

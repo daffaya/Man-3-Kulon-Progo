@@ -8,9 +8,11 @@ import adminCategoryRouterFactory from "./adminCategoryRoutes.js";
 import attendanceRouterFactory from "./attendanceRoutes.js";
 import archiveRouterFactory from "./archiveRoutes.js";
 import studentRouterFactory from "./studentRoutes.js";
+
+import publicStudentStatsRouterFactory from "./publicStudentStatRoutes.js";
+
 import alumniRouterFactory from "./alumniRoutes.js";
 import userRouterFactory from "./userRoutes.js";
-// Tambahkan import untuk gallery routes
 import publicGalleryRouterFactory from "./publicGalleryRoutes.js";
 import adminGalleryRouterFactory from "./adminGalleryRoutes.js";
 
@@ -96,6 +98,8 @@ const apiRouterFactory = ({
   apiRouter.use("/archives", archiveRouterFactory({ pool, JWT_SECRET }));
   apiRouter.use("/students", studentRouterFactory({ pool, JWT_SECRET }));
   apiRouter.use("/alumni", alumniRouterFactory({ pool, JWT_SECRET }));
+
+  apiRouter.use("/studentStats", publicStudentStatsRouterFactory({ pool }));
 
   return apiRouter;
 };
