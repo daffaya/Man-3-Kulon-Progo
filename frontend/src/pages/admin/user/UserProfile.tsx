@@ -1,11 +1,12 @@
-// frontend/src/pages/admin/user/UserProfile.tsx
 import React, { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
-import { Save, ArrowLeft } from "lucide-react";
+import { Save, ArrowLeft, Key } from "lucide-react";
 import { useAuth } from "../../../contexts/AuthContext";
 import { useToastMessage } from "../../../hooks/useToastMessage";
 import AdminLayout from "../../../components/layout/AdminLayout";
 import AvatarUpload from "../../../components/ui/AvatarUpload";
+import ChangePasswordForm from "../../../components/forms/auth/ChangePasswordForm";
+import userApi from "../../../api/userApi";
 
 const UserProfilePage: React.FC = () => {
   const { user, isLoggedIn, updateUserProfile, updateUserAvatar } = useAuth();
@@ -14,6 +15,10 @@ const UserProfilePage: React.FC = () => {
 
   const [fullName, setFullName] = useState("");
   const [isSaving, setIsSaving] = useState(false);
+
+  // State untuk mengontrol modal dan loading form ubah password
+  const [showPasswordForm, setShowPasswordForm] = useState(false);
+  const [isChangingPassword, setIsChangingPassword] = useState(false);
 
   useEffect(() => {
     if (user?.full_name) {
@@ -51,6 +56,26 @@ const UserProfilePage: React.FC = () => {
     [user, updateUserAvatar]
   );
 
+  /**
+   * Handler untuk mengubah password.
+   * Memanggil API dan menangani status loading serta notifikasi.
+   */
+  const handleChangePassword = async (data: {
+    currentPassword: string;
+    newPassword: string;
+  }) => {
+    setIsChangingPassword(true);
+    try {
+      await userApi.changePassword(data);
+      showSuccessToast("Password berhasil diubah");
+      setShowPasswordForm(false); // Tutup modal setelah sukses
+    } catch (error: any) {
+      showErrorToast(error.message || "Gagal mengubah password");
+    } finally {
+      setIsChangingPassword(false);
+    }
+  };
+
   if (!isLoggedIn || !user) {
     navigate("/login", { state: { redirectTo: "/atmin/userProfile" } });
     return null;
@@ -74,6 +99,7 @@ const UserProfilePage: React.FC = () => {
 
           <div className="card p-6 md:p-8 max-w-4xl mx-auto">
             <div className="grid md:grid-cols-3 gap-8">
+              {/* Kolom Kiri: Avatar dan Info Dasar */}
               <div className="md:col-span-1 flex flex-col items-center text-center">
                 <AvatarUpload
                   currentAvatar={user.avatar}
@@ -97,6 +123,7 @@ const UserProfilePage: React.FC = () => {
                 </div>
               </div>
 
+              {/* Kolom Kanan: Form Edit Profil */}
               <div className="md:col-span-2">
                 <form onSubmit={handleSubmit} className="space-y-6">
                   <div>
@@ -152,7 +179,16 @@ const UserProfilePage: React.FC = () => {
                     />
                   </div>
 
-                  <div className="flex justify-end pt-4">
+                  {/* Tombol Aksi */}
+                  <div className="flex justify-between items-center pt-4 border-t border-semibackground">
+                    <button
+                      type="button"
+                      onClick={() => setShowPasswordForm(true)}
+                      className="btn btn-secondary flex items-center"
+                    >
+                      <Key size={18} className="mr-2" />
+                      Ubah Password
+                    </button>
                     <button
                       type="submit"
                       disabled={isSaving || !fullName.trim()}
@@ -177,6 +213,19 @@ const UserProfilePage: React.FC = () => {
           </div>
         </div>
       </div>
+
+      {/* Modal untuk Form Ubah Password */}
+      {showPasswordForm && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="card max-w-md w-full p-6">
+            <ChangePasswordForm
+              onSubmit={handleChangePassword}
+              onCancel={() => setShowPasswordForm(false)}
+              isLoading={isChangingPassword}
+            />
+          </div>
+        </div>
+      )}
     </AdminLayout>
   );
 };

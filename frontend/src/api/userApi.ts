@@ -151,6 +151,21 @@ const userApi = {
     return userApi.handleResponse(response);
   },
 
+  changePassword: async (passwords: {
+    currentPassword: string;
+    newPassword: string;
+  }): Promise<{ success: boolean; message: string }> => {
+    const response = await fetch(`${API_URL}/api/users/change-password`, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+        ...userApi.getAuthHeaders(),
+      },
+      body: JSON.stringify(passwords),
+    });
+    return userApi.handleResponse(response);
+  },
+
   deleteUser: async (
     id: number
   ): Promise<{ success: boolean; message: string }> => {

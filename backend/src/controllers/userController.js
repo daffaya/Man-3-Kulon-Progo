@@ -316,6 +316,53 @@ const createUserController = ({ userModel }) => {
     },
 
     /**
+     * Handles changing the current user's password.
+     * @param {Object} req - Express request object, with `req.user.id` and password details in `req.body`.
+     * @param {Object} res - Express response object.
+     * @param {Function} next - Express next function for error handling.
+     */
+    changePassword: async (req, res, next) => {
+      try {
+        const { currentPassword, newPassword } = req.body;
+        const userId = req.user.id;
+
+        // Fetch user with password hash
+        const user = await userModel.findByUsername(req.user.username); // Using username to get the hash
+        if (!user) {
+          return res.status(404).json({ message: "User not found." });
+        }
+
+        // Verify the current password
+        const isMatch = await bcrypt.compare(
+          currentPassword,
+          user.password_hash
+        );
+        if (!isMatch) {
+          return res
+            .status(400)
+            .json({ message: "Current password is incorrect." });
+        }
+
+        // Hash the new password
+        const newPasswordHash = await bcrypt.hash(newPassword, SALT_ROUNDS);
+
+        // Update the password in the database
+        const updated = await userModel.updatePassword(userId, newPasswordHash);
+
+        if (updated) {
+          res.json({
+            success: true,
+            message: "Password changed successfully.",
+          });
+        } else {
+          res.status(400).json({ message: "Failed to change password." });
+        }
+      } catch (error) {
+        next(error);
+      }
+    },
+
+    /**
      * Deletes a user. (Super Admin only)
      * @param {Object} req - Express request object, with user ID in `req.params.id`.
      * @param {Object} res - Express response object.
