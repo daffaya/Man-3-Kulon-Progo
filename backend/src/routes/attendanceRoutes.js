@@ -8,6 +8,7 @@ import {
   restrictTo,
 } from "../middleware/authMiddleware.js";
 import attendanceControllerFactory from "../controllers/attendanceController.js";
+import attendanceModelFactory from "../models/attendanceModel.js";
 import { exportToExcel, exportToPDF } from "../services/exportService.js";
 
 // Helper untuk mendapatkan __dirname di ES Module
@@ -39,6 +40,7 @@ const attendanceRouterFactory = ({ pool, JWT_SECRET }) => {
   const router = Router();
   const authenticateToken = authenticateTokenFactory({ JWT_SECRET });
   const attendanceController = attendanceControllerFactory({ pool });
+  const attendanceModel = attendanceModelFactory({ pool });
 
   router.use(authenticateToken);
 
@@ -66,16 +68,10 @@ const attendanceRouterFactory = ({ pool, JWT_SECRET }) => {
 
       validateRequiredParams({ classId, date }, ["classId", "date"]);
 
-      const [existing] = await pool.query(
-        `
-      SELECT a.student_id, a.status, a.notes
-      FROM attendances a
-      JOIN student_academic_history sah ON a.student_id = sah.student_id AND sah.is_current = 1
-      WHERE a.date = ? AND sah.class_id = ?
-    `,
-        [date, classId]
+      const existing = await attendanceModel.checkExistingAttendance(
+        date,
+        classId
       );
-
       res.json({ existing });
     })
   );
@@ -88,26 +84,16 @@ const attendanceRouterFactory = ({ pool, JWT_SECRET }) => {
 
       validateRequiredParams({ classId, date }, ["classId", "date"]);
 
-      const [attendance] = await pool.query(
-        `
-      SELECT 
-        s.id,
-        s.nisn,
-        s.name,
-        a.status,
-        a.notes
-      FROM students s
-      JOIN student_academic_history sah ON s.id = sah.student_id AND sah.is_current = 1
-      LEFT JOIN attendances a ON s.id = a.student_id AND a.date = ?
-      WHERE sah.class_id = ? AND s.is_active = TRUE
-      ORDER BY s.name
-    `,
-        [date, classId]
+      const attendance = await attendanceModel.getAttendanceByDate(date);
+
+      // Filter by class
+      const filteredAttendance = attendance.filter(
+        (att) => att.class_id === parseInt(classId)
       );
 
       res.json({
-        count: attendance.length,
-        data: attendance,
+        count: filteredAttendance.length,
+        data: filteredAttendance,
       });
     })
   );
@@ -116,20 +102,7 @@ const attendanceRouterFactory = ({ pool, JWT_SECRET }) => {
   router.get(
     "/classes",
     asyncHandler(async (req, res) => {
-      const [classes] = await pool.query(`
-      SELECT 
-        c.id,
-        c.name,
-        c.academic_year,
-        c.semester,
-        COUNT(sah.student_id) as total_siswa
-      FROM classes c
-      LEFT JOIN student_academic_history sah ON c.id = sah.class_id AND sah.is_current = 1
-      LEFT JOIN students s ON sah.student_id = s.id AND s.is_active = TRUE
-      GROUP BY c.id
-      ORDER BY c.academic_year DESC, c.name
-    `);
-
+      const classes = await attendanceModel.getClasses();
       res.json(classes);
     })
   );
@@ -147,20 +120,12 @@ const attendanceRouterFactory = ({ pool, JWT_SECRET }) => {
         });
       }
 
-      const [attendances] = await pool.query(
-        `
-      SELECT 
-        date,
-        status,
-        notes,
-        recorded_at
-      FROM attendances
-      WHERE student_id = ? 
-        AND date BETWEEN ? AND ?
-      ORDER BY date DESC
-    `,
-        [studentId, startDate, endDate]
-      );
+      const attendances =
+        await attendanceModel.getAttendanceByStudentAndDateRange(
+          studentId,
+          startDate,
+          endDate
+        );
 
       res.json(attendances);
     })
@@ -174,56 +139,28 @@ const attendanceRouterFactory = ({ pool, JWT_SECRET }) => {
 
       validateRequiredParams({ date }, ["date"]);
 
-      // Check if it's a holiday
-      const [holidayCheck] = await pool.query(
-        "SELECT COUNT(*) as count FROM school_holidays WHERE date = ?",
-        [date]
-      );
+      const stats = await attendanceModel.getTodayAttendanceStats(date);
+      res.json(stats);
+    })
+  );
 
-      if (holidayCheck[0].count > 0) {
-        return res.json({
-          totalHadir: 0,
-          totalIzin: 0,
-          totalSakit: 0,
-          totalAlpa: 0,
-          totalLibur: 1,
+  // GET /stats - Get attendance statistics for date range
+  router.get(
+    "/stats",
+    asyncHandler(async (req, res) => {
+      const { startDate, endDate } = req.query;
+
+      if (!startDate || !endDate) {
+        return res.status(400).json({
+          error: "Parameter startDate dan endDate wajib diisi",
         });
       }
 
-      // Get attendance stats
-      const [stats] = await pool.query(
-        `
-      SELECT 
-        status,
-        COUNT(*) as count
-      FROM attendances
-      WHERE date = ?
-      GROUP BY status
-    `,
-        [date]
+      const stats = await attendanceModel.getAttendanceStats(
+        startDate,
+        endDate
       );
-
-      const result = {
-        totalHadir: 0,
-        totalIzin: 0,
-        totalSakit: 0,
-        totalAlpa: 0,
-        totalLibur: 0,
-      };
-
-      stats.forEach((stat) => {
-        if (
-          result.hasOwnProperty(
-            `total${stat.status.charAt(0).toUpperCase() + stat.status.slice(1)}`
-          )
-        ) {
-          result[
-            `total${stat.status.charAt(0).toUpperCase() + stat.status.slice(1)}`
-          ] = stat.count;
-        }
-      });
-
-      res.json(result);
+      res.json(stats);
     })
   );
 
@@ -241,12 +178,9 @@ const attendanceRouterFactory = ({ pool, JWT_SECRET }) => {
       ]);
 
       // Cek apakah tanggal sudah ada
-      const [existingHoliday] = await pool.query(
-        "SELECT id FROM school_holidays WHERE date = ?",
-        [date]
-      );
+      const existingHoliday = await attendanceModel.getHolidayByDate(date);
 
-      if (existingHoliday.length > 0) {
+      if (existingHoliday) {
         return res.status(400).json({ error: "Tanggal libur sudah ada" });
       }
 
@@ -266,17 +200,7 @@ const attendanceRouterFactory = ({ pool, JWT_SECRET }) => {
     asyncHandler(async (req, res) => {
       const { academicYear } = req.query;
 
-      let query = "SELECT * FROM school_holidays";
-      let params = [];
-
-      if (academicYear) {
-        query += " WHERE academic_year = ?";
-        params.push(academicYear);
-      }
-
-      query += " ORDER BY date";
-
-      const [holidays] = await pool.query(query, params);
+      const holidays = await attendanceModel.getHolidays(academicYear);
       res.json(holidays);
     })
   );
@@ -315,10 +239,13 @@ const attendanceRouterFactory = ({ pool, JWT_SECRET }) => {
       ]);
       validateEnumValue(format, ["excel", "pdf"], "Format");
 
-      // Get recap data using helper function
-      const recap = await attendanceController.getAttendanceRecap({
-        query: { classId, period, startDate, endDate },
-      });
+      // Get recap data directly from model
+      const recap = await attendanceModel.getAttendanceRecap(
+        classId,
+        period,
+        startDate,
+        endDate
+      );
 
       // Get class info
       const [classInfo] = await pool.query(
@@ -333,7 +260,7 @@ const attendanceRouterFactory = ({ pool, JWT_SECRET }) => {
       // Generate file based on format
       let result;
       if (format === "excel") {
-        result = await exportToExcel(recap.data, {
+        result = await exportToExcel(recap, {
           classId,
           period,
           className,
@@ -343,7 +270,7 @@ const attendanceRouterFactory = ({ pool, JWT_SECRET }) => {
           endDate,
         });
       } else if (format === "pdf") {
-        result = await exportToPDF(recap.data, {
+        result = await exportToPDF(recap, {
           classId,
           period,
           className,
@@ -351,6 +278,121 @@ const attendanceRouterFactory = ({ pool, JWT_SECRET }) => {
           semester,
           startDate,
           endDate,
+        });
+      }
+
+      // Ensure temp directory exists
+      const tempDir = path.join(__dirname, "../temp");
+      if (!fs.existsSync(tempDir)) {
+        fs.mkdirSync(tempDir, { recursive: true });
+      }
+
+      // Set response headers
+      res.setHeader("Content-Type", result.mimetype);
+      res.setHeader(
+        "Content-Disposition",
+        `attachment; filename="${result.filename}"`
+      );
+
+      // Send file
+      res.sendFile(result.filepath, (err) => {
+        if (err) {
+          console.error("Error sending file:", err);
+          res.status(500).json({ error: "Gagal mengirim file" });
+        } else {
+          // Delete the file after sending
+          fs.unlink(result.filepath, (unlinkErr) => {
+            if (unlinkErr) console.error("Error deleting file:", unlinkErr);
+          });
+        }
+      });
+    })
+  );
+
+  // POST /archive - Archive attendance data
+  router.post(
+    "/archive",
+    restrictTo(["guru_bk", "super_admin"]),
+    asyncHandler(async (req, res) => {
+      const { academicYear, semester } = req.body;
+
+      validateRequiredParams({ academicYear, semester }, [
+        "academicYear",
+        "semester",
+      ]);
+
+      const result = await attendanceModel.archiveAttendanceData(
+        academicYear,
+        semester
+      );
+
+      res.json(result);
+    })
+  );
+
+  // GET /archive - Get archived attendance data
+  router.get(
+    "/archive",
+    asyncHandler(async (req, res) => {
+      const { academicYear, semester, classId } = req.query;
+
+      const archivedData = await attendanceModel.getArchivedAttendanceData(
+        academicYear,
+        semester,
+        classId
+      );
+
+      res.json(archivedData);
+    })
+  );
+
+  // GET /archive/export - Export archived attendance data
+  router.get(
+    "/archive/export",
+    restrictTo(["guru_bk", "super_admin"]),
+    asyncHandler(async (req, res) => {
+      const { academicYear, semester, classId, format } = req.query;
+
+      validateRequiredParams({ academicYear, semester, format }, [
+        "academicYear",
+        "semester",
+        "format",
+      ]);
+      validateEnumValue(format, ["excel", "pdf"], "Format");
+
+      const archivedData = await attendanceModel.getArchivedAttendanceData(
+        academicYear,
+        semester,
+        classId
+      );
+
+      // Get class info if classId is provided
+      let className = "";
+      if (classId) {
+        const [classInfo] = await pool.query(
+          "SELECT name FROM classes WHERE id = ?",
+          [classId]
+        );
+        className = classInfo[0]?.name || "";
+      }
+
+      // Generate file based on format
+      let result;
+      if (format === "excel") {
+        result = await exportToExcel(archivedData, {
+          classId,
+          period: "archive",
+          className,
+          academicYear,
+          semester,
+        });
+      } else if (format === "pdf") {
+        result = await exportToPDF(archivedData, {
+          classId,
+          period: "archive",
+          className,
+          academicYear,
+          semester,
         });
       }
 
