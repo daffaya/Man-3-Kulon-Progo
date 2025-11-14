@@ -192,39 +192,145 @@ const AttendanceInputPage: React.FC = () => {
       return;
     }
 
+    if (students.length === 0) {
+      showErrorToast("Tidak ada siswa di kelas ini. Silakan pilih kelas lain.");
+      return;
+    }
+
+    if (attendances.length === 0) {
+      showErrorToast(
+        "Data presensi belum siap. Silakan tunggu hingga data siswa dimuat."
+      );
+      return;
+    }
+
     setLoading(true);
 
     try {
+      const dataToSend = {
+        classId: selectedClass,
+        date: selectedDate,
+        attendances: attendances.map((att) => ({
+          studentId: att.student_id,
+          status: att.status,
+          notes: att.notes || "",
+        })),
+      };
+
+      console.log("Data yang akan dikirim:", dataToSend); // Debugging
+
       const response = await fetch(`${API_URL}/api/attendance`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify({
-          classId: selectedClass,
-          date: selectedDate,
-          attendances: attendances.map((att) => ({
-            studentId: att.student_id,
-            status: att.status,
-            notes: att.notes || "",
-          })),
-        }),
+        body: JSON.stringify(dataToSend),
       });
 
       const data = await response.json();
 
       if (response.ok && data.success) {
         showSuccessToast("Data presensi berhasil disimpan");
+
+        // Verifikasi data setelah disimpan
+        setTimeout(async () => {
+          try {
+            const verifyResponse = await fetch(
+              `${API_URL}/api/attendance/verify?classId=${selectedClass}&date=${selectedDate}`,
+              {
+                headers: {
+                  Authorization: `Bearer ${token}`,
+                },
+              }
+            );
+
+            const verifyData = await verifyResponse.json();
+            console.log("Data presensi setelah save:", verifyData);
+            showSuccessToast(`${verifyData.count} siswa berhasil disimpan`);
+          } catch (err) {
+            console.error("Error verifying attendance:", err);
+          }
+        }, 1000);
       } else {
         showErrorToast(data.error || "Gagal menyimpan data presensi");
       }
     } catch (err) {
+      console.error("Error saat save attendance:", err);
       showErrorToast("Terjadi kesalahan saat menyimpan data presensi");
     } finally {
       setLoading(false);
     }
   };
+
+  // Tambahkan di AttendanceInputPage.tsx
+  const checkExistingAttendance = async () => {
+    if (!selectedClass || !selectedDate) return;
+
+    try {
+      const response = await fetch(
+        `${API_URL}/api/attendance/check-existing?classId=${selectedClass}&date=${selectedDate}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      const data = await response.json();
+      console.log("Existing attendance:", data);
+    } catch (err) {
+      console.error("Error checking existing attendance:", err);
+    }
+  };
+
+  // Panggil fungsi ini setelah memilih kelas dan tanggal
+  useEffect(() => {
+    if (selectedClass && selectedDate) {
+      checkExistingAttendance();
+    }
+  }, [selectedClass, selectedDate]);
+
+  useEffect(() => {
+    const fetchStudents = async () => {
+      if (!selectedClass) return;
+
+      try {
+        const response = await fetch(
+          `${API_URL}/api/attendance/students?classId=${selectedClass}`,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
+
+        if (response.ok) {
+          const data = await response.json();
+          console.log("Data siswa yang diambil:", data); // DEBUGGING
+
+          setStudents(data);
+
+          const initialAttendances: Attendance[] = data.map(
+            (student: Student) => ({
+              student_id: student.id,
+              status: "hadir",
+            })
+          );
+          setAttendances(initialAttendances);
+          console.log("Initial attendances:", initialAttendances); // DEBUGGING
+        } else {
+          showErrorToast("Gagal mengambil data siswa");
+        }
+      } catch (err) {
+        showErrorToast("Terjadi kesalahan saat mengambil data siswa");
+      }
+    };
+
+    if (isLoggedIn && selectedClass) {
+      fetchStudents();
+    }
+  }, [isLoggedIn, selectedClass, token, showErrorToast]);
 
   if (!isLoggedIn) {
     navigate("/login");

@@ -1,15 +1,7 @@
 // frontend/src/components/layout/AdminHeader.tsx
 import React, { useState, useEffect, useRef } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
-import {
-  Bell,
-  User,
-  Settings,
-  LogOut,
-  Menu,
-  ChevronDown,
-  X,
-} from "lucide-react";
+import { Bell, User, LogOut, Menu, ChevronDown, X } from "lucide-react";
 import ThemeToggle from "../ui/ThemeToggle";
 import { useAuth } from "../../contexts/AuthContext";
 
@@ -164,15 +156,6 @@ const AdminHeader: React.FC = () => {
                     <User size={16} className="mr-2" /> Profile
                   </div>
                 </Link>
-                <Link
-                  to="/atmin/settings"
-                  className="block px-4 py-2 text-sm text-foreground hover:bg-[rgb(var(--color-secondary-button),0.5)] transition-colors"
-                  onClick={() => setIsProfileDropdownOpen(false)}
-                >
-                  <div className="flex items-center">
-                    <Settings size={16} className="mr-2" /> Settings
-                  </div>
-                </Link>
                 <button
                   onClick={handleLogout}
                   className="block w-full text-left px-4 py-2 text-sm text-foreground hover:bg-[rgb(var(--color-secondary-button),0.5)] transition-colors"
@@ -235,13 +218,6 @@ const AdminHeader: React.FC = () => {
                     onClick={() => setIsProfileDropdownOpen(false)}
                   >
                     Profile
-                  </Link>
-                  <Link
-                    to="/atmin/settings"
-                    className="block py-2 px-4 text-sm text-foreground hover:bg-[rgb(var(--color-secondary-button),0.5)] rounded transition-colors"
-                    onClick={() => setIsProfileDropdownOpen(false)}
-                  >
-                    Settings
                   </Link>
                   <button
                     onClick={handleLogout}

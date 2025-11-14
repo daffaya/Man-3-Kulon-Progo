@@ -159,6 +159,19 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     setIsLoadingAuth(false);
   }, [ensureFullAvatarUrl]);
 
+  useEffect(() => {
+    const handleUnauthorized = () => {
+      console.log("Unauthorized event received, logging out...");
+      logout();
+    };
+
+    window.addEventListener("unauthorized", handleUnauthorized);
+
+    return () => {
+      window.removeEventListener("unauthorized", handleUnauthorized);
+    };
+  }, [logout]);
+
   // Efek untuk memuat data pengguna saat login
   useEffect(() => {
     if (isLoggedIn && token) {
