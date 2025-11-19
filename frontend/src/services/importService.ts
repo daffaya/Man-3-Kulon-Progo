@@ -1,8 +1,19 @@
-// src/services/importService.ts
+/**
+ * @fileoverview Service for handling the import of student data from a file.
+ * This module provides a function to upload a file to the backend API for processing and importing student records.
+ */
+
 import { ImportResult } from "../types/importTypes";
 
 const API_URL = import.meta.env.VITE_BACKEND_API_URL;
 
+/**
+ * Sends a file to the backend to import student data.
+ * @param {File} file - The file (e.g., CSV, Excel) containing student data.
+ * @param {string} token - The authentication bearer token.
+ * @returns {Promise<ImportResult>} A promise that resolves with the import result, including counts of successful and failed imports.
+ * @throws {Error} Throws an error if the token is missing, the upload fails, or the response is invalid.
+ */
 export const importStudents = async (
   file: File,
   token: string

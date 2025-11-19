@@ -1,36 +1,53 @@
-// frontend/src/components/alumni/AlumniFilter.tsx
+/**
+ * @fileoverview Alumni filter component for searching and filtering alumni data.
+ * This component provides input fields for searching alumni by name or NISN and filtering by graduation year.
+ */
 
 import React from "react";
 import { Search } from "lucide-react";
 
+/**
+ * Props for the AlumniFilter component
+ */
 interface AlumniFilterProps {
   searchQuery: string;
   setSearchQuery: (query: string) => void;
   graduationYear: string;
   setGraduationYear: (year: string) => void;
   years: string[];
-  onFilterChange?: () => void; // Tambahkan prop callback ini
+  onFilterChange?: () => void;
 }
 
+/**
+ * AlumniFilter component that provides UI elements for filtering alumni data.
+ * Allows users to search by name/NISN and filter by graduation year.
+ *
+ * @param {AlumniFilterProps} props - The component props
+ * @returns {JSX.Element} The rendered filter component
+ */
 const AlumniFilter: React.FC<AlumniFilterProps> = ({
   searchQuery,
   setSearchQuery,
   graduationYear,
   setGraduationYear,
   years,
-  onFilterChange, // Tambahkan prop ini
+  onFilterChange,
 }) => {
-  // Handler untuk perubahan input pencarian
+  /**
+   * Handler for search input changes
+   * @param {React.ChangeEvent<HTMLInputElement>} e - The input change event
+   */
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSearchQuery(e.target.value);
-    // Panggil callback jika ada
     if (onFilterChange) onFilterChange();
   };
 
-  // Handler untuk perubahan pemilihan tahun
+  /**
+   * Handler for year selection changes
+   * @param {React.ChangeEvent<HTMLSelectElement>} e - The select change event
+   */
   const handleYearChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     setGraduationYear(e.target.value);
-    // Panggil callback jika ada
     if (onFilterChange) onFilterChange();
   };
 
@@ -51,7 +68,7 @@ const AlumniFilter: React.FC<AlumniFilterProps> = ({
               type="text"
               placeholder="Cari berdasarkan NISN atau nama..."
               value={searchQuery}
-              onChange={handleSearchChange} // Gunakan handler yang baru
+              onChange={handleSearchChange}
               className="pl-10 form-input w-full"
             />
           </div>
@@ -66,7 +83,7 @@ const AlumniFilter: React.FC<AlumniFilterProps> = ({
           <select
             id="yearSelect"
             value={graduationYear}
-            onChange={handleYearChange} // Gunakan handler yang baru
+            onChange={handleYearChange}
             className="form-input w-full"
           >
             <option value="">Semua Tahun Lulus</option>

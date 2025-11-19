@@ -1,3 +1,10 @@
+/**
+ * @fileoverview Dashboard page for attendance management in the admin panel.
+ * This component displays attendance statistics, provides access to attendance features,
+ * shows quick actions for student management, and lists all available classes with
+ * options to input or recap attendance for each class.
+ */
+
 import React, { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../../../contexts/AuthContext";
@@ -20,6 +27,9 @@ import {
 } from "lucide-react";
 import ImportStudentPage from "../../../components/modals/ImportStudentPage";
 
+/**
+ * Interface defining the structure of class data.
+ */
 interface ClassData {
   id: string;
   name: string;
@@ -28,6 +38,9 @@ interface ClassData {
   total_siswa: number;
 }
 
+/**
+ * Interface defining the structure of today's attendance statistics.
+ */
 interface TodayStats {
   totalHadir: number;
   totalIzin: number;
@@ -36,6 +49,11 @@ interface TodayStats {
   totalLibur: number;
 }
 
+/**
+ * Dashboard page component for attendance management.
+ * Displays attendance statistics, provides access to attendance features,
+ * shows quick actions for student management, and lists all available classes.
+ */
 const AttendanceStudentPage: React.FC = () => {
   const { user, isLoggedIn, token } = useAuth();
   const navigate = useNavigate();
@@ -64,6 +82,10 @@ const AttendanceStudentPage: React.FC = () => {
   }, [isLoggedIn, navigate]);
 
   useEffect(() => {
+    /**
+     * Fetches initial data for classes and today's attendance statistics.
+     * Updates component state with fetched data or shows error toast.
+     */
     const fetchData = async () => {
       if (!token) return;
       try {
@@ -84,6 +106,10 @@ const AttendanceStudentPage: React.FC = () => {
   }, [isLoggedIn, token, showErrorToast]);
 
   useEffect(() => {
+    /**
+     * Refreshes class data when refreshData flag is set to true.
+     * Used after adding or importing new students.
+     */
     if (refreshData && token) {
       const refreshClasses = async () => {
         try {

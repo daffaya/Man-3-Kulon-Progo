@@ -1,8 +1,17 @@
+/**
+ * @fileoverview ProfilePage component displaying comprehensive information about MAN 3 Kulon Progo.
+ * This component renders the school's history, vision, mission, goals, strategies, and contact information.
+ * It's organized into several sections with reusable sub-components for better maintainability.
+ */
+
 import React from "react";
 import Layout from "../components/layout/Layout";
 import { Link } from "react-router-dom";
 import { Mail, Github, Twitter, Linkedin } from "lucide-react";
 
+/**
+ * Array containing the school's historical information in chronological order.
+ */
 const SCHOOL_HISTORY = [
   "Sejarah berdirinya MAN 3 Kulon Progo tidak akan terlepas dari kondisi umat yang berada di wilayah Kulon Progo bagian utara, Kecamatan Nanggulan, Samigaluh dan Kalibawang merupakan home base bagi kaum non muslim, sehingga secara umum, pada daerah ini kaum non muslim relatif lebih banyak.",
   "Sebagai langkah antisipasi pada tahun 1984, Pengawas Pendidikan Islam di Kulon Progo Utara, Drs. Abdul Mukti bersama-sama dengan beberapa Tokoh dan Guru Agama Islam, seperti H. Muh. Karsidi (Penilik Guru Pendidikan Agama Islam Kalibawang), Drs. Muzilanto (SMP Muh. Kalibawang), S. Siswo Pranoto (Ka. SD. Dekso I), H.A. Priharsoyo (Guru SD Sokorini), H.Yasmin, B.A. (Ka. SD Muh. Bendo), Mujono (Kepala KUA Kecamatan Kalibawang), H. Mahmud (Staf KUA Kalibawang), H. Kasil Subekti, S.H. ( Staf Kantor Kecamatan Kalibawang), berniat mendirikan Madrasah Aliyah. Pada saat itu Camat Kalibawang, Adam Nurjati menyetujui rencana pendirian Madrasah Aliyah di Kalibawang. Namun dengan catatan Madrasah Aliyah itu harus negeri.",
@@ -13,9 +22,15 @@ const SCHOOL_HISTORY = [
   "Adapun Pengembangan Bidang Keagamaan kini MAN 3 Kulon Progo telah berhasil mendirikan Boarding Madrasah dengan Program Unggulan Tahfidz dan Kajian Kitab.",
 ];
 
+/**
+ * The school's vision statement.
+ */
 const VISION =
   "ADILUHUNG (Agamis, Dinamis, Ilmiah, Terampil, Unggul) dan Berwawasan Lingkungan";
 
+/**
+ * Array containing the school's mission items, organized by categories.
+ */
 const MISSION_ITEMS = [
   {
     title: "Agamis:",
@@ -57,9 +72,15 @@ const MISSION_ITEMS = [
   },
 ];
 
+/**
+ * The school's long-term goal statement.
+ */
 const LONG_TERM_GOAL =
   "Menjadi madrasah yang berkualitas, bermartabat, memiliki keunggulan dan kompetensi serta berwawasan lingkungan.";
 
+/**
+ * Array containing the school's short-term goals.
+ */
 const SHORT_TERM_GOALS = [
   "Dapat menjadi madrasah pilihan siswa lulusan SMP/MTs",
   "Dapat melaksanakan proses pembelajaran dengan lancar dan baik sesuai perkembangan dan tuntutan zaman",
@@ -67,6 +88,9 @@ const SHORT_TERM_GOALS = [
   "Dapat mencetak lulusan yang cerdas, beriman, bertaqwa, terampil dan islami",
 ];
 
+/**
+ * Array containing the school's implementation strategies.
+ */
 const STRATEGIES = [
   "Sosialisasi visi misi ke seluruh civitas akademik, komite, orang tua/wali siswa dan lingkungan",
   "Meningkatkan koordinasi semua stakeholder dan pihak lain yang terkait",
@@ -80,6 +104,11 @@ const STRATEGIES = [
   "Melengkapi sarana dan prasarana pembelajaran sesuai perkembangan zaman",
 ];
 
+/**
+ * Reusable card component for content sections.
+ * @param children - Content to be rendered inside the card
+ * @param className - Additional CSS classes for styling
+ */
 const Card = React.memo(
   ({
     children,
@@ -96,6 +125,11 @@ const Card = React.memo(
   )
 );
 
+/**
+ * Component for rendering section headers with consistent styling.
+ * @param title - The title text to display
+ * @param className - Additional CSS classes for styling
+ */
 const SectionHeader: React.FC<{ title: string; className?: string }> = ({
   title,
   className = "",
@@ -107,6 +141,11 @@ const SectionHeader: React.FC<{ title: string; className?: string }> = ({
   </h3>
 );
 
+/**
+ * Component for displaying images with responsive sizing and styling.
+ * @param src - Image source URL
+ * @param alt - Alt text for accessibility
+ */
 const ImageContainer: React.FC<{ src: string; alt: string }> = ({
   src,
   alt,
@@ -120,6 +159,11 @@ const ImageContainer: React.FC<{ src: string; alt: string }> = ({
   </div>
 );
 
+/**
+ * Component for rendering list sections with a title and bullet points.
+ * @param title - The section title
+ * @param items - Array of list items to display
+ */
 const ListSection: React.FC<{ title: string; items: string[] }> = ({
   title,
   items,
@@ -134,6 +178,9 @@ const ListSection: React.FC<{ title: string; items: string[] }> = ({
   </div>
 );
 
+/**
+ * Component for displaying the school's history section.
+ */
 const SchoolHistory: React.FC = () => (
   <Card>
     <h3 className="text-center text-foreground">Sejarah</h3>
@@ -145,6 +192,9 @@ const SchoolHistory: React.FC = () => (
   </Card>
 );
 
+/**
+ * Component for displaying the school's vision, mission, goals, and strategies.
+ */
 const VisionMission: React.FC = () => (
   <Card>
     <section className="text-center mb-4">
@@ -201,6 +251,9 @@ const VisionMission: React.FC = () => (
   </Card>
 );
 
+/**
+ * Component for displaying the contact section with a call-to-action.
+ */
 const ContactSection: React.FC = () => (
   <section className="py-10 bg-semibackground/50 rounded-xl px-8 text-center">
     <h2 className="text-2xl font-serif font-bold mb-4 text-foreground">
@@ -216,6 +269,11 @@ const ContactSection: React.FC = () => (
   </section>
 );
 
+/**
+ * Main component for the school profile page.
+ * Displays comprehensive information about MAN 3 Kulon Progo including history,
+ * vision, mission, goals, strategies, and contact information.
+ */
 const ProfilePage: React.FC = () => {
   return (
     <Layout>

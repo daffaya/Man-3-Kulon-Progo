@@ -1,4 +1,7 @@
-// frontend/src/pages/admin/student/ManagementStudentPage.tsx
+/**
+ * @fileoverview Page component for managing student data within the admin panel.
+ * It provides functionalities for viewing, searching, filtering, adding, editing, deleting, and bulk-updating student records.
+ */
 
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
@@ -24,6 +27,10 @@ import {
   ArrowLeft,
 } from "lucide-react";
 
+/**
+ * Component for the student management page.
+ * It handles fetching, displaying, and modifying student data through a table interface and various modal dialogs.
+ */
 const ManagementStudentPage: React.FC = () => {
   const navigate = useNavigate();
   const { user, isLoggedIn, token, isLoadingAuth } = useAuth();
@@ -61,12 +68,10 @@ const ManagementStudentPage: React.FC = () => {
   const { classes } = useClasses();
   const { angkatans, loading: angkatansLoading } = useAngkatans();
 
-  // Reset page on filter change
   useEffect(() => {
     setCurrentPage(1);
   }, [selectedClass, selectedAngkatan, searchTerm]);
 
-  // Auth check
   if (isLoadingAuth) {
     return (
       <AdminLayout>
@@ -104,7 +109,10 @@ const ManagementStudentPage: React.FC = () => {
     );
   }
 
-  // Wrapper functions with toast
+  /**
+   * Wraps the `addStudent` hook function to add a new student and display a success or error toast notification.
+   * @param {any} data - The student data to be added.
+   */
   const addStudent = async (data: any) => {
     try {
       await _addStudent(data);
@@ -115,6 +123,11 @@ const ManagementStudentPage: React.FC = () => {
     }
   };
 
+  /**
+   * Wraps the `updateStudent` hook function to modify an existing student's data and display a toast notification.
+   * @param {number} id - The ID of the student to be updated.
+   * @param {any} data - The updated student data.
+   */
   const updateStudent = async (id: number, data: any) => {
     try {
       await _updateStudent(id, data);
@@ -125,6 +138,10 @@ const ManagementStudentPage: React.FC = () => {
     }
   };
 
+  /**
+   * Handles the deletion of a student after a confirmation prompt and displays a toast notification.
+   * @param {number} id - The ID of the student to be deleted.
+   */
   const deleteStudent = async (id: number) => {
     if (
       !window.confirm(
@@ -141,10 +158,16 @@ const ManagementStudentPage: React.FC = () => {
     }
   };
 
+  /**
+   * Navigates to the previous page of the student list.
+   */
   const handlePreviousPage = () => {
     if (currentPage > 1) setCurrentPage((prev) => prev - 1);
   };
 
+  /**
+   * Navigates to the next page of the student list.
+   */
   const handleNextPage = () => {
     if (pagination && currentPage < pagination.totalPages) {
       setCurrentPage((prev) => prev + 1);
@@ -154,7 +177,6 @@ const ManagementStudentPage: React.FC = () => {
   return (
     <AdminLayout>
       <div className="container mx-auto px-4 sm:px-6 py-8 fade-in">
-        {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
           <div className="flex items-center">
             <button
@@ -194,7 +216,6 @@ const ManagementStudentPage: React.FC = () => {
           </div>
         </div>
 
-        {/* Filters */}
         <div className="card p-5 mb-6">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div className="relative">
@@ -244,7 +265,6 @@ const ManagementStudentPage: React.FC = () => {
           </div>
         </div>
 
-        {/* Error */}
         {error && (
           <div className="card p-4 mb-6 border border-error/20 bg-error/5">
             <p className="text-error font-medium">{error}</p>
@@ -262,7 +282,6 @@ const ManagementStudentPage: React.FC = () => {
           </div>
         )}
 
-        {/* Table */}
         <div className="card p-6">
           {loading ? (
             <div className="text-center py-12">
@@ -282,7 +301,6 @@ const ManagementStudentPage: React.FC = () => {
                 itemsPerPage={studentsPerPage}
               />
 
-              {/* Pagination */}
               {pagination && pagination.totalPages > 1 && (
                 <div className="flex items-center justify-center gap-3 mt-8">
                   <button
@@ -309,7 +327,6 @@ const ManagementStudentPage: React.FC = () => {
           )}
         </div>
 
-        {/* Modals */}
         <AddStudentModal
           isOpen={showAddModal}
           onClose={() => setShowAddModal(false)}

@@ -1,15 +1,36 @@
-// src/components/modals/ImportStudentPage.tsx
+/**
+ * @fileoverview Modal component for importing student data.
+ * This component displays a modal that allows users with specific roles ('super_admin' or 'guru_bk')
+ * to import student data using an ImportForm. It handles role-based access control,
+ * showing an "Access Denied" message if the user lacks the necessary permissions.
+ */
+
 import React from "react";
 import { ImportForm } from "../forms/ImportForm";
 import { useAuth } from "../../contexts/AuthContext";
 import { AlertCircle, X } from "lucide-react";
 
+/**
+ * @interface ImportStudentPageProps
+ * @description Props for the ImportStudentPage component.
+ * @property {boolean} isOpen - Controls the visibility of the modal.
+ * @property {() => void} onClose - Function to be called when the modal is closed.
+ * @property {() => void} [onSuccess] - Optional callback function to be executed after a successful import.
+ */
 interface ImportStudentPageProps {
   isOpen: boolean;
   onClose: () => void;
   onSuccess?: () => void;
 }
-
+/**
+ * A modal component for importing student data.
+ * It checks for user permissions and displays an "Access Denied" message if the user
+ * is not a 'super_admin' or 'guru_bk'. Otherwise, it renders the ImportForm component
+ * within the modal.
+ *
+ * @param {ImportStudentPageProps} props - The component props.
+ * @returns {JSX.Element | null} The rendered modal component, or null if it should not be visible.
+ */
 const ImportStudentPage: React.FC<ImportStudentPageProps> = ({
   isOpen,
   onClose,
@@ -22,14 +43,16 @@ const ImportStudentPage: React.FC<ImportStudentPageProps> = ({
 
   if (!isOpen) return null;
 
+  /**
+   * Handles the success event of the import form.
+   * Calls the optional onSuccess callback if provided.
+   */
   const handleSuccess = () => {
     if (onSuccess) onSuccess();
   };
 
-  // ID untuk heading supaya ARIA punya accessible name
   const modalTitleId = "import-student-modal-title";
 
-  // Jika user tidak punya akses
   if (!hasPermission) {
     return (
       <div
@@ -62,7 +85,6 @@ const ImportStudentPage: React.FC<ImportStudentPageProps> = ({
     );
   }
 
-  // Modal utama import data siswa
   return (
     <div
       className="fixed inset-0 bg-black/50 backdrop-blur-md flex items-center justify-center z-50 p-4"

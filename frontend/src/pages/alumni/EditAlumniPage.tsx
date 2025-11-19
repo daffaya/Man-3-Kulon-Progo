@@ -1,4 +1,8 @@
-// frontend/src/pages/EditAlumniPage.tsx
+/**
+ * @fileoverview Edit Alumni Page component for updating alumni information.
+ * This component provides a form for editing alumni data, including their current status,
+ * workplace, business, or university information. Basic information is displayed as read-only.
+ */
 
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate, useLocation } from "react-router-dom";
@@ -11,6 +15,9 @@ import { studentService } from "../../services/studentService";
 
 export const ALLOWED_ROLES = ["guru_bk", "super_admin"] as const;
 
+/**
+ * Interface defining the structure of alumni data.
+ */
 interface Alumni {
   id: number;
   student_id: number;
@@ -31,11 +38,23 @@ interface Alumni {
   phone?: string;
 }
 
+/**
+ * Checks if a user has permission to edit alumni data based on their role.
+ * @param {boolean} isLoggedIn - The user's login status.
+ * @param {string | undefined} role - The user's role.
+ * @returns {boolean} True if the user has edit access, otherwise false.
+ */
 const hasEditAccess = (isLoggedIn: boolean, role?: string): boolean =>
   isLoggedIn && role
     ? ALLOWED_ROLES.includes(role as (typeof ALLOWED_ROLES)[number])
     : false;
 
+/**
+ * Component for editing alumni information.
+ * Displays basic alumni information as read-only and allows editing of current status,
+ * workplace, business, or university information. Access is restricted to users with
+ * appropriate roles (guru_bk or super_admin).
+ */
 const EditAlumniPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
@@ -101,6 +120,11 @@ const EditAlumniPage: React.FC = () => {
     loadAlumniData();
   }, [id, token, isAdminOrGuruBK, navigate, showErrorToast]);
 
+  /**
+   * Handles form submission to update alumni information.
+   * Only updates editable fields (status, workplace, business, university).
+   * @param {React.FormEvent} e - The form submission event.
+   */
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!token || !id) return;
@@ -157,7 +181,6 @@ const EditAlumniPage: React.FC = () => {
             onSubmit={handleSubmit}
             className="grid grid-cols-1 md:grid-cols-2 gap-6"
           >
-            {/* Informasi Dasar - Readonly */}
             <div className="md:col-span-2 space-y-4 p-5 bg-semibackground/50 rounded-lg">
               <h3 className="text-lg font-semibold text-foreground col-span-2 mb-3">
                 Informasi Dasar (Tidak Dapat Diubah)
@@ -208,7 +231,6 @@ const EditAlumniPage: React.FC = () => {
               </div>
             </div>
 
-            {/* Data Pribadi - Readonly */}
             <div className="md:col-span-2 space-y-4 p-5 bg-semibackground/30 rounded-lg">
               <h3 className="text-lg font-semibold text-foreground col-span-2 mb-3">
                 Data Pribadi
@@ -281,7 +303,6 @@ const EditAlumniPage: React.FC = () => {
               </div>
             </div>
 
-            {/* Status & Aktivitas Saat Ini - Editable */}
             <div className="md:col-span-2 space-y-4 p-5 bg-white dark:bg-semibackground rounded-lg border border-accent/20">
               <h3 className="text-lg font-semibold text-foreground col-span-2 mb-3">
                 Status & Aktivitas Saat Ini
@@ -358,7 +379,6 @@ const EditAlumniPage: React.FC = () => {
               )}
             </div>
 
-            {/* Tombol Aksi */}
             <div className="md:col-span-2 flex justify-end gap-4 pt-4">
               <button
                 type="button"

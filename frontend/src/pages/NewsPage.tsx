@@ -1,4 +1,8 @@
-// frontend/src/pages/NewsPage.tsx
+/**
+ * @fileoverview NewsPage component for displaying a paginated and filterable list of news articles.
+ * This component allows users to browse articles, filter by tags and categories, and navigate between pages.
+ * It manages URL parameters to maintain filter state and provides a responsive layout for article viewing.
+ */
 
 import React, { useState, useEffect, useMemo, useCallback } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
@@ -8,6 +12,11 @@ import ArticleList from "../components/article/ArticleList";
 import { useArticles } from "../contexts/ArticleContext";
 import { Article, ArticleFilters } from "../types/articleTypes";
 
+/**
+ * Component that renders the news/articles page with filtering and pagination.
+ * It fetches articles based on URL parameters for tags, categories, and page number.
+ * Users can filter articles by tags and categories, and navigate through paginated results.
+ */
 const NewsPage: React.FC = () => {
   const { state, fetchArticles, fetchCategories, fetchTags } = useArticles();
   const {
@@ -60,8 +69,17 @@ const NewsPage: React.FC = () => {
     fetchArticles(filters);
   }, [currentPage, activeTag, activeCategory, fetchArticles]);
 
+  /**
+   * Memoized sorted list of all tags for display.
+   */
   const allTags = useMemo(() => tags.sort(), [tags]);
 
+  /**
+   * Applies filters by updating URL parameters.
+   * @param {string | null} tag - The tag filter to apply.
+   * @param {string | null} category - The category filter to apply.
+   * @param {number} page - The page number to navigate to.
+   */
   const applyFilters = useCallback(
     (tag: string | null, category: string | null, page: number = 1) => {
       const params = new URLSearchParams();
@@ -76,11 +94,19 @@ const NewsPage: React.FC = () => {
     [navigate, location.pathname]
   );
 
+  /**
+   * Handles category filter change from the dropdown.
+   * @param {React.ChangeEvent<HTMLSelectElement>} e - The select change event.
+   */
   const handleCategoryChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const newSlug = e.target.value === "all" ? null : e.target.value;
     applyFilters(null, newSlug, 1);
   };
 
+  /**
+   * Handles page navigation and updates URL parameters.
+   * @param {number} page - The page number to navigate to.
+   */
   const handlePageChange = (page: number) => {
     setCurrentPage(page);
     applyFilters(activeTag, activeCategory, page);

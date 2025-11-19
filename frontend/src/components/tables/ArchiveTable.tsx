@@ -1,11 +1,32 @@
+/**
+ * @fileoverview React component for displaying archives in a table format.
+ * This component renders a table of archive items with their details and provides
+ * action buttons for downloading, editing, and deleting archives based on user permissions.
+ */
+
 import React from "react";
 import { Download, Edit, Trash, RefreshCw } from "lucide-react";
 import { Archive } from "../../types/archiveTypes";
 import { truncateText } from "../../lib/utils";
 
+/**
+ * Formats a date string into a localized date format.
+ * @param {string | null} dateString - The date string to format
+ * @returns {string} The formatted date or "-" if no date is provided
+ */
 const formatDate = (dateString: string | null) =>
   dateString ? new Date(dateString).toLocaleDateString() : "-";
 
+/**
+ * Props for the ArchiveTable component
+ * @typedef {object} ArchiveTableProps
+ * @property {Archive[]} archives - Array of archive objects to display
+ * @property {boolean} loading - Flag indicating if archives are being loaded
+ * @property {boolean} isAdminOrArsiparis - Flag indicating if user has admin or archivist permissions
+ * @property {(id: number, fileName: string) => void} handleDownload - Function to handle archive download
+ * @property {(archive: Archive) => void} handleEditClick - Function to handle archive editing
+ * @property {(id: number) => void} handleDelete - Function to handle archive deletion
+ */
 interface ArchiveTableProps {
   archives: Archive[];
   loading: boolean;
@@ -14,7 +35,14 @@ interface ArchiveTableProps {
   handleEditClick: (archive: Archive) => void;
   handleDelete: (id: number) => void;
 }
-
+/**
+ * Component for displaying archives in a table format.
+ * Shows loading state, empty state, or the table of archives based on the current state.
+ * Provides action buttons for downloading, editing, and deleting archives based on user permissions.
+ *
+ * @param {ArchiveTableProps} props - The component props
+ * @returns {JSX.Element} The rendered ArchiveTable component
+ */
 const ArchiveTable: React.FC<ArchiveTableProps> = ({
   archives,
   loading,

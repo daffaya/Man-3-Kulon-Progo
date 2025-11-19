@@ -1,10 +1,20 @@
-// frontend/src/pages/GalleryPage.tsx
+/**
+ * @fileoverview GalleryPage component for displaying a paginated and searchable list of photo albums.
+ * This component fetches album data from the GalleryContext, provides a search bar with debounced input,
+ * and handles client-side pagination.
+ */
+
 import React, { useEffect, useState, useCallback } from "react";
 import { Search, RefreshCw, ChevronLeft, ChevronRight, X } from "lucide-react";
 import Layout from "../components/layout/Layout";
 import AlbumList from "../components/gallery/AlbumList";
 import { useGallery } from "../contexts/GalleryContext";
 
+/**
+ * Component that renders the public gallery page.
+ * It displays a list of photo albums, allowing users to search through them and navigate between pages.
+ * The data is managed and fetched through the GalleryContext.
+ */
 const GalleryPage: React.FC = () => {
   const { state, fetchAlbums } = useGallery();
   const { albums, loading, publicPagination } = state;
@@ -32,6 +42,11 @@ const GalleryPage: React.FC = () => {
     });
   }, [fetchAlbums, debouncedKeyword, currentPage]);
 
+  /**
+   * Handles the change of the current page in the pagination.
+   * It updates the page state and scrolls the user to the top of the page.
+   * @param {number} page - The page number to navigate to.
+   */
   const handlePageChange = useCallback(
     (page: number) => {
       if (page < 1 || page > publicPagination.totalPages) return;

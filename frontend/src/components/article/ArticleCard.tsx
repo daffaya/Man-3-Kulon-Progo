@@ -1,4 +1,9 @@
-// frontend/src/components/article/ArticleCard.tsx
+/**
+ * @fileoverview ArticleCard component for displaying article information.
+ * This component renders article cards in two styles: featured and regular.
+ * It displays article metadata including title, overview, cover image, tags, author, and publication details.
+ */
+
 import React from "react";
 import { Link } from "react-router-dom";
 import { Article } from "../../types/articleTypes";
@@ -6,6 +11,9 @@ import { Clock, Calendar } from "lucide-react";
 import { formatDate } from "../../lib/utils";
 import ImageWithFallback from "../ui/ImageWithFallback";
 
+/**
+ * Props for the ArticleCard component
+ */
 interface ArticleCardProps {
   article: Article;
   featured?: boolean;

@@ -1,4 +1,8 @@
-// frontend/src/types/articleTypes.ts
+/**
+ * @fileoverview Type definitions for articles, categories, and related data structures.
+ * This file defines TypeScript interfaces and types used throughout the article management system,
+ * including data models, form data shapes, pagination, and filtering options.
+ */
 
 /**
  * Represents a category for articles.
@@ -21,7 +25,7 @@ export interface CategoryFormData {
 }
 
 /**
- * Represents an article.
+ * Represents an article with all its properties.
  */
 export interface Article {
   id: string;
@@ -41,7 +45,7 @@ export interface Article {
   };
   readingTime: number;
   category_id: number | null;
-  category: Category | null;
+  category?: Category | null;
 }
 
 /**
@@ -54,7 +58,7 @@ export type ArticleFormData = Omit<
 > & { category_id?: number | null };
 
 /**
- * Pagination response data for articles.
+ * Generic pagination response data for a list of items.
  */
 export interface PaginationData<T> {
   articles: T[];

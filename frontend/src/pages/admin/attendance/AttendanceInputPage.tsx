@@ -1,3 +1,11 @@
+/**
+ * @fileoverview Attendance input page component for recording student attendance.
+ * This component provides an interface for authorized users (guru_bk, super_admin) to
+ * input and manage student attendance data. It allows selecting a class and date,
+ * viewing students in that class, marking attendance status with optional notes,
+ * and saving the data to the backend API.
+ */
+
 import React, { useState, useEffect } from "react";
 import { useNavigate, useLocation, Link } from "react-router-dom";
 import { useAuth } from "../../../contexts/AuthContext";
@@ -30,11 +38,22 @@ interface ClassData {
 const API_URL = import.meta.env.VITE_BACKEND_API_URL;
 const ALLOWED_ROLES = ["guru_bk", "super_admin"] as const;
 
+/**
+ * Checks if a user has permission to access attendance features based on their login status and role.
+ * @param {boolean} isLoggedIn - The user's login status.
+ * @param {string | undefined} role - The user's role.
+ * @returns {boolean} True if the user has access, otherwise false.
+ */
 const hasEditAccess = (isLoggedIn: boolean, role?: string): boolean =>
   isLoggedIn && role
     ? ALLOWED_ROLES.includes(role as (typeof ALLOWED_ROLES)[number])
     : false;
 
+/**
+ * Page component for inputting student attendance.
+ * Fetches classes and students data, allows marking attendance with notes,
+ * and saves the data to the backend API.
+ */
 const AttendanceInputPage: React.FC = () => {
   const { isLoggedIn, user, token } = useAuth();
   const navigate = useNavigate();
@@ -61,6 +80,10 @@ const AttendanceInputPage: React.FC = () => {
   }, [location.search]);
 
   useEffect(() => {
+    /**
+     * Fetches available classes from the API.
+     * Updates the classes state with the fetched data.
+     */
     const fetchClasses = async () => {
       try {
         const response = await fetch(`${API_URL}/api/attendance/classes`, {
@@ -86,6 +109,10 @@ const AttendanceInputPage: React.FC = () => {
   }, [isLoggedIn, token, showErrorToast]);
 
   useEffect(() => {
+    /**
+     * Fetches students for the selected class.
+     * Initializes attendance data with default "hadir" status for all students.
+     */
     const fetchStudents = async () => {
       if (!selectedClass) return;
 
@@ -124,6 +151,10 @@ const AttendanceInputPage: React.FC = () => {
   }, [isLoggedIn, selectedClass, token, showErrorToast]);
 
   useEffect(() => {
+    /**
+     * Fetches existing attendance data for the selected class and date.
+     * Updates the attendance state with the fetched data if available.
+     */
     const fetchAttendance = async () => {
       if (!selectedClass || !selectedDate) return;
 
@@ -167,6 +198,11 @@ const AttendanceInputPage: React.FC = () => {
     }
   }, [isLoggedIn, selectedClass, selectedDate, token, attendances]);
 
+  /**
+   * Handles status change for a student's attendance.
+   * @param {number} studentId - The ID of the student.
+   * @param {"hadir" | "izin" | "sakit" | "alpa"} status - The new attendance status.
+   */
   const handleStatusChange = (
     studentId: number,
     status: "hadir" | "izin" | "sakit" | "alpa"
@@ -178,6 +214,11 @@ const AttendanceInputPage: React.FC = () => {
     );
   };
 
+  /**
+   * Handles notes change for a student's attendance.
+   * @param {number} studentId - The ID of the student.
+   * @param {string} notes - The new notes text.
+   */
   const handleNotesChange = (studentId: number, notes: string) => {
     setAttendances((prev) =>
       prev.map((att) =>
@@ -186,6 +227,10 @@ const AttendanceInputPage: React.FC = () => {
     );
   };
 
+  /**
+   * Saves the attendance data to the backend API.
+   * Validates required fields before sending and shows appropriate feedback.
+   */
   const saveAttendance = async () => {
     if (!selectedClass || !selectedDate) {
       showErrorToast("Pilih kelas dan tanggal terlebih dahulu");
@@ -217,8 +262,6 @@ const AttendanceInputPage: React.FC = () => {
         })),
       };
 
-      console.log("Data yang akan dikirim:", dataToSend); // Debugging
-
       const response = await fetch(`${API_URL}/api/attendance`, {
         method: "POST",
         headers: {
@@ -233,7 +276,6 @@ const AttendanceInputPage: React.FC = () => {
       if (response.ok && data.success) {
         showSuccessToast("Data presensi berhasil disimpan");
 
-        // Verifikasi data setelah disimpan
         setTimeout(async () => {
           try {
             const verifyResponse = await fetch(
@@ -246,7 +288,6 @@ const AttendanceInputPage: React.FC = () => {
             );
 
             const verifyData = await verifyResponse.json();
-            console.log("Data presensi setelah save:", verifyData);
             showSuccessToast(`${verifyData.count} siswa berhasil disimpan`);
           } catch (err) {
             console.error("Error verifying attendance:", err);
@@ -263,7 +304,10 @@ const AttendanceInputPage: React.FC = () => {
     }
   };
 
-  // Tambahkan di AttendanceInputPage.tsx
+  /**
+   * Checks if attendance data already exists for the selected class and date.
+   * Used for debugging and validation purposes.
+   */
   const checkExistingAttendance = async () => {
     if (!selectedClass || !selectedDate) return;
 
@@ -278,59 +322,16 @@ const AttendanceInputPage: React.FC = () => {
       );
 
       const data = await response.json();
-      console.log("Existing attendance:", data);
     } catch (err) {
       console.error("Error checking existing attendance:", err);
     }
   };
 
-  // Panggil fungsi ini setelah memilih kelas dan tanggal
   useEffect(() => {
     if (selectedClass && selectedDate) {
       checkExistingAttendance();
     }
   }, [selectedClass, selectedDate]);
-
-  useEffect(() => {
-    const fetchStudents = async () => {
-      if (!selectedClass) return;
-
-      try {
-        const response = await fetch(
-          `${API_URL}/api/attendance/students?classId=${selectedClass}`,
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          }
-        );
-
-        if (response.ok) {
-          const data = await response.json();
-          console.log("Data siswa yang diambil:", data); // DEBUGGING
-
-          setStudents(data);
-
-          const initialAttendances: Attendance[] = data.map(
-            (student: Student) => ({
-              student_id: student.id,
-              status: "hadir",
-            })
-          );
-          setAttendances(initialAttendances);
-          console.log("Initial attendances:", initialAttendances); // DEBUGGING
-        } else {
-          showErrorToast("Gagal mengambil data siswa");
-        }
-      } catch (err) {
-        showErrorToast("Terjadi kesalahan saat mengambil data siswa");
-      }
-    };
-
-    if (isLoggedIn && selectedClass) {
-      fetchStudents();
-    }
-  }, [isLoggedIn, selectedClass, token, showErrorToast]);
 
   if (!isLoggedIn) {
     navigate("/login");
@@ -446,7 +447,7 @@ const AttendanceInputPage: React.FC = () => {
                           return (
                             <tr key={student.id}>
                               <td className="px-2 py-4 whitespace-nowrap text-sm text-secondary">
-                                {index + 1} {/* Kolom nomor */}
+                                {index + 1}
                               </td>
                               <td className="px-6 py-4 whitespace-nowrap text-sm text-secondary">
                                 {student.nisn}

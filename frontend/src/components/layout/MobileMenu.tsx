@@ -1,4 +1,9 @@
-// src/components/layout/MobileMenu.tsx
+/**
+ * @fileoverview MobileMenu component for responsive navigation on mobile devices.
+ * This component provides a collapsible navigation menu with various links and dropdowns
+ * that is displayed on smaller screens when the hamburger menu is toggled.
+ */
+
 import React from "react";
 import { NavLink } from "../ui/NavLink";
 import { Dropdown, DropdownItem } from "../ui/Dropdown";
@@ -19,6 +24,13 @@ interface MobileMenuProps {
   layananItems: DropdownItem[];
 }
 
+/**
+ * MobileMenu component that displays a responsive navigation menu for mobile devices.
+ * Renders a set of navigation links and dropdown menus when the menu is open.
+ *
+ * @param {MobileMenuProps} props - The component props
+ * @returns {JSX.Element | null} The rendered mobile menu or null if not open
+ */
 export const MobileMenu: React.FC<MobileMenuProps> = ({
   isOpen,
   profileItems,

@@ -1,15 +1,33 @@
-// src/components/forms/StudentForm.tsx
+/**
+ * @fileoverview StudentForm component for creating and editing student data.
+ * This module provides a reusable form with fields for NISN, name, class, and academic year, including validation logic.
+ */
+
 import React, { useState, useEffect } from "react";
 import { StudentFormData } from "../../types/studentTypes";
 import { useClasses } from "../../hooks/useClasses";
 
+/**
+ * Props for the StudentForm component.
+ */
 interface StudentFormProps {
+  /** The initial data to pre-fill the form for editing. */
   initialData?: Partial<StudentFormData>;
+  /** Function to call when the form is submitted with valid data. */
   onSubmit: (data: StudentFormData) => Promise<void>;
+  /** Function to call when the form is cancelled. */
   onCancel: () => void;
+  /** Whether the form is in a loading state. */
   isLoading?: boolean;
 }
 
+/**
+ * A form component for creating and editing student information.
+ * It includes fields for NISN, name, class selection, and academic year, with client-side validation.
+ *
+ * @param {StudentFormProps} props - The component props.
+ * @returns {JSX.Element} The rendered StudentForm component.
+ */
 const StudentForm: React.FC<StudentFormProps> = ({
   initialData,
   onSubmit,
@@ -30,6 +48,10 @@ const StudentForm: React.FC<StudentFormProps> = ({
   const [errors, setErrors] = useState<Record<string, string>>({});
   const { classes } = useClasses();
 
+  /**
+   * Validates the form data against a set of rules.
+   * @returns {boolean} Returns true if the form is valid, otherwise false.
+   */
   const validateForm = () => {
     const newErrors: Record<string, string> = {};
 
@@ -55,6 +77,11 @@ const StudentForm: React.FC<StudentFormProps> = ({
     return Object.keys(newErrors).length === 0;
   };
 
+  /**
+   * Handles the form submission event.
+   * It validates the form and calls the onSubmit prop if validation passes.
+   * @param {React.FormEvent} e - The form submission event.
+   */
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -67,6 +94,11 @@ const StudentForm: React.FC<StudentFormProps> = ({
     }
   };
 
+  /**
+   * Handles input changes for form fields.
+   * Updates the form state and clears any existing validation errors for the changed field.
+   * @param {React.ChangeEvent<HTMLInputElement | HTMLSelectElement>} e - The input change event.
+   */
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
   ) => {
@@ -76,7 +108,6 @@ const StudentForm: React.FC<StudentFormProps> = ({
       [name]: name === "class_id" ? parseInt(value) : value,
     }));
 
-    // Clear error when user starts typing
     if (errors[name]) {
       setErrors((prev) => ({
         ...prev,

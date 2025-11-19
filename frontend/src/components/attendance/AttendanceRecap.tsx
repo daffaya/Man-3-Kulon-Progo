@@ -1,3 +1,9 @@
+/**
+ * @fileoverview Attendance Recap component for displaying and exporting student attendance data.
+ * This component allows administrators to view attendance records filtered by class, period, and date range.
+ * It also provides functionality to export the data in Excel or PDF format.
+ */
+
 import { useState, useEffect } from "react";
 import {
   fetchClasses,
@@ -9,6 +15,9 @@ import { useNavigate } from "react-router-dom";
 import AdminLayout from "../../components/layout/AdminLayout";
 import { RefreshCw, Download, FileText } from "lucide-react";
 
+/**
+ * Interface for attendance recap data
+ */
 interface RecapData {
   id: number;
   nisn: string;
@@ -24,6 +33,12 @@ interface RecapData {
   notes?: string;
 }
 
+/**
+ * AttendanceRecap component for displaying and managing attendance data.
+ * Allows filtering by class, period, and date range, and provides export functionality.
+ *
+ * @returns {JSX.Element} The rendered AttendanceRecap component
+ */
 const AttendanceRecap = () => {
   const { token, isLoggedIn } = useAuth();
   const navigate = useNavigate();
@@ -41,7 +56,6 @@ const AttendanceRecap = () => {
   const [classes, setClasses] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
 
-  // Redirect jika belum login
   useEffect(() => {
     if (!isLoggedIn) {
       navigate("/login");
@@ -89,9 +103,12 @@ const AttendanceRecap = () => {
     fetchRecapData();
   }, [classId, period, startDate, endDate, token]);
 
+  /**
+   * Exports attendance data in the specified format (Excel or PDF)
+   * @param {string} format - The export format ("excel" or "pdf")
+   */
   const exportData = async (format: "excel" | "pdf") => {
     if (!token) {
-      // Using a toast would be better, but alert is simpler for this example
       alert("Sesi telah berakhir. Silakan login kembali.");
       navigate("/login");
       return;
@@ -121,7 +138,6 @@ const AttendanceRecap = () => {
           Rekap Presensi
         </h1>
 
-        {/* Filter Controls */}
         <div className="card p-6 mb-6">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
             <div>
@@ -187,7 +203,6 @@ const AttendanceRecap = () => {
           </div>
         </div>
 
-        {/* Export Buttons */}
         <div className="mb-6 flex gap-2">
           <button
             onClick={() => exportData("excel")}
@@ -207,7 +222,6 @@ const AttendanceRecap = () => {
           </button>
         </div>
 
-        {/* Recap Table */}
         {loading ? (
           <div className="card p-12 text-center">
             <RefreshCw

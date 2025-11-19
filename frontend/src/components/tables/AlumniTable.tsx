@@ -1,3 +1,8 @@
+/**
+ * @fileoverview AlumniTable component for displaying alumni data in a tabular format.
+ * This component renders a table with alumni information and provides edit functionality for authorized users.
+ */
+
 import React from "react";
 
 interface Alumni {
@@ -15,6 +20,14 @@ interface AlumniTableProps {
   handleEditClick: (alumni: Alumni) => void;
 }
 
+/**
+ * AlumniTable component that displays alumni information in a table format.
+ * Shows a loading spinner while data is being fetched and provides an edit button
+ * for users with admin or Guru BK privileges.
+ *
+ * @param {AlumniTableProps} props - The component props
+ * @returns {JSX.Element} The rendered table component
+ */
 const AlumniTable: React.FC<AlumniTableProps> = ({
   alumni,
   loading,

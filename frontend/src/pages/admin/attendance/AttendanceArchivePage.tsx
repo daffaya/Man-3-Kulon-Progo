@@ -1,3 +1,10 @@
+/**
+ * @fileoverview Attendance Archive Page component for the admin panel.
+ * This component provides an interface for viewing and archiving student attendance data.
+ * It allows filtering by academic year, semester, and class, and displays attendance statistics
+ * including presence, permission, sick leave, and absence counts with attendance percentages.
+ */
+
 import React, { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../../../contexts/AuthContext";
@@ -34,11 +41,23 @@ interface ClassData {
 const API_URL = import.meta.env.VITE_BACKEND_API_URL;
 const ALLOWED_ROLES = ["guru_bk", "super_admin"] as const;
 
+/**
+ * Checks if a user has permission to access attendance archive based on their role.
+ * @param {boolean} isLoggedIn - The user's login status.
+ * @param {string | undefined} role - The user's role.
+ * @returns {boolean} True if the user has access, otherwise false.
+ */
 const hasEditAccess = (isLoggedIn: boolean, role?: string): boolean =>
   isLoggedIn && role
     ? ALLOWED_ROLES.includes(role as (typeof ALLOWED_ROLES)[number])
     : false;
 
+/**
+ * Component for managing and viewing archived student attendance data.
+ * Provides filtering options by academic year, semester, and class, and displays
+ * attendance statistics in a tabular format. Allows authorized users to archive
+ * current attendance data for historical reference.
+ */
 const AttendanceArchivePage: React.FC = () => {
   const { isLoggedIn, user, token } = useAuth();
   const navigate = useNavigate();
@@ -118,6 +137,10 @@ const AttendanceArchivePage: React.FC = () => {
     showErrorToast,
   ]);
 
+  /**
+   * Archives attendance data for the selected academic year and semester.
+   * Makes a POST request to the server and refreshes the archive records on success.
+   */
   const handleArchiveData = async () => {
     if (!selectedYear || !selectedSemester) {
       showErrorToast("Pilih tahun ajaran dan semester terlebih dahulu");

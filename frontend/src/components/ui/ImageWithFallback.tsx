@@ -1,4 +1,10 @@
-// frontend/src/components/ui/ImageWithFallback.tsx
+/**
+ * @fileoverview ImageWithFallback component for displaying images with fallback handling.
+ * This component renders an image with automatic fallback to a default image if the primary
+ * image fails to load. It supports both string URLs and File objects as image sources,
+ * and provides a retry mechanism when images fail to load.
+ */
+
 import React, { useState, useEffect } from "react";
 
 interface ImageWithFallbackProps {
@@ -11,6 +17,19 @@ interface ImageWithFallbackProps {
   onError?: () => void;
 }
 
+/**
+ * Component that displays an image with fallback functionality.
+ * Handles both string URLs and File objects as image sources, and provides
+ * a fallback image when the primary image fails to load. Includes a retry
+ * mechanism for failed images.
+ * @param {string | File} src - The image source, either a URL string or a File object.
+ * @param {string} alt - Alternative text for the image for accessibility.
+ * @param {string} className - Additional CSS classes to apply to the image.
+ * @param {string} fallback - URL of the fallback image to use when the primary image fails.
+ * @param {React.ReactNode} children - Optional child elements to render alongside the image.
+ * @param {Function} onLoad - Callback function triggered when the image loads successfully.
+ * @param {Function} onError - Callback function triggered when the image fails to load.
+ */
 const ImageWithFallback: React.FC<ImageWithFallbackProps> = ({
   src,
   alt,
@@ -26,6 +45,11 @@ const ImageWithFallback: React.FC<ImageWithFallbackProps> = ({
   );
   const [objectUrl, setObjectUrl] = useState<string | null>(null);
 
+  /**
+   * Converts an image path to a full URL if it's not already a complete URL.
+   * @param {string} imagePath - The image path to convert.
+   * @returns {string} The full URL of the image.
+   */
   const getFullImageUrl = (imagePath: string): string => {
     if (!imagePath) return fallback;
     if (imagePath.startsWith("http") || imagePath.startsWith("blob:")) {
@@ -53,6 +77,9 @@ const ImageWithFallback: React.FC<ImageWithFallbackProps> = ({
     }
   }, [src]);
 
+  /**
+   * Handles image loading errors by setting the error state and loading the fallback image.
+   */
   const handleError = () => {
     if (!imgError) {
       setImgError(true);
@@ -61,6 +88,9 @@ const ImageWithFallback: React.FC<ImageWithFallbackProps> = ({
     }
   };
 
+  /**
+   * Attempts to reload the image by resetting the error state and updating the image source.
+   */
   const handleReload = () => {
     setImgError(false);
     if (src instanceof File) {

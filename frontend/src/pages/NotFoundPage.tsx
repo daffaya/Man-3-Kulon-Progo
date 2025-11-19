@@ -1,8 +1,19 @@
+/**
+ * @fileoverview NotFoundPage component for displaying a 404 error page.
+ * This component provides a user-friendly interface when a requested route is not found,
+ * including a 404 illustration, an error message, and a link to navigate back to the homepage.
+ */
+
 import React from "react";
 import { Link } from "react-router-dom";
 import Layout from "../components/layout/Layout";
 import { Home, Search, ArrowLeft, Sparkles } from "lucide-react";
 
+/**
+ * Component that renders a 404 Not Found page.
+ * Displays a custom 404 illustration, an error message, and provides a button
+ * for the user to navigate back to the home page.
+ */
 const NotFoundPage: React.FC = () => {
   return (
     <Layout>

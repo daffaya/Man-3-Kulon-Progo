@@ -1,9 +1,0 @@
-const enTranslation = {
-  "home": "Home",
-  "Profile": "Profile",
-  "contact": "Contact",
-  "published_on": "Published on",
-  // ... kunci terjemahan lainnya
-};
-
-export type Translation = typeof enTranslation;

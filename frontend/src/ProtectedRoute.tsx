@@ -1,4 +1,10 @@
-// frontend/src/ProtectedRoute.tsx
+/**
+ * @fileoverview ProtectedRoute component for restricting access to routes based on authentication and role.
+ * This component checks if a user is authenticated and has the required role before rendering
+ * its children. It validates the authentication token and redirects appropriately if the user
+ * is not authenticated or lacks the required permissions.
+ */
+
 import React, { useState, useEffect } from "react";
 import { Navigate, useLocation } from "react-router-dom";
 import { useAuth } from "./contexts/AuthContext";
@@ -8,6 +14,13 @@ interface ProtectedRouteProps {
   requiredRole?: string;
 }
 
+/**
+ * Component that protects routes by checking authentication and role permissions.
+ * Validates the authentication token and redirects to login if not authenticated.
+ * Redirects to "/atmin" if the user doesn't have the required role.
+ * @param {React.ReactNode} children - Child components to render if authentication passes
+ * @param {string} requiredRole - Optional role required to access the route
+ */
 const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
   children,
   requiredRole,
@@ -23,7 +36,6 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
 
       if (isLoggedIn && token) {
         try {
-          // Coba validasi token dengan memanggil endpoint profile
           const response = await fetch(
             `${
               import.meta.env.VITE_BACKEND_API_URL || "http://localhost:3001"
@@ -38,7 +50,6 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
           if (response.ok) {
             setIsAuthenticated(true);
           } else {
-            // Token tidak valid, logout
             logout();
             setIsAuthenticated(false);
           }

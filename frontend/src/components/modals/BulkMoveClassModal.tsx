@@ -1,3 +1,10 @@
+/**
+ * @fileoverview Modal component for bulk moving students between classes or graduating them.
+ * This component provides a form interface for selecting source/destination classes,
+ * academic year, and action type (move or graduate). It includes validation, API calls,
+ * and confirmation dialogs for the bulk operations.
+ */
+
 import React, { useState, useEffect, useRef } from "react";
 import { useAuth } from "../../contexts/AuthContext";
 import { useToastMessage } from "../../hooks/useToastMessage";
@@ -5,14 +12,31 @@ import { studentService } from "../../services/studentService";
 import { Class, Angkatan } from "../../types/studentTypes";
 import { X } from "lucide-react";
 
+/**
+ * Props for the BulkMoveClassModal component
+ * @interface BulkMoveClassModalProps
+ */
 interface BulkMoveClassModalProps {
+  /** Whether the modal is open */
   isOpen: boolean;
+  /** Function to call when the modal is closed */
   onClose: () => void;
+  /** Function to call when the operation is successful */
   onSuccess: () => void;
+  /** Array of available classes */
   classes: Class[];
+  /** Array of available angkatans (batches) */
   angkatans: Angkatan[];
 }
 
+/**
+ * Modal component for bulk moving students between classes or graduating them.
+ * Provides a form interface for selecting source/destination classes, academic year,
+ * and action type (move or graduate). Includes validation, API calls, and confirmation dialogs.
+ *
+ * @param {BulkMoveClassModalProps} props - The component props
+ * @returns {JSX.Element} The rendered modal component
+ */
 const BulkMoveClassModal: React.FC<BulkMoveClassModalProps> = ({
   isOpen,
   onClose,
@@ -34,7 +58,7 @@ const BulkMoveClassModal: React.FC<BulkMoveClassModalProps> = ({
   const [studentsToMoveCount, setStudentsToMoveCount] = useState<number>(0);
   const [fromClassLevel, setFromClassLevel] = useState<string>("");
 
-  // State untuk kelas yang difilter
+  // State for filtered classes
   const [filteredClasses, setFilteredClasses] = useState<{
     from: Class[];
     to: Class[];
@@ -44,18 +68,25 @@ const BulkMoveClassModal: React.FC<BulkMoveClassModalProps> = ({
   });
   const [loadingClasses, setLoadingClasses] = useState(false);
 
-  // Gunakan ref untuk menyimpan state form terbaru
+  // Use ref to store the latest form state
   const formDataRef = useRef(formData);
   formDataRef.current = formData;
 
-  // Fungsi untuk menentukan level dari nama kelas
+  /**
+   * Determines the class level from the class name
+   * @param {string} className - The class name (e.g., "X-A", "XI-B", "XII-C")
+   * @returns {string} The class level (X, XI, or XII)
+   */
   const getClassLevel = (className: string): string => {
-    // Asumsi nama kelas seperti "X-A", "XI-B", "XII-C"
     const match = className.match(/^(X|XI|XII)-/);
     return match ? match[1] : "";
   };
 
-  // Fungsi untuk mendapatkan level berikutnya
+  /**
+   * Gets the next class level
+   * @param {string} currentLevel - The current class level
+   * @returns {string} The next class level
+   */
   const getNextLevel = (currentLevel: string): string => {
     const levels = ["X", "XI", "XII"];
     const currentIndex = levels.indexOf(currentLevel);
@@ -66,7 +97,7 @@ const BulkMoveClassModal: React.FC<BulkMoveClassModalProps> = ({
 
   const debounceRef = useRef<NodeJS.Timeout | null>(null);
 
-  // Fetch kelas berdasarkan angkatan yang dipilih
+  // Fetch classes based on selected angkatan
   useEffect(() => {
     const fetchClassesByAngkatan = async () => {
       if (!formData.angkatan || !token) {
@@ -76,17 +107,15 @@ const BulkMoveClassModal: React.FC<BulkMoveClassModalProps> = ({
 
       setLoadingClasses(true);
       try {
-        // Ambil kelas untuk angkatan ini
         const classesForAngkatan = await studentService.getClassesByAngkatan(
           token,
           formData.angkatan
         );
         setFilteredClasses((prev) => ({ ...prev, from: classesForAngkatan }));
 
-        // Reset pilihan kelas asal dan tujuan
+        // Reset class selections
         setFormData((prev) => ({ ...prev, classIdFrom: "", classIdTo: "" }));
       } catch (error) {
-        console.error("Error fetching classes by angkatan:", error);
         showErrorToast(
           error instanceof Error ? error.message : "Gagal memuat kelas"
         );
@@ -113,7 +142,7 @@ const BulkMoveClassModal: React.FC<BulkMoveClassModalProps> = ({
     };
   }, [formData.angkatan, token, showErrorToast]);
 
-  // Fetch kelas tujuan berdasarkan kelas asal yang dipilih
+  // Fetch destination classes based on selected source class
   useEffect(() => {
     const fetchToClasses = async () => {
       if (!formData.classIdFrom || !token || formData.action !== "move") {
@@ -123,7 +152,6 @@ const BulkMoveClassModal: React.FC<BulkMoveClassModalProps> = ({
 
       setLoadingClasses(true);
       try {
-        // Cari kelas asal yang dipilih
         const fromClass = filteredClasses.from.find(
           (cls) => cls.id === Number(formData.classIdFrom)
         );
@@ -132,31 +160,27 @@ const BulkMoveClassModal: React.FC<BulkMoveClassModalProps> = ({
           return;
         }
 
-        // Dapatkan level kelas asal
         const fromLevel = getClassLevel(fromClass.name);
         if (!fromLevel) {
           setFilteredClasses((prev) => ({ ...prev, to: [] }));
           return;
         }
 
-        // Dapatkan level berikutnya
         const toLevel = getNextLevel(fromLevel);
         if (!toLevel) {
           setFilteredClasses((prev) => ({ ...prev, to: [] }));
           return;
         }
 
-        // Ambil kelas untuk level berikutnya
         const toClasses = await studentService.getClassesByLevel(
           token,
           toLevel
         );
         setFilteredClasses((prev) => ({ ...prev, to: toClasses }));
 
-        // Reset pilihan kelas tujuan
+        // Reset destination class selection
         setFormData((prev) => ({ ...prev, classIdTo: "" }));
       } catch (error) {
-        console.error("Error fetching to classes:", error);
         showErrorToast(
           error instanceof Error ? error.message : "Gagal memuat kelas tujuan"
         );
@@ -189,7 +213,7 @@ const BulkMoveClassModal: React.FC<BulkMoveClassModalProps> = ({
     showErrorToast,
   ]);
 
-  // useEffect untuk fromClassLevel (pisah)
+  // Update fromClassLevel when source class changes
   useEffect(() => {
     if (formData.classIdFrom && filteredClasses.from.length > 0) {
       const fromClass = filteredClasses.from.find(
@@ -198,9 +222,8 @@ const BulkMoveClassModal: React.FC<BulkMoveClassModalProps> = ({
       if (fromClass) {
         const level = getClassLevel(fromClass.name);
         setFromClassLevel(level);
-        console.log("From class level:", level);
 
-        // Reset aksi ke "move" jika kelas yang dipilih bukan XII
+        // Reset action to "move" if selected class is not XII
         if (level !== "XII" && formData.action === "graduate") {
           setFormData({
             ...formData,
@@ -213,26 +236,17 @@ const BulkMoveClassModal: React.FC<BulkMoveClassModalProps> = ({
     } else {
       setFromClassLevel("");
     }
-  }, [formData.classIdFrom, filteredClasses.from]); // Ini hanya untuk fromClassLevel
+  }, [formData.classIdFrom, filteredClasses.from]);
 
   // Fetch count of students to move when class or angkatan changes
   useEffect(() => {
-    console.log("🔍 useEffect for fetchStudentsToMoveCount triggered");
-    console.log("📋 formData:", formData);
-    console.log("🔑 token:", token ? "exists" : "not exists");
-
-    // Di dalam useEffect kamu
     const fetchStudentsToMoveCount = async () => {
       if (!formData.classIdFrom || !formData.angkatan || !token) {
-        // ... log skipping
         return;
       }
 
       try {
         setLoading(true);
-        console.log(
-          `🔄 Counting students for class: ${formData.classIdFrom}, angkatan: ${formData.angkatan}`
-        );
 
         const response = await studentService.getStudents({
           token,
@@ -245,10 +259,8 @@ const BulkMoveClassModal: React.FC<BulkMoveClassModalProps> = ({
 
         const count = Array.isArray(students) ? students.length : 0;
 
-        console.log(`✅ Students count result: ${count}`);
         setStudentsToMoveCount(count);
       } catch (error) {
-        console.error("❌ Error fetching students count:", error);
         setStudentsToMoveCount(0);
       } finally {
         setLoading(false);
@@ -258,10 +270,14 @@ const BulkMoveClassModal: React.FC<BulkMoveClassModalProps> = ({
     fetchStudentsToMoveCount();
   }, [formData.classIdFrom, formData.angkatan, token]);
 
+  /**
+   * Handles form submission
+   * @param {React.FormEvent} e - The form submission event
+   */
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
 
-    // Validasi form berdasarkan aksi
+    // Validate form based on action
     if (formData.action === "move") {
       if (
         !formData.classIdFrom ||
@@ -284,7 +300,7 @@ const BulkMoveClassModal: React.FC<BulkMoveClassModalProps> = ({
         return;
       }
 
-      // Validasi tambahan untuk aksi "Luluskan"
+      // Additional validation for graduate action
       if (fromClassLevel !== "XII") {
         showErrorToast("Aksi luluskan hanya tersedia untuk kelas XII");
         return;
@@ -294,17 +310,17 @@ const BulkMoveClassModal: React.FC<BulkMoveClassModalProps> = ({
     setShowConfirmation(true);
   };
 
+  /**
+   * Confirms and executes the bulk move or graduate operation
+   */
   const confirmAction = async () => {
     setLoading(true);
     try {
-      console.log("Action selected:", formDataRef.current.action);
-
       let result: any;
       let actionText: string;
       let count: number;
 
       if (formDataRef.current.action === "move") {
-        console.log("Using bulkMoveClass endpoint");
         result = await studentService.bulkMoveClass(
           {
             classIdFrom: Number(formDataRef.current.classIdFrom),
@@ -317,7 +333,6 @@ const BulkMoveClassModal: React.FC<BulkMoveClassModalProps> = ({
         actionText = "dipindahkan";
         count = result.studentsMoved;
       } else if (formDataRef.current.action === "graduate") {
-        console.log("Using graduateStudents endpoint");
         result = await studentService.graduateStudents(
           {
             classIdFrom: Number(formDataRef.current.classIdFrom),
@@ -332,8 +347,6 @@ const BulkMoveClassModal: React.FC<BulkMoveClassModalProps> = ({
         throw new Error("Aksi tidak valid");
       }
 
-      console.log("Operation result:", result);
-
       showSuccessToast(
         `${result.message}. ${count} siswa berhasil ${actionText}`
       );
@@ -341,7 +354,6 @@ const BulkMoveClassModal: React.FC<BulkMoveClassModalProps> = ({
       onSuccess();
       onClose();
     } catch (error: any) {
-      console.error("Error in confirmAction:", error);
       showErrorToast(error.message || "Gagal memproses");
     } finally {
       setLoading(false);
@@ -349,6 +361,9 @@ const BulkMoveClassModal: React.FC<BulkMoveClassModalProps> = ({
     }
   };
 
+  /**
+   * Cancels the action and closes the confirmation dialog
+   */
   const cancelAction = () => {
     setShowConfirmation(false);
   };
@@ -443,7 +458,6 @@ const BulkMoveClassModal: React.FC<BulkMoveClassModalProps> = ({
             <select
               value={formData.action}
               onChange={(e) => {
-                console.log("Action changed to:", e.target.value);
                 setFormData({
                   ...formData,
                   action: e.target.value as "move" | "graduate",
@@ -454,7 +468,7 @@ const BulkMoveClassModal: React.FC<BulkMoveClassModalProps> = ({
               disabled={!formData.classIdFrom}
             >
               <option value="move">Naik Kelas</option>
-              {/* Hanya tampilkan opsi "Luluskan" jika kelas asal adalah XII */}
+              {/* Only show "Graduate" option if source class is XII */}
               {fromClassLevel === "XII" && (
                 <option value="graduate">Luluskan</option>
               )}

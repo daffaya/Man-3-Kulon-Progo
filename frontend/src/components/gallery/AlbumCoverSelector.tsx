@@ -1,16 +1,38 @@
-// frontend/src/components/gallery/AlbumCoverSelector.tsx
+/**
+ * @fileoverview React component for selecting an album cover photo.
+ * This component displays a grid of photos from an album and allows users to select
+ * one as the album cover. In edit mode, users can click on photos to change the cover.
+ * The current cover photo is highlighted with a badge and ring.
+ */
+
 import React from "react";
 import { Photo } from "../../types/galleryTypes";
 import ImageWithFallback from "../ui/ImageWithFallback";
 import { Check } from "lucide-react";
 
+/**
+ * Props for the AlbumCoverSelector component
+ * @interface AlbumCoverSelectorProps
+ */
 interface AlbumCoverSelectorProps {
+  /** Array of photos to display in the grid */
   photos: Photo[];
+  /** ID of the currently selected cover photo */
   currentCoverId: string | null;
+  /** Function called when a photo is selected as the cover */
   onCoverSelect: (photoId: string) => void;
+  /** Flag indicating whether the component is in edit mode */
   isEditMode: boolean;
 }
 
+/**
+ * Component for displaying and selecting an album cover photo.
+ * Shows a grid of photos with the current cover highlighted. In edit mode,
+ * users can click on photos to select them as the album cover.
+ *
+ * @param {AlbumCoverSelectorProps} props - The component props
+ * @returns {JSX.Element} The rendered album cover selector
+ */
 const AlbumCoverSelector: React.FC<AlbumCoverSelectorProps> = ({
   photos,
   currentCoverId,

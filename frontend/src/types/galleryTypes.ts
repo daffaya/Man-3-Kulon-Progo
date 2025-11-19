@@ -1,4 +1,8 @@
-// frontend/src/types/galleryTypes.ts
+/**
+ * @fileoverview Type definitions for gallery-related data structures.
+ * This file defines TypeScript interfaces for albums, photos, and related data
+ * used throughout the gallery management system.
+ */
 
 /**
  * Represents a gallery album.

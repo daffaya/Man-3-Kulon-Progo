@@ -1,12 +1,26 @@
+/**
+ * @fileoverview GuruStafPage component for displaying teacher and staff data in tabular format.
+ * This component renders two tables showing the breakdown of teachers and staff by gender
+ * and employment status (PNS, P3K, Non-PNS) for the current academic year.
+ */
+
 import React from "react";
 import Layout from "../../components/layout/Layout";
 
+/**
+ * Interface defining the structure for staff data.
+ * @interface
+ */
 interface StaffData {
   status: string;
   male: number;
   female: number;
 }
 
+/**
+ * Props interface for the RecapTable component.
+ * @interface
+ */
 interface RecapTableProps {
   title: string;
   tahunAjaran: string;
@@ -14,25 +28,35 @@ interface RecapTableProps {
   totalLabel: string;
 }
 
+/**
+ * Constant array containing teacher data breakdown by status and gender.
+ */
 const TEACHER_RECAP: StaffData[] = [
   { status: "Guru PNS", male: 25, female: 30 },
   { status: "Guru P3K", male: 4, female: 14 },
   { status: "Guru Non PNS", male: 3, female: 2 },
 ];
 
+/**
+ * Constant array containing staff data breakdown by status and gender.
+ */
 const STAFF_RECAP: StaffData[] = [
   { status: "Staf PNS", male: 2, female: 3 },
   { status: "Staf P3K", male: 3, female: 3 },
   { status: "Staf Non PNS", male: 11, female: 2 },
 ];
 
+/**
+ * Component that renders a table showing staff/teacher data by status and gender.
+ * Calculates totals dynamically and displays them in a summary row.
+ * @param {RecapTableProps} props - The component props.
+ */
 const RecapTable: React.FC<RecapTableProps> = ({
   title,
   tahunAjaran,
   data,
   totalLabel,
 }) => {
-  // Calculate totals dynamically
   const totalMale = data.reduce((sum, row) => sum + row.male, 0);
   const totalFemale = data.reduce((sum, row) => sum + row.female, 0);
   const total = totalMale + totalFemale;
@@ -98,7 +122,6 @@ const RecapTable: React.FC<RecapTableProps> = ({
                 </td>
               </tr>
             ))}
-            {/* Total row with merged cells */}
             <tr className="font-bold bg-blue-50 dark:bg-blue-900/30">
               <td className="border border-gray-300 dark:border-gray-600 px-4 py-3">
                 {totalLabel}
@@ -117,6 +140,10 @@ const RecapTable: React.FC<RecapTableProps> = ({
   );
 };
 
+/**
+ * Main page component that displays teacher and staff data in two separate tables.
+ * Uses the RecapTable component to render the data for both teachers and staff.
+ */
 const GuruStafPage: React.FC = () => {
   return (
     <Layout>

@@ -1,3 +1,10 @@
+/**
+ * @fileoverview Modal component for adding a new student.
+ * This component renders a modal dialog containing the `StudentForm`.
+ * It handles the form submission to create a new student, displays success
+ * or error notifications, and closes the modal upon successful submission.
+ */
+
 import React from "react";
 import StudentForm from "../forms/StudentForm";
 import { useAuth } from "../../contexts/AuthContext";
@@ -5,12 +12,27 @@ import { useToastMessage } from "../../hooks/useToastMessage";
 import { studentService } from "../../services/studentService";
 import { X } from "lucide-react";
 
+/**
+ * Props for the AddStudentModal component.
+ * @typedef {object} AddStudentModalProps
+ * @property {boolean} isOpen - Controls the visibility of the modal.
+ * @property {() => void} onClose - Function to call when the modal should be closed.
+ * @property {() => void} onSuccess - Callback function to execute after a student is successfully added.
+ */
 interface AddStudentModalProps {
   isOpen: boolean;
   onClose: () => void;
   onSuccess: () => void;
 }
-
+/**
+ * A modal dialog component for adding a new student.
+ * It wraps the `StudentForm` component and handles the logic for
+ * creating a student, showing toast notifications for success or error,
+ * and closing the modal on success.
+ *
+ * @param {AddStudentModalProps} props - The component props.
+ * @returns {JSX.Element | null} The rendered modal component, or null if it should not be open.
+ */
 const AddStudentModal: React.FC<AddStudentModalProps> = ({
   isOpen,
   onClose,

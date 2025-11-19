@@ -1,4 +1,10 @@
-// frontend/src/components/forms/auth/UserManagementForm.tsx
+/**
+ * @fileoverview Form component for user management operations.
+ * This component provides a form interface for creating new users or editing existing ones.
+ * It includes fields for username, full name, role, password, and password confirmation,
+ * with appropriate validation and UI feedback.
+ */
+
 import React, { useState, useEffect } from "react";
 import {
   Eye,
@@ -11,6 +17,15 @@ import {
 } from "lucide-react";
 import { User, UserFormData } from "../../../types/userTypes";
 
+/**
+ * Props for the UserManagementForm component.
+ * @typedef {object} UserManagementFormProps
+ * @property {(userData: UserFormData) => Promise<void>} onSubmit - Function to handle form submission
+ * @property {() => void} onCancel - Function to handle form cancellation
+ * @property {User|null} [initialData=null] - Initial user data for edit mode
+ * @property {boolean} [isLoading=false] - Flag to indicate if the form is in a loading state
+ */
+
 interface UserManagementFormProps {
   onSubmit: (userData: UserFormData) => Promise<void>;
   onCancel: () => void;
@@ -18,6 +33,14 @@ interface UserManagementFormProps {
   isLoading?: boolean;
 }
 
+/**
+ * A form component for creating or editing user accounts.
+ * Provides fields for username, full name, role, password, and password confirmation.
+ * Includes validation for password matching and UI feedback for different states.
+ *
+ * @param {UserManagementFormProps} props - The component props
+ * @returns {JSX.Element} The rendered UserManagementForm component
+ */
 const UserManagementForm: React.FC<UserManagementFormProps> = ({
   onSubmit,
   onCancel,
@@ -47,14 +70,24 @@ const UserManagementForm: React.FC<UserManagementFormProps> = ({
     }
   }, [initialData]);
 
+  /**
+   * Toggles the visibility of the password field.
+   */
   const togglePasswordVisibility = () => {
     setShowPassword(!showPassword);
   };
 
+  /**
+   * Toggles the visibility of the confirm password field.
+   */
   const toggleConfirmPasswordVisibility = () => {
     setShowConfirmPassword(!showConfirmPassword);
   };
 
+  /**
+   * Handles input changes in the form fields.
+   * @param {React.ChangeEvent<HTMLInputElement | HTMLSelectElement>} e - The change event
+   */
   const handleInputChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
   ) => {
@@ -65,11 +98,15 @@ const UserManagementForm: React.FC<UserManagementFormProps> = ({
     });
   };
 
+  /**
+   * Handles form submission.
+   * Validates password confirmation and calls the onSubmit prop.
+   * @param {React.FormEvent} e - The form submission event
+   */
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
 
-    // Validate that passwords match if password is provided
     if (formData.password && formData.password !== confirmPassword) {
       setError("Passwords do not match");
       return;
@@ -82,7 +119,6 @@ const UserManagementForm: React.FC<UserManagementFormProps> = ({
     }
   };
 
-  // Available roles
   const roles = [
     { value: "super_admin", label: "Super Admin" },
     { value: "arsiparis", label: "Arsiparis" },
@@ -92,7 +128,9 @@ const UserManagementForm: React.FC<UserManagementFormProps> = ({
   ];
 
   /**
-   * Utility function to determine icon color based on focus.
+   * Determines the color of input field icons based on focus state.
+   * @param {string} field - The field name to check
+   * @returns {string} The CSS class for the icon color
    */
   const getIconColor = (field: string) =>
     focusedField === field ? "text-accent" : "text-secondary";
@@ -245,7 +283,7 @@ const UserManagementForm: React.FC<UserManagementFormProps> = ({
               onChange={handleInputChange}
               onFocus={() => setFocusedField("password")}
               onBlur={() => setFocusedField(null)}
-              required={!initialData} // Password is required only for new users
+              required={!initialData}
             />
             <button
               type="button"

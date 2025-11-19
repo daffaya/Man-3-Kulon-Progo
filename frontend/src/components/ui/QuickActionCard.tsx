@@ -1,4 +1,10 @@
-// src/components/ui/QuickActionCard.tsx
+/**
+ * @fileoverview QuickActionCard component for displaying clickable action cards.
+ * This component renders a styled card with an icon, title, and description that
+ * can either navigate to a route or execute a custom function when clicked.
+ * It supports different color themes and includes hover effects for better user interaction.
+ */
+
 import React from "react";
 import { useNavigate } from "react-router-dom";
 
@@ -11,6 +17,17 @@ interface QuickActionCardProps {
   color?: "blue" | "green" | "purple";
 }
 
+/**
+ * Component that displays a clickable action card with icon, title and description.
+ * The card can either navigate to a specified route or execute a custom onClick function.
+ * Features customizable color themes and hover effects for enhanced user experience.
+ * @param {string} title - The title text displayed on the card
+ * @param {string} description - The description text displayed below the title
+ * @param {React.ReactNode} icon - The icon element to display
+ * @param {Function} onClick - Optional callback function to execute when card is clicked
+ * @param {string} to - Optional route path to navigate to when card is clicked
+ * @param {string} color - Color theme for the card (blue, green, or purple)
+ */
 const QuickActionCard: React.FC<QuickActionCardProps> = ({
   title,
   description,
@@ -21,6 +38,9 @@ const QuickActionCard: React.FC<QuickActionCardProps> = ({
 }) => {
   const navigate = useNavigate();
 
+  /**
+   * Handles card click events by either navigating to a route or calling onClick callback
+   */
   const handleClick = () => {
     if (to) {
       navigate(to);
@@ -29,6 +49,10 @@ const QuickActionCard: React.FC<QuickActionCardProps> = ({
     }
   };
 
+  /**
+   * Returns the appropriate CSS classes based on the selected color theme
+   * @returns {string} CSS classes for styling the card based on color
+   */
   const getColorClasses = () => {
     switch (color) {
       case "blue":

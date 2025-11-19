@@ -1,19 +1,41 @@
-// frontend/src/components/gallery/AlbumList.tsx
+/**
+ * @fileoverview AlbumList component for displaying a grid of album cards.
+ * This component handles loading and empty states, and renders a list of AlbumCard components.
+ * It supports customization through props for grid columns, visibility of certain UI elements, and admin actions.
+ */
+
 import React from "react";
 import { Album } from "../../types/galleryTypes";
 import AlbumCard from "./AlbumCard";
 import { RefreshCw, Image } from "lucide-react";
 
+/**
+ * Props for the AlbumList component.
+ */
 interface AlbumListProps {
+  /** An array of album objects to display. */
   albums: Album[];
+  /** The number of columns in the grid layout. Defaults to 3. */
   columns?: 1 | 2 | 3 | 4;
+  /** Indicates whether the albums are currently being loaded. */
   loading: boolean;
+  /** Whether to show the album description on the card. Defaults to false. */
   showDescription?: boolean;
+  /** Whether to show the delete button on each card. Defaults to false. */
   showDeleteButton?: boolean;
+  /** Whether to display admin-specific controls. Defaults to false. */
   isAdmin?: boolean;
+  /** Callback function to handle album deletion. */
   onDelete?: (id: string) => void;
 }
 
+/**
+ * AlbumList component that renders a responsive grid of AlbumCard components.
+ * It displays a loading spinner while fetching data and an empty state message if no albums are found.
+ *
+ * @param {AlbumListProps} props - The component props.
+ * @returns {JSX.Element} The rendered list of albums or a loading/empty state.
+ */
 const AlbumList: React.FC<AlbumListProps> = ({
   albums,
   columns = 3,

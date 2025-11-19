@@ -1,11 +1,76 @@
+/**
+ * @fileoverview React component for the website's main footer.
+ * This component displays school information, navigation links, social media icons,
+ * and contact details. It is structured into columns for better organization and
+ * includes a copyright notice.
+ */
+
 import React from "react";
 import { Link } from "react-router-dom";
 import { MapPin, Phone, Mail, Instagram, Facebook } from "lucide-react";
 import { FaTiktok } from "react-icons/fa";
 
 /**
- * Footer component.
+ * Props for the SocialIcon component.
+ * @typedef {object} SocialIconProps
+ * @property {string} href - The URL the icon links to.
+ * @property {React.ReactNode} icon - The icon element to display.
+ * @property {string} label - The accessibility label for the link.
+ */
+
+interface SocialIconProps {
+  href: string;
+  icon: React.ReactNode;
+  label: string;
+}
+
+/**
+ * A component that renders a social media icon as a link.
+ * It displays the icon within a styled circle and opens the link in a new tab.
+ *
+ * @param {SocialIconProps} props - The component props.
+ * @returns {JSX.Element} The rendered social media icon link.
+ */
+const SocialIcon: React.FC<SocialIconProps> = ({ href, icon, label }) => (
+  <a
+    href={href}
+    target="_blank"
+    rel="noopener noreferrer"
+    aria-label={label}
+    className="p-2 bg-background rounded-full hover:bg-secondary-hover text-foreground transition-colors"
+  >
+    {icon}
+  </a>
+);
+
+/**
+ * Props for the FooterLink component.
+ * @typedef {object} FooterLinkProps
+ * @property {string} to - The destination path for the internal link.
+ * @property {string} label - The text to display for the link.
+ */
+interface FooterLinkProps {
+  to: string;
+  label: string;
+}
+/**
+ * A component that renders a navigation link within the footer.
+ * It uses React Router's Link component for internal navigation.
+ *
+ * @param {FooterLinkProps} props - The component props.
+ * @returns {JSX.Element} The rendered footer navigation link.
+ */
+const FooterLink: React.FC<FooterLinkProps> = ({ to, label }) => (
+  <Link to={to} className="text-secondary hover:text-hover transition-colors">
+    {label}
+  </Link>
+);
+
+/**
+ * The main footer component for the website.
  * Displays school information, navigation links, social media icons, and contact info.
+ *
+ * @returns {JSX.Element} The rendered footer component.
  */
 const Footer: React.FC = () => {
   return (
@@ -100,38 +165,5 @@ const Footer: React.FC = () => {
     </footer>
   );
 };
-
-/**
- * Social media icon link component.
- */
-interface SocialIconProps {
-  href: string;
-  icon: React.ReactNode;
-  label: string;
-}
-const SocialIcon: React.FC<SocialIconProps> = ({ href, icon, label }) => (
-  <a
-    href={href}
-    target="_blank"
-    rel="noopener noreferrer"
-    aria-label={label}
-    className="p-2 bg-background rounded-full hover:bg-secondary-hover text-foreground transition-colors"
-  >
-    {icon}
-  </a>
-);
-
-/**
- * Footer navigation link component.
- */
-interface FooterLinkProps {
-  to: string;
-  label: string;
-}
-const FooterLink: React.FC<FooterLinkProps> = ({ to, label }) => (
-  <Link to={to} className="text-secondary hover:text-hover transition-colors">
-    {label}
-  </Link>
-);
 
 export default Footer;

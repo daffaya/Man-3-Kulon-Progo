@@ -1,10 +1,17 @@
-// src/hooks/useStudents.ts
+/**
+ * @fileoverview Custom hook for managing student data operations.
+ * This hook provides functionality to fetch, add, update, and delete students,
+ * with support for filtering and pagination.
+ */
+
 import { useState, useEffect } from "react";
 import { useAuth } from "../contexts/AuthContext";
 import { Student } from "../types/studentTypes";
 import { studentService } from "../services/studentService";
 
-// Tambahkan interface untuk filters dan pagination
+/**
+ * Interface defining the filters that can be applied when fetching students.
+ */
 interface StudentFilters {
   token: string;
   classId?: number;
@@ -15,7 +22,9 @@ interface StudentFilters {
   limit?: number;
 }
 
-// Tambahkan interface untuk response pagination
+/**
+ * Interface defining the structure of the paginated response from the API.
+ */
 interface StudentsResponse {
   data: Student[];
   pagination: {
@@ -26,6 +35,21 @@ interface StudentsResponse {
   };
 }
 
+/**
+ * Custom hook for managing student data operations.
+ * Provides functions to fetch, add, update, and delete students, along with state management
+ * for loading, errors, and pagination information.
+ * @param {StudentFilters} [filters] - Optional filters to apply when fetching students.
+ * @returns {Object} An object containing:
+ *   - {Student[]} students - The array of students.
+ *   - {boolean} loading - Loading state indicator.
+ *   - {string | null} error - Error message if an error occurred.
+ *   - {Object | null} pagination - Pagination information.
+ *   - {Function} addStudent - Function to add a new student.
+ *   - {Function} updateStudent - Function to update an existing student.
+ *   - {Function} deleteStudent - Function to delete a student.
+ *   - {Function} refetch - Function to refetch the student data.
+ */
 export const useStudents = (filters?: StudentFilters) => {
   const { token: authToken } = useAuth();
   const [students, setStudents] = useState<Student[]>([]);
@@ -38,13 +62,16 @@ export const useStudents = (filters?: StudentFilters) => {
     itemsPerPage: number;
   } | null>(null);
 
+  /**
+   * Fetches students from the API based on the provided filters.
+   * Updates the students state and pagination information.
+   */
   const fetchStudents = async () => {
     const currentToken = filters?.token || authToken;
 
     if (!currentToken) {
       const errorMessage = "Token tidak tersedia. Silakan login kembali.";
       setError(errorMessage);
-      console.error(errorMessage);
       return;
     }
 
@@ -52,12 +79,6 @@ export const useStudents = (filters?: StudentFilters) => {
     setError(null);
 
     try {
-      console.log(
-        "Fetching students with filters:",
-        JSON.stringify(filters, null, 2)
-      );
-
-      // Tambahkan parameter page dan limit ke request
       const response = await fetch(
         `${
           import.meta.env.VITE_BACKEND_API_URL || "http://localhost:3000"
@@ -82,21 +103,16 @@ export const useStudents = (filters?: StudentFilters) => {
 
       const data: StudentsResponse = await response.json();
 
-      console.log("Students fetched successfully:", data.data.length);
-
-      // Jika backend mengembalikan struktur dengan pagination
       if (data.pagination) {
         setStudents(data.data);
         setPagination(data.pagination);
       } else {
-        // Fallback jika backend belum mendukung pagination
         setStudents(data as any);
         setPagination(null);
       }
     } catch (err: any) {
       const errorMessage = err instanceof Error ? err.message : "Unknown error";
       setError(errorMessage);
-      console.error("Error fetching students:", errorMessage);
 
       if (
         errorMessage.includes("token") ||
@@ -104,13 +120,18 @@ export const useStudents = (filters?: StudentFilters) => {
         errorMessage.includes("Token telah kadaluarsa") ||
         errorMessage.includes("HTML")
       ) {
-        console.log("Authentication error detected");
+        window.dispatchEvent(new CustomEvent("unauthorized"));
       }
     } finally {
       setLoading(false);
     }
   };
 
+  /**
+   * Adds a new student to the database.
+   * @param {any} data - The student data to add.
+   * @returns {Promise<Student>} The newly created student.
+   */
   const addStudent = async (data: any) => {
     const currentToken = filters?.token || authToken;
 
@@ -129,6 +150,12 @@ export const useStudents = (filters?: StudentFilters) => {
     }
   };
 
+  /**
+   * Updates an existing student in the database.
+   * @param {number} id - The ID of the student to update.
+   * @param {any} data - The updated student data.
+   * @returns {Promise<Student>} The updated student.
+   */
   const updateStudent = async (id: number, data: any) => {
     const currentToken = filters?.token || authToken;
 
@@ -153,6 +180,10 @@ export const useStudents = (filters?: StudentFilters) => {
     }
   };
 
+  /**
+   * Deletes a student from the database.
+   * @param {number} id - The ID of the student to delete.
+   */
   const deleteStudent = async (id: number) => {
     const currentToken = filters?.token || authToken;
 

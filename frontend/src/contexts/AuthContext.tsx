@@ -1,4 +1,9 @@
-// frontend/src/contexts/AuthContext.tsx
+/**
+ * @fileoverview Authentication context provider for managing user authentication state.
+ * This context provides authentication state and methods for login, logout, and profile updates.
+ * It persists authentication data in localStorage and handles token management.
+ */
+
 import React, {
   createContext,
   useState,
@@ -30,13 +35,22 @@ interface AuthProviderProps {
   children: ReactNode;
 }
 
+/**
+ * Provider component that manages authentication state and provides it to child components.
+ * Handles user authentication, token management, and profile updates with localStorage persistence.
+ * @param {ReactNode} children - Child components that will have access to the auth context.
+ */
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [isLoggedIn, setIsLoggedIn] = useState<boolean>(false);
   const [user, setUser] = useState<User | null>(null);
   const [token, setToken] = useState<string | null>(null);
   const [isLoadingAuth, setIsLoadingAuth] = useState<boolean>(true);
 
-  // Fungsi untuk memastikan URL avatar lengkap
+  /**
+   * Ensures that the avatar URL is a complete URL with the backend URL prefix.
+   * @param {User | null} user - The user object to process.
+   * @returns {User | null} - User object with a complete avatar URL.
+   */
   const ensureFullAvatarUrl = useCallback((user: User | null): User | null => {
     if (!user) return null;
 
@@ -52,7 +66,10 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     return user;
   }, []);
 
-  // Fungsi untuk memuat data pengguna dari API
+  /**
+   * Loads user data from the API using the stored token.
+   * Updates the user state and localStorage with the fetched data.
+   */
   const loadUserData = useCallback(async () => {
     if (token) {
       try {
@@ -67,6 +84,11 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }
   }, [token, ensureFullAvatarUrl]);
 
+  /**
+   * Logs in a user by setting authentication state and storing data in localStorage.
+   * @param {User} userData - The user data object.
+   * @param {string} authToken - The authentication token.
+   */
   const login = useCallback(
     (userData: User, authToken: string) => {
       const userWithFullUrl = ensureFullAvatarUrl(userData);
@@ -79,6 +101,10 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     [ensureFullAvatarUrl]
   );
 
+  /**
+   * Refreshes the user profile data from the API.
+   * Updates the user state and localStorage with the latest data.
+   */
   const refreshUserProfile = useCallback(async () => {
     try {
       const userData = await userApi.getUserProfile();
@@ -90,6 +116,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }
   }, [ensureFullAvatarUrl]);
 
+  /**
+   * Logs out the user by clearing authentication state and localStorage.
+   */
   const logout = useCallback(() => {
     setIsLoggedIn(false);
     setUser(null);
@@ -98,31 +127,28 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     localStorage.removeItem("user");
   }, []);
 
+  /**
+   * Updates the user profile data via the API and updates the local state.
+   * @param {{ full_name: string }} profileData - The profile data to update.
+   */
   const updateUserProfile = useCallback(
     async (profileData: { full_name: string }) => {
       try {
-        console.log(
-          "AuthContext: Updating user profile with data:",
-          profileData
-        );
         const updatedUser = await userApi.updateUserProfile(profileData);
-        console.log("AuthContext: Received updated user:", updatedUser);
-
-        // Perbarui state user
         setUser(updatedUser);
-
-        // Perbarui localStorage
         localStorage.setItem("user", JSON.stringify(updatedUser));
-
-        console.log("AuthContext: User profile updated successfully");
       } catch (error) {
-        console.error("AuthContext: Error updating user profile:", error);
+        console.error("Error updating user profile:", error);
         throw error;
       }
     },
     []
   );
 
+  /**
+   * Updates the user's avatar URL in the state and localStorage.
+   * @param {string | null} avatar - The new avatar URL or null to remove.
+   */
   const updateUserAvatar = useCallback(
     (avatar: string | null) => {
       if (user) {
@@ -134,7 +160,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     [user]
   );
 
-  // Efek untuk memuat data dari localStorage saat aplikasi dimulai
+  // Effect to load authentication data from localStorage on app initialization
   useEffect(() => {
     const storedToken = localStorage.getItem("token");
     const storedUser = localStorage.getItem("user");
@@ -142,12 +168,10 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     if (storedToken && storedUser) {
       try {
         const parsedUser = JSON.parse(storedUser) as User;
-        // Pastikan URL avatar lengkap
         const userWithFullUrl = ensureFullAvatarUrl(parsedUser);
         setIsLoggedIn(true);
         setUser(userWithFullUrl);
         setToken(storedToken);
-        // Perbarui localStorage dengan URL yang lengkap
         localStorage.setItem("user", JSON.stringify(userWithFullUrl));
       } catch (error) {
         console.error("Error parsing user data:", error);
@@ -159,6 +183,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     setIsLoadingAuth(false);
   }, [ensureFullAvatarUrl]);
 
+  // Effect to handle unauthorized events by logging out the user
   useEffect(() => {
     const handleUnauthorized = () => {
       console.log("Unauthorized event received, logging out...");
@@ -172,7 +197,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     };
   }, [logout]);
 
-  // Efek untuk memuat data pengguna saat login
+  // Effect to load user data when the user is logged in
   useEffect(() => {
     if (isLoggedIn && token) {
       loadUserData();
@@ -198,6 +223,11 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   );
 };
 
+/**
+ * Hook to access the authentication context.
+ * Throws an error if used outside of an AuthProvider.
+ * @returns {AuthContextValue} - The authentication context value.
+ */
 export const useAuth = () => {
   const context = useContext(AuthContext);
   if (!context) {

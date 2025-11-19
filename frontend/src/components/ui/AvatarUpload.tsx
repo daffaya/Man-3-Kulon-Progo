@@ -1,4 +1,9 @@
-// frontend/src/components/ui/AvatarUpload.tsx
+/**
+ * @fileoverview AvatarUpload component for handling user avatar uploads.
+ * This component provides an interface for users to upload, preview, and remove their avatar images.
+ * It includes file validation, upload progress indication, and hover effects for better UX.
+ */
+
 import React, { useState, useRef } from "react";
 import { Camera, X, Loader2, User } from "lucide-react";
 import userApi from "../../api/userApi";
@@ -8,6 +13,12 @@ interface AvatarUploadProps {
   onAvatarChange: (avatar: string | null) => void;
 }
 
+/**
+ * Component that provides an interface for users to upload, preview, and remove their avatar images.
+ * It handles file validation, upload progress, and displays appropriate UI states.
+ * @param {string | null} currentAvatar - The current avatar URL.
+ * @param {Function} onAvatarChange - Callback function to handle avatar changes.
+ */
 const AvatarUpload: React.FC<AvatarUploadProps> = ({
   currentAvatar,
   onAvatarChange,
@@ -17,43 +28,47 @@ const AvatarUpload: React.FC<AvatarUploadProps> = ({
   const [isHovering, setIsHovering] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  /**
+   * Handles file selection and upload process.
+   * Validates file type and size, creates preview, and uploads to server.
+   * @param {React.ChangeEvent<HTMLInputElement>} e - The file input change event.
+   */
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    // Validate file type
     if (!file.type.match("image.*")) {
       console.error("Please select an image file");
       return;
     }
 
-    // Validate file size (max 15MB)
     if (file.size > 15 * 1024 * 1024) {
       console.error("File size must be less than 15MB");
       return;
     }
 
-    // Create preview
     const reader = new FileReader();
     reader.onload = () => {
       setPreviewUrl(reader.result as string);
     };
     reader.readAsDataURL(file);
 
-    // Upload file
     setIsUploading(true);
     try {
       const response = await userApi.uploadAvatar(file);
       onAvatarChange(response.avatar);
     } catch (error) {
       console.error("Error uploading avatar:", error);
-      // Reset preview on error
       setPreviewUrl(currentAvatar);
     } finally {
       setIsUploading(false);
     }
   };
 
+  /**
+   * Handles avatar removal by updating the server state and local preview.
+   * Resets the preview URL and calls the onAvatarChange callback.
+   */
   const handleRemoveAvatar = async () => {
     setPreviewUrl(null);
     try {
@@ -61,11 +76,14 @@ const AvatarUpload: React.FC<AvatarUploadProps> = ({
       onAvatarChange(null);
     } catch (error) {
       console.error("Error removing avatar:", error);
-      // Reset preview on error
       setPreviewUrl(currentAvatar);
     }
   };
 
+  /**
+   * Triggers the file input click event programmatically.
+   * This allows users to open the file dialog by clicking on the avatar preview.
+   */
   const triggerFileInput = () => {
     fileInputRef.current?.click();
   };
@@ -93,7 +111,6 @@ const AvatarUpload: React.FC<AvatarUploadProps> = ({
           </div>
         )}
 
-        {/* Hover overlay with camera icon */}
         <div
           className={`absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-40 transition-all duration-300 flex items-center justify-center ${
             isHovering ? "opacity-100" : "opacity-0"
@@ -106,7 +123,6 @@ const AvatarUpload: React.FC<AvatarUploadProps> = ({
         </div>
       </div>
 
-      {/* Action buttons */}
       <div className="absolute bottom-0 right-0 flex space-x-1">
         <button
           type="button"
@@ -143,7 +159,6 @@ const AvatarUpload: React.FC<AvatarUploadProps> = ({
         accept="image/*"
       />
 
-      {/* Upload progress overlay */}
       {isUploading && (
         <div className="absolute inset-0 bg-black bg-opacity-60 rounded-full flex items-center justify-center backdrop-blur-sm">
           <div className="flex flex-col items-center text-white">

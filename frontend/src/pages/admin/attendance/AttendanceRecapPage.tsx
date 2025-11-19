@@ -1,4 +1,10 @@
-// src/pages/admin/attendance/AttendanceRecapPage.tsx
+/**
+ * @fileoverview Attendance Recap Page component for the admin panel.
+ * This component provides an interface for viewing and exporting attendance recapitulation data.
+ * It allows filtering by class, period (daily, monthly, or semester), and date range, and displays
+ * attendance statistics in a tabular format with options to export to Excel or PDF.
+ */
+
 import React, { useState, useEffect } from "react";
 import { useNavigate, useLocation, Link } from "react-router-dom";
 import { useAuth } from "../../../contexts/AuthContext";
@@ -34,11 +40,22 @@ interface ClassData {
 const API_URL = import.meta.env.VITE_BACKEND_API_URL;
 const ALLOWED_ROLES = ["guru_bk", "super_admin"] as const;
 
+/**
+ * Checks if a user has permission to access attendance recap based on their role.
+ * @param {boolean} isLoggedIn - The user's login status.
+ * @param {string | undefined} role - The user's role.
+ * @returns {boolean} True if the user has access, otherwise false.
+ */
 const hasEditAccess = (isLoggedIn: boolean, role?: string): boolean =>
   isLoggedIn && role
     ? ALLOWED_ROLES.includes(role as (typeof ALLOWED_ROLES)[number])
     : false;
 
+/**
+ * Component for viewing and exporting attendance recapitulation data.
+ * Provides filtering options by class, period, and date range, and displays attendance
+ * statistics in a tabular format with options to export to Excel or PDF.
+ */
 const AttendanceRecapPage: React.FC = () => {
   const { isLoggedIn, user, token } = useAuth();
   const navigate = useNavigate();
@@ -138,6 +155,11 @@ const AttendanceRecapPage: React.FC = () => {
     showToast,
   ]);
 
+  /**
+   * Exports attendance data to the specified format (Excel or PDF).
+   * Creates a download link for the exported file and initiates the download.
+   * @param {"excel" | "pdf"} format - The export format.
+   */
   const exportData = async (format: "excel" | "pdf") => {
     if (!selectedClass || !recapPeriod || !recapStartDate) {
       showToast("Pilih kelas, periode, dan tanggal terlebih dahulu", "error");

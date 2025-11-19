@@ -1,3 +1,10 @@
+/**
+ * @fileoverview User profile page component for viewing and editing personal information.
+ * This component provides an interface for users to view their profile details,
+ * update their full name, change their avatar, and modify their password.
+ * It includes form validation, loading states, and appropriate error handling.
+ */
+
 import React, { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { Save, ArrowLeft, Key } from "lucide-react";
@@ -8,6 +15,11 @@ import AvatarUpload from "../../../components/ui/AvatarUpload";
 import ChangePasswordForm from "../../../components/forms/auth/ChangePasswordForm";
 import userApi from "../../../api/userApi";
 
+/**
+ * Page component for viewing and editing user profile information.
+ * Provides interface for updating profile details, avatar, and password.
+ * Includes form validation, loading states, and user feedback via toast notifications.
+ */
 const UserProfilePage: React.FC = () => {
   const { user, isLoggedIn, updateUserProfile, updateUserAvatar } = useAuth();
   const navigate = useNavigate();
@@ -15,8 +27,6 @@ const UserProfilePage: React.FC = () => {
 
   const [fullName, setFullName] = useState("");
   const [isSaving, setIsSaving] = useState(false);
-
-  // State untuk mengontrol modal dan loading form ubah password
   const [showPasswordForm, setShowPasswordForm] = useState(false);
   const [isChangingPassword, setIsChangingPassword] = useState(false);
 
@@ -26,6 +36,11 @@ const UserProfilePage: React.FC = () => {
     }
   }, [user]);
 
+  /**
+   * Handles form submission for updating user profile.
+   * Validates input, calls API to update profile, and provides user feedback.
+   * @param {React.FormEvent} e - The form submission event
+   */
   const handleSubmit = useCallback(
     async (e: React.FormEvent) => {
       e.preventDefault();
@@ -47,6 +62,10 @@ const UserProfilePage: React.FC = () => {
     [fullName, updateUserProfile, showSuccessToast, showErrorToast]
   );
 
+  /**
+   * Handles avatar change by calling the update function from AuthContext.
+   * @param {string | null} avatar - The new avatar URL or null to remove avatar
+   */
   const handleAvatarChange = useCallback(
     (avatar: string | null) => {
       if (user) {
@@ -57,8 +76,11 @@ const UserProfilePage: React.FC = () => {
   );
 
   /**
-   * Handler untuk mengubah password.
-   * Memanggil API dan menangani status loading serta notifikasi.
+   * Handles password change by calling the API and updating UI state.
+   * Shows appropriate feedback and closes the password form on success.
+   * @param {Object} data - Password change data
+   * @param {string} data.currentPassword - The current password
+   * @param {string} data.newPassword - The new password
    */
   const handleChangePassword = async (data: {
     currentPassword: string;
@@ -68,7 +90,7 @@ const UserProfilePage: React.FC = () => {
     try {
       await userApi.changePassword(data);
       showSuccessToast("Password berhasil diubah");
-      setShowPasswordForm(false); // Tutup modal setelah sukses
+      setShowPasswordForm(false);
     } catch (error: any) {
       showErrorToast(error.message || "Gagal mengubah password");
     } finally {
@@ -99,7 +121,7 @@ const UserProfilePage: React.FC = () => {
 
           <div className="card p-6 md:p-8 max-w-4xl mx-auto">
             <div className="grid md:grid-cols-3 gap-8">
-              {/* Kolom Kiri: Avatar dan Info Dasar */}
+              {/* Left Column: Avatar and Basic Info */}
               <div className="md:col-span-1 flex flex-col items-center text-center">
                 <AvatarUpload
                   currentAvatar={user.avatar}
@@ -123,7 +145,7 @@ const UserProfilePage: React.FC = () => {
                 </div>
               </div>
 
-              {/* Kolom Kanan: Form Edit Profil */}
+              {/* Right Column: Edit Profile Form */}
               <div className="md:col-span-2">
                 <form onSubmit={handleSubmit} className="space-y-6">
                   <div>
@@ -179,7 +201,7 @@ const UserProfilePage: React.FC = () => {
                     />
                   </div>
 
-                  {/* Tombol Aksi */}
+                  {/* Action Buttons */}
                   <div className="flex justify-between items-center pt-4 border-t border-semibackground">
                     <button
                       type="button"
@@ -214,7 +236,7 @@ const UserProfilePage: React.FC = () => {
         </div>
       </div>
 
-      {/* Modal untuk Form Ubah Password */}
+      {/* Password Change Modal */}
       {showPasswordForm && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
           <div className="card max-w-md w-full p-6">

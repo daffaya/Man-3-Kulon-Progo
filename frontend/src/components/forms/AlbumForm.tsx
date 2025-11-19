@@ -1,14 +1,36 @@
+/**
+ * @fileoverview React component for creating and editing photo albums.
+ * This component provides a form interface for users to input album title and description,
+ * with validation for required fields and loading states during form submission.
+ */
+
 import React, { useState } from "react";
 import { AlbumFormData } from "../../types/galleryTypes";
 import { Save, X, AlertCircle } from "lucide-react";
 
+/**
+ * Props for the AlbumForm component
+ * @interface AlbumFormProps
+ */
 interface AlbumFormProps {
+  /** Initial data for the album form (used for editing) */
   initialData?: AlbumFormData;
+  /** Function to call when the form is submitted with valid data */
   onSubmit: (data: AlbumFormData) => void;
+  /** Function to call when the form is cancelled */
   onCancel: () => void;
+  /** Indicates whether the form is in a loading state */
   isLoading?: boolean;
 }
 
+/**
+ * Album form component for creating and editing photo albums.
+ * Provides fields for album title (required) and description (optional),
+ * with client-side validation and loading states.
+ *
+ * @param {AlbumFormProps} props - The component props
+ * @returns {JSX.Element} The rendered album form
+ */
 const AlbumForm: React.FC<AlbumFormProps> = ({
   initialData,
   onSubmit,
@@ -24,6 +46,10 @@ const AlbumForm: React.FC<AlbumFormProps> = ({
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [touched, setTouched] = useState<Record<string, boolean>>({});
 
+  /**
+   * Validates the form data and sets error messages
+   * @returns {boolean} Whether the form is valid
+   */
   const validateForm = () => {
     const newErrors: Record<string, string> = {};
     if (!formData.title.trim()) newErrors.title = "Judul album wajib diisi";
@@ -31,12 +57,20 @@ const AlbumForm: React.FC<AlbumFormProps> = ({
     return Object.keys(newErrors).length === 0;
   };
 
+  /**
+   * Handles form submission
+   * @param {React.FormEvent} e - The form submission event
+   */
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     setTouched({ title: true, description: true });
     if (validateForm()) onSubmit(formData);
   };
 
+  /**
+   * Handles input field changes
+   * @param {React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>} e - The change event
+   */
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
   ) => {
@@ -51,6 +85,10 @@ const AlbumForm: React.FC<AlbumFormProps> = ({
     }
   };
 
+  /**
+   * Handles input field blur events
+   * @param {React.FocusEvent<HTMLInputElement | HTMLTextAreaElement>} e - The blur event
+   */
   const handleBlur = (
     e: React.FocusEvent<HTMLInputElement | HTMLTextAreaElement>
   ) => {

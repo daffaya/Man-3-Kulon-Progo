@@ -1,4 +1,10 @@
-// src/pages/layanan/ZonaIntegritasPage.tsx
+/**
+ * @fileoverview ZonaIntegritasPage component for displaying integrity zone information.
+ * This component provides information about the 6 areas of integrity zone development,
+ * allows users to view detailed information about each area in a modal, and provides
+ * contact information for complaints and feedback.
+ */
+
 import React, { useState } from "react";
 import Layout from "../../components/layout/Layout";
 import {
@@ -15,22 +21,28 @@ import {
 } from "lucide-react";
 import IntegrityAreaCard from "../../components/integrity/IntegrityAreaCard";
 
+/**
+ * Type definition for integrity area data structure.
+ */
 type Area = {
   id: number;
   title: string;
   description: string;
-  icon: React.ReactNode; // Mengubah dari string ke React.ReactNode
-  fullDescription: string; // HTML string
+  icon: React.ReactNode;
+  fullDescription: string;
   driveUrl: string;
 };
 
+/**
+ * Array containing all integrity areas with their details.
+ */
 const integrityAreas: Area[] = [
   {
     id: 1,
     title: "Manajemen Perubahan",
     description:
       "Pengelolaan perubahan untuk mencapai tujuan pembangunan Zona Integritas",
-    icon: <RotateCw size={24} />, // Menggunakan komponen ikon dari lucide-react
+    icon: <RotateCw size={24} />,
     fullDescription: `
 <p class="mb-4">Berdasarkan PERMENPAN-RB Nomor 90 Tahun 2021, Manajemen perubahan bertujuan untuk mengubah secara sistematis dan konsisten mekanisme kerja, pola pikir (mind set), serta budaya kerja (culture set) individu pada unit kerja yang dibangun, menjadi lebih baik sesuai dengan tujuan dan sasaran pembangunan zona integritas menuju WBK/WBBM, dengan penekanan pada nilai ASN Berakhlak (berorientasi pelayanan, akuntabel, kompeten, harmonis, loyal, adaptif, kolaboratif).</p>
 
@@ -49,7 +61,6 @@ const integrityAreas: Area[] = [
   <li><strong>Pemantauan dan Evaluasi</strong> - Seluruh kegiatan pembangunan ZI telah dilaksanakan sesuai target yang direncanakan; terdapat monitoring dan evaluasi terhadap pembangunan Zona Integritas menuju WBK/WBBM; hasil monitoring dan evaluasi telah ditindaklanjuti</li>
   <li><strong>Perubahan Pola Pikir dan Budaya Kerja</strong> - Pimpinan berperan sebagai role model dan agen perubahan telah ditetapkan; budaya kerja dan pola pikir telah dibangun di lingkungan organisasi; anggota organisasi terlibat dalam pembangunan Zona Integritas menuju WBK/WBBM</li>
 </ol>`.trim(),
-    //TODO: ganti link google drive
     driveUrl: "https://drive.google.com/drive/folders/your-folder-id-1",
   },
   {
@@ -57,7 +68,7 @@ const integrityAreas: Area[] = [
     title: "Penataan Tatalaksana",
     description:
       "Penyederhanaan dan penguatan prosedur kerja yang efektif dan efisien",
-    icon: <Settings size={24} />, // Menggunakan komponen ikon dari lucide-react
+    icon: <Settings size={24} />,
     fullDescription: `
 <p class="mb-4">Penataan tatalaksana bertujuan untuk meningkatkan efisiensi dan efektivitas sistem, proses, dan prosedur kerja yang jelas, efektif, efisien, dan terukur pada Zona Integritas Menuju WBK/WBBM (PERMENPAN-RB Nomor 90 Tahun 2021), dengan integrasi transformasi digital melalui SPBE.</p>
 
@@ -75,7 +86,6 @@ const integrityAreas: Area[] = [
   <li><strong>Sistem Pemerintahan Berbasis Elektronik (SPBE)</strong> - Sistem pengukuran kinerja, kepegawaian, dan pelayanan publik berbasis TI; monitoring periodik penggunaan TI</li>
   <li><strong>Keterbukaan Informasi Publik</strong> - Kebijakan keterbukaan informasi publik telah diterapkan; monitoring dan evaluasi pelaksanaan kebijakan keterbukaan informasi publik</li>
 </ol>`.trim(),
-    //TODO: ganti link google drive
     driveUrl: "https://drive.google.com/drive/folders/your-folder-id-2",
   },
   {
@@ -83,7 +93,7 @@ const integrityAreas: Area[] = [
     title: "Penataan Sistem Manajemen SDM",
     description:
       "Pengelolaan sumber daya manusia yang berbasis kinerja dan kompetensi",
-    icon: <Users size={24} />, // Menggunakan komponen ikon dari lucide-react
+    icon: <Users size={24} />,
     fullDescription: `
 <p class="mb-4">Penataan sistem manajemen SDM aparatur bertujuan untuk meningkatkan profesionalisme SDM aparatur pada Zona Integritas Menuju WBK/WBBM (PERMENPAN-RB Nomor 90 Tahun 2021), melalui perencanaan berbasis analisis beban kerja dan pengurangan gap kompetensi.</p>
 
@@ -106,14 +116,13 @@ const integrityAreas: Area[] = [
   <li><strong>Penegakan Aturan Disiplin/Kode Etik</strong> - Pelaksanaan aturan disiplin/kode etik/kode perilaku; pengurangan pelanggaran disiplin</li>
   <li><strong>Sistem Informasi Kepegawaian</strong> - Sistem informasi kepegawaian dimutakhirkan secara berkala dan terintegrasi</li>
 </ol>`.trim(),
-    //TODO: ganti link google drive
     driveUrl: "https://drive.google.com/drive/folders/your-folder-id-3",
   },
   {
     id: 4,
     title: "Penguatan Akuntabilitas",
     description: "Peningkatan pertanggungjawaban kinerja instansi pemerintah",
-    icon: <BarChart3 size={24} />, // Menggunakan komponen ikon dari lucide-react
+    icon: <BarChart3 size={24} />,
     fullDescription: `
 <p class="mb-4">Akuntabilitas kinerja adalah perwujudan kewajiban suatu instansi pemerintah untuk mempertanggungjawabkan keberhasilan/kegagalan pelaksanaan program dan kegiatan dalam mencapai misi dan tujuan organisasi (PERMENPAN-RB Nomor 90 Tahun 2021), dengan kerangka logis dari organisasi hingga individu.</p>
 
@@ -129,14 +138,13 @@ const integrityAreas: Area[] = [
   <li><strong>Keterlibatan Pimpinan</strong> - Pimpinan terlibat langsung dalam penyusunan perencanaan, penetapan kinerja, dan pemantauan berkala</li>
   <li><strong>Pengelolaan Akuntabilitas Kinerja</strong> - Dokumen perencanaan berorientasi hasil dengan indikator SMART; laporan kinerja tepat waktu; sistem informasi kinerja; peningkatan kapasitas SDM akuntabilitas; kaskade ukuran kinerja hingga individu</li>
 </ol>`.trim(),
-    //TODO: ganti link google drive
     driveUrl: "https://drive.google.com/drive/folders/your-folder-id-4",
   },
   {
     id: 5,
     title: "Penguatan Pengawasan",
     description: "Peningkatan efektivitas sistem pengawasan intern dan ekstern",
-    icon: <Search size={24} />, // Menggunakan komponen ikon dari lucide-react
+    icon: <Search size={24} />,
     fullDescription: `
 <p class="mb-4">Penguatan pengawasan bertujuan untuk meningkatkan penyelenggaraan pemerintahan yang bersih dan bebas KKN pada masing-masing instansi pemerintah (Peraturan MENPAN-RB No. 90 /2021), dengan penekanan pada pencegahan korupsi dan kepatuhan LHKPN/LHKASN.</p>
 
@@ -158,7 +166,6 @@ const integrityAreas: Area[] = [
   <li><strong>Penanganan Benturan Kepentingan</strong> - Identifikasi benturan kepentingan; sosialisasi; implementasi; evaluasi dan tindak lanjut</li>
   <li><strong>Penyampaian Laporan Harta Kekayaan pegawai</strong> - Tingkat kepatuhan LHKPN ke KPK dan LHKASN via SiHARKA</li>
 </ol>`.trim(),
-    //TODO: ganti link google drive
     driveUrl: "https://drive.google.com/drive/folders/your-folder-id-5",
   },
   {
@@ -184,23 +191,28 @@ const integrityAreas: Area[] = [
   <li><strong>Budaya Pelayanan Prima</strong> - Sosialisasi/pelatihan etik dan capacity building; akses informasi pelayanan; reward/punishment dan kompensasi; sarana terintegrasi; inovasi pelayanan unik dan replikable</li>
   <li><strong>Penilaian Kepuasan Terhadap Pelayanan</strong> - Survei kepuasan ≥4 kali/tahun; hasil survei terbuka; tindak lanjut hasil; integrasi pengaduan dengan SP4N-Lapor! dan database terintegrasi</li>
 </ol>`.trim(),
-    //TODO: ganti link google drive
     driveUrl: "https://drive.google.com/drive/folders/your-folder-id-6",
   },
 ];
 
-// ---------- Modal Component (dengan prose + spacing kontrol) ----------
+/**
+ * Props interface for the IntegrityModal component.
+ */
 interface ModalProps {
   area: Area | null;
   onClose: () => void;
 }
 
+/**
+ * Modal component that displays detailed information about an integrity area.
+ * Includes the full description and a link to supporting evidence documents.
+ * @param area - The integrity area data to display
+ * @param onClose - Function to close the modal
+ */
 const IntegrityModal: React.FC<ModalProps> = ({ area, onClose }) => {
   if (!area) return null;
 
-  // Fungsi untuk menangani klik di luar modal
   const handleBackdropClick = (e: React.MouseEvent<HTMLDivElement>) => {
-    // Periksa apakah elemen yang diklik adalah backdrop itu sendiri
     if (e.target === e.currentTarget) {
       onClose();
     }
@@ -209,7 +221,7 @@ const IntegrityModal: React.FC<ModalProps> = ({ area, onClose }) => {
   return (
     <div
       className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
-      onClick={handleBackdropClick} // Tambahkan event handler ini
+      onClick={handleBackdropClick}
     >
       <div className="max-h-[90vh] w-full max-w-5xl overflow-y-auto rounded-lg bg-background p-12 shadow-xl">
         <div className="flex items-center justify-between mb-4">
@@ -223,10 +235,8 @@ const IntegrityModal: React.FC<ModalProps> = ({ area, onClose }) => {
           </button>
         </div>
 
-        {/* Konten HTML dengan prose + spacing */}
         <div
           className="prose prose-sm dark:prose-invert max-w-none text-foreground"
-          // eslint-disable-next-line react/no-danger
           dangerouslySetInnerHTML={{ __html: area.fullDescription }}
         />
 
@@ -245,22 +255,32 @@ const IntegrityModal: React.FC<ModalProps> = ({ area, onClose }) => {
   );
 };
 
-// ---------- Page Component ----------
+/**
+ * Main component for the Zona Integritas page.
+ * Displays information about integrity zones, allows users to explore detailed information
+ * about each area, and provides contact information for complaints and feedback.
+ */
 const ZonaIntegritasPage: React.FC = () => {
   const [selectedArea, setSelectedArea] = useState<Area | null>(null);
 
+  /**
+   * Handles click on an integrity area card.
+   * @param id - The ID of the clicked area
+   */
   const handleAreaClick = (id: number) => {
     const area = integrityAreas.find((a) => a.id === id);
     if (area) setSelectedArea(area);
   };
 
+  /**
+   * Closes the modal by resetting the selected area.
+   */
   const closeModal = () => setSelectedArea(null);
 
   return (
     <Layout>
       <div className="min-h-screen bg-semibackground py-12">
         <div className="container max-w-6xl mx-auto px-4 sm:px-6">
-          {/* Hero */}
           <div className="text-center mb-16">
             <div className="inline-flex items-center justify-center w-16 h-16 bg-accent/10 rounded-full mb-4">
               <Shield className="text-accent" size={32} />
@@ -276,7 +296,6 @@ const ZonaIntegritasPage: React.FC = () => {
             </p>
           </div>
 
-          {/* 6 Areas */}
           <section className="mb-16">
             <h2 className="text-2xl md:text-3xl font-serif font-bold mb-8 text-foreground">
               6 Area Pembangunan Zona Integritas
@@ -295,7 +314,6 @@ const ZonaIntegritasPage: React.FC = () => {
             </div>
           </section>
 
-          {/* Pengaduan */}
           <section className="mb-16" id="pengaduan">
             <h2 className="text-2xl md:text-3xl font-serif font-bold mb-8 text-foreground flex items-center">
               <MessageSquare className="mr-2 text-accent" />

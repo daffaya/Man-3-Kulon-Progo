@@ -1,4 +1,8 @@
-// frontend/src/api/categoryApi.ts
+/**
+ * @fileoverview API service functions for category management.
+ * This module provides functions to interact with the backend category API,
+ * including fetching, creating, updating, and deleting categories.
+ */
 
 import { Category, CategoryFormData } from "../types/articleTypes";
 

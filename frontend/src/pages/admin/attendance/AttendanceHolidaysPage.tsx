@@ -1,3 +1,10 @@
+/**
+ * @fileoverview Attendance Holidays Page component for the admin panel.
+ * This component provides an interface for managing holidays that affect attendance tracking.
+ * It allows authorized users to add and delete holidays, and displays a list of all holidays
+ * with their dates, descriptions, and academic years.
+ */
+
 import React, { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../../../contexts/AuthContext";
@@ -7,6 +14,9 @@ import { format, parseISO } from "date-fns";
 import { id } from "date-fns/locale";
 import { ChevronLeft } from "lucide-react";
 
+/**
+ * Interface representing a holiday record in the system.
+ */
 interface Holiday {
   id: number;
   date: string;
@@ -17,11 +27,22 @@ interface Holiday {
 const API_URL = import.meta.env.VITE_BACKEND_API_URL;
 const ALLOWED_ROLES = ["guru_bk", "super_admin"] as const;
 
+/**
+ * Checks if a user has permission to manage holidays based on their role.
+ * @param {boolean} isLoggedIn - The user's login status.
+ * @param {string | undefined} role - The user's role.
+ * @returns {boolean} True if the user has access, otherwise false.
+ */
 const hasEditAccess = (isLoggedIn: boolean, role?: string): boolean =>
   isLoggedIn && role
     ? ALLOWED_ROLES.includes(role as (typeof ALLOWED_ROLES)[number])
     : false;
 
+/**
+ * Component for managing holidays that affect attendance tracking.
+ * Provides functionality to add, view, and delete holidays with appropriate role-based access control.
+ * Displays holidays in a tabular format with formatted dates and descriptions.
+ */
 const AttendanceHolidaysPage: React.FC = () => {
   const { isLoggedIn, user, token } = useAuth();
   const navigate = useNavigate();
@@ -61,6 +82,10 @@ const AttendanceHolidaysPage: React.FC = () => {
     }
   }, [isLoggedIn, token, showErrorToast]);
 
+  /**
+   * Adds a new holiday to the system.
+   * Sends a POST request with the holiday data and refreshes the holidays list on success.
+   */
   const addHoliday = async () => {
     if (!newHoliday.date || !newHoliday.description) {
       showErrorToast("Tanggal dan keterangan harus diisi");
@@ -112,6 +137,11 @@ const AttendanceHolidaysPage: React.FC = () => {
     }
   };
 
+  /**
+   * Deletes a holiday from the system.
+   * Sends a DELETE request with the holiday ID and refreshes the holidays list on success.
+   * @param {number} id - The ID of the holiday to delete.
+   */
   const deleteHoliday = async (id: number) => {
     if (!window.confirm("Apakah Anda yakin ingin menghapus hari libur ini?")) {
       return;

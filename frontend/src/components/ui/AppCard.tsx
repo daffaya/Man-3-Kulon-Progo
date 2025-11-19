@@ -1,4 +1,9 @@
-// AppCard.tsx
+/**
+ * @fileoverview AppCard component for displaying application cards in a grid layout.
+ * This component renders a card with an icon, title, and description, with hover effects
+ * and optional click functionality. It can be disabled to prevent interaction.
+ */
+
 import React from "react";
 
 interface AppCardProps {
@@ -9,6 +14,16 @@ interface AppCardProps {
   disabled?: boolean;
 }
 
+/**
+ * Component that displays an application card with hover effects and optional click functionality.
+ * The card includes an icon, title, and description, with a hover effect that highlights the card
+ * and shows an accent color at the bottom. The card can be disabled to prevent interaction.
+ * @param {string} title - The title of the application.
+ * @param {string} description - A brief description of the application.
+ * @param {React.ReactNode} icon - The icon element to display.
+ * @param {Function} onClick - Optional callback function when the card is clicked.
+ * @param {boolean} disabled - Whether the card should be disabled and non-interactive.
+ */
 const AppCard: React.FC<AppCardProps> = ({
   title,
   description,

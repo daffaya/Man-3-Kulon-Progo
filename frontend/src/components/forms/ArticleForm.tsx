@@ -1,4 +1,10 @@
-// frontend/src/components/forms/ArticleForm.tsx
+/**
+ * @fileoverview ArticleForm component for creating and editing articles.
+ * This component provides a comprehensive form with fields for title, overview, rich text content,
+ * cover image upload, tags, categories, and publication settings. It supports both creating
+ * new articles and editing existing ones.
+ */
+
 import React, { useState, useEffect, useRef } from "react";
 import { format } from "date-fns";
 import ReactQuill from "react-quill";
@@ -22,6 +28,9 @@ interface ArticleFormProps {
 /**
  * A form component for creating and editing articles.
  * It handles all article fields, including a rich text editor, image upload, tags, and categories.
+ *
+ * @param {ArticleFormProps} props - The component props.
+ * @returns {JSX.Element} The rendered ArticleForm component.
  */
 const ArticleForm: React.FC<ArticleFormProps> = ({
   article,
@@ -108,7 +117,7 @@ const ArticleForm: React.FC<ArticleFormProps> = ({
 
   /**
    * Handles input changes for standard form fields, checkboxes, and selects.
-   * @param e - The change event from the input element.
+   * @param {React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>} e - The change event from the input element.
    */
   const handleInputChange = (
     e: React.ChangeEvent<
@@ -137,7 +146,7 @@ const ArticleForm: React.FC<ArticleFormProps> = ({
 
   /**
    * Handles changes in the rich text editor content.
-   * @param content - The new HTML content from the editor.
+   * @param {string} content - The new HTML content from the editor.
    */
   const handleContentChange = (content: string) => {
     setFormData((prev) => ({ ...prev, content }));
@@ -145,7 +154,7 @@ const ArticleForm: React.FC<ArticleFormProps> = ({
 
   /**
    * Handles adding a new tag when the Enter key is pressed in the tag input field.
-   * @param e - The keyboard event from the input element.
+   * @param {React.KeyboardEvent<HTMLInputElement>} e - The keyboard event from the input element.
    */
   const handleTagInputKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === "Enter" && tagInput.trim() !== "") {
@@ -162,7 +171,7 @@ const ArticleForm: React.FC<ArticleFormProps> = ({
 
   /**
    * Removes a tag from the form's tag list.
-   * @param tagToRemove - The tag string to remove.
+   * @param {string} tagToRemove - The tag string to remove.
    */
   const handleRemoveTag = (tagToRemove: string) => {
     setFormData((prev) => ({
@@ -173,10 +182,10 @@ const ArticleForm: React.FC<ArticleFormProps> = ({
 
   /**
    * Handles image change from the ImageUploader component.
-   * @param file - The selected file (if any).
-   * @param url - The image URL (if any).
+   * Updates the selected file and the cover image URL in the form data.
+   * @param {File} [file] - The selected file (if any).
+   * @param {string} [url] - The image URL (if any).
    */
-  // Perbaiki fungsi handleImageChange di ArticleForm.tsx
   const handleImageChange = (file?: File, url?: string) => {
     if (file) {
       setSelectedFile(file);
@@ -192,12 +201,12 @@ const ArticleForm: React.FC<ArticleFormProps> = ({
 
   /**
    * Handles the form submission event.
-   * @param e - The form submission event.
+   * Prepares the form data, including author information, and calls the onSubmit prop.
+   * @param {React.FormEvent} e - The form submission event.
    */
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
 
-    // Update author data with current user data
     const formDataWithAuthor = {
       ...formData,
       author: {
@@ -265,7 +274,6 @@ const ArticleForm: React.FC<ArticleFormProps> = ({
         </p>
       </div>
 
-      {/* Cover Image */}
       <div>
         <ImageUploader
           currentImage={formData.coverImage}

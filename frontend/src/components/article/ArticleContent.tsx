@@ -1,4 +1,10 @@
-// frontend/src/components/article/ArticleContent.tsx
+/**
+ * @fileoverview React component for displaying the full content of an article.
+ * This component handles rendering the article's title, author information, publication date,
+ * cover image, and the main body content. It sanitizes the HTML content, processes image URLs
+ * to ensure they are absolute, and parses and displays article tags.
+ */
+
 import React, { useEffect, useState } from "react";
 import DOMPurify from "dompurify";
 import { Article } from "../../types/articleTypes";
@@ -6,17 +12,25 @@ import { formatDate } from "../../lib/utils";
 import { Clock, Calendar } from "lucide-react";
 import ImageWithFallback from "../ui/ImageWithFallback";
 
+/**
+ * Props for the ArticleContent component.
+ * @typedef {object} ArticleContentProps
+ * @property {Article} article - The article object to display.
+ */
+
 interface ArticleContentProps {
   article: Article;
 }
 
 /**
- * Parse various possible `tags` formats into a clean string array.
+ * Parses various possible `tags` formats into a clean string array.
  * Handles:
  * - string (CSV or JSON)
  * - array
  * - object or array-like object
  * - nested values
+ * @param {unknown} tags - The tags data to parse, which can be in various formats.
+ * @returns {string[]} An array of parsed tag strings.
  */
 const parseTags = (tags: unknown): string[] => {
   if (!tags) return [];
@@ -106,9 +120,36 @@ const parseTags = (tags: unknown): string[] => {
 };
 
 /**
- * Component for rendering a single article's content,
- * including author info, publish date, reading time, cover image,
- * sanitized HTML content, and parsed tags.
+ * Processes image URLs within an HTML string to convert relative paths to absolute URLs.
+ * @param {string} htmlContent - The HTML content containing image tags.
+ * @returns {string} The HTML content with absolute image URLs.
+ */
+const processImageUrls = (htmlContent: string): string => {
+  const parser = new DOMParser();
+  const doc = parser.parseFromString(htmlContent, "text/html");
+  const images = doc.querySelectorAll("img");
+
+  images.forEach((img) => {
+    const src = img.getAttribute("src");
+    if (src && src.startsWith("/")) {
+      img.setAttribute(
+        "src",
+        `${
+          import.meta.env.VITE_BACKEND_API_URL || "http://localhost:3001"
+        }${src}`
+      );
+    }
+  });
+
+  return doc.body.innerHTML;
+};
+
+/**
+ * React component for rendering a single article's content.
+ * Displays the article's title, author, publication date, reading time, cover image,
+ * and the main body content. It also parses and displays the article's tags.
+ * @param {ArticleContentProps} props - The component props.
+ * @returns {JSX.Element} The rendered article content.
  */
 const ArticleContent: React.FC<ArticleContentProps> = ({ article }) => {
   const {
@@ -124,37 +165,10 @@ const ArticleContent: React.FC<ArticleContentProps> = ({ article }) => {
   const [processedContent, setProcessedContent] = useState("");
   const [parsedTags, setParsedTags] = useState<string[]>([]);
 
-  /**
-   * Sanitize HTML and update tags when article content changes.
-   */
   useEffect(() => {
     const parsed = parseTags(tags);
     setParsedTags(parsed);
   }, [tags]);
-
-  /**
-   * Process image URLs inside HTML content so relative paths
-   * are converted to full URLs for rendering.
-   */
-  const processImageUrls = (htmlContent: string): string => {
-    const parser = new DOMParser();
-    const doc = parser.parseFromString(htmlContent, "text/html");
-    const images = doc.querySelectorAll("img");
-
-    images.forEach((img) => {
-      const src = img.getAttribute("src");
-      if (src && src.startsWith("/")) {
-        img.setAttribute(
-          "src",
-          `${
-            import.meta.env.VITE_BACKEND_API_URL || "http://localhost:3001"
-          }${src}`
-        );
-      }
-    });
-
-    return doc.body.innerHTML;
-  };
 
   useEffect(() => {
     const sanitizedContent = DOMPurify.sanitize(content, {
@@ -228,7 +242,6 @@ const ArticleContent: React.FC<ArticleContentProps> = ({ article }) => {
         </div>
       </div>
 
-      {/* Render sanitized and processed HTML from Quill */}
       <div
         className="ql-editor article-content [text-align:justify] text-muted font-medium"
         dangerouslySetInnerHTML={{ __html: processedContent }}

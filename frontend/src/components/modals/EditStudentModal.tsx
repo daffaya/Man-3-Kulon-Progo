@@ -1,3 +1,9 @@
+/**
+ * @fileoverview Modal component for editing an existing student's information.
+ * This component renders a form within a modal overlay, allowing administrators to update student details.
+ * It handles form submission, displays success/error notifications, and manages the modal's open/close state.
+ */
+
 import React from "react";
 import StudentForm from "../forms/StudentForm";
 import { StudentFormData } from "../../types/studentTypes";
@@ -13,6 +19,14 @@ interface EditStudentModalProps {
   onSuccess: () => void;
 }
 
+/**
+ * EditStudentModal component that provides a form within a modal to edit student data.
+ * It uses the StudentForm component for the form fields and handles the submission logic
+ * to update the student data via the studentService.
+ *
+ * @param {EditStudentModalProps} props - The component props.
+ * @returns {JSX.Element} The rendered modal component.
+ */
 const EditStudentModal: React.FC<EditStudentModalProps> = ({
   student,
   onClose,
@@ -22,6 +36,11 @@ const EditStudentModal: React.FC<EditStudentModalProps> = ({
   const { showSuccessToast, showErrorToast } = useToastMessage();
   const { classes } = useClasses();
 
+  /**
+   * Handles the form submission to update a student.
+   * Calls the student service, shows appropriate toast notifications, and triggers the success callback.
+   * @param {StudentFormData} data - The updated student data from the form.
+   */
   const handleSubmit = async (data: StudentFormData) => {
     if (!token) {
       showErrorToast("Token tidak tersedia. Silakan login ulang.");

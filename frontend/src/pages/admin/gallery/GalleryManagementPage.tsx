@@ -1,4 +1,8 @@
-// frontend/src/pages/admin/gallery/GalleryManagementPage.tsx
+/**
+ * @fileoverview Page for managing photo albums in the admin panel.
+ * Provides functionality for searching, paginating, and deleting albums.
+ */
+
 import React, { useEffect, useState } from "react";
 import { Link, Navigate, useNavigate } from "react-router-dom";
 import { Plus, RefreshCw, X, ArrowLeft } from "lucide-react";
@@ -16,11 +20,21 @@ export const ALLOWED_ROLES = [
   "arsiparis",
 ] as const;
 
+/**
+ * Checks if the logged-in user has the required role for gallery management.
+ * @param {boolean} isLoggedIn - The user's login status.
+ * @param {string | undefined} role - The user's role.
+ * @returns {boolean} True if the user has access, otherwise false.
+ */
 const hasEditAccess = (isLoggedIn: boolean, role?: string): boolean =>
   isLoggedIn && role
     ? ALLOWED_ROLES.includes(role as (typeof ALLOWED_ROLES)[number])
     : false;
 
+/**
+ * Component for the gallery management page.
+ * It provides an interface for administrators to view, search, delete, and navigate to create or edit photo albums.
+ */
 const GalleryManagementPage: React.FC = () => {
   const { state, deleteAlbum, fetchAdminAlbums } = useGallery();
   const [showConfirmation, setShowConfirmation] = useState(false);
@@ -50,6 +64,7 @@ const GalleryManagementPage: React.FC = () => {
   const albumsPerPage = 10;
   const [debouncedKeyword, setDebouncedKeyword] = useState("");
 
+  // Delays search execution to avoid excessive API calls.
   useEffect(() => {
     const handler = setTimeout(() => {
       setDebouncedKeyword(keyword);
@@ -57,6 +72,7 @@ const GalleryManagementPage: React.FC = () => {
     return () => clearTimeout(handler);
   }, [keyword]);
 
+  // Fetches albums when filters, page, or auth status change.
   useEffect(() => {
     if (isLoggedIn && hasGalleryAccess) {
       const filtersWithPagination = {
@@ -74,14 +90,21 @@ const GalleryManagementPage: React.FC = () => {
     fetchAdminAlbums,
   ]);
 
+  // Applies the debounced keyword as a filter.
   useEffect(() => {
     handleApplyFilters();
   }, [debouncedKeyword]);
 
+  /**
+   * Navigates to the previous page of the album list.
+   */
   const handlePreviousPage = () => {
     if (currentPage > 1) setCurrentPage(currentPage - 1);
   };
 
+  /**
+   * Navigates to the next page of the album list.
+   */
   const handleNextPage = () => {
     if (
       state.adminPagination &&
@@ -91,6 +114,9 @@ const GalleryManagementPage: React.FC = () => {
     }
   };
 
+  /**
+   * Applies the current search keyword as a filter and resets pagination.
+   */
   const handleApplyFilters = () => {
     const filtersToApply = {
       keyword:
@@ -100,14 +126,25 @@ const GalleryManagementPage: React.FC = () => {
     setCurrentPage(1);
   };
 
+  /**
+   * Clears all active filters and refreshes the album list.
+   */
   const handleRemoveFilters = () => {
     setKeyword("");
   };
 
+  /**
+   * Updates the search keyword state as the user types.
+   * @param {React.ChangeEvent<HTMLInputElement>} e - The input change event.
+   */
   const handleKeywordInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setKeyword(e.target.value);
   };
 
+  /**
+   * Handles the 'Enter' key press in the search input to trigger the search.
+   * @param {React.KeyboardEvent<HTMLInputElement>} e - The keyboard event.
+   */
   const handleKeywordInputKeyPress = (
     e: React.KeyboardEvent<HTMLInputElement>
   ) => {
@@ -117,11 +154,18 @@ const GalleryManagementPage: React.FC = () => {
     }
   };
 
+  /**
+   * Initiates the album deletion process by showing a confirmation modal.
+   * @param {string} id - The ID of the album to delete.
+   */
   const handleDeleteClick = (id: string) => {
     setAlbumToDelete(id);
     setShowConfirmation(true);
   };
 
+  /**
+   * Executes the album deletion after user confirmation.
+   */
   const confirmDelete = async () => {
     if (albumToDelete) {
       try {
@@ -142,6 +186,9 @@ const GalleryManagementPage: React.FC = () => {
     }
   };
 
+  /**
+   * Cancels the album deletion and hides the confirmation modal.
+   */
   const cancelDelete = () => {
     setShowConfirmation(false);
     setAlbumToDelete(null);

@@ -1,15 +1,37 @@
+/**
+ * @fileoverview Password change form component with validation.
+ * This component provides a form for users to change their password, including fields for
+ * current password, new password, and password confirmation. It includes client-side validation,
+ * password visibility toggles, and loading states.
+ */
+
 import React, { useState } from "react";
 import { Eye, EyeOff, Loader2, Key, Lock } from "lucide-react";
 
+/**
+ * Props for the ChangePasswordForm component
+ * @interface ChangePasswordFormProps
+ */
 interface ChangePasswordFormProps {
+  /** Function to call when the form is submitted with valid data */
   onSubmit: (data: {
     currentPassword: string;
     newPassword: string;
   }) => Promise<void>;
+  /** Function to call when the form is cancelled */
   onCancel: () => void;
+  /** Indicates whether the form is in a loading state */
   isLoading: boolean;
 }
 
+/**
+ * Password change form component with validation.
+ * Provides fields for current password, new password, and confirmation with
+ * client-side validation and password visibility toggles.
+ *
+ * @param {ChangePasswordFormProps} props - The component props
+ * @returns {JSX.Element} The rendered password change form
+ */
 const ChangePasswordForm: React.FC<ChangePasswordFormProps> = ({
   onSubmit,
   onCancel,
@@ -29,6 +51,10 @@ const ChangePasswordForm: React.FC<ChangePasswordFormProps> = ({
   >(null);
   const [touched, setTouched] = useState<Record<string, boolean>>({});
 
+  /**
+   * Handles input field changes
+   * @param {React.ChangeEvent<HTMLInputElement>} e - The change event
+   */
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
@@ -39,6 +65,10 @@ const ChangePasswordForm: React.FC<ChangePasswordFormProps> = ({
     }
   };
 
+  /**
+   * Handles input field blur events
+   * @param {React.FocusEvent<HTMLInputElement>} e - The blur event
+   */
   const handleBlur = (e: React.FocusEvent<HTMLInputElement>) => {
     const { name } = e.target;
     setTouched((prev) => ({ ...prev, [name]: true }));
@@ -46,6 +76,12 @@ const ChangePasswordForm: React.FC<ChangePasswordFormProps> = ({
     validateField(name, formData[name as keyof typeof formData]);
   };
 
+  /**
+   * Validates a specific field
+   * @param {string} name - The name of the field to validate
+   * @param {string} value - The value of the field
+   * @returns {boolean} Whether the field is valid
+   */
   const validateField = (name: string, value: string) => {
     const newErrors = { ...errors };
 
@@ -87,6 +123,10 @@ const ChangePasswordForm: React.FC<ChangePasswordFormProps> = ({
     return !newErrors[name];
   };
 
+  /**
+   * Validates all form fields
+   * @returns {boolean} Whether the entire form is valid
+   */
   const validate = (): boolean => {
     const newErrors: Record<string, string> = {};
 
@@ -108,6 +148,10 @@ const ChangePasswordForm: React.FC<ChangePasswordFormProps> = ({
     return Object.keys(newErrors).length === 0;
   };
 
+  /**
+   * Handles form submission
+   * @param {React.FormEvent} e - The form submission event
+   */
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -126,6 +170,10 @@ const ChangePasswordForm: React.FC<ChangePasswordFormProps> = ({
     });
   };
 
+  /**
+   * Toggles password visibility for a specific field
+   * @param {"current" | "new" | "confirm"} field - The field to toggle
+   */
   const togglePasswordVisibility = (field: "current" | "new" | "confirm") => {
     switch (field) {
       case "current":
@@ -140,10 +188,19 @@ const ChangePasswordForm: React.FC<ChangePasswordFormProps> = ({
     }
   };
 
+  /**
+   * Gets the icon color based on field focus state
+   * @param {"currentPassword" | "newPassword" | "confirmPassword"} field - The field to check
+   * @returns {string} The CSS class for the icon color
+   */
   const getIconColor = (
     field: "currentPassword" | "newPassword" | "confirmPassword"
   ) => (focusedField === field ? "text-accent" : "text-secondary");
 
+  /**
+   * Renders a loading spinner
+   * @returns {JSX.Element} The spinner SVG element
+   */
   const renderSpinner = () => (
     <svg
       className="animate-spin -ml-1 mr-3 h-5 w-5 text-white"

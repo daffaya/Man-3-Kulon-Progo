@@ -1,4 +1,12 @@
-// src/types/studentTypes.ts
+/**
+ * @fileoverview Type definitions for student-related data structures.
+ * This file defines TypeScript interfaces for students, classes, and API responses
+ * used throughout the student management system.
+ */
+
+/**
+ * Represents a student entity with comprehensive personal and academic information.
+ */
 export interface Student {
   id: number;
   nisn: string;
@@ -9,7 +17,6 @@ export interface Student {
   class_name?: string;
   class_id?: number;
   angkatan: string;
-
   jenis_kelamin: string;
   nik?: string;
   birth_place?: string;
@@ -19,12 +26,14 @@ export interface Student {
   parent_name?: string;
 }
 
+/**
+ * Defines the structure for form data when creating or editing a student.
+ */
 export interface StudentFormData {
   nisn: string;
   name: string;
   class_id: number;
   academic_year: string;
-  // Kolom baru
   nik?: string;
   birth_place?: string;
   birth_date?: string;
@@ -33,6 +42,9 @@ export interface StudentFormData {
   parent_name?: string;
 }
 
+/**
+ * Defines the minimal data structure for importing students in bulk.
+ */
 export interface StudentImportData {
   nisn: string;
   name: string;
@@ -40,6 +52,9 @@ export interface StudentImportData {
   class_id: number;
 }
 
+/**
+ * Represents a class within an academic year and semester.
+ */
 export interface Class {
   id: number;
   name: string;
@@ -48,7 +63,9 @@ export interface Class {
   total_siswa?: number;
 }
 
-// Tambahkan interface ini
+/**
+ * Defines the API response structure for a bulk move students operation.
+ */
 export interface BulkMoveClassResponse {
   success: boolean;
   message: string;
@@ -60,6 +77,9 @@ export interface BulkMoveClassResponse {
   toClassName: string;
 }
 
+/**
+ * Defines the API response structure for graduating students in bulk.
+ */
 export interface GraduateStudentsResponse {
   success: boolean;
   message: string;
@@ -67,11 +87,16 @@ export interface GraduateStudentsResponse {
   angkatan: string;
 }
 
-// Tipe union untuk response
+/**
+ * A union type for responses from bulk student operations (move or graduate).
+ */
 export type BulkMoveOrGraduateResponse =
   | BulkMoveClassResponse
   | GraduateStudentsResponse;
 
+/**
+ * Represents a student batch/cohort (angkatan) and its student count.
+ */
 export interface Angkatan {
   angkatan: string;
   count: number;

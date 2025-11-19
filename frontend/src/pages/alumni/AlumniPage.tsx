@@ -1,4 +1,8 @@
-// frontend/src/pages/AlumniPage.tsx
+/**
+ * @fileoverview Page component for displaying and managing a list of alumni.
+ * Provides search and filter functionality for all users and additional
+ * management capabilities for authorized roles (admin, guru_bk).
+ */
 
 import React, { useState, useEffect } from "react";
 import { useAuth } from "../../contexts/AuthContext";
@@ -38,11 +42,22 @@ interface PaginationInfo {
   hasPrevPage: boolean;
 }
 
+/**
+ * Checks if the logged-in user has the required role to manage alumni.
+ * @param {boolean} isLoggedIn - The user's login status.
+ * @param {string | undefined} role - The user's role.
+ * @returns {boolean} True if the user has access, otherwise false.
+ */
 const hasEditAccess = (isLoggedIn: boolean, role?: string): boolean =>
   isLoggedIn && role
     ? ALLOWED_ROLES.includes(role as (typeof ALLOWED_ROLES)[number])
     : false;
 
+/**
+ * Component for the alumni page.
+ * It displays a searchable and filterable list of alumni. The layout and
+ * available actions differ based on the user's authentication status and role.
+ */
 const AlumniPage: React.FC = () => {
   const { isLoggedIn, user, token } = useAuth();
   const navigate = useNavigate();
@@ -87,6 +102,11 @@ const AlumniPage: React.FC = () => {
     loadAlumni();
   }, [searchQuery, graduationYear, currentPage, token, showToast]);
 
+  /**
+   * Handles the click event for the edit button.
+   * Navigates to the edit page if the user has the required permissions.
+   * @param {Alumni} alumni - The alumni object to be edited.
+   */
   const handleEditClick = (alumni: Alumni) => {
     if (!isAdminOrGuruBK) {
       showToast("Anda tidak memiliki akses untuk mengedit alumni", "error");
@@ -98,13 +118,19 @@ const AlumniPage: React.FC = () => {
     navigate(`/atmin/alumni/${alumni.id}/edit`, { state: { alumni } });
   };
 
+  /**
+   * Updates the current page number and scrolls to the top of the page.
+   * @param {number} page - The page number to navigate to.
+   */
   const handlePageChange = (page: number) => {
     setCurrentPage(page);
     window.scrollTo(0, 0);
   };
 
+  /**
+   * Resets the current page to 1 when any filter is changed.
+   */
   const handleFilterChange = () => {
-    // Reset to first page when filters change
     setCurrentPage(1);
   };
 
@@ -136,7 +162,6 @@ const AlumniPage: React.FC = () => {
           </p>
         </div>
 
-        {/* Statistik Alumni */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
           <div className="card p-6 flex items-center">
             <div className="p-3 rounded-full bg-accent/10 mr-4">
@@ -175,7 +200,6 @@ const AlumniPage: React.FC = () => {
           </div>
         </div>
 
-        {/* Filter Section */}
         <div className="card p-6 mb-8">
           <div className="flex items-center mb-5">
             <Search className="h-5 w-5 text-secondary mr-2" />
@@ -194,7 +218,6 @@ const AlumniPage: React.FC = () => {
           />
         </div>
 
-        {/* Empty State */}
         {showEmptyState && !loading && (
           <div className="card p-12 text-center">
             <div className="mx-auto w-24 h-24 bg-semibackground rounded-full flex items-center justify-center mb-5">
@@ -220,7 +243,6 @@ const AlumniPage: React.FC = () => {
           </div>
         )}
 
-        {/* Alumni Table */}
         {!showEmptyState && (
           <div className="card p-6">
             <AlumniTable
@@ -232,7 +254,6 @@ const AlumniPage: React.FC = () => {
           </div>
         )}
 
-        {/* Pagination */}
         {pagination && pagination.totalPages > 1 && (
           <div className="flex justify-center items-center mt-12">
             <nav className="flex items-center space-x-2">
@@ -320,7 +341,6 @@ const AlumniPage: React.FC = () => {
           </div>
         )}
 
-        {/* Access Info */}
         {!isAdminOrGuruBK && (
           <div className="card p-8 text-center mt-10">
             <div className="mx-auto w-16 h-16 bg-accent/10 p-3 rounded-full flex items-center justify-center mb-5">

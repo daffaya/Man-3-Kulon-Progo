@@ -1,18 +1,40 @@
-// frontend/src/components/gallery/PhotoLightbox.tsx
+/**
+ * @fileoverview PhotoLightbox component for displaying photos in a modal overlay.
+ * This component provides a full-screen lightbox view for photos with navigation controls,
+ * download functionality, and keyboard navigation support.
+ */
+
 import React, { useState, useEffect } from "react";
 import { Photo } from "../../types/galleryTypes";
 import ImageWithFallback from "../ui/ImageWithFallback";
 import { X, ChevronLeft, ChevronRight, Download } from "lucide-react";
 
+/**
+ * Props for the PhotoLightbox component
+ */
 interface PhotoLightboxProps {
+  /** Array of photo objects to display in the lightbox */
   photos: Photo[];
+  /** Index of the currently displayed photo */
   currentPhotoIndex: number;
+  /** Whether the lightbox is currently open */
   isOpen: boolean;
+  /** Callback function to close the lightbox */
   onClose: () => void;
+  /** Callback function to navigate to the previous photo */
   onPrevious?: () => void;
+  /** Callback function to navigate to the next photo */
   onNext?: () => void;
 }
 
+/**
+ * PhotoLightbox component that displays photos in a full-screen modal overlay.
+ * Provides navigation controls, download functionality, and keyboard navigation support.
+ * Handles loading and error states for images.
+ *
+ * @param {PhotoLightboxProps} props - The component props
+ * @returns {JSX.Element | null} The rendered lightbox or null if not open
+ */
 const PhotoLightbox: React.FC<PhotoLightboxProps> = ({
   photos,
   currentPhotoIndex,
@@ -56,6 +78,9 @@ const PhotoLightbox: React.FC<PhotoLightboxProps> = ({
 
   const currentPhoto = photos[currentIndex];
 
+  /**
+   * Handles downloading the current photo
+   */
   const handleDownload = () => {
     if (currentPhoto) {
       const link = document.createElement("a");
@@ -67,12 +92,18 @@ const PhotoLightbox: React.FC<PhotoLightboxProps> = ({
     }
   };
 
+  /**
+   * Handles image loading errors
+   */
   const handleImageError = () => {
     if (!imageError) {
       setImageError(true);
     }
   };
 
+  /**
+   * Resets error state and attempts to reload the image
+   */
   const handleRetry = () => {
     setImageError(false);
     setImageLoaded(false);
@@ -80,7 +111,6 @@ const PhotoLightbox: React.FC<PhotoLightboxProps> = ({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-[rgb(var(--color-foreground)/0.9)] backdrop-blur-sm">
-      {/* Close Button */}
       <button
         onClick={onClose}
         className="absolute top-4 right-4 text-[rgb(var(--color-background))] hover:text-[rgb(var(--color-secondary))] transition-colors z-10"
@@ -89,7 +119,6 @@ const PhotoLightbox: React.FC<PhotoLightboxProps> = ({
         <X size={32} />
       </button>
 
-      {/* Navigation Buttons */}
       {photos.length > 1 && (
         <>
           <button
@@ -119,7 +148,6 @@ const PhotoLightbox: React.FC<PhotoLightboxProps> = ({
         </>
       )}
 
-      {/* Main Image */}
       <div className="relative max-w-7xl max-h-[90vh] mx-auto p-4">
         {!imageLoaded && !imageError && (
           <div className="absolute inset-0 flex items-center justify-center">
@@ -150,7 +178,6 @@ const PhotoLightbox: React.FC<PhotoLightboxProps> = ({
           />
         )}
 
-        {/* Photo Info */}
         <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-[rgb(var(--color-foreground)/0.8)] to-transparent p-6 text-[rgb(var(--color-background))]">
           <h3 className="text-xl font-semibold mb-2">
             {currentPhoto.title || `Foto ${currentIndex + 1}`}

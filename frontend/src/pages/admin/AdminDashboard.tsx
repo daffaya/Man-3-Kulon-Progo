@@ -1,3 +1,10 @@
+/**
+ * @fileoverview Admin dashboard component that displays available applications based on user roles.
+ * This component serves as the main entry point for the admin panel, showing different
+ * application cards according to the authenticated user's permissions. It handles authentication
+ * checks and redirects unauthenticated users to the login page.
+ */
+
 import React, { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import {
@@ -14,12 +21,16 @@ import { useToastMessage } from "../../hooks/useToastMessage";
 import AdminLayout from "../../components/layout/AdminLayout";
 import type { UserRole } from "../../types/userTypes";
 
+/**
+ * Admin dashboard component that displays application cards based on user roles.
+ * Serves as the main entry point for the admin panel, showing different
+ * applications according to the authenticated user's permissions.
+ */
 const AdminDashboard: React.FC = () => {
   const navigate = useNavigate();
   const { user, isLoggedIn, isLoadingAuth } = useAuth();
   const { showErrorToast } = useToastMessage();
 
-  // 👇 perbaikan utama
   useEffect(() => {
     if (!isLoadingAuth && !isLoggedIn) {
       navigate("/login", { state: { redirectTo: "/atmin" } });
@@ -33,7 +44,6 @@ const AdminDashboard: React.FC = () => {
   }
 
   if (!isLoggedIn) {
-    // jangan render apa pun saat sedang redirect
     return null;
   }
 
@@ -99,12 +109,24 @@ const AdminDashboard: React.FC = () => {
     },
   ];
 
+  /**
+   * Checks if the current user has access to a specific application based on required roles.
+   * Super admins have access to all applications.
+   * @param {UserRole | UserRole[]} requiredRole - Required role(s) for the application
+   * @returns {boolean} True if user has access, otherwise false
+   */
   const hasAccess = (requiredRole: UserRole | UserRole[]): boolean => {
     if (userRole === "super_admin") return true;
     if (Array.isArray(requiredRole)) return requiredRole.includes(userRole);
     return userRole === requiredRole;
   };
 
+  /**
+   * Handles application card clicks by checking permissions and navigating if authorized.
+   * Shows an error toast if the user lacks permission.
+   * @param {UserRole | UserRole[]} requiredRole - Required role(s) for the application
+   * @param {string} to - Navigation path for the application
+   */
   const handleAppClick = (requiredRole: UserRole | UserRole[], to: string) => {
     if (!hasAccess(requiredRole)) {
       showErrorToast("Anda tidak memiliki akses ke aplikasi ini");

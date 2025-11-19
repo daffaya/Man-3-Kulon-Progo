@@ -1,4 +1,10 @@
-// src/components/layout/Header.tsx
+/**
+ * @fileoverview Header component with navigation and theme toggle.
+ * This component provides a responsive header for the website with navigation links,
+ * dropdown menus for profile and services sections, and a mobile menu for smaller screens.
+ * It adapts its appearance based on scroll position and includes a theme toggle button.
+ */
+
 import React, { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
 import {
@@ -18,11 +24,21 @@ import { NavLink } from "../ui/NavLink";
 import { Dropdown, DropdownItem } from "../ui/Dropdown";
 import { MobileMenu } from "./MobileMenu";
 
+/**
+ * Header component with navigation and theme toggle.
+ * Provides a responsive header with navigation links, dropdown menus, and a mobile menu.
+ * Adapts appearance based on scroll position and includes a theme toggle button.
+ *
+ * @returns {JSX.Element} The rendered header component
+ */
 const Header: React.FC = () => {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const location = useLocation();
 
+  /**
+   * Navigation items for the Profile dropdown menu
+   */
   const profileDropdownItems: DropdownItem[] = [
     { to: "/profile/sejarah", label: "Sejarah" },
     { to: "/profile/visi-misi", label: "Visi Misi" },
@@ -35,6 +51,9 @@ const Header: React.FC = () => {
     { to: "/profile/sarana-prasarana", label: "Sarana Prasarana" },
   ];
 
+  /**
+   * Navigation items for the Services dropdown menu
+   */
   const layananDropdownItems: DropdownItem[] = [
     { to: "/layanan/zona-integritas", label: "Zona Integritas" },
     { to: "/layanan/ppdb", label: "PPDB" },
@@ -48,10 +67,14 @@ const Header: React.FC = () => {
   }, []);
 
   useEffect(() => {
-    // Tutup menu mobile saat rute berubah
+    // Close mobile menu when route changes
     setIsMenuOpen(false);
   }, [location.pathname]);
 
+  /**
+   * Determines the CSS classes for the header based on scroll state
+   * @returns {string} The CSS classes for the header element
+   */
   const getHeaderClasses = () => {
     const baseClasses =
       "fixed top-0 left-0 right-0 z-50 transition-all duration-300";

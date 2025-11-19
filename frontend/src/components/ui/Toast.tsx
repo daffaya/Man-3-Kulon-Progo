@@ -1,3 +1,10 @@
+/**
+ * @fileoverview Toast notification component for displaying temporary messages.
+ * This component renders a notification toast with different styles based on type,
+ * auto-dismiss functionality, and the ability to pause on hover. It supports stacking
+ * multiple toasts vertically and can be manually dismissed with a close button.
+ */
+
 import React, { useEffect, useRef } from "react";
 import { X } from "lucide-react";
 
@@ -10,6 +17,17 @@ interface ToastProps {
   index?: number;
 }
 
+/**
+ * Component that displays a toast notification with auto-dismiss functionality.
+ * The toast can have different styles based on type (success, error, warning, info)
+ * and supports pausing the auto-dismiss timer on hover.
+ * @param {string} message - The message to display in the toast
+ * @param {string} type - The type of toast (success, error, warning, info)
+ * @param {boolean} isVisible - Whether the toast is currently visible
+ * @param {number} duration - Auto-dismiss duration in milliseconds
+ * @param {Function} onClose - Callback function when the toast is closed
+ * @param {number} index - Index of the toast for stacking multiple toasts
+ */
 const Toast: React.FC<ToastProps> = ({
   message,
   type = "error",
@@ -31,6 +49,9 @@ const Toast: React.FC<ToastProps> = ({
     }
   }, [isVisible, duration, onClose]);
 
+  /**
+   * Handles mouse enter event by clearing the auto-dismiss timer.
+   */
   const handleMouseEnter = () => {
     if (timerRef.current) {
       clearTimeout(timerRef.current);
@@ -38,6 +59,9 @@ const Toast: React.FC<ToastProps> = ({
     }
   };
 
+  /**
+   * Handles mouse leave event by restarting the auto-dismiss timer.
+   */
   const handleMouseLeave = () => {
     if (isVisible && duration > 0) {
       timerRef.current = setTimeout(() => {
@@ -48,6 +72,10 @@ const Toast: React.FC<ToastProps> = ({
 
   if (!isVisible) return null;
 
+  /**
+   * Returns the appropriate CSS classes based on the toast type.
+   * @returns {string} CSS classes for styling the toast
+   */
   const getToastStyles = () => {
     switch (type) {
       case "success":
@@ -61,6 +89,10 @@ const Toast: React.FC<ToastProps> = ({
     }
   };
 
+  /**
+   * Returns the appropriate icon SVG based on the toast type.
+   * @returns {React.ReactNode} Icon component for the toast
+   */
   const getIcon = () => {
     switch (type) {
       case "success":

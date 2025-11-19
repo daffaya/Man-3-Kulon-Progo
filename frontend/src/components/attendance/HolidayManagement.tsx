@@ -1,4 +1,9 @@
-// src/components/attendance/HolidayManagement.tsx
+/**
+ * @fileoverview Component for managing holidays in the attendance system.
+ * This component provides functionality to view, add, and delete holidays.
+ * It displays a form for adding new holidays and a table showing all existing holidays.
+ */
+
 import { useState, useEffect } from "react";
 import {
   fetchHolidays,
@@ -9,6 +14,15 @@ import { useAuth } from "../../contexts/AuthContext";
 import { useToastMessage } from "../../hooks/useToastMessage";
 import { Trash2, CalendarPlus } from "lucide-react";
 
+/**
+ * Interface representing a holiday object
+ * @interface Holiday
+ * @property {number} id - The unique identifier for the holiday
+ * @property {string} date - The date of the holiday in YYYY-MM-DD format
+ * @property {string} description - Description or name of the holiday
+ * @property {string} academic_year - The academic year the holiday belongs to
+ */
+
 interface Holiday {
   id: number;
   date: string;
@@ -16,6 +30,12 @@ interface Holiday {
   academic_year: string;
 }
 
+/**
+ * Component for managing holidays in the attendance system.
+ * Provides functionality to view, add, and delete holidays.
+ *
+ * @returns {JSX.Element} The rendered HolidayManagement component
+ */
 const HolidayManagement = () => {
   const { token } = useAuth();
   const { showSuccessToast, showErrorToast, showWarningToast } =
@@ -34,7 +54,6 @@ const HolidayManagement = () => {
         const data = await fetchHolidays(token || "");
         setHolidays(data);
       } catch (error) {
-        console.error("Error fetching holidays:", error);
         showErrorToast("Gagal memuat data hari libur");
       }
     };
@@ -42,6 +61,10 @@ const HolidayManagement = () => {
     if (token) loadHolidays();
   }, [token, showErrorToast]);
 
+  /**
+   * Handles the addition of a new holiday
+   * Validates input, sends API request, and refreshes the holiday list
+   */
   const handleAddHoliday = async () => {
     if (!newHoliday.date || !newHoliday.description) {
       showWarningToast("Tanggal dan keterangan harus diisi");
@@ -59,17 +82,21 @@ const HolidayManagement = () => {
       );
       setNewHoliday({ date: "", description: "" });
       showSuccessToast("Hari libur berhasil ditambahkan");
-      // Refresh data
       const updatedHolidays = await fetchHolidays(token || "");
       setHolidays(updatedHolidays);
     } catch (error) {
-      console.error("Error adding holiday:", error);
       showErrorToast("Gagal menambah hari libur");
     } finally {
       setLoading(false);
     }
   };
 
+  /**
+   * Handles the deletion of a holiday
+   * Shows confirmation dialog, sends API request, and refreshes the holiday list
+   *
+   * @param {number} id - The ID of the holiday to delete
+   */
   const handleDeleteHoliday = async (id: number) => {
     if (!confirm("Apakah Anda yakin ingin menghapus hari libur ini?")) return;
 
@@ -77,17 +104,21 @@ const HolidayManagement = () => {
     try {
       await deleteHoliday(id, token || "");
       showSuccessToast("Hari libur berhasil dihapus");
-      // Refresh data
       const updatedHolidays = await fetchHolidays(token || "");
       setHolidays(updatedHolidays);
     } catch (error) {
-      console.error("Error deleting holiday:", error);
       showErrorToast("Gagal menghapus hari libur");
     } finally {
       setDeleteLoading(null);
     }
   };
 
+  /**
+   * Formats a date string into Indonesian locale format
+   *
+   * @param {string} dateString - The date string in YYYY-MM-DD format
+   * @returns {string} The formatted date string
+   */
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
     return date.toLocaleDateString("id-ID", {

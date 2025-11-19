@@ -1,3 +1,10 @@
+/**
+ * @fileoverview PpdbPage component for displaying information about the new student admission process.
+ * This component provides comprehensive information about PPDB (Penerimaan Peserta Didik Baru) for MAN 3 Kulon Progo,
+ * including school information, advantages, requirements, schedule, registration flow, FAQ, and contact details.
+ * It features a hero section with parallax scrolling effect, multiple information sections, and an FAQ accordion.
+ */
+
 import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import {
@@ -19,6 +26,11 @@ import {
 } from "lucide-react";
 import Layout from "../../components/layout/Layout";
 
+/**
+ * Component that renders the PPDB (New Student Admission) page for MAN 3 Kulon Progo.
+ * This page provides comprehensive information about the admission process, school advantages,
+ * requirements, schedule, registration flow, FAQ, and contact details.
+ */
 const PpdbPage: React.FC = () => {
   const [openFaq, setOpenFaq] = useState<number | null>(null);
   const [scrollY, setScrollY] = useState(0);
@@ -127,7 +139,7 @@ const PpdbPage: React.FC = () => {
     {
       pertanyaan: "Apa saja program unggulan di MAN 3 Kulon Progo?",
       jawaban:
-        "Program unggulan kami meliputi Tahfidz Al-Qur’an, Multimedia, dan Tata Busana, yang mendukung pengembangan potensi akademik dan keterampilan siswa.",
+        "Program unggulan kami meliputi Tahfidz Al-Qur'an, Multimedia, dan Tata Busana, yang mendukung pengembangan potensi akademik dan keterampilan siswa.",
     },
   ];
 

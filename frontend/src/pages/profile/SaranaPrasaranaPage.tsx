@@ -1,6 +1,16 @@
+/**
+ * @fileoverview SaranaPrasaranaPage component for displaying facilities and infrastructure information.
+ * This component renders a table showing the availability and condition of various facilities
+ * at MAN 3 Kulon Progo, including classrooms, laboratories, and other facilities.
+ */
+
 import React from "react";
 import Layout from "../../components/layout/Layout";
 
+/**
+ * Interface defining the structure for facility data.
+ * @interface
+ */
 interface FacilityData {
   no: number;
   type: string;
@@ -8,6 +18,9 @@ interface FacilityData {
   condition: string;
 }
 
+/**
+ * Constant array containing facility data with their details.
+ */
 const FACILITY_LIST: FacilityData[] = [
   {
     no: 1,
@@ -101,6 +114,10 @@ const FACILITY_LIST: FacilityData[] = [
   },
 ];
 
+/**
+ * Component that displays a table of facilities and infrastructure at MAN 3 Kulon Progo.
+ * Renders a responsive table with facility details including type, availability, and condition.
+ */
 const SaranaPrasaranaPage: React.FC = () => {
   return (
     <Layout>

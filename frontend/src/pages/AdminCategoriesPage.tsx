@@ -1,3 +1,10 @@
+/**
+ * @fileoverview AdminCategoriesPage component for managing article categories.
+ * This component provides an interface for administrators and journalists to create,
+ * edit, and delete article categories. It includes role-based access control and
+ * various modal dialogs for category management operations.
+ */
+
 import React, { useEffect, useState } from "react";
 import { useAuth } from "../contexts/AuthContext";
 import { useArticles } from "../contexts/ArticleContext";
@@ -8,13 +15,27 @@ import AdminLayout from "../components/layout/AdminLayout";
 import { Link, useNavigate } from "react-router-dom";
 import { useToastMessage } from "../hooks/useToastMessage";
 
+/**
+ * Array of roles that are allowed to edit categories.
+ */
 export const ALLOWED_ROLES = ["super_admin", "jurnalis"] as const;
 
+/**
+ * Checks if a user has edit access based on their login status and role.
+ * @param isLoggedIn - Whether the user is logged in
+ * @param role - The user's role
+ * @returns Boolean indicating if the user has edit access
+ */
 const hasEditAccess = (isLoggedIn: boolean, role?: string): boolean =>
   isLoggedIn && role
     ? ALLOWED_ROLES.includes(role as (typeof ALLOWED_ROLES)[number])
     : false;
 
+/**
+ * Main component for the admin categories page.
+ * Provides functionality to view, create, edit, and delete article categories.
+ * Includes role-based access control and appropriate UI for different user types.
+ */
 const AdminCategoriesPage: React.FC = () => {
   const { isLoggedIn, user } = useAuth();
   const navigate = useNavigate();
@@ -53,6 +74,10 @@ const AdminCategoriesPage: React.FC = () => {
     });
   }, [fetchAdminCategories, showErrorToast]);
 
+  /**
+   * Handles the click event for adding a new category.
+   * Checks user permissions and opens the add modal if authorized.
+   */
   const handleAddClick = () => {
     if (!isAdminOrJurnalis) {
       showErrorToast("Anda tidak memiliki akses untuk menambah kategori");
@@ -68,6 +93,10 @@ const AdminCategoriesPage: React.FC = () => {
     setShowAddModal(true);
   };
 
+  /**
+   * Handles saving a new category.
+   * Validates input and creates the category through the API.
+   */
   const handleSaveNewCategory = async () => {
     setErrorMessage(null);
 
@@ -92,11 +121,19 @@ const AdminCategoriesPage: React.FC = () => {
     }
   };
 
+  /**
+   * Handles canceling the add category operation.
+   */
   const handleCancelAdd = () => {
     setShowAddModal(false);
     setErrorMessage(null);
   };
 
+  /**
+   * Handles the click event for editing a category.
+   * Checks user permissions and opens the edit modal if authorized.
+   * @param category - The category to edit
+   */
   const handleEditClick = (category: Category) => {
     if (!isAdminOrJurnalis) {
       showErrorToast("Anda tidak memiliki akses untuk mengedit kategori");
@@ -111,6 +148,10 @@ const AdminCategoriesPage: React.FC = () => {
     setShowEditModal(true);
   };
 
+  /**
+   * Handles saving an edited category.
+   * Validates input and updates the category through the API.
+   */
   const handleSaveEditedCategory = async () => {
     if (!editingCategory) return;
     setErrorMessage(null);
@@ -137,12 +178,20 @@ const AdminCategoriesPage: React.FC = () => {
     }
   };
 
+  /**
+   * Handles canceling the edit category operation.
+   */
   const handleCancelEdit = () => {
     setShowEditModal(false);
     setEditingCategory(null);
     setErrorMessage(null);
   };
 
+  /**
+   * Handles the click event for deleting a category.
+   * Checks user permissions and opens the delete confirmation modal if authorized.
+   * @param category - The category to delete
+   */
   const handleDeleteClick = (category: Category) => {
     if (!isAdminOrJurnalis) {
       showErrorToast("Anda tidak memiliki akses untuk menghapus kategori");
@@ -157,6 +206,10 @@ const AdminCategoriesPage: React.FC = () => {
     setShowDeleteConfirmation(true);
   };
 
+  /**
+   * Handles confirming the deletion of a category.
+   * Deletes the category through the API and refreshes the category list.
+   */
   const confirmDelete = async () => {
     if (!categoryToDelete) return;
     setErrorMessage(null);
@@ -173,6 +226,9 @@ const AdminCategoriesPage: React.FC = () => {
     }
   };
 
+  /**
+   * Handles canceling the delete category operation.
+   */
   const cancelDelete = () => {
     setShowDeleteConfirmation(false);
     setCategoryToDelete(null);

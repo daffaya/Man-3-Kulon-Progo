@@ -1,4 +1,9 @@
-// frontend/src/pages/admin/gallery/AlbumPhotosPage.tsx
+/**
+ * @fileoverview Album photos page component for managing photos within a gallery album.
+ * This component provides an interface for viewing, uploading, deleting, and managing
+ * photos in a specific album. It includes modals for uploading photos, editing
+ * album details, selecting album covers, and a lightbox for viewing photos.
+ */
 
 import React, { useEffect, useState } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
@@ -13,6 +18,11 @@ import PhotoLightbox from "../../../components/gallery/PhotoLightBox";
 import AlbumForm from "../../../components/forms/AlbumForm";
 import { AlbumFormData } from "../../../types/galleryTypes";
 
+/**
+ * Page component for managing photos within a specific gallery album.
+ * Provides functionality to view, upload, delete photos, edit album details,
+ * select album covers, and view photos in a lightbox.
+ */
 const AlbumPhotosPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
@@ -38,6 +48,10 @@ const AlbumPhotosPage: React.FC = () => {
     if (id) fetchAlbumById(id);
   }, [id, fetchAlbumById]);
 
+  /**
+   * Handles clicking on a photo to open it in the lightbox.
+   * @param {any} photo - The photo object that was clicked
+   */
   const handlePhotoClick = (photo: any) => {
     const index = currentPhotos.findIndex((p: any) => p.id === photo.id);
     if (index !== -1) {
@@ -46,6 +60,10 @@ const AlbumPhotosPage: React.FC = () => {
     }
   };
 
+  /**
+   * Handles deleting a photo from the album.
+   * @param {string} photoId - The ID of the photo to delete
+   */
   const handlePhotoDelete = async (photoId: string) => {
     try {
       await deletePhoto(photoId);
@@ -55,6 +73,10 @@ const AlbumPhotosPage: React.FC = () => {
     }
   };
 
+  /**
+   * Handles uploading new photos to the album.
+   * @param {File[]} files - Array of files to upload
+   */
   const handleUpload = async (files: File[]) => {
     if (!id) return;
     try {
@@ -66,6 +88,10 @@ const AlbumPhotosPage: React.FC = () => {
     }
   };
 
+  /**
+   * Handles selecting a new cover photo for the album.
+   * @param {string} photoId - The ID of the photo to set as cover
+   */
   const handleCoverSelect = async (photoId: string) => {
     if (!id) return;
     try {
@@ -77,6 +103,10 @@ const AlbumPhotosPage: React.FC = () => {
     }
   };
 
+  /**
+   * Handles editing album details.
+   * @param {AlbumFormData} formData - The updated album data
+   */
   const handleEditAlbum = async (formData: AlbumFormData) => {
     if (!id) return;
     setIsUpdating(true);

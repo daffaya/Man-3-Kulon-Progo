@@ -1,3 +1,11 @@
+/**
+ * @fileoverview EditArticle page component for modifying existing articles.
+ * This component provides an interface for authorized users (jurnalis, super_admin)
+ * to edit existing articles. It fetches article data based on the URL parameter,
+ * handles form submissions for updates, and manages loading/error states.
+ * The component includes permission checks and appropriate redirects.
+ */
+
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import Layout from "../../../components/layout/Layout";
@@ -15,9 +23,9 @@ export const ALLOWED_ROLES = ["jurnalis", "super_admin"] as const;
 
 /**
  * Checks if a user has permission to edit articles based on their login status and role.
- * @param isLoggedIn - The user's login status.
- * @param role - The user's role.
- * @returns True if the user has edit access, otherwise false.
+ * @param {boolean} isLoggedIn - The user's login status.
+ * @param {string | undefined} role - The user's role.
+ * @returns {boolean} True if the user has edit access, otherwise false.
  */
 const hasEditAccess = (isLoggedIn: boolean, role?: string): boolean =>
   isLoggedIn && role
@@ -25,9 +33,9 @@ const hasEditAccess = (isLoggedIn: boolean, role?: string): boolean =>
     : false;
 
 /**
- * A page component for editing an existing article.
- * It fetches the article data on load, allows the user to modify it,
- * and saves the changes to the backend.
+ * Page component for editing an existing article.
+ * Fetches article data on mount, provides a form for editing,
+ * and handles the update submission process.
  */
 const EditArticle: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -49,7 +57,6 @@ const EditArticle: React.FC = () => {
      * Loads the article data from the API based on the ID from the URL.
      * Validates the ID format and handles loading and error states.
      */
-    // Perbaiki fungsi loadArticle di EditArticle.tsx
     const loadArticle = async () => {
       if (!id) {
         setInitialLoadError("Article ID is missing.");
@@ -71,7 +78,6 @@ const EditArticle: React.FC = () => {
       try {
         const fetchedArticle = await articleApi.getArticleById(id);
 
-        // Pastikan coverImage memiliki format yang benar
         const formattedArticle = {
           ...fetchedArticle,
           coverImage: fetchedArticle.coverImage || "",
@@ -90,8 +96,8 @@ const EditArticle: React.FC = () => {
 
   /**
    * Handles the form submission to update the article.
-   * @param formData - The updated article data.
-   * @param file - An optional new image file for the article.
+   * @param {ArticleFormData} formData - The updated article data.
+   * @param {File | undefined} file - An optional new image file for the article.
    */
   const handleSubmit = async (formData: ArticleFormData, file?: File) => {
     if (!id) return;

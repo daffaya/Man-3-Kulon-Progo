@@ -1,10 +1,23 @@
-// frontend/src/components/layout/AdminHeader.tsx
+/**
+ * @fileoverview Admin header component with navigation and user profile functionality.
+ * This component provides a responsive header for the admin interface with a logo,
+ * notification indicator, theme toggle, and user profile dropdown. It adapts its
+ * appearance based on scroll position and includes a mobile menu for smaller screens.
+ */
+
 import React, { useState, useEffect, useRef } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { Bell, User, LogOut, Menu, ChevronDown, X } from "lucide-react";
 import ThemeToggle from "../ui/ThemeToggle";
 import { useAuth } from "../../contexts/AuthContext";
 
+/**
+ * Admin header component with navigation and user profile functionality.
+ * Provides a responsive header with logo, notifications, theme toggle, and user profile dropdown.
+ * Adapts appearance based on scroll position and includes a mobile menu.
+ *
+ * @returns {JSX.Element} The rendered admin header
+ */
 const AdminHeader: React.FC = () => {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isProfileDropdownOpen, setIsProfileDropdownOpen] = useState(false);
@@ -38,22 +51,36 @@ const AdminHeader: React.FC = () => {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
+  /**
+   * Gets the username from the user context or returns a default value
+   * @returns {string} The username to display
+   */
   const getUsername = (): string => {
     if (!user) return "Admin";
     return user.username || "Admin";
   };
 
+  /**
+   * Gets the user role from the user context or returns a default value
+   * @returns {string} The user role to display
+   */
   const getRole = (): string => {
     if (!user) return "Administrator";
     return user.role || "Administrator";
   };
 
+  /**
+   * Gets the user avatar URL from the user context
+   * @returns {string | null} The avatar URL or null if not available
+   */
   const getUserAvatar = (): string | null => {
     if (!user || !user.avatar) return null;
-    // URL sudah lengkap dari AuthContext
     return user.avatar;
   };
 
+  /**
+   * Handles user logout by calling the logout function and navigating to login
+   */
   const handleLogout = () => {
     logout();
     navigate("/login");

@@ -1,4 +1,10 @@
-// frontend/src/pages/admin/gallery/NewAlbumPage.tsx
+/**
+ * @fileoverview Page component for creating a new gallery album.
+ * This component provides a form interface for creating a new gallery album in the admin panel.
+ * It handles form submission, displays loading states, and navigates to the newly created
+ * album's photo management page upon successful creation.
+ */
+
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { ChevronLeft } from "lucide-react";
@@ -8,12 +14,24 @@ import { useGallery } from "../../../contexts/GalleryContext";
 import { useToastMessage } from "../../../hooks/useToastMessage";
 import { AlbumFormData } from "../../../types/galleryTypes";
 
+/**
+ * Page component for creating a new gallery album.
+ * Renders the AlbumForm, handles the submission process by calling the gallery context,
+ * provides user feedback through toast notifications, and redirects the user to the new
+ * album's page after successful creation.
+ */
 const NewAlbumPage: React.FC = () => {
   const { createAlbum } = useGallery();
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(false);
   const { showSuccessToast, showErrorToast } = useToastMessage();
 
+  /**
+   * Handles the form submission for creating a new album.
+   * Calls the createAlbum function from the gallery context, displays a success toast,
+   * and navigates to the new album's photo page. Errors are caught and displayed in an error toast.
+   * @param {AlbumFormData} formData - The data for the new album.
+   */
   const handleSubmit = async (formData: AlbumFormData) => {
     setIsLoading(true);
     try {
@@ -32,6 +50,9 @@ const NewAlbumPage: React.FC = () => {
     }
   };
 
+  /**
+   * Handles the cancel action by navigating back to the gallery list page.
+   */
   const handleCancel = () => {
     navigate("/atmin/gallery");
   };

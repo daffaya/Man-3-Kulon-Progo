@@ -1,4 +1,9 @@
-// src/pages/LoginPage.tsx
+/**
+ * @fileoverview LoginPage component for user authentication and redirect handling.
+ * This component provides a login interface for users, validates their credentials,
+ * and redirects authenticated users to their intended destination.
+ */
+
 import React, { useState } from "react";
 import { useNavigate, useLocation, Navigate } from "react-router-dom";
 import { useAuth } from "../../contexts/AuthContext";

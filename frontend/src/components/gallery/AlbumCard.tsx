@@ -1,4 +1,10 @@
-// frontend/src/components/gallery/AlbumCard.tsx
+/**
+ * @fileoverview React component for displaying an album in a card format.
+ * This component renders a card showing album information including title, cover image,
+ * photo count, and creation date. It can be used in both public and admin contexts,
+ * with different behaviors and options for each.
+ */
+
 import React from "react";
 import { Link } from "react-router-dom";
 import { Album } from "../../types/galleryTypes";
@@ -6,6 +12,15 @@ import { Calendar, Image, X, Settings } from "lucide-react";
 import { formatDate } from "../../lib/utils";
 import ImageWithFallback from "../ui/ImageWithFallback";
 
+/**
+ * Props for the AlbumCard component.
+ * @typedef {object} AlbumCardProps
+ * @property {Album} album - The album object containing album data
+ * @property {boolean} [showDescription=false] - Whether to display the album description
+ * @property {(id: string) => void} [onDelete] - Function to handle album deletion
+ * @property {boolean} [showDeleteButton=false] - Whether to show the delete button
+ * @property {boolean} [isAdmin=false] - Whether the card is displayed in admin context
+ */
 interface AlbumCardProps {
   album: Album;
   showDescription?: boolean;
@@ -13,13 +28,20 @@ interface AlbumCardProps {
   showDeleteButton?: boolean;
   isAdmin?: boolean; // Tambahkan prop untuk menentukan apakah ini untuk admin
 }
-
+/**
+ * React component for displaying an album in a card format.
+ * Shows album information including title, cover image, photo count, and creation date.
+ * Can be used in both public and admin contexts with different behaviors.
+ *
+ * @param {AlbumCardProps} props - The component props
+ * @returns {JSX.Element} The rendered AlbumCard component
+ */
 const AlbumCard: React.FC<AlbumCardProps> = ({
   album,
   showDescription = false,
   onDelete,
   showDeleteButton = false,
-  isAdmin = false, // Default false untuk public
+  isAdmin = false,
 }) => {
   const {
     id,
@@ -31,12 +53,10 @@ const AlbumCard: React.FC<AlbumCardProps> = ({
     created_at,
   } = album;
 
-  // Tentukan link berdasarkan apakah ini untuk admin atau public
   const albumLink = isAdmin ? `/atmin/gallery/${id}/photos` : `/galeri/${slug}`;
 
   return (
     <article className="bg-white dark:bg-semibackground rounded-xl shadow-md overflow-hidden transition-all duration-300 hover:shadow-lg hover:-translate-y-1 flex flex-col h-full relative">
-      {/* Delete button for admin */}
       {showDeleteButton && onDelete && (
         <button
           onClick={(e) => {

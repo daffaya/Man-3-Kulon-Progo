@@ -1,7 +1,17 @@
+/**
+ * @fileoverview KontakPage component for displaying contact information and location map.
+ * This component renders the school's contact details including address, phone, email,
+ * and WhatsApp number, along with an embedded Google Map showing the school's location.
+ */
+
 import React from "react";
 import Layout from "../components/layout/Layout";
 import { MapPin, Phone, Mail, MessageCircle } from "lucide-react";
 
+/**
+ * Array containing contact information items with their values and corresponding icons.
+ * Each item represents a different method of contacting the school.
+ */
 const CONTACT_INFO = [
   {
     value:
@@ -22,6 +32,11 @@ const CONTACT_INFO = [
   },
 ];
 
+/**
+ * Component that displays contact information and location map for MAN 3 Kulon Progo.
+ * Renders a list of contact details with appropriate icons and an embedded Google Map
+ * showing the school's physical location.
+ */
 const KontakPage: React.FC = () => {
   return (
     <Layout>

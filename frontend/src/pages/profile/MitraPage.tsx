@@ -1,6 +1,15 @@
+/**
+ * @fileoverview MitraPage component for displaying a list of MAN 3 Kulon Progo's partners.
+ * This component renders a table showing partner institutions, their types, and cooperation forms.
+ */
+
 import React from "react";
 import Layout from "../../components/layout/Layout";
 
+/**
+ * Interface defining the structure for partner data.
+ * @interface
+ */
 interface PartnerData {
   no: number;
   name: string;
@@ -8,6 +17,9 @@ interface PartnerData {
   cooperation: string;
 }
 
+/**
+ * Constant array containing partner data with their details.
+ */
 const PARTNER_LIST: PartnerData[] = [
   {
     no: 1,
@@ -120,6 +132,11 @@ const PARTNER_LIST: PartnerData[] = [
   },
 ];
 
+/**
+ * Component that displays a table of MAN 3 Kulon Progo's partners.
+ * Renders a responsive table with partner details including name, institution type,
+ * and form of cooperation.
+ */
 const MitraPage: React.FC = () => {
   return (
     <Layout>

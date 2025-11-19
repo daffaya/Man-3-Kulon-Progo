@@ -1,3 +1,9 @@
+/**
+ * @fileoverview SedumPage component for displaying the public complaint/suggestion service page.
+ * This component provides information about the school's public complaint service, including
+ * contact channels, FAQ section, and a form link for submitting complaints or suggestions.
+ */
+
 import React, { useState } from "react";
 import { Link } from "react-router-dom";
 import {
@@ -17,6 +23,10 @@ import {
 } from "lucide-react";
 import Layout from "../../components/layout/Layout";
 
+/**
+ * Component for displaying the public complaint/suggestion service page (Serapan Aduan Masyarakat).
+ * Provides information about the service, contact channels, FAQ, and a link to the complaint form.
+ */
 const SedumPage: React.FC = () => {
   const [openFaq, setOpenFaq] = useState<number | null>(null);
 

@@ -1,9 +1,22 @@
+/**
+ * @fileoverview VisiMisiPage component for displaying school vision, mission, goals, and strategies.
+ * This component renders the educational philosophy of MAN 3 Kulon Progo, including its vision,
+ * mission items, long-term and short-term goals, and implementation strategies.
+ */
+
 import React from "react";
 import Layout from "../../components/layout/Layout";
 
+/**
+ * The vision statement of the school, representing its core values and aspirations.
+ */
 const VISION =
   "ADILUHUNG (Agamis, Dinamis, Ilmiah, Terampil, Unggul) dan Berwawasan Lingkungan";
 
+/**
+ * Array of mission items, each containing a title and associated sub-items.
+ * Each mission item represents a core value of the school with specific objectives.
+ */
 const MISSION_ITEMS = [
   {
     title: "Agamis:",
@@ -45,9 +58,15 @@ const MISSION_ITEMS = [
   },
 ];
 
+/**
+ * The long-term goal of the school, representing its ultimate educational aspirations.
+ */
 const LONG_TERM_GOAL =
   "Menjadi madrasah yang berkualitas, bermartabat, memiliki keunggulan dan kompetensi serta berwawasan lingkungan.";
 
+/**
+ * Array of short-term goals that the school aims to achieve in the near future.
+ */
 const SHORT_TERM_GOALS = [
   "Dapat menjadi madrasah pilihan siswa lulusan SMP/MTs",
   "Dapat melaksanakan proses pembelajaran dengan lancar dan baik sesuai perkembangan dan tuntutan zaman",
@@ -55,6 +74,9 @@ const SHORT_TERM_GOALS = [
   "Dapat mencetak lulusan yang cerdas, beriman, bertaqwa, terampil dan islami",
 ];
 
+/**
+ * Array of strategies for implementing the school's vision and mission.
+ */
 const STRATEGIES = [
   "Sosialisasi visi misi ke seluruh civitas akademik, komite, orang tua/wali siswa dan lingkungan",
   "Meningkatkan koordinasi semua stakeholder dan pihak lain yang terkait",
@@ -68,6 +90,11 @@ const STRATEGIES = [
   "Melengkapi sarana dan prasarana pembelajaran sesuai perkembangan zaman",
 ];
 
+/**
+ * Component that renders a section with a title and a list of items.
+ * @param {string} title - The title of the section.
+ * @param {string[]} items - Array of items to be displayed in a list.
+ */
 const ListSection: React.FC<{ title: string; items: string[] }> = ({
   title,
   items,
@@ -82,6 +109,11 @@ const ListSection: React.FC<{ title: string; items: string[] }> = ({
   </div>
 );
 
+/**
+ * Component that displays the school's vision, mission, goals, and strategies.
+ * Renders multiple sections including the vision statement, mission items with sub-items,
+ * long-term and short-term goals, and implementation strategies.
+ */
 const VisiMisiPage: React.FC = () => {
   return (
     <Layout>

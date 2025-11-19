@@ -1,6 +1,16 @@
+/**
+ * @fileoverview SejarahPage component for displaying the school's history.
+ * This component renders a series of paragraphs detailing the historical development
+ * of MAN 3 Kulon Progo from its establishment to its current status.
+ */
+
 import React from "react";
 import Layout from "../../components/layout/Layout";
 
+/**
+ * Array containing paragraphs of the school's history in chronological order.
+ * Each paragraph details a significant period or event in the development of MAN 3 Kulon Progo.
+ */
 const SCHOOL_HISTORY = [
   "Sejarah berdirinya MAN 3 Kulon Progo tidak akan terlepas dari kondisi umat yang berada di wilayah Kulon Progo bagian utara, Kecamatan Nanggulan, Samigaluh dan Kalibawang merupakan home base bagi kaum non muslim, sehingga secara umum, pada daerah ini kaum non muslim relatif lebih banyak.",
   "Sebagai langkah antisipasi pada tahun 1984, Pengawas Pendidikan Islam di Kulon Progo Utara, Drs. Abdul Mukti bersama-sama dengan beberapa Tokoh dan Guru Agama Islam, seperti H. Muh. Karsidi (Penilik Guru Pendidikan Agama Islam Kalibawang), Drs. Muzilanto (SMP Muh. Kalibawang), S. Siswo Pranoto (Ka. SD. Dekso I), H.A. Priharsoyo (Guru SD Sokorini), H.Yasmin, B.A. (Ka. SD Muh. Bendo), Mujono (Kepala KUA Kecamatan Kalibawang), H. Mahmud (Staf KUA Kalibawang), H. Kasil Subekti, S.H. (Staf Kantor Kecamatan Kalibawang), berniat mendirikan Madrasah Aliyah. Pada saat itu Camat Kalibawang, Adam Nurjati menyetujui rencana pendirian Madrasah Aliyah di Kalibawang. Namun dengan catatan Madrasah Aliyah itu harus negeri.",
@@ -11,6 +21,10 @@ const SCHOOL_HISTORY = [
   "Adapun Pengembangan Bidang Keagamaan kini MAN 3 Kulon Progo telah berhasil mendirikan Boarding Madrasah dengan Program Unggulan Tahfidz dan Kajian Kitab.",
 ];
 
+/**
+ * Component that displays the history of MAN 3 Kulon Progo school.
+ * Renders a series of paragraphs detailing the school's establishment and development.
+ */
 const SejarahPage: React.FC = () => {
   return (
     <Layout>

@@ -1,4 +1,10 @@
-// src/pages/ArchiveManagementPage.tsx
+/**
+ * @fileoverview ArchiveManagementPage component for displaying and managing archive files.
+ * This component provides functionality to view, filter, download, edit, and delete archives.
+ * It displays different UI elements based on user roles, with admin/arsiparis users having
+ * additional permissions to modify archives.
+ */
+
 import React, { useState, useEffect } from "react";
 import { useAuth } from "../../contexts/AuthContext";
 import { File, LogIn, ArrowLeft, Plus } from "lucide-react";
@@ -18,11 +24,21 @@ import { useToast } from "../../contexts/ToastContext";
 
 export const ALLOWED_ROLES = ["arsiparis", "super_admin"] as const;
 
+/**
+ * Checks if the user has edit access based on their login status and role.
+ * @param {boolean} isLoggedIn - Whether the user is logged in.
+ * @param {string} [role] - The user's role.
+ * @returns {boolean} True if the user has edit access, false otherwise.
+ */
 const hasEditAccess = (isLoggedIn: boolean, role?: string): boolean =>
   isLoggedIn && role
     ? ALLOWED_ROLES.includes(role as (typeof ALLOWED_ROLES)[number])
     : false;
 
+/**
+ * Component that renders the archive management page with filtering, viewing,
+ * and CRUD operations for archive files. The UI adapts based on user permissions.
+ */
 const ArchiveManagementPage: React.FC = () => {
   const { isLoggedIn, user, token } = useAuth();
   const navigate = useNavigate();
@@ -64,6 +80,11 @@ const ArchiveManagementPage: React.FC = () => {
     loadArchives();
   }, [searchQuery, categoryId, showToast]);
 
+  /**
+   * Handles the download of an archive file.
+   * @param {number} id - The ID of the archive to download.
+   * @param {string} fileName - The name of the file to download.
+   */
   const handleDownloadClick = async (id: number, fileName: string) => {
     try {
       await downloadArchive(id, fileName);
@@ -72,6 +93,11 @@ const ArchiveManagementPage: React.FC = () => {
     }
   };
 
+  /**
+   * Handles navigation to the edit page for an archive.
+   * Checks user permissions before allowing edit access.
+   * @param {Archive} archive - The archive object to edit.
+   */
   const handleEditClick = (archive: Archive) => {
     if (!isAdminOrArsiparis) {
       showToast("Anda tidak memiliki akses untuk mengedit arsip", "error");
@@ -83,6 +109,11 @@ const ArchiveManagementPage: React.FC = () => {
     navigate(`/atmin/archives/:id/edit`, { state: { archive } });
   };
 
+  /**
+   * Handles the initiation of the delete process for an archive.
+   * Shows a confirmation dialog and checks user permissions.
+   * @param {number} id - The ID of the archive to delete.
+   */
   const handleDeleteClick = (id: number) => {
     if (!isAdminOrArsiparis) {
       showToast("Anda tidak memiliki akses untuk menghapus arsip", "error");
@@ -95,6 +126,9 @@ const ArchiveManagementPage: React.FC = () => {
     setShowConfirmation(true);
   };
 
+  /**
+   * Executes the actual deletion of an archive after confirmation.
+   */
   const confirmDelete = async () => {
     if (archiveToDelete === null) return;
     try {
@@ -111,6 +145,9 @@ const ArchiveManagementPage: React.FC = () => {
     }
   };
 
+  /**
+   * Cancels the delete operation and closes the confirmation dialog.
+   */
   const cancelDelete = () => {
     setShowConfirmation(false);
     setArchiveToDelete(null);

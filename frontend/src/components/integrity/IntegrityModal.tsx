@@ -1,6 +1,22 @@
-// src/components/integrity/IntegrityModal.tsx
+/**
+ * @fileoverview Modal component for displaying integrity details.
+ * This component renders a modal dialog that shows the title and description of an integrity item.
+ * It also includes a link to view a related document on Google Drive.
+ */
+
 import React from "react";
 import { X, ExternalLink } from "lucide-react";
+
+/**
+ * Props for the IntegrityModal component.
+ * @typedef {object} Props
+ * @property {number} id - The unique identifier for the integrity item, used for accessibility attributes.
+ * @property {string} title - The title of the integrity item to be displayed in the modal header.
+ * @property {string} description - The HTML content describing the integrity item.
+ * @property {string} driveUrl - The URL to the Google Drive document serving as proof of implementation.
+ * @property {boolean} isOpen - A boolean flag to control the visibility of the modal.
+ * @property {() => void} onClose - A function to be called when the modal is requested to be closed.
+ */
 
 interface Props {
   id: number;
@@ -11,6 +27,14 @@ interface Props {
   onClose: () => void;
 }
 
+/**
+ * A modal dialog component for displaying detailed information about an integrity item.
+ * It displays a title, a description rendered from an HTML string, and a link to an external document.
+ * The modal can be opened or closed based on the `isOpen` prop.
+ *
+ * @param {Props} props - The component props.
+ * @returns {JSX.Element | null} The rendered modal component, or null if it's not open.
+ */
 const IntegrityModal: React.FC<Props> = ({
   id,
   title,

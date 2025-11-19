@@ -1,3 +1,11 @@
+/**
+ * @fileoverview Article Management Page component for the admin panel.
+ * This component provides a comprehensive interface for managing articles, including viewing,
+ * filtering, searching, paginating, and deleting articles. It includes functionality for filtering
+ * by keywords, publication status, tags, and categories. The component also handles pagination
+ * and displays appropriate states for loading, empty results, and confirmation dialogs.
+ */
+
 import React, { useEffect, useState, useCallback } from "react";
 import { Link, Navigate, useNavigate } from "react-router-dom";
 import { Plus, RefreshCw, X, ArrowLeft } from "lucide-react";
@@ -8,7 +16,6 @@ import { ArticleFilters } from "../../../types/articleTypes";
 import { useToastMessage } from "../../../hooks/useToastMessage";
 import AdminLayout from "../../../components/layout/AdminLayout";
 
-/** Represents the filters currently applied to the article list. */
 interface AppliedFilters {
   keyword?: string;
   published?: boolean;
@@ -17,14 +24,13 @@ interface AppliedFilters {
   category?: string;
 }
 
-/** Roles that are permitted to access article management. */
 export const ALLOWED_ROLES = ["jurnalis", "super_admin"] as const;
 
 /**
  * Checks if a user has permission to manage articles based on their login status and role.
- * @param isLoggedIn - The user's login status.
- * @param role - The user's role.
- * @returns True if the user has management access, otherwise false.
+ * @param {boolean} isLoggedIn - The user's login status.
+ * @param {string | undefined} role - The user's role.
+ * @returns {boolean} True if the user has management access, otherwise false.
  */
 const hasEditAccess = (isLoggedIn: boolean, role?: string): boolean =>
   isLoggedIn && role
@@ -34,6 +40,8 @@ const hasEditAccess = (isLoggedIn: boolean, role?: string): boolean =>
 /**
  * A page component for managing articles in the admin panel.
  * It provides functionality to view, filter, paginate, and delete articles.
+ * The component handles authentication and authorization checks, ensuring only users
+ * with appropriate roles can access the article management features.
  */
 const ArticleManagementPage: React.FC = () => {
   const { state, deleteArticle, fetchAdminArticles, fetchAdminCategories } =
@@ -47,7 +55,6 @@ const ArticleManagementPage: React.FC = () => {
   const { isLoggedIn, user } = useAuth();
   const navigate = useNavigate();
 
-  // Redirect ke login jika belum login
   if (!isLoggedIn) {
     return (
       <Navigate to="/login" state={{ redirectTo: "/atmin/articles" }} replace />
@@ -56,7 +63,6 @@ const ArticleManagementPage: React.FC = () => {
 
   const isAdminOrJurnalist = hasEditAccess(isLoggedIn, user?.role);
 
-  // Jika user login tapi tidak memiliki role yang sesuai, redirect ke dashboard
   if (!isAdminOrJurnalist) {
     return <Navigate to="/atmin" replace />;
   }
@@ -74,7 +80,6 @@ const ArticleManagementPage: React.FC = () => {
   const articlesPerPage = 8;
   const [debouncedKeyword, setDebouncedKeyword] = useState("");
 
-  // Effect for debouncing the keyword input to reduce API calls
   useEffect(() => {
     const handler = setTimeout(() => {
       setDebouncedKeyword(keyword);
@@ -85,7 +90,6 @@ const ArticleManagementPage: React.FC = () => {
     };
   }, [keyword]);
 
-  // Effect to fetch articles and categories when filters or pagination change
   useEffect(() => {
     if (isLoggedIn && isAdminOrJurnalist) {
       const filtersWithPagination: ArticleFilters = {
@@ -107,19 +111,16 @@ const ArticleManagementPage: React.FC = () => {
     fetchAdminCategories,
   ]);
 
-  // Effect to automatically apply filters when any filter input changes
   useEffect(() => {
     handleApplyFilters();
   }, [debouncedKeyword, publishedStatus, selectedTags, selectedCategorySlug]);
 
-  /** Navigates to the previous page of articles. */
   const handlePreviousPage = () => {
     if (currentPage > 1) {
       setCurrentPage(currentPage - 1);
     }
   };
 
-  /** Navigates to the next page of articles. */
   const handleNextPage = () => {
     if (
       state.adminPagination &&
@@ -129,7 +130,6 @@ const ArticleManagementPage: React.FC = () => {
     }
   };
 
-  /** Constructs the filter object from input states and triggers a new search. */
   const handleApplyFilters = useCallback(() => {
     const filtersToApply: AppliedFilters = {
       keyword:
@@ -150,7 +150,6 @@ const ArticleManagementPage: React.FC = () => {
     setCurrentPage(1);
   }, [debouncedKeyword, publishedStatus, selectedTags, selectedCategorySlug]);
 
-  /** Resets all filter inputs to their default values. */
   const handleRemoveFilters = useCallback(() => {
     setKeyword("");
     setPublishedStatus("all");
@@ -159,12 +158,10 @@ const ArticleManagementPage: React.FC = () => {
     setSelectedCategorySlug("all");
   }, []);
 
-  /** Updates the keyword state on input change. */
   const handleKeywordInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setKeyword(e.target.value);
   };
 
-  /** Triggers filter application on Enter key press in the keyword input. */
   const handleKeywordInputKeyPress = (
     e: React.KeyboardEvent<HTMLInputElement>
   ) => {
@@ -174,7 +171,6 @@ const ArticleManagementPage: React.FC = () => {
     }
   };
 
-  /** Updates the published status state on selection change. */
   const handlePublishedStatusChange = (
     e: React.ChangeEvent<HTMLSelectElement>
   ) => {
@@ -186,12 +182,10 @@ const ArticleManagementPage: React.FC = () => {
     setPublishedStatus(newStatus);
   };
 
-  /** Updates the tag input state on change. */
   const handleTagInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setTagInput(e.target.value);
   };
 
-  /** Adds a tag to the selected list on Enter key press. */
   const handleTagInputKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === "Enter" && tagInput.trim() !== "") {
       e.preventDefault();
@@ -203,25 +197,21 @@ const ArticleManagementPage: React.FC = () => {
     }
   };
 
-  /** Removes a tag from the selected list. */
   const handleRemoveTag = (tagToRemove: string) => {
     const updatedTags = selectedTags.filter((tag) => tag !== tagToRemove);
     setSelectedTags(updatedTags);
   };
 
-  /** Updates the selected category state on selection change. */
   const handleCategoryChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const newCategorySlug = e.target.value;
     setSelectedCategorySlug(newCategorySlug);
   };
 
-  /** Sets the article to be deleted and shows the confirmation modal. */
   const handleDeleteClick = (id: string) => {
     setArticleToDelete(id);
     setShowConfirmation(true);
   };
 
-  /** Deletes the selected article and refreshes the list. */
   const confirmDelete = useCallback(async () => {
     if (articleToDelete) {
       try {
@@ -235,10 +225,8 @@ const ArticleManagementPage: React.FC = () => {
         setShowConfirmation(false);
         setArticleToDelete(null);
 
-        // Tampilkan toast sukses
         showSuccessToast("Artikel berhasil dihapus");
       } catch (error) {
-        // Tampilkan toast error jika terjadi kesalahan
         showErrorToast("Gagal menghapus artikel");
         console.error("Error deleting article:", error);
       }
@@ -254,7 +242,6 @@ const ArticleManagementPage: React.FC = () => {
     showErrorToast,
   ]);
 
-  /** Hides the delete confirmation modal. */
   const cancelDelete = () => {
     setShowConfirmation(false);
     setArticleToDelete(null);
@@ -340,7 +327,6 @@ const ArticleManagementPage: React.FC = () => {
           </h1>
 
           <div className="flex space-x-2">
-            {/* Tombol "Atur Kategori" */}
             <Link
               to="/atmin/category"
               className="btn btn-secondary flex items-center"
@@ -348,7 +334,6 @@ const ArticleManagementPage: React.FC = () => {
               Atur Kategori
             </Link>
 
-            {/* Tombol "Artikel Baru" */}
             <Link
               to="/atmin/articles/new"
               className="btn btn-primary flex items-center"

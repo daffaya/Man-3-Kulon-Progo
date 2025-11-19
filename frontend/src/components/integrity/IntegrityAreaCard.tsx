@@ -1,15 +1,33 @@
-// src/components/integrity/IntegrityAreaCard.tsx
+/**
+ * @fileoverview IntegrityAreaCard component for displaying a clickable card with an icon, title, and description.
+ */
+
 import React from "react";
 import { ChevronRight } from "lucide-react";
 
+/**
+ * Props for the IntegrityAreaCard component
+ */
 interface Props {
+  /** The unique identifier for the card. */
   id: number;
+  /** The main title displayed on the card. */
   title: string;
+  /** The descriptive text displayed below the title. */
   description: string;
-  icon: React.ReactNode; // Mengubah dari string ke React.ReactNode
+  /** The React element (icon) to be displayed on the card. */
+  icon: React.ReactNode;
+  /** The function to call when the card is clicked. */
   onClick: () => void;
 }
 
+/**
+ * IntegrityAreaCard component that renders a clickable card.
+ * It displays an icon, a title, a description, and a chevron icon.
+ *
+ * @param {Props} props - The component props.
+ * @returns {JSX.Element} The rendered card component.
+ */
 const IntegrityAreaCard: React.FC<Props> = ({
   id,
   title,
@@ -24,7 +42,6 @@ const IntegrityAreaCard: React.FC<Props> = ({
     >
       <div className="flex items-start">
         <div className="bg-accent/10 p-3 rounded-lg mr-4 flex-shrink-0">
-          {/* Render langsung ikon React dan berikan warna */}
           <div className="text-accent">{icon}</div>
         </div>
         <div className="flex-1">

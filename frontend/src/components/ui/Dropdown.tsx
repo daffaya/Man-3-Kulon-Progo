@@ -1,21 +1,45 @@
-// src/components/ui/Dropdown.tsx
+/**
+ * @fileoverview Reusable Dropdown component for navigation menus.
+ * This component renders a dropdown button with a list of navigation links.
+ * It supports both desktop and mobile layouts and uses a custom hook
+ * (`useDropdown`) to manage its open/close state and click-outside-to-close functionality.
+ */
+
 import React from "react";
 import { Link } from "react-router-dom";
 import { ChevronDown } from "lucide-react";
 import { useDropdown } from "../../hooks/useDropdown";
 
+/**
+ * Represents a single item within the dropdown menu.
+ */
 export type DropdownItem = {
+  /** The navigation path for the link. */
   to: string;
+  /** The display text for the link. */
   label: string;
 };
 
+/**
+ * Props for the Dropdown component.
+ */
 interface DropdownProps {
+  /** The text label for the dropdown button. */
   label: string;
+  /** The icon element to display next to the label. */
   icon: React.ReactNode;
+  /** An array of items to display in the dropdown menu. */
   items: DropdownItem[];
+  /** Optional flag to apply mobile-specific styles. */
   isMobile?: boolean;
 }
 
+/**
+ * A dropdown menu component that displays a list of navigation links.
+ * The component can toggle its visibility and has different styling
+ * for desktop and mobile views. It handles clicks outside to close the menu.
+ * @param {DropdownProps} props - The props for the component.
+ */
 export const Dropdown: React.FC<DropdownProps> = ({
   label,
   icon,

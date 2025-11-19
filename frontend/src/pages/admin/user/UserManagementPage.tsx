@@ -1,4 +1,9 @@
-// frontend/src/pages/admin/user/UserManagementPage.tsx
+/**
+ * @fileoverview User Management Page component for the admin panel.
+ * This component provides a comprehensive interface for managing system users.
+ * It includes functionality to view, search, filter, paginate, create, edit, and delete users.
+ * Access is restricted to users with the 'super_admin' role.
+ */
 
 import React, { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
@@ -11,6 +16,11 @@ import UserManagementForm from "../../../components/forms/auth/UserManagementFor
 import userApi from "../../../api/userApi";
 import { User, UserFormData } from "../../../types/userTypes";
 
+/**
+ * Component that renders the user management page for super admins.
+ * It handles user data fetching, client-side filtering, pagination, and CRUD operations.
+ * Displays a user table, a form for creating/editing users, and a delete confirmation modal.
+ */
 const UserManagementPage: React.FC = () => {
   const navigate = useNavigate();
   const { user, isLoggedIn } = useAuth();
@@ -31,7 +41,6 @@ const UserManagementPage: React.FC = () => {
 
   const usersPerPage = 10;
 
-  // Redirect if not super_admin
   useEffect(() => {
     if (!isLoggedIn) {
       navigate("/login", { state: { redirectTo: "/atmin/users" } });
@@ -47,13 +56,15 @@ const UserManagementPage: React.FC = () => {
     }
   }, [isLoggedIn, user, navigate, showToast]);
 
-  // Debounce search input
   useEffect(() => {
     const timer = setTimeout(() => setDebouncedKeyword(keyword), 400);
     return () => clearTimeout(timer);
   }, [keyword]);
 
-  // Fetch users with filters & pagination
+  /**
+   * Fetches all users from the API and applies client-side filtering and pagination.
+   * Updates the users state with the paginated and filtered results.
+   */
   const fetchUsers = useCallback(async () => {
     if (!isLoggedIn || user?.role !== "super_admin") return;
 
@@ -66,7 +77,6 @@ const UserManagementPage: React.FC = () => {
 
       let filtered = response.data;
 
-      // Apply search filter
       if (debouncedKeyword.trim()) {
         const term = debouncedKeyword.toLowerCase();
         filtered = filtered.filter(
@@ -76,12 +86,10 @@ const UserManagementPage: React.FC = () => {
         );
       }
 
-      // Apply role filter
       if (selectedRole !== "all") {
         filtered = filtered.filter((u: User) => u.role === selectedRole);
       }
 
-      // Pagination
       const total = Math.ceil(filtered.length / usersPerPage);
       setTotalPages(total || 1);
 
@@ -108,11 +116,15 @@ const UserManagementPage: React.FC = () => {
     fetchUsers();
   }, [fetchUsers]);
 
-  // Reset page on filter change
   useEffect(() => {
     setCurrentPage(1);
   }, [debouncedKeyword, selectedRole]);
 
+  /**
+   * Handles the creation of a new user.
+   * Sends user data to the API, shows a toast message, and refreshes the user list.
+   * @param {UserFormData} data - The data for the new user.
+   */
   const handleCreateUser = async (data: UserFormData) => {
     setFormLoading(true);
     try {
@@ -127,6 +139,11 @@ const UserManagementPage: React.FC = () => {
     }
   };
 
+  /**
+   * Handles the update of an existing user.
+   * Sends updated data to the API, shows a toast message, and refreshes the user list.
+   * @param {UserFormData} data - The updated user data.
+   */
   const handleUpdateUser = async (data: UserFormData) => {
     if (!editingUser) return;
     setFormLoading(true);
@@ -143,11 +160,19 @@ const UserManagementPage: React.FC = () => {
     }
   };
 
+  /**
+   * Sets the user to be deleted and shows the confirmation modal.
+   * @param {number} id - The ID of the user to delete.
+   */
   const handleDeleteClick = (id: number) => {
     setUserToDelete(id);
     setShowConfirmation(true);
   };
 
+  /**
+   * Confirms and performs the deletion of a user.
+   * Sends a delete request to the API and refreshes the user list on success.
+   */
   const confirmDelete = async () => {
     if (!userToDelete) return;
     try {
@@ -161,21 +186,34 @@ const UserManagementPage: React.FC = () => {
     }
   };
 
+  /**
+   * Opens the user form in edit mode with the selected user's data.
+   * @param {User} user - The user object to edit.
+   */
   const handleEditUser = (user: User) => {
     setEditingUser(user);
     setShowForm(true);
   };
 
+  /**
+   * Opens the user form in create mode.
+   */
   const handleAddUser = () => {
     setEditingUser(null);
     setShowForm(true);
   };
 
+  /**
+   * Closes the user form and resets the editing state.
+   */
   const handleCancelForm = () => {
     setShowForm(false);
     setEditingUser(null);
   };
 
+  /**
+   * Resets all active filters to their default state.
+   */
   const resetFilters = () => {
     setKeyword("");
     setSelectedRole("all");
@@ -184,7 +222,6 @@ const UserManagementPage: React.FC = () => {
 
   const hasActiveFilters = keyword.trim() || selectedRole !== "all";
 
-  // Empty state: no users at all
   if (!loading && users.length === 0 && !hasActiveFilters) {
     return (
       <AdminLayout>
@@ -207,7 +244,6 @@ const UserManagementPage: React.FC = () => {
     );
   }
 
-  // Empty state: filtered results
   if (!loading && users.length === 0 && hasActiveFilters) {
     return (
       <AdminLayout>
@@ -255,7 +291,6 @@ const UserManagementPage: React.FC = () => {
         </div>
 
         <div className="card p-6">
-          {/* Filters */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
             <div>
               <label
@@ -312,7 +347,6 @@ const UserManagementPage: React.FC = () => {
             </div>
           )}
 
-          {/* Loading State */}
           {loading ? (
             <div className="text-center py-12">
               <RefreshCw className="h-8 w-8 text-accent animate-spin mx-auto mb-3" />
@@ -327,7 +361,6 @@ const UserManagementPage: React.FC = () => {
                 loading={loading}
               />
 
-              {/* Pagination */}
               {totalPages > 1 && (
                 <div className="flex items-center justify-center gap-3 mt-6">
                   <button
@@ -359,7 +392,6 @@ const UserManagementPage: React.FC = () => {
         </div>
       </div>
 
-      {/* Form Modal */}
       {showForm && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
           <div className="card max-w-lg w-full max-h-[90vh] overflow-y-auto p-6">
@@ -373,7 +405,6 @@ const UserManagementPage: React.FC = () => {
         </div>
       )}
 
-      {/* Delete Confirmation */}
       {showConfirmation && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
           <div className="card p-6 max-w-sm w-full">

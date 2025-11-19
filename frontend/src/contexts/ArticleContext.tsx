@@ -1,4 +1,9 @@
-// frontend/src/contexts/ArticleContext.tsx
+/**
+ * @fileoverview ArticleContext for managing article, category, and tag data.
+ * This context provides state management and API interactions for articles, categories,
+ * and tags throughout the application. It handles both public and admin data with
+ * appropriate permissions and includes pagination support.
+ */
 
 import React, {
   createContext,
@@ -17,7 +22,7 @@ import {
   ArticleFilters,
   PaginationData,
 } from "../types/articleTypes";
-import { useAuth } from "./AuthContext"; // Tambahkan import ini
+import { useAuth } from "./AuthContext";
 
 /**
  * Represents the state structure for articles, categories, tags, loading states, errors, and pagination.
@@ -301,7 +306,7 @@ export const ArticleProvider: React.FC<{ children: React.ReactNode }> = ({
   children,
 }) => {
   const [state, dispatch] = useReducer(articleReducer, initialState);
-  const { user } = useAuth(); // Tambahkan ini
+  const { user } = useAuth();
 
   /**
    * Fetches public articles from the API with optional filters.
@@ -558,7 +563,7 @@ export const ArticleProvider: React.FC<{ children: React.ReactNode }> = ({
         throw error;
       }
     },
-    [user] // Tambahkan dependency
+    [user]
   );
 
   /**
@@ -604,7 +609,7 @@ export const ArticleProvider: React.FC<{ children: React.ReactNode }> = ({
         throw error;
       }
     },
-    [user] // Tambahkan dependency
+    [user]
   );
 
   /**

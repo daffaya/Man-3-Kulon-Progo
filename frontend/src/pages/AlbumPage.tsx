@@ -1,4 +1,10 @@
-// frontend/src/pages/AlbumPage.tsx
+/**
+ * @fileoverview AlbumPage component for displaying a photo album from the gallery.
+ * This component renders a detailed view of a photo album with its cover image, metadata,
+ * and a grid of photos. It includes functionality for viewing photos in a lightbox,
+ * sharing the album, and copying links.
+ */
+
 import React, { useEffect, useState } from "react";
 import { useParams, Link } from "react-router-dom";
 import { useGallery } from "../contexts/GalleryContext";
@@ -19,6 +25,11 @@ import { formatDate } from "../lib/utils";
 import Layout from "../components/layout/Layout";
 import ImageWithFallback from "../components/ui/ImageWithFallback";
 
+/**
+ * Component that renders a detailed view of a photo album from the gallery.
+ * It displays the album's cover image, metadata, and a grid of photos with lightbox functionality.
+ * Also includes features for sharing the album and copying links.
+ */
 const AlbumPage: React.FC = () => {
   const { slug } = useParams<{ slug: string }>();
   const { state, fetchPublicAlbumById, clearCurrentAlbum } = useGallery();
@@ -46,21 +57,35 @@ const AlbumPage: React.FC = () => {
     }
   }, [currentAlbum]);
 
+  /**
+   * Opens the lightbox at the specified photo index.
+   * @param {any} photo - The photo object that was clicked.
+   * @param {number} index - The index of the photo in the photos array.
+   */
   const handlePhotoClick = (photo: any, index: number) => {
     setCurrentPhotoIndex(index);
     setLightboxOpen(true);
   };
 
+  /**
+   * Navigates to the previous photo in the lightbox.
+   */
   const handlePrevious = () => {
     setCurrentPhotoIndex((prev) => Math.max(0, prev - 1));
   };
 
+  /**
+   * Navigates to the next photo in the lightbox.
+   */
   const handleNext = () => {
     setCurrentPhotoIndex((prev) =>
       Math.min(currentPhotos.length - 1, prev + 1)
     );
   };
 
+  /**
+   * Copies the current album URL to the clipboard.
+   */
   const handleCopyLink = async () => {
     try {
       await navigator.clipboard.writeText(window.location.href);
@@ -70,11 +95,17 @@ const AlbumPage: React.FC = () => {
     }
   };
 
+  /**
+   * Opens WhatsApp with a pre-filled message to share the album.
+   */
   const handleShareWhatsApp = () => {
     const text = `Lihat album foto ${currentAlbum?.title} di MAN 3 Kulon Progo: ${window.location.href}`;
     window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, "_blank");
   };
 
+  /**
+   * Toggles the like status of the album and shows a toast notification.
+   */
   const handleLike = () => {
     setIsLiked(!isLiked);
     showSuccessToast(
@@ -82,6 +113,9 @@ const AlbumPage: React.FC = () => {
     );
   };
 
+  /**
+   * Shows a toast notification indicating the download feature is coming soon.
+   */
   const handleDownload = () => {
     showSuccessToast("Fitur unduh akan segera tersedia");
   };

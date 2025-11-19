@@ -1,3 +1,10 @@
+/**
+ * @fileoverview Page component for creating a new article.
+ * This component provides a form interface for users to create and submit new articles.
+ * It handles the submission process, displays loading states, and shows toast notifications
+ * for success or error feedback before navigating back to the articles list.
+ */
+
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { ChevronLeft } from "lucide-react";
@@ -9,7 +16,8 @@ import { useToastMessage } from "../../../hooks/useToastMessage";
 
 /**
  * Page component for creating a new article.
- * Handles article submission and displays toast notifications for success or error.
+ * Renders a form for article creation and handles the submission logic,
+ * including loading states and user feedback via toast notifications.
  */
 const NewArticlePage: React.FC = () => {
   const { createArticle } = useArticles();
@@ -18,9 +26,11 @@ const NewArticlePage: React.FC = () => {
   const { showSuccessToast, showErrorToast } = useToastMessage();
 
   /**
-   * Handle article form submission.
-   * @param formData Data from the article form
-   * @param file Optional file attachment
+   * Handles the submission of the article creation form.
+   * Calls the createArticle function, shows appropriate toast notifications,
+   * and navigates back to the articles list upon success.
+   * @param {ArticleFormData} formData - The data from the article form.
+   * @param {File} [file] - An optional image file for the article cover.
    */
   const handleSubmit = async (formData: ArticleFormData, file?: File) => {
     setIsLoading(true);

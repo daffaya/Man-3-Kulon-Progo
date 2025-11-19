@@ -1,20 +1,52 @@
+/**
+ * @fileoverview React component for managing student attendance.
+ * This component provides a form interface for teachers to record daily attendance
+ * for students in different classes. It allows selecting a class and date,
+ * then marking attendance status (present, excused, sick, absent) for each student.
+ */
+
 import { useEffect, useState } from "react";
 import { useAuth } from "../../contexts/AuthContext";
 import { useToastMessage } from "../../hooks/useToastMessage";
 
-// Tambahkan interface untuk tipe data
+/**
+ * Interface representing a student object
+ * @interface Student
+ * @property {number} id - The unique identifier for the student
+ * @property {string} nisn - The student's national identification number
+ * @property {string} name - The student's full name
+ */
 interface Student {
   id: number;
   nisn: string;
   name: string;
 }
 
+/**
+ * Interface representing an attendance record
+ * @interface Attendance
+ * @property {number} studentId - The ID of the student
+ * @property {"hadir"|"izin"|"sakit"|"alpa"} status - The attendance status (present, excused, sick, absent)
+ * @property {string} notes - Additional notes about the attendance
+ */
 interface Attendance {
   studentId: number;
   status: "hadir" | "izin" | "sakit" | "alpa";
   notes: string;
 }
+/**
+ * Interface representing a class object
+ * @interface Class
+ * @property {number} id - The unique identifier for the class
+ * @property {string} name - The name of the class
+ */
 
+/**
+ * Component for managing student attendance.
+ * Provides a form interface for teachers to record daily attendance for students.
+ *
+ * @returns {JSX.Element} The rendered AttendanceForm component
+ */
 const AttendanceForm = () => {
   const { user } = useAuth();
   const { showErrorToast, showSuccessToast, showWarningToast } =
@@ -23,13 +55,14 @@ const AttendanceForm = () => {
   const [selectedDate, setSelectedDate] = useState(
     new Date().toISOString().split("T")[0]
   );
-
-  // Tambahkan tipe data untuk state
   const [students, setStudents] = useState<Student[]>([]);
   const [attendances, setAttendances] = useState<Attendance[]>([]);
   const [classes, setClasses] = useState<{ id: number; name: string }[]>([]);
   const [isLoading, setIsLoading] = useState(false);
 
+  /**
+   * Fetches the list of classes when the component mounts
+   */
   useEffect(() => {
     fetch("/api/classes")
       .then((res) => res.json())
@@ -39,6 +72,9 @@ const AttendanceForm = () => {
       });
   }, []);
 
+  /**
+   * Fetches students for the selected class and initializes attendance records
+   */
   useEffect(() => {
     if (selectedClass) {
       setIsLoading(true);
@@ -61,8 +97,10 @@ const AttendanceForm = () => {
     }
   }, [selectedClass]);
 
+  /**
+   * Handles form submission to save attendance records
+   */
   const handleSubmit = async () => {
-    // Validasi sebelum API call
     if (!selectedClass || !selectedDate) {
       showWarningToast("Pilih kelas dan tanggal");
       return;
@@ -86,7 +124,6 @@ const AttendanceForm = () => {
 
       showSuccessToast("Presensi berhasil disimpan");
 
-      // Reset form setelah berhasil
       setSelectedClass("");
       setStudents([]);
       setAttendances([]);

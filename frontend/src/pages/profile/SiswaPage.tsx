@@ -1,12 +1,33 @@
+/**
+ * @fileoverview SiswaPage component for displaying student data in a tabular format.
+ * This component renders a recapitulation table of students organized by class levels,
+ * showing the distribution of male and female students for each class.
+ */
+
 import React from "react";
 import Layout from "../../components/layout/Layout";
 
+/**
+ * Interface defining the structure of staff/student data.
+ * @interface StaffData
+ * @property {string} status - The class or category name
+ * @property {number} male - Number of male students
+ * @property {number} female - Number of female students
+ */
 interface StaffData {
   status: string;
   male: number;
   female: number;
 }
 
+/**
+ * Props interface for the RecapTable component.
+ * @interface RecapTableProps
+ * @property {string} title - The title of the table
+ * @property {string} tahunAjaran - The academic year
+ * @property {StaffData[]} data - Array of student data to display
+ * @property {string} totalLabel - Label for the total row
+ */
 interface RecapTableProps {
   title: string;
   tahunAjaran: string;
@@ -14,19 +35,27 @@ interface RecapTableProps {
   totalLabel: string;
 }
 
+/**
+ * Array containing student data organized by class levels.
+ */
 const STUDENT_RECAP: StaffData[] = [
   { status: "Kelas X", male: 132, female: 263 },
   { status: "Kelas XI", male: 134, female: 189 },
   { status: "Kelas XII", male: 122, female: 221 },
 ];
 
+/**
+ * Component that renders a table displaying student data by class.
+ * Calculates totals dynamically and displays them in a summary row.
+ * @param {RecapTableProps} props - Component props
+ * @returns {JSX.Element} The rendered table component
+ */
 const RecapTable: React.FC<RecapTableProps> = ({
   title,
   tahunAjaran,
   data,
   totalLabel,
 }) => {
-  // Calculate totals dynamically
   const totalMale = data.reduce((sum, row) => sum + row.male, 0);
   const totalFemale = data.reduce((sum, row) => sum + row.female, 0);
   const total = totalMale + totalFemale;
@@ -92,7 +121,6 @@ const RecapTable: React.FC<RecapTableProps> = ({
                 </td>
               </tr>
             ))}
-            {/* Total row with merged cells */}
             <tr className="font-bold bg-blue-50 dark:bg-blue-900/30">
               <td className="border border-gray-300 dark:border-gray-600 px-4 py-3">
                 {totalLabel}
@@ -111,6 +139,11 @@ const RecapTable: React.FC<RecapTableProps> = ({
   );
 };
 
+/**
+ * Main component for the Siswa (Student) page.
+ * Displays a page with student data recapitulation organized by class levels.
+ * @returns {JSX.Element} The rendered SiswaPage component
+ */
 const SiswaPage: React.FC = () => {
   return (
     <Layout>

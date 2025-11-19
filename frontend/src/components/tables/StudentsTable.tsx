@@ -1,4 +1,9 @@
-// src/components/tables/StudentsTable.tsx
+/**
+ * @fileoverview StudentsTable component for displaying student data in a tabular format.
+ * This component renders a table with student information and provides action buttons for editing,
+ * deleting, and moving students between classes based on user permissions.
+ */
+
 import React from "react";
 import { Student } from "../../types/studentTypes";
 import { Edit, Trash2, Users, RefreshCw } from "lucide-react";
@@ -14,6 +19,14 @@ interface StudentsTableProps {
   itemsPerPage?: number;
 }
 
+/**
+ * StudentsTable component that displays student information in a table format.
+ * Shows a loading spinner while data is being fetched and provides action buttons
+ * for editing, deleting, and moving students between classes based on permissions.
+ *
+ * @param {StudentsTableProps} props - The component props
+ * @returns {JSX.Element} The rendered table component
+ */
 const StudentsTable: React.FC<StudentsTableProps> = ({
   students,
   onEdit,
@@ -24,6 +37,11 @@ const StudentsTable: React.FC<StudentsTableProps> = ({
   currentPage = 1,
   itemsPerPage = 30,
 }) => {
+  /**
+   * Returns a status badge component based on the active status of a student
+   * @param {boolean} isActive - Whether the student is active
+   * @returns {JSX.Element} The status badge component
+   */
   const getStatusBadge = (isActive: boolean) => (
     <span
       className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${

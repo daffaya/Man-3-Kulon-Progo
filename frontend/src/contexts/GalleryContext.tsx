@@ -1,4 +1,10 @@
-// frontend/src/contexts/GalleryContext.tsx
+/**
+ * @fileoverview Gallery context provider for managing gallery-related state and operations.
+ * This context provides centralized state management for albums and photos, including
+ * CRUD operations, pagination, and loading states. It separates public and admin
+ * gallery data and provides methods for managing both.
+ */
+
 import React, {
   createContext,
   useContext,
@@ -16,6 +22,10 @@ import {
   PaginationData,
 } from "../types/galleryTypes";
 
+/**
+ * Interface defining the shape of the gallery context.
+ * Includes state properties and action methods for gallery management.
+ */
 interface GalleryContextType {
   // State
   state: {
@@ -64,6 +74,11 @@ interface GalleryProviderProps {
   children: ReactNode;
 }
 
+/**
+ * Provider component that manages gallery state and provides gallery-related actions.
+ * Handles both public and admin gallery data with separate states and pagination.
+ * @param {ReactNode} children - Child components that will have access to the gallery context
+ */
 export const GalleryProvider: React.FC<GalleryProviderProps> = ({
   children,
 }) => {
@@ -89,6 +104,11 @@ export const GalleryProvider: React.FC<GalleryProviderProps> = ({
     },
   });
 
+  /**
+   * Fetches public albums with optional filters.
+   * Updates the albums state and pagination information.
+   * @param {GalleryFilters} filters - Optional filters for pagination and search
+   */
   const fetchAlbums = useCallback(
     async (filters: GalleryFilters = {}) => {
       setState((prev) => ({ ...prev, loading: true, error: null }));
@@ -123,6 +143,11 @@ export const GalleryProvider: React.FC<GalleryProviderProps> = ({
     [state.publicPagination.currentPage, state.publicPagination.albumsPerPage]
   );
 
+  /**
+   * Fetches admin albums with optional filters.
+   * Updates the adminAlbums state and pagination information.
+   * @param {GalleryFilters} filters - Optional filters for pagination and search
+   */
   const fetchAdminAlbums = useCallback(
     async (filters: GalleryFilters = {}) => {
       setState((prev) => ({ ...prev, adminLoading: true, error: null }));
@@ -157,6 +182,11 @@ export const GalleryProvider: React.FC<GalleryProviderProps> = ({
     [state.adminPagination.currentPage, state.adminPagination.albumsPerPage]
   );
 
+  /**
+   * Fetches a specific album by ID for admin view.
+   * Updates the currentAlbum and currentPhotos state.
+   * @param {string} id - The ID of the album to fetch
+   */
   const fetchAlbumById = useCallback(async (id: string) => {
     setState((prev) => ({ ...prev, loading: true, error: null }));
 
@@ -177,6 +207,11 @@ export const GalleryProvider: React.FC<GalleryProviderProps> = ({
     }
   }, []);
 
+  /**
+   * Fetches a specific public album by ID.
+   * Updates the currentAlbum and currentPhotos state.
+   * @param {string} id - The ID of the album to fetch
+   */
   const fetchPublicAlbumById = useCallback(async (id: string) => {
     setState((prev) => ({ ...prev, loading: true, error: null }));
 
@@ -197,17 +232,20 @@ export const GalleryProvider: React.FC<GalleryProviderProps> = ({
     }
   }, []);
 
+  /**
+   * Creates a new album with the provided data.
+   * @param {AlbumFormData} albumData - The data for the new album
+   * @returns {Promise<string>} The ID of the created album
+   */
   const createAlbum = useCallback(
     async (albumData: AlbumFormData): Promise<string> => {
-      // Ubah return type ke Promise<string>
       setState((prev) => ({ ...prev, loading: true, error: null }));
 
       try {
-        const newAlbum = await galleryApi.createAlbum(albumData); // Tangkap response
+        const newAlbum = await galleryApi.createAlbum(albumData);
         setState((prev) => ({ ...prev, loading: false }));
-        // Refresh the albums list
         await fetchAdminAlbums();
-        return newAlbum.id; // Kembalikan ID album
+        return newAlbum.id;
       } catch (error) {
         setState((prev) => ({
           ...prev,
@@ -221,6 +259,11 @@ export const GalleryProvider: React.FC<GalleryProviderProps> = ({
     [fetchAdminAlbums]
   );
 
+  /**
+   * Updates an existing album with new data.
+   * @param {string} id - The ID of the album to update
+   * @param {AlbumFormData} albumData - The new data for the album
+   */
   const updateAlbum = useCallback(
     async (id: string, albumData: AlbumFormData) => {
       setState((prev) => ({ ...prev, loading: true, error: null }));
@@ -228,7 +271,6 @@ export const GalleryProvider: React.FC<GalleryProviderProps> = ({
       try {
         await galleryApi.updateAlbum(id, albumData);
         setState((prev) => ({ ...prev, loading: false }));
-        // Refresh the albums list
         await fetchAdminAlbums();
       } catch (error) {
         setState((prev) => ({
@@ -243,6 +285,10 @@ export const GalleryProvider: React.FC<GalleryProviderProps> = ({
     [fetchAdminAlbums]
   );
 
+  /**
+   * Deletes an album by ID.
+   * @param {string} id - The ID of the album to delete
+   */
   const deleteAlbum = useCallback(
     async (id: string) => {
       setState((prev) => ({ ...prev, loading: true, error: null }));
@@ -250,7 +296,6 @@ export const GalleryProvider: React.FC<GalleryProviderProps> = ({
       try {
         await galleryApi.deleteAlbum(id);
         setState((prev) => ({ ...prev, loading: false }));
-        // Refresh the albums list
         await fetchAdminAlbums();
       } catch (error) {
         setState((prev) => ({
@@ -265,35 +310,27 @@ export const GalleryProvider: React.FC<GalleryProviderProps> = ({
     [fetchAdminAlbums]
   );
 
+  /**
+   * Uploads photos to a specific album.
+   * Refreshes the current album data after successful upload.
+   * @param {string} albumId - The ID of the album to upload photos to
+   * @param {File[]} files - The files to upload
+   */
   const uploadPhotos = useCallback(
     async (albumId: string, files: File[]) => {
-      console.log(
-        "GalleryContext uploadPhotos called with albumId:",
-        albumId,
-        "files:",
-        files
-      );
       setState((prev) => ({ ...prev, loading: true, error: null }));
 
       try {
-        console.log("Calling galleryApi.uploadPhotos...");
         await galleryApi.uploadPhotos(albumId, files);
-        console.log("galleryApi.uploadPhotos completed successfully");
 
-        // Tambahkan cache busting timestamp untuk memastikan gambar baru dimuat
         const timestamp = new Date().getTime();
 
-        // Refresh the current album dengan parameter timestamp
         if (state.currentAlbum?.id === albumId) {
-          console.log("Refreshing current album...");
           await fetchAlbumById(albumId);
-          console.log("Current album refreshed");
 
-          // Tambahkan refresh untuk memastikan state terupdate
           setState((prev) => ({
             ...prev,
             loading: false,
-            // Tambahkan timestamp untuk memaksa re-render
             currentAlbum: prev.currentAlbum
               ? {
                   ...prev.currentAlbum,
@@ -305,7 +342,6 @@ export const GalleryProvider: React.FC<GalleryProviderProps> = ({
           setState((prev) => ({ ...prev, loading: false }));
         }
       } catch (error) {
-        console.error("Error in uploadPhotos:", error);
         setState((prev) => ({
           ...prev,
           loading: false,
@@ -318,6 +354,11 @@ export const GalleryProvider: React.FC<GalleryProviderProps> = ({
     [fetchAlbumById, state.currentAlbum?.id]
   );
 
+  /**
+   * Sets a photo as the album cover.
+   * @param {string} albumId - The ID of the album
+   * @param {string} photoId - The ID of the photo to set as cover
+   */
   const setAlbumCover = useCallback(
     async (albumId: string, photoId: string) => {
       setState((prev) => ({ ...prev, loading: true, error: null }));
@@ -325,7 +366,6 @@ export const GalleryProvider: React.FC<GalleryProviderProps> = ({
       try {
         await galleryApi.setAlbumCover(albumId, photoId);
         setState((prev) => ({ ...prev, loading: false }));
-        // Refresh the current album
         if (state.currentAlbum?.id === albumId) {
           await fetchAlbumById(albumId);
         }
@@ -344,6 +384,11 @@ export const GalleryProvider: React.FC<GalleryProviderProps> = ({
     [fetchAlbumById, state.currentAlbum?.id]
   );
 
+  /**
+   * Updates the order of photos in an album.
+   * @param {string} albumId - The ID of the album
+   * @param {Array} photoOrders - Array of photo IDs with their new order
+   */
   const updatePhotoOrder = useCallback(
     async (albumId: string, photoOrders: { id: string; order: number }[]) => {
       setState((prev) => ({ ...prev, loading: true, error: null }));
@@ -351,7 +396,6 @@ export const GalleryProvider: React.FC<GalleryProviderProps> = ({
       try {
         await galleryApi.updatePhotoOrder(albumId, photoOrders);
         setState((prev) => ({ ...prev, loading: false }));
-        // Refresh the current album
         if (state.currentAlbum?.id === albumId) {
           await fetchAlbumById(albumId);
         }
@@ -370,6 +414,11 @@ export const GalleryProvider: React.FC<GalleryProviderProps> = ({
     [fetchAlbumById, state.currentAlbum?.id]
   );
 
+  /**
+   * Deletes a photo by ID.
+   * Refreshes the current album data after successful deletion.
+   * @param {string} id - The ID of the photo to delete
+   */
   const deletePhoto = useCallback(
     async (id: string) => {
       setState((prev) => ({ ...prev, loading: true, error: null }));
@@ -377,7 +426,6 @@ export const GalleryProvider: React.FC<GalleryProviderProps> = ({
       try {
         await galleryApi.deletePhoto(id);
         setState((prev) => ({ ...prev, loading: false }));
-        // Refresh the current album
         if (state.currentAlbum) {
           await fetchAlbumById(state.currentAlbum.id);
         }
@@ -394,6 +442,9 @@ export const GalleryProvider: React.FC<GalleryProviderProps> = ({
     [fetchAlbumById, state.currentAlbum]
   );
 
+  /**
+   * Clears the current album and photos state.
+   */
   const clearCurrentAlbum = useCallback(() => {
     setState((prev) => ({
       ...prev,
@@ -423,6 +474,11 @@ export const GalleryProvider: React.FC<GalleryProviderProps> = ({
   );
 };
 
+/**
+ * Hook to access the gallery context.
+ * Throws an error if used outside of a GalleryProvider.
+ * @returns {GalleryContextType} The gallery context value
+ */
 export const useGallery = () => {
   const context = useContext(GalleryContext);
   if (!context) {

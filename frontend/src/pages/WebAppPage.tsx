@@ -1,4 +1,9 @@
-// frontend/src/pages/WebAppPage.tsx
+/**
+ * @fileoverview WebAppPage component for displaying school applications.
+ * This component renders a grid of application cards that users can access.
+ * It handles both internal navigation and external links, with role-based access control.
+ */
+
 import React from "react";
 import { useNavigate } from "react-router-dom";
 import Layout from "../components/layout/Layout";
@@ -8,6 +13,16 @@ import { useAuth } from "../contexts/AuthContext";
 import { useToastMessage } from "../hooks/useToastMessage";
 import type { UserRole } from "../types/userTypes";
 
+/**
+ * Interface defining the structure of an application item.
+ * @interface AppItem
+ * @property {string} id - Unique identifier for the app
+ * @property {string} title - Display title of the app
+ * @property {string} description - Brief description of the app's functionality
+ * @property {React.ReactNode} icon - Icon component to display for the app
+ * @property {string | string[]} requiredRole - Role(s) required to access the app
+ * @property {string} to - Navigation path or external URL
+ */
 interface AppItem {
   id: string;
   title: string;
@@ -17,11 +32,20 @@ interface AppItem {
   to: string;
 }
 
+/**
+ * Component that displays a grid of school applications.
+ * Provides access to various school management applications with role-based access control.
+ * Handles both internal navigation and external links appropriately.
+ */
 const WebAppPage: React.FC = () => {
   const { isLoggedIn } = useAuth();
   const { showInfoToast } = useToastMessage();
   const navigate = useNavigate();
 
+  /**
+   * Array of available applications with their properties.
+   * Each app has specific role requirements and navigation targets.
+   */
   const apps: AppItem[] = [
     {
       id: "articles",
@@ -89,6 +113,11 @@ const WebAppPage: React.FC = () => {
     },
   ];
 
+  /**
+   * Handles click events on application cards.
+   * For external links, opens in a new tab. For internal routes, checks login status.
+   * @param app - The application item that was clicked
+   */
   const handleAppClick = (app: AppItem) => {
     if (app.to.startsWith("http")) {
       window.open(app.to, "_blank");

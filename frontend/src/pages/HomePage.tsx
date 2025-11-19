@@ -1,3 +1,9 @@
+/**
+ * @fileoverview HomePage component for displaying the main landing page of the MAN 3 Kulon Progo website.
+ * This component renders various sections including carousel, hero, statistics, school information,
+ * integrity zone, featured articles, achievements, photo gallery, public complaint service, and quick actions.
+ */
+
 import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import {
@@ -25,6 +31,10 @@ import AlbumCard from "../components/gallery/AlbumCard";
 import { Article, Category } from "../types/articleTypes";
 import { useStudentStats } from "../contexts/StudentStatsContext";
 
+/**
+ * Main home page component that displays various sections of the school website.
+ * Fetches and displays articles, albums, and student statistics.
+ */
 const HomePage: React.FC = () => {
   const { state, fetchArticles } = useArticles();
   const { articles, loading } = state;
@@ -40,9 +50,6 @@ const HomePage: React.FC = () => {
   }, [fetchArticles, fetchAlbums]);
 
   useEffect(() => {
-    fetchArticles({ limit: 10 });
-    fetchAlbums({ limit: 6 });
-
     // Fetch kategori untuk mendapatkan ID kategori "Prestasi"
     const fetchPrestasiArticles = async () => {
       try {
@@ -92,6 +99,10 @@ const HomePage: React.FC = () => {
   const featuredArticles = articles.filter((article) => article.featured);
   const recentArticles = articles.slice(0, 6);
 
+  /**
+   * Helper function to get the student statistics value.
+   * @returns {string|JSX.Element} The formatted student count or loading spinner.
+   */
   const getStudentStatValue = () => {
     if (studentStatsState.loading) {
       return (
@@ -118,7 +129,7 @@ const HomePage: React.FC = () => {
             {[
               {
                 label: "Siswa",
-                value: getStudentStatValue(), // <-- 4. Ganti dengan fungsi pembantu
+                value: getStudentStatValue(),
               },
               { label: "Guru & Staf", value: "50" },
               { label: "Ekstrakurikuler", value: "10+" },
@@ -457,7 +468,6 @@ const HomePage: React.FC = () => {
                     Ajukan Aduan/Saran
                   </Link>
                   <a
-                    //TODO: ganti link google form
                     href="https://forms.gle/CONTOHLINK"
                     target="_blank"
                     rel="noopener noreferrer"

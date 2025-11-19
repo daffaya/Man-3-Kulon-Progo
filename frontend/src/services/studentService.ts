@@ -1,4 +1,10 @@
-// src/services/studentService.ts
+/**
+ * @fileoverview Service module for managing student-related API operations.
+ * This module provides functions to interact with the student endpoints of the API,
+ * including CRUD operations, class management, graduation processes, and data retrieval.
+ * It handles authentication, error handling, and response parsing.
+ */
+
 import {
   Student,
   BulkMoveClassResponse,
@@ -9,7 +15,20 @@ import {
 
 const API_URL = import.meta.env.VITE_BACKEND_API_URL || "http://localhost:3000";
 
+/**
+ * Service object containing methods for student-related API operations.
+ */
 export const studentService = {
+  /**
+   * Retrieves a list of students based on provided filters.
+   * @param {Object} params - Parameters for the request.
+   * @param {string} params.token - Authentication token.
+   * @param {number} params.classId - Optional class ID filter.
+   * @param {string} params.search - Optional search term.
+   * @param {string} params.academicYear - Optional academic year filter.
+   * @param {string} params.angkatan - Optional angkatan (batch) filter.
+   * @returns {Promise<Student[]>} Promise resolving to an array of students.
+   */
   getStudents: async (params: {
     token: string;
     classId?: number;
@@ -23,7 +42,6 @@ export const studentService = {
       throw new Error("Token is required");
     }
 
-    // Build query string
     const queryParams = new URLSearchParams();
     Object.keys(filters).forEach((key) => {
       if (filters[key as keyof typeof filters] !== undefined) {
@@ -32,7 +50,6 @@ export const studentService = {
     });
 
     const url = `${API_URL}/api/students?${queryParams.toString()}`;
-    console.log("Fetching from URL:", url);
 
     try {
       const response = await fetch(url, {
@@ -41,17 +58,8 @@ export const studentService = {
         },
       });
 
-      // Log response status
-      console.log("Response status:", response.status);
-      console.log(
-        "Response content-type:",
-        response.headers.get("content-type")
-      );
-
-      // Check if response is HTML (redirect to login page)
       const contentType = response.headers.get("content-type");
       if (contentType && contentType.includes("text/html")) {
-        console.error("Received HTML response instead of JSON");
         throw new Error(
           "Authentication failed. Server returned HTML instead of JSON."
         );
@@ -64,9 +72,7 @@ export const studentService = {
           const errorData = await response.json();
           errorMessage = errorData.error || errorMessage;
         } catch (e) {
-          // Jika response bukan JSON, ambil sebagai text
           const textResponse = await response.text();
-          console.error("Non-JSON response:", textResponse.substring(0, 200));
 
           if (textResponse.includes("<!DOCTYPE")) {
             errorMessage =
@@ -84,11 +90,16 @@ export const studentService = {
 
       return response.json();
     } catch (error) {
-      console.error("Fetch error:", error);
       throw error;
     }
   },
 
+  /**
+   * Creates a new student record.
+   * @param {any} studentData - The student data to create.
+   * @param {string} token - Authentication token.
+   * @returns {Promise<Student>} Promise resolving to the created student.
+   */
   createStudent: async (studentData: any, token: string): Promise<Student> => {
     if (!token) {
       throw new Error("Token is required");
@@ -119,6 +130,13 @@ export const studentService = {
     return response.json();
   },
 
+  /**
+   * Updates an existing student record.
+   * @param {number} id - The ID of the student to update.
+   * @param {any} studentData - The updated student data.
+   * @param {string} token - Authentication token.
+   * @returns {Promise<Student>} Promise resolving to the updated student.
+   */
   updateStudent: async (
     id: number,
     studentData: any,
@@ -146,10 +164,13 @@ export const studentService = {
       throw new Error(errorMessage);
     }
     return response.json();
-
-    return response.json();
   },
 
+  /**
+   * Deletes a student record.
+   * @param {number} id - The ID of the student to delete.
+   * @param {string} token - Authentication token.
+   */
   deleteStudent: async (id: number, token: string): Promise<void> => {
     if (!token) {
       throw new Error("Token is required");
@@ -172,6 +193,12 @@ export const studentService = {
     }
   },
 
+  /**
+   * Moves a student to a different class.
+   * @param {number} studentId - The ID of the student to move.
+   * @param {number} classId - The ID of the destination class.
+   * @param {string | null} token - Authentication token.
+   */
   moveStudentClass: async (
     studentId: number,
     classId: number,
@@ -199,6 +226,16 @@ export const studentService = {
     }
   },
 
+  /**
+   * Moves multiple students to a different class in bulk.
+   * @param {Object} data - The data for the bulk move operation.
+   * @param {number} data.classIdFrom - The source class ID.
+   * @param {number} data.classIdTo - The destination class ID.
+   * @param {string} data.academicYear - The academic year.
+   * @param {string} data.angkatan - The batch/angkatan.
+   * @param {string | null} token - Authentication token.
+   * @returns {Promise<BulkMoveClassResponse>} Promise resolving to the bulk move response.
+   */
   bulkMoveClass: async (
     data: {
       classIdFrom: number;
@@ -227,6 +264,15 @@ export const studentService = {
     return response.json();
   },
 
+  /**
+   * Graduates multiple students from a class.
+   * @param {Object} data - The data for the graduation operation.
+   * @param {number} data.classIdFrom - The source class ID.
+   * @param {string} data.academicYear - The academic year.
+   * @param {string} data.angkatan - The batch/angkatan.
+   * @param {string | null} token - Authentication token.
+   * @returns {Promise<GraduateStudentsResponse>} Promise resolving to the graduation response.
+   */
   graduateStudents: async (
     data: { classIdFrom: number; academicYear: string; angkatan: string },
     token: string | null
@@ -250,13 +296,17 @@ export const studentService = {
     return response.json();
   },
 
+  /**
+   * Retrieves a list of all angkatans (batches).
+   * @param {string} token - Authentication token.
+   * @returns {Promise<Angkatan[]>} Promise resolving to an array of angkatans.
+   */
   getAngkatans: async (token: string): Promise<Angkatan[]> => {
     if (!token) {
       throw new Error("Token is required");
     }
 
     const url = `${API_URL}/api/students/angkatans`;
-    console.log("Fetching angkatans from URL:", url);
 
     try {
       const response = await fetch(url, {
@@ -273,7 +323,6 @@ export const studentService = {
           errorMessage = errorData.error || errorMessage;
         } catch (e) {
           const textResponse = await response.text();
-          console.error("Non-JSON response:", textResponse.substring(0, 200));
 
           if (textResponse.includes("<!DOCTYPE")) {
             errorMessage =
@@ -291,12 +340,16 @@ export const studentService = {
 
       return response.json();
     } catch (error) {
-      console.error("Fetch error:", error);
       throw error;
     }
   },
 
-  // Tambahkan metode ini
+  /**
+   * Retrieves classes filtered by angkatan (batch).
+   * @param {string} token - Authentication token.
+   * @param {string} angkatan - The angkatan to filter by.
+   * @returns {Promise<Class[]>} Promise resolving to an array of classes.
+   */
   getClassesByAngkatan: async (
     token: string,
     angkatan: string
@@ -306,7 +359,6 @@ export const studentService = {
     const url = `${API_URL}/api/students?getClassesByAngkatan=true&angkatan=${encodeURIComponent(
       angkatan
     )}`;
-    console.log("Fetching classes by angkatan from URL:", url);
 
     try {
       const response = await fetch(url, {
@@ -314,8 +366,6 @@ export const studentService = {
           Authorization: `Bearer ${token}`,
         },
       });
-
-      console.log("Response status:", response.status);
 
       if (!response.ok) {
         let errorMessage = "Failed to fetch classes by angkatan";
@@ -323,10 +373,8 @@ export const studentService = {
         try {
           const errorData = await response.json();
           errorMessage = errorData.error || errorMessage;
-          console.error("Error response:", errorData);
         } catch (e) {
           const textResponse = await response.text();
-          console.error("Non-JSON response:", textResponse.substring(0, 200));
 
           if (textResponse.includes("<!DOCTYPE")) {
             errorMessage =
@@ -344,19 +392,22 @@ export const studentService = {
       }
 
       const data = await response.json();
-      console.log("Classes by angkatan data:", data);
       return data;
     } catch (error) {
-      console.error("Fetch error:", error);
       throw error;
     }
   },
 
+  /**
+   * Retrieves classes filtered by education level.
+   * @param {string} token - Authentication token.
+   * @param {string} level - The education level to filter by.
+   * @returns {Promise<Class[]>} Promise resolving to an array of classes.
+   */
   getClassesByLevel: async (token: string, level: string): Promise<Class[]> => {
     if (!token) throw new Error("Token is required");
 
     const url = `${API_URL}/api/students?getClassesByLevel=${level}`;
-    console.log("Fetching classes by level from URL:", url);
 
     try {
       const response = await fetch(url, {
@@ -365,18 +416,14 @@ export const studentService = {
         },
       });
 
-      console.log("Response status:", response.status);
-
       if (!response.ok) {
         let errorMessage = "Failed to fetch classes by level";
 
         try {
           const errorData = await response.json();
           errorMessage = errorData.error || errorMessage;
-          console.error("Error response:", errorData);
         } catch (e) {
           const textResponse = await response.text();
-          console.error("Non-JSON response:", textResponse.substring(0, 200));
 
           if (textResponse.includes("<!DOCTYPE")) {
             errorMessage =
@@ -394,10 +441,8 @@ export const studentService = {
       }
 
       const data = await response.json();
-      console.log("Classes by level data:", data);
       return data;
     } catch (error) {
-      console.error("Fetch error:", error);
       throw error;
     }
   },

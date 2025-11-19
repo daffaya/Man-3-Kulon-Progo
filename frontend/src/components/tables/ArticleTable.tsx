@@ -1,3 +1,9 @@
+/**
+ * @fileoverview React component for displaying articles in a table format.
+ * This component provides a table view of articles with status badges, tags, categories,
+ * and action buttons for viewing, editing, and deleting articles. It includes loading and empty states.
+ */
+
 import React from "react";
 import { Link } from "react-router-dom";
 import { Edit, Trash2, Eye, ArrowUp, RefreshCw } from "lucide-react";
@@ -5,19 +11,41 @@ import { Article } from "../../types/articleTypes";
 import { formatDate, truncateText } from "../../lib/utils";
 import ImageWithFallback from "../ui/ImageWithFallback";
 
+/**
+ * Props for the ArticleTable component
+ * @interface ArticleTableProps
+ */
 interface ArticleTableProps {
-  /** Daftar artikel yang akan ditampilkan dalam tabel */
   articles: Article[];
-  /** Callback ketika artikel dihapus */
   onDelete: (id: string) => void;
-  /** Status loading data */
   loading: boolean;
 }
 
 /**
- * Badge untuk menampilkan status publikasi dan status featured artikel.
+ * Props for the StatusBadge component
+ * @interface StatusBadgeProps
  */
-const StatusBadge: React.FC<{ article: Article }> = ({ article }) => (
+interface StatusBadgeProps {
+  article: Article;
+}
+
+/**
+ * Props for the ActionButtons component
+ * @interface ActionButtonsProps
+ */
+interface ActionButtonsProps {
+  article: Article;
+  onDelete: (id: string) => void;
+}
+
+/**
+ * Badge component to display publication status and featured status of an article.
+ * Shows "Published" or "Draft" status and a "Featured" badge if applicable.
+ *
+ * @param {StatusBadgeProps} props - The component props
+ * @returns {JSX.Element} The rendered status badges
+ */
+const StatusBadge: React.FC<StatusBadgeProps> = ({ article }) => (
   <div className="flex items-center">
     {article.published ? (
       <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-[rgb(var(--color-success),0.1)] text-[rgb(var(--color-success))] text-success">
@@ -38,13 +66,13 @@ const StatusBadge: React.FC<{ article: Article }> = ({ article }) => (
 );
 
 /**
- * Tombol aksi untuk setiap artikel (View, Edit, Delete).
+ * Action buttons component for each article row.
+ * Provides buttons to view, edit, and delete an article.
+ *
+ * @param {ActionButtonsProps} props - The component props
+ * @returns {JSX.Element} The rendered action buttons
  */
-const ActionButtons: React.FC<{
-  article: Article;
-  onDelete: (id: string) => void;
-}> = ({ article, onDelete }) => {
-  // Tampilkan fallback bila ID artikel tidak valid
+const ActionButtons: React.FC<ActionButtonsProps> = ({ article, onDelete }) => {
   if (!article.id) {
     return (
       <div className="flex justify-end space-x-2">
@@ -86,8 +114,12 @@ const ActionButtons: React.FC<{
 };
 
 /**
- * Tabel daftar artikel untuk halaman admin.
- * Menampilkan status publikasi, kategori, tag, serta aksi untuk mengedit atau menghapus artikel.
+ * Table component for displaying a list of articles in the admin interface.
+ * Shows article details including title, status, tags, category, date, and action buttons.
+ * Handles loading and empty states.
+ *
+ * @param {ArticleTableProps} props - The component props
+ * @returns {JSX.Element} The rendered article table
  */
 const ArticleTable: React.FC<ArticleTableProps> = ({
   articles,

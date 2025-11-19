@@ -1,14 +1,37 @@
+/**
+ * @fileoverview Modal component for editing archive information.
+ * This component provides a form interface for updating archive details including
+ * file upload, description, category, document number, and document date.
+ */
+
 import React, { useState } from "react";
 import { Archive, Category, EditFormState } from "../../types/archiveTypes";
 
+/**
+ * Props for the EditModal component
+ * @interface EditModalProps
+ */
 interface EditModalProps {
+  /** The archive data to be edited */
   archive: Archive;
+  /** List of available categories for the archive */
   categories: Category[];
+  /** Function to call when the modal is closed */
   onClose: () => void;
+  /** Function to call when the form is submitted */
   onSubmit: (formData: FormData) => Promise<void>;
+  /** Loading state indicator */
   loading: boolean;
 }
 
+/**
+ * Modal component for editing archive information.
+ * Displays a form with fields for file upload, description, category selection,
+ * document number, and document date.
+ *
+ * @param {EditModalProps} props - The component props
+ * @returns {JSX.Element} The rendered modal component
+ */
 const EditModal: React.FC<EditModalProps> = ({
   archive,
   categories,
@@ -27,11 +50,20 @@ const EditModal: React.FC<EditModalProps> = ({
     documentDate: archive.document_date || "",
   });
 
+  /**
+   * Handles form field changes
+   * @param {keyof EditFormState} field - The form field to update
+   * @returns {Function} A function that takes the new value and updates the form state
+   */
   const handleChange =
     (field: keyof EditFormState) => (value: string | File | null) => {
       setFormState((prev) => ({ ...prev, [field]: value }));
     };
 
+  /**
+   * Handles form submission
+   * @param {React.FormEvent} e - The form submission event
+   */
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     const formData = new FormData();

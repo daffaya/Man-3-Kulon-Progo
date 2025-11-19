@@ -1,3 +1,9 @@
+/**
+ * @fileoverview EditArchivePage component for editing existing archive files.
+ * This component provides a form for users with appropriate permissions to update
+ * archive details including file, description, category, document number, and date.
+ */
+
 import React, { useState, useEffect } from "react";
 import { useAuth } from "../../contexts/AuthContext";
 import {
@@ -14,11 +20,21 @@ import { ALLOWED_ROLES } from "./ArchiveManagementPage";
 import { useToastMessage } from "../../hooks/useToastMessage";
 import { ChevronLeft } from "lucide-react";
 
+/**
+ * Checks if the user has edit access based on their login status and role.
+ * @param {boolean} isLoggedIn - Whether the user is logged in.
+ * @param {string} [role] - The user's role.
+ * @returns {boolean} True if the user has edit access, false otherwise.
+ */
 const hasEditAccess = (isLoggedIn: boolean, role?: string): boolean =>
   isLoggedIn && role
     ? ALLOWED_ROLES.includes(role as (typeof ALLOWED_ROLES)[number])
     : false;
 
+/**
+ * Component that renders a form for editing archive information.
+ * Only users with appropriate permissions (arsiparis or super_admin) can access this page.
+ */
 const EditArchivePage: React.FC = () => {
   const { isLoggedIn, user, token } = useAuth();
   const navigate = useNavigate();
@@ -76,6 +92,10 @@ const EditArchivePage: React.FC = () => {
     setEditDocumentDate(initialDate);
   }, [archive, categories]);
 
+  /**
+   * Handles file input change and validates file type and size.
+   * @param {React.ChangeEvent<HTMLInputElement>} e - The input change event.
+   */
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFile = e.target.files?.[0] || null;
     setEditFile(selectedFile);
@@ -105,6 +125,10 @@ const EditArchivePage: React.FC = () => {
     }
   };
 
+  /**
+   * Handles form submission to update archive information.
+   * @param {React.FormEvent} event - The form submission event.
+   */
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
     setLoading(true);

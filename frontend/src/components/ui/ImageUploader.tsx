@@ -1,3 +1,9 @@
+/**
+ * @fileoverview ImageUploader component for uploading images either through file upload or URL.
+ * This component provides a tabbed interface for users to either upload an image file or provide an image URL.
+ * It includes drag-and-drop functionality, image preview, validation, and confirmation dialogs for replacing images.
+ */
+
 import React, { useState, useRef, useEffect, useCallback } from "react";
 import {
   Upload,
@@ -17,6 +23,15 @@ interface ImageUploaderProps {
   required?: boolean;
 }
 
+/**
+ * Component that provides functionality to upload images either through file upload or URL.
+ * Features drag-and-drop support, image preview, validation, and confirmation dialogs.
+ * @param {string} currentImage - Current image URL to display
+ * @param {Function} onImageChange - Callback function when image changes
+ * @param {boolean} disabled - Whether the uploader is disabled
+ * @param {string} label - Label for the uploader
+ * @param {boolean} required - Whether the image is required
+ */
 const ImageUploader: React.FC<ImageUploaderProps> = ({
   currentImage = "",
   onImageChange,
@@ -62,6 +77,11 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({
     }
   }, [activeTab]);
 
+  /**
+   * Handles file input change event.
+   * Validates file type and size before processing.
+   * @param {React.ChangeEvent<HTMLInputElement>} e - File input change event
+   */
   const handleFileChange = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
       if (e.target.files && e.target.files[0]) {
@@ -85,6 +105,10 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({
     [previewUrl, showErrorToast]
   );
 
+  /**
+   * Processes the uploaded file by creating a preview URL and updating state.
+   * @param {File} file - The file to process
+   */
   const processFileUpload = useCallback(
     (file: File) => {
       if (previewUrl && previewUrl.startsWith("blob:")) {
@@ -102,15 +126,27 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({
     [previewUrl, onImageChange, showSuccessToast]
   );
 
+  /**
+   * Handles drag over event to indicate drop zone.
+   * @param {React.DragEvent<HTMLDivElement>} e - Drag over event
+   */
   const handleDragOver = useCallback((e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault();
     setIsDragging(true);
   }, []);
 
+  /**
+   * Handles drag leave event to reset drop zone state.
+   */
   const handleDragLeave = useCallback(() => {
     setIsDragging(false);
   }, []);
 
+  /**
+   * Handles file drop event.
+   * Validates dropped file before processing.
+   * @param {React.DragEvent<HTMLDivElement>} e - Drop event
+   */
   const handleDrop = useCallback(
     (e: React.DragEvent<HTMLDivElement>) => {
       e.preventDefault();
@@ -136,6 +172,10 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({
     [previewUrl, processFileUpload, showErrorToast]
   );
 
+  /**
+   * Handles URL input change event.
+   * @param {React.ChangeEvent<HTMLInputElement>} e - Input change event
+   */
   const handleImageUrlChange = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
       setImageUrl(e.target.value);
@@ -144,6 +184,11 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({
     []
   );
 
+  /**
+   * Validates if a URL points to a valid image.
+   * @param {string} url - URL to validate
+   * @returns {Promise<boolean>} - Whether the URL points to a valid image
+   */
   const validateImageUrl = async (url: string): Promise<boolean> => {
     try {
       return new Promise((resolve) => {
@@ -159,6 +204,10 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({
     }
   };
 
+  /**
+   * Fetches image from URL and validates it.
+   * Shows confirmation dialog if there's already an image.
+   */
   const handleFetchImageFromUrl = useCallback(async () => {
     setUrlError("");
     if (!imageUrl.trim()) {
@@ -197,6 +246,10 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({
     }
   }, [imageUrl, previewUrl, showErrorToast]);
 
+  /**
+   * Processes the image URL by updating state and calling the change callback.
+   * @param {string} url - The image URL to process
+   */
   const processImageUrl = useCallback(
     (url: string) => {
       setPreviewUrl(url);
@@ -209,6 +262,9 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({
     [onImageChange, showSuccessToast]
   );
 
+  /**
+   * Removes the current image and resets state.
+   */
   const handleRemoveImage = useCallback(() => {
     setPreviewUrl("");
     setSelectedFile(null);
@@ -219,12 +275,18 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({
     showInfoToast("Gambar dihapus");
   }, [onImageChange, showInfoToast]);
 
+  /**
+   * Triggers file input click to open file selection dialog.
+   */
   const handleUploadClick = useCallback(() => {
     if (!disabled && fileInputRef.current) {
       fileInputRef.current.click();
     }
   }, [disabled]);
 
+  /**
+   * Confirms and processes image replacement.
+   */
   const handleConfirmReplace = useCallback(() => {
     if (pendingFile) {
       processFileUpload(pendingFile);
@@ -236,6 +298,9 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({
     setShowConfirmDialog(false);
   }, [pendingFile, pendingImageUrl, processFileUpload, processImageUrl]);
 
+  /**
+   * Cancels image replacement and resets pending state.
+   */
   const handleCancelReplace = useCallback(() => {
     setPendingFile(null);
     setPendingImageUrl("");

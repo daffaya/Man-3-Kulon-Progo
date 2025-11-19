@@ -1,4 +1,10 @@
-// src/pages/UploadArchivePage.tsx
+/**
+ * @fileoverview UploadArchivePage component for uploading new archive documents.
+ * This component provides a form for users with appropriate permissions to upload
+ * archive documents with details such as file, description, category, document number,
+ * and document date. It includes validation for file type and size.
+ */
+
 import React, { useState, useEffect } from "react";
 import { useAuth } from "../../contexts/AuthContext";
 import { Upload, ArrowLeft } from "lucide-react";
@@ -11,11 +17,21 @@ import { useToast } from "../../contexts/ToastContext";
 export const API_URL = import.meta.env.VITE_BACKEND_API_URL;
 export const ALLOWED_ROLES = ["arsiparis", "super_admin"] as const;
 
+/**
+ * Checks if a user has edit access based on their login status and role.
+ * @param {boolean} isLoggedIn - Whether the user is logged in.
+ * @param {string | undefined} role - The user's role.
+ * @returns {boolean} True if the user has edit access, false otherwise.
+ */
 const hasEditAccess = (isLoggedIn: boolean, role?: string): boolean =>
   isLoggedIn && role
     ? ALLOWED_ROLES.includes(role as (typeof ALLOWED_ROLES)[number])
     : false;
 
+/**
+ * Component for uploading new archive documents.
+ * Handles form submission, file validation, and user permission checks.
+ */
 const UploadArchivePage: React.FC = () => {
   const { isLoggedIn, user, token } = useAuth();
   const navigate = useNavigate();
@@ -42,6 +58,10 @@ const UploadArchivePage: React.FC = () => {
     loadCategories();
   }, [showToast]);
 
+  /**
+   * Handles file input change and validates file type and size.
+   * @param {React.ChangeEvent<HTMLInputElement>} e - The file input change event.
+   */
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFile = e.target.files?.[0] || null;
     setFile(selectedFile);
@@ -72,6 +92,10 @@ const UploadArchivePage: React.FC = () => {
     }
   };
 
+  /**
+   * Handles form submission to upload an archive document.
+   * @param {React.FormEvent} event - The form submission event.
+   */
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
     setLoading(true);

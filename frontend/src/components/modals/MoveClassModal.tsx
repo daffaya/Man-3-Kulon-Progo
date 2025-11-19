@@ -1,3 +1,9 @@
+/**
+ * @fileoverview Modal component for moving a student to a different class.
+ * This component provides a form interface for selecting a new class for a student,
+ * displaying current student information, and handling the API call to update the class assignment.
+ */
+
 import React, { useState } from "react";
 import { studentService } from "../../services/studentService";
 import { useClasses } from "../../hooks/useClasses";
@@ -6,12 +12,24 @@ import { useToastMessage } from "../../hooks/useToastMessage";
 import { Users } from "lucide-react";
 import { Student } from "../../types/studentTypes";
 
+/**
+ * Props for the MoveClassModal component
+ * @interface MoveClassModalProps
+ */
 interface MoveClassModalProps {
   student: Student;
   onClose: () => void;
   onSuccess: () => void;
 }
 
+/**
+ * Modal component for moving a student to a different class.
+ * Displays current student information and provides a dropdown to select a new class.
+ * Handles the API call to update the student's class assignment.
+ *
+ * @param {MoveClassModalProps} props - The component props
+ * @returns {JSX.Element} The rendered modal component
+ */
 const MoveClassModal: React.FC<MoveClassModalProps> = ({
   student,
   onClose,
@@ -24,6 +42,9 @@ const MoveClassModal: React.FC<MoveClassModalProps> = ({
   const { showSuccessToast, showErrorToast, showWarningToast } =
     useToastMessage();
 
+  /**
+   * Handles the form submission to move the student to a new class
+   */
   const handleSubmit = async () => {
     if (!selectedClass) {
       showWarningToast("Silakan pilih kelas tujuan");
@@ -37,7 +58,6 @@ const MoveClassModal: React.FC<MoveClassModalProps> = ({
 
     setLoading(true);
     try {
-      // ✅ FIX: Pass token ke studentService
       await studentService.moveStudentClass(student.id, selectedClass, token);
       showSuccessToast("Siswa berhasil dipindah kelas!");
       onSuccess();

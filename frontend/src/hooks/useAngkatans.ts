@@ -1,20 +1,43 @@
-// src/hooks/useAngkatans.ts
+/**
+ * @fileoverview Custom hook for fetching and managing angkatan (batch/cohort) data.
+ * This hook provides functionality to retrieve angkatan information from the API,
+ * including loading states, error handling, and a refetch function.
+ */
+
 import { useState, useEffect } from "react";
 import { useAuth } from "../contexts/AuthContext";
 
 const API_URL = import.meta.env.VITE_BACKEND_API_URL;
 
+/**
+ * Interface representing an angkatan (batch/cohort) with its count.
+ */
 interface Angkatan {
   angkatan: string;
   count: number;
 }
 
+/**
+ * Custom hook for fetching and managing angkatan data.
+ * Provides state management for angkatan list, loading status, and error handling.
+ * Automatically fetches data when the token is available.
+ * @returns {Object} An object containing:
+ *   - angkatans: Array of angkatan objects with count information
+ *   - loading: Boolean indicating if data is currently being fetched
+ *   - error: Error message if the fetch failed, null otherwise
+ *   - refetch: Function to manually trigger a refetch of the data
+ */
 export const useAngkatans = () => {
   const [angkatans, setAngkatans] = useState<Angkatan[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const { token } = useAuth();
 
+  /**
+   * Fetches angkatan data from the API.
+   * Uses the /students endpoint with getAngkatans=true parameter.
+   * Updates state with the fetched data or error message.
+   */
   const fetchAngkatans = async () => {
     if (!token) {
       setError("Token tidak tersedia");
@@ -26,8 +49,6 @@ export const useAngkatans = () => {
     setError(null);
 
     try {
-      console.log("Fetching angkatans...");
-
       // Gunakan endpoint /students dengan parameter getAngkatans=true
       const response = await fetch(
         `${API_URL}/api/students?getAngkatans=true`,
@@ -38,21 +59,16 @@ export const useAngkatans = () => {
         }
       );
 
-      console.log("Response status:", response.status);
-
       if (!response.ok) {
         const errorText = await response.text();
-        console.error("Response not ok:", errorText);
         throw new Error(`Failed to fetch angkatans: ${response.status}`);
       }
 
       const data = await response.json();
-      console.log("Angkatans data:", data);
       setAngkatans(data);
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : "Unknown error";
       setError(errorMessage);
-      console.error("Error fetching angkatans:", errorMessage);
     } finally {
       setLoading(false);
     }

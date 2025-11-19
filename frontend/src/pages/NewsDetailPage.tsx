@@ -1,4 +1,9 @@
-// frontend/src/pages/ArticlePage.tsx
+/**
+ * @fileoverview ArticlePage component for displaying individual article details.
+ * This component fetches and displays a single article based on its slug,
+ * shows related articles based on tags, and handles various loading and error states.
+ */
+
 import React, { useEffect, useState, useMemo, useRef } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
 import { ChevronLeft } from "lucide-react";
@@ -8,6 +13,11 @@ import ArticleCard from "../components/article/ArticleCard";
 import { useArticles } from "../contexts/ArticleContext";
 import { Article } from "../types/articleTypes";
 
+/**
+ * Component that displays a detailed view of a single article.
+ * Fetches article data by slug, displays the article content, and shows related articles.
+ * Handles loading states, error handling, and navigation back to the article list.
+ */
 const NewsDetailPage: React.FC = () => {
   const { slug } = useParams<{ slug: string }>();
   const navigate = useNavigate();
@@ -20,6 +30,12 @@ const NewsDetailPage: React.FC = () => {
   const [articleError, setArticleError] = useState<string | null>(null);
   const hasFetched = useRef(false);
 
+  /**
+   * Memoized function to get related articles based on shared tags.
+   * Filters articles that share at least one tag with the target article.
+   * @param target - The target article to find related articles for
+   * @returns Array of related articles (max 3)
+   */
   const getRelatedArticles = useMemo(
     () =>
       (target: Article): Article[] => {
@@ -42,6 +58,10 @@ const NewsDetailPage: React.FC = () => {
     if (!slug || hasFetched.current) return;
     hasFetched.current = true;
 
+    /**
+     * Fetches article data and related articles.
+     * Handles error states and redirects if article is not found.
+     */
     const fetchArticleData = async () => {
       setArticleLoading(true);
       setArticleError(null);

@@ -1,12 +1,18 @@
-// frontend/src/App.tsx
-import React, { useState } from "react";
+/**
+ * @fileoverview Main application component that sets up routing and context providers.
+ * This file defines the application's routing structure, including public routes, protected admin routes,
+ * and nested routes for various features like articles, galleries, attendance, and student management.
+ */
+
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import { ThemeProvider } from "./contexts/ThemeContext";
 import { ArticleProvider } from "./contexts/ArticleContext";
 import { AuthProvider } from "./contexts/AuthContext";
 import { ToastProvider } from "./contexts/ToastContext";
-import { GalleryProvider } from "./contexts/GalleryContext"; // Tambahkan import
+import { GalleryProvider } from "./contexts/GalleryContext";
 import { Outlet } from "react-router-dom";
+import { StudentStatsProvider } from "./contexts/StudentStatsContext";
+
 // Pages
 import HomePage from "./pages/HomePage";
 import NewsPage from "./pages/NewsPage";
@@ -45,7 +51,6 @@ import AlumniPage from "./pages/alumni/AlumniPage";
 import UserProfilePage from "./pages/admin/user/UserProfile";
 import UserManagementPage from "./pages/admin/user/UserManagementPage";
 import UnauthorizedHandler from "./components/ui/UnathorizedHandler";
-// Tambahkan import gallery pages
 import GalleryPage from "./pages/GalleryPage";
 import AlbumPage from "./pages/AlbumPage";
 import GalleryManagementPage from "./pages/admin/gallery/GalleryManagementPage";
@@ -55,14 +60,22 @@ import AlbumPhotosPage from "./pages/admin/gallery/AlbumPhotosPage";
 import PpdbPage from "./pages/layanan/PpdbPage";
 import ZonaIntegritasPage from "./pages/layanan/ZonaIntegritasPage";
 import SedumPage from "./pages/layanan/SedumPage";
-import { StudentStatsProvider } from "./contexts/StudentStatsContext";
 
+/**
+ * Layout wrapper component for admin routes that requires authentication.
+ * Uses the ProtectedRoute component to ensure only authenticated users can access admin routes.
+ */
 const AdminLayout = () => (
   <ProtectedRoute>
     <Outlet />
   </ProtectedRoute>
 );
 
+/**
+ * Root component of the application that sets up all routing and context providers.
+ * Configures the application's routing structure including public routes, protected admin routes,
+ * and nested routes for various features.
+ */
 function App() {
   return (
     <ThemeProvider>
@@ -72,8 +85,6 @@ function App() {
             <ArticleProvider>
               <GalleryProvider>
                 <StudentStatsProvider>
-                  {" "}
-                  {/* Tambahkan GalleryProvider wrapper */}
                   <UnauthorizedHandler />
                   <Routes>
                     <Route path="/" element={<HomePage />} />

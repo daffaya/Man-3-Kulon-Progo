@@ -1,6 +1,22 @@
+/**
+ * @fileoverview React component for filtering archive items.
+ * This component provides a user interface with a search input field and a category dropdown.
+ * It allows users to filter a list of archives based on a search query and a selected category.
+ */
+
 import React from "react";
 import { Search } from "lucide-react";
 import { Category } from "../../types/archiveTypes";
+
+/**
+ * Props for the Filters component.
+ * @typedef {object} FiltersProps
+ * @property {string} searchQuery - The current value of the search input.
+ * @property {(value: string) => void} setSearchQuery - Function to update the search query state.
+ * @property {string} categoryId - The ID of the selected category for filtering.
+ * @property {(value: string) => void} setCategoryId - Function to update the selected category ID state.
+ * @property {Category[]} categories - An array of category objects to populate the dropdown filter.
+ */
 
 interface FiltersProps {
   searchQuery: string;
@@ -10,6 +26,12 @@ interface FiltersProps {
   categories: Category[];
 }
 
+/**
+ * A component that renders search and category filter controls for the archive page.
+ *
+ * @param {FiltersProps} props - The props for the component.
+ * @returns {JSX.Element} The rendered filter controls.
+ */
 const Filters: React.FC<FiltersProps> = ({
   searchQuery,
   setSearchQuery,

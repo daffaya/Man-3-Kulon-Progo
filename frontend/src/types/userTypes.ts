@@ -1,5 +1,6 @@
-// frontend/src/types/userTypes.ts
-
+/**
+ * Defines the possible roles a user can have within the system.
+ */
 export type UserRole =
   | "super_admin"
   | "jurnalis"

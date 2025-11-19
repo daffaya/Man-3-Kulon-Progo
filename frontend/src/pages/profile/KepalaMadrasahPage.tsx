@@ -1,6 +1,15 @@
+/**
+ * @fileoverview KepalaMadrasahPage component for displaying information about the head of the madrasah.
+ * This page renders a specific image, likely a table or chart, related to the madrasah leadership.
+ */
+
 import React from "react";
 import Layout from "../../components/layout/Layout";
 
+/**
+ * Component that renders the "Kepala Madrasah" page.
+ * This page is primarily used to display a static image containing information about the head of the madrasah.
+ */
 const KepalaMadrasahPage: React.FC = () => {
   return (
     <Layout>

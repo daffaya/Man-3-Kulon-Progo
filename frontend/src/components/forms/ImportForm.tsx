@@ -1,3 +1,11 @@
+/**
+ * @fileoverview React component for importing student data from Excel files.
+ * This component provides a drag-and-drop interface for uploading Excel files,
+ * template download functionality, and detailed import result display.
+ * It handles file validation, import processing, and shows comprehensive
+ * statistics about the import operation including success, updates, skips, and failures.
+ */
+
 import React, { useState, useCallback, useEffect, useRef } from "react";
 import { useDropzone, FileRejection } from "react-dropzone";
 import { importStudents } from "../../services/importService";
@@ -17,10 +25,22 @@ import {
 } from "lucide-react";
 import { ImportResult } from "../../types/importTypes";
 
+/**
+ * Props for the ImportForm component
+ * @interface ImportFormProps
+ */
 interface ImportFormProps {
+  /** Function to call when the import is successful */
   onSuccess?: () => void;
 }
 
+/**
+ * Import form component for uploading and processing student data from Excel files.
+ * Provides a drag-and-drop interface, template download, and detailed results display.
+ *
+ * @param {ImportFormProps} props - The component props
+ * @returns {JSX.Element} The rendered import form modal
+ */
 export const ImportForm: React.FC<ImportFormProps> = ({ onSuccess }) => {
   const { token } = useAuth();
   const { showSuccessToast, showErrorToast, showWarningToast } =
@@ -32,8 +52,13 @@ export const ImportForm: React.FC<ImportFormProps> = ({ onSuccess }) => {
   // Reference to the modal content
   const modalRef = useRef<HTMLDivElement>(null);
 
+  /**
+   * Handles file drop events for the dropzone
+   * @param {File[]} acceptedFiles - Files that passed validation
+   * @param {FileRejection[]} fileRejections - Files that failed validation
+   */
   const onDrop = useCallback(
-    (acceptedFiles: File[], fileRejections: FileRejection[], event: any) => {
+    (acceptedFiles: File[], fileRejections: FileRejection[]) => {
       if (acceptedFiles.length > 0) {
         setFile(acceptedFiles[0]);
         setResult(null);
@@ -72,6 +97,9 @@ export const ImportForm: React.FC<ImportFormProps> = ({ onSuccess }) => {
     onDragLeave: () => {},
   });
 
+  /**
+   * Handles the import process when the user clicks the import button
+   */
   const handleImport = async () => {
     if (!file) {
       showWarningToast("Silakan pilih file Excel terlebih dahulu");
@@ -84,7 +112,7 @@ export const ImportForm: React.FC<ImportFormProps> = ({ onSuccess }) => {
       const response = await importStudents(file, token || "");
       setResult(response);
 
-      // **FIX: Lebih akurat message berdasarkan data**
+      // More accurate message based on data
       let message = `Import selesai! ${response.success} siswa berhasil ditambahkan.`;
 
       if (response.updated > 0) {
@@ -125,11 +153,14 @@ export const ImportForm: React.FC<ImportFormProps> = ({ onSuccess }) => {
     }
   };
 
+  /**
+   * Downloads the Excel template for importing student data
+   */
   const downloadTemplate = () => {
-    // Cek token dulu
+    // Check token first
     if (!token) {
       showErrorToast("Sesi telah berakhir. Silakan login kembali.");
-      // Redirect ke login setelah delay
+      // Redirect to login after delay
       setTimeout(() => {
         window.location.href = "/login";
       }, 2000);
@@ -148,19 +179,25 @@ export const ImportForm: React.FC<ImportFormProps> = ({ onSuccess }) => {
       link.click();
       document.body.removeChild(link);
 
-      // Tampilkan toast sukses download
+      // Show success toast
       showSuccessToast("Template berhasil diunduh");
     } catch (error) {
       showErrorToast("Gagal mengunduh template");
     }
   };
 
+  /**
+   * Removes the selected file and resets the result
+   */
   const removeFile = () => {
     setFile(null);
     setResult(null);
   };
 
-  // Handle click outside the modal content
+  /**
+   * Handles click outside the modal content to close it
+   * @param {React.MouseEvent<HTMLDivElement>} event - The click event
+   */
   const handleClickOutside = (event: React.MouseEvent<HTMLDivElement>) => {
     if (modalRef.current && !modalRef.current.contains(event.target as Node)) {
       if (onSuccess) {
@@ -169,10 +206,13 @@ export const ImportForm: React.FC<ImportFormProps> = ({ onSuccess }) => {
     }
   };
 
+  /**
+   * Checks for authentication token and redirects to login if not available
+   */
   useEffect(() => {
     if (!token) {
       showErrorToast("Sesi telah berakhir. Silakan login kembali.");
-      // Redirect ke login setelah delay
+      // Redirect to login after delay
       setTimeout(() => {
         window.location.href = "/login";
       }, 2000);

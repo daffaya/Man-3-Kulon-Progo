@@ -1,7 +1,22 @@
-// frontend/src/components/gallery/GalleryUpload.tsx
+/**
+ * @fileoverview React component for a gallery image upload interface.
+ * This component provides a drag-and-drop area and a file input for selecting multiple images.
+ * It includes file validation for type and size, displays a preview of selected images,
+ * and allows users to remove individual images before uploading.
+ */
+
 import React, { useState, useRef, useCallback } from "react";
 import { Upload, X, Image as ImageIcon, AlertCircle } from "lucide-react";
 
+/**
+ * Props for the GalleryUpload component.
+ * @typedef {object} GalleryUploadProps
+ * @property {(files: File[]) => void} onUpload - Callback function triggered when the upload button is clicked.
+ * @property {boolean} [loading=false] - Flag to indicate if an upload is in progress.
+ * @property {number} [maxFiles=10] - Maximum number of files allowed for selection.
+ * @property {string} [acceptedTypes="image/*"] - The accepted file types for the input.
+ * @property {number} [maxSize=10] - Maximum file size in megabytes.
+ */
 interface GalleryUploadProps {
   onUpload: (files: File[]) => void;
   loading?: boolean;
@@ -9,7 +24,14 @@ interface GalleryUploadProps {
   acceptedTypes?: string;
   maxSize?: number; // in MB
 }
-
+/**
+ * A React component for uploading images to a gallery.
+ * Features a drag-and-drop zone, file validation, preview of selected images,
+ * and the ability to remove images before the final upload.
+ *
+ * @param {GalleryUploadProps} props - The props for the component.
+ * @returns {JSX.Element} The rendered gallery upload component.
+ */
 const GalleryUpload: React.FC<GalleryUploadProps> = ({
   onUpload,
   loading = false,
@@ -22,6 +44,10 @@ const GalleryUpload: React.FC<GalleryUploadProps> = ({
   const [errors, setErrors] = useState<string[]>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  /**
+   * Handles drag events to update the visual state of the drop zone.
+   * @param {React.DragEvent} e - The drag event.
+   */
   const handleDrag = useCallback((e: React.DragEvent) => {
     e.preventDefault();
     e.stopPropagation();
@@ -32,6 +58,10 @@ const GalleryUpload: React.FC<GalleryUploadProps> = ({
     }
   }, []);
 
+  /**
+   * Handles the drop event to process dropped files.
+   * @param {React.DragEvent} e - The drop event.
+   */
   const handleDrop = useCallback((e: React.DragEvent) => {
     e.preventDefault();
     e.stopPropagation();
@@ -42,30 +72,34 @@ const GalleryUpload: React.FC<GalleryUploadProps> = ({
     }
   }, []);
 
+  /**
+   * Handles the change event from the file input.
+   * @param {React.ChangeEvent<HTMLInputElement>} e - The change event.
+   */
   const handleFileInput = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
       handleFiles(e.target.files);
     }
   };
 
+  /**
+   * Validates a list of files and updates the state with valid selections.
+   * @param {FileList} files - The list of files to validate.
+   */
   const handleFiles = (files: FileList) => {
     const newFiles = Array.from(files);
     const newErrors: string[] = [];
 
-    // Check total files limit
     if (selectedFiles.length + newFiles.length > maxFiles) {
       newErrors.push(`Maksimal ${maxFiles} foto`);
     }
 
-    // Validate each file
     const validFiles = newFiles.filter((file) => {
-      // Check file type
       if (!file.type.startsWith("image/")) {
         newErrors.push(`${file.name} bukan file gambar`);
         return false;
       }
 
-      // Check file size
       if (file.size > maxSize * 1024 * 1024) {
         newErrors.push(`${file.name} terlalu besar (max ${maxSize}MB)`);
         return false;
@@ -78,10 +112,17 @@ const GalleryUpload: React.FC<GalleryUploadProps> = ({
     setSelectedFiles((prev) => [...prev, ...validFiles].slice(0, maxFiles));
   };
 
+  /**
+   * Removes a file from the list of selected files by its index.
+   * @param {number} index - The index of the file to remove.
+   */
   const removeFile = (index: number) => {
     setSelectedFiles((prev) => prev.filter((_, i) => i !== index));
   };
 
+  /**
+   * Calls the onUpload callback with the selected files and resets the component state.
+   */
   const handleUpload = () => {
     if (selectedFiles.length > 0) {
       onUpload(selectedFiles);
@@ -90,6 +131,9 @@ const GalleryUpload: React.FC<GalleryUploadProps> = ({
     }
   };
 
+  /**
+   * Programmatically opens the file selection dialog.
+   */
   const openFileDialog = () => {
     fileInputRef.current?.click();
   };

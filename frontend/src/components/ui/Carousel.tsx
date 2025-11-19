@@ -1,7 +1,20 @@
+/**
+ * @fileoverview Carousel component for displaying a slideshow of images with text overlays.
+ * This component renders an automatic carousel with manual navigation controls,
+ * featuring images with headlines and descriptions. It includes pause functionality
+ * and transitions between slides.
+ */
+
 import React, { useEffect, useState } from "react";
 
+/**
+ * Component that displays an automatic carousel with manual navigation controls.
+ * Features automatic sliding every 5 seconds with pause capability,
+ * manual navigation buttons, and smooth transitions between slides.
+ */
 const Carousel: React.FC = () => {
   const [currentIndex, setCurrentIndex] = useState<number>(0);
+  const [isPaused, setIsPaused] = useState<boolean>(false);
 
   const slides = [
     {
@@ -24,27 +37,24 @@ const Carousel: React.FC = () => {
     },
   ];
 
+  /**
+   * Advances to the next slide in the carousel.
+   * Wraps around to the first slide when reaching the end.
+   */
   const nextSlide = (): void => {
     setCurrentIndex((prevIndex) => (prevIndex + 1) % slides.length);
   };
 
+  /**
+   * Moves to the previous slide in the carousel.
+   * Wraps around to the last slide when at the beginning.
+   */
   const prevSlide = (): void => {
     setCurrentIndex(
       (prevIndex) => (prevIndex - 1 + slides.length) % slides.length
     );
   };
 
-  // Inside the Carousel component, add useEffect for autoplay
-  useEffect(() => {
-    const interval = setInterval(() => {
-      prevSlide();
-    }, 5000);
-    return () => clearInterval(interval);
-  }, []);
-
-  const [isPaused, setIsPaused] = useState<boolean>(false);
-
-  // Update useEffect to respect pause state
   useEffect(() => {
     if (!isPaused) {
       const interval = setInterval(() => {
@@ -58,9 +68,7 @@ const Carousel: React.FC = () => {
     <section className="py-8 bg-semibackground dark:bg-semibackground shadow-md">
       <div className="container mx-auto px-4 sm:px-6">
         <div className="relative">
-          {/* Carousel body */}
           <div className="hs-carousel relative overflow-hidden w-full h-[480px] bg-white rounded-lg">
-            {/* Slide */}
             <div
               className="flex transition-transform duration-500"
               style={{ transform: `translateX(-${currentIndex * 100}%)` }}
@@ -70,16 +78,13 @@ const Carousel: React.FC = () => {
                   key={index}
                   className="flex-shrink-0 w-full h-[480px] relative flex justify-center items-center"
                 >
-                  {/* Image */}
                   <img
                     src={slide.src}
                     alt={`Slide ${index + 1}`}
                     className="w-full h-full object-cover object-center"
                     style={{ objectFit: "cover", objectPosition: "center" }}
                   />
-                  {/* Black transparent overlay */}
                   <div className="absolute inset-0 bg-black/50" />
-                  {/* Text on top */}
                   <div className="absolute">
                     <h2 className=" text-white text-2xl font-bold text-center z-10 mb-2">
                       {slide.headline}
@@ -94,7 +99,6 @@ const Carousel: React.FC = () => {
             </div>
           </div>
 
-          {/* Prev Button */}
           <button
             onClick={prevSlide}
             className="absolute top-1/2 left-0 transform -translate-y-1/2 px-4 py-2 text-white font-bold rounded-full focus:outline-none hover:bg-gray-800 z-20"
@@ -102,7 +106,6 @@ const Carousel: React.FC = () => {
             &#8592;
           </button>
 
-          {/* Next Button */}
           <button
             onClick={nextSlide}
             className="absolute top-1/2 right-0 transform -translate-y-1/2 px-4 py-2 text-white font-bold rounded-full focus:outline-none hover:bg-gray-800 z-20"

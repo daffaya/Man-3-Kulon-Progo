@@ -1,7 +1,15 @@
-// frontend/src/components/forms/auth/LoginForm.tsx
+/**
+ * @fileoverview Login form component for user authentication.
+ * This component provides a form for users to enter their credentials and authenticate with the backend API.
+ * It includes username and password fields, password visibility toggle, and handles form submission with loading states.
+ */
+
 import React, { useState } from "react";
 import { Eye, EyeOff, User, Lock } from "lucide-react";
 
+/**
+ * Props for the LoginForm component
+ */
 interface LoginFormProps {
   onLoginSuccess: (userData: {
     user: { username: string; role: string; avatar?: string };
@@ -10,6 +18,13 @@ interface LoginFormProps {
   onLoginError: (message: string) => void;
 }
 
+/**
+ * LoginForm component that renders a form for user authentication.
+ * Handles form submission, password visibility toggle, and provides visual feedback during loading states.
+ *
+ * @param {LoginFormProps} props - The component props
+ * @returns {JSX.Element} The rendered login form
+ */
 const LoginForm: React.FC<LoginFormProps> = ({
   onLoginSuccess,
   onLoginError,
@@ -25,8 +40,15 @@ const LoginForm: React.FC<LoginFormProps> = ({
   const BACKEND_API_URL =
     import.meta.env.VITE_BACKEND_API_URL || "http://localhost:3001";
 
+  /**
+   * Toggles the visibility of the password field
+   */
   const togglePasswordVisibility = () => setShowPassword((prev) => !prev);
 
+  /**
+   * Handles form submission by sending credentials to the authentication API
+   * @param {React.FormEvent} event - The form submission event
+   */
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
     setLoading(true);
@@ -41,7 +63,6 @@ const LoginForm: React.FC<LoginFormProps> = ({
       const data = await response.json();
 
       if (response.ok && data.success) {
-        // Pastikan URL avatar lengkap sebelum menyimpan
         if (data.user.avatar && !data.user.avatar.startsWith("http")) {
           data.user.avatar = `${BACKEND_API_URL}${data.user.avatar}`;
         }
@@ -56,6 +77,10 @@ const LoginForm: React.FC<LoginFormProps> = ({
     }
   };
 
+  /**
+   * Renders a loading spinner for the submit button
+   * @returns {JSX.Element} The spinner SVG element
+   */
   const renderSpinner = () => (
     <svg
       className="animate-spin -ml-1 mr-3 h-5 w-5 text-white"
@@ -79,6 +104,11 @@ const LoginForm: React.FC<LoginFormProps> = ({
     </svg>
   );
 
+  /**
+   * Determines the color of input icons based on focus state
+   * @param {"username" | "password"} field - The input field name
+   * @returns {string} The CSS class for the icon color
+   */
   const getIconColor = (field: "username" | "password") =>
     focusedField === field ? "text-accent" : "text-secondary";
 

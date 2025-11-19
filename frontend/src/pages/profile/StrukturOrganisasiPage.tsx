@@ -1,7 +1,30 @@
+/**
+ * @fileoverview StrukturOrganisasiPage component for displaying the organizational structure of MAN 3 Kulon Progo.
+ * This component renders information about key personnel in the organization and displays an organizational chart image.
+ */
+
 import React from "react";
 import Layout from "../../components/layout/Layout";
 
-const ORGANIZATION_STRUCTURE = [
+/**
+ * Interface defining the structure of an organization position.
+ * @typedef {Object} OrganizationPosition
+ * @property {string} position - The title of the position.
+ * @property {Array<{label: string, value: string}>} details - Array of details about the person holding the position.
+ */
+interface OrganizationPosition {
+  position: string;
+  details: Array<{
+    label: string;
+    value: string;
+  }>;
+}
+
+/**
+ * Array containing the organizational structure data for MAN 3 Kulon Progo.
+ * This includes information about the head of the madrasah and the head of administration.
+ */
+const ORGANIZATION_STRUCTURE: OrganizationPosition[] = [
   {
     position: "Kepala Madrasah",
     details: [
@@ -20,6 +43,10 @@ const ORGANIZATION_STRUCTURE = [
   },
 ];
 
+/**
+ * Component that renders the organizational structure page for MAN 3 Kulon Progo.
+ * This page displays information about key personnel in the organization and includes an organizational chart image.
+ */
 const StrukturOrganisasiPage: React.FC = () => {
   return (
     <Layout>

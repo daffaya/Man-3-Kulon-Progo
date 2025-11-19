@@ -1,4 +1,9 @@
-// frontend/src/components/tables/UserTable.tsx
+/**
+ * @fileoverview UserTable component for displaying user data in a tabular format.
+ * This component renders a table with user information including their avatar, name, role,
+ * and creation date. It provides action buttons for editing and deleting users.
+ */
+
 import React from "react";
 import { Edit, Trash2, UserPlus } from "lucide-react";
 import { User } from "../../types/userTypes";
@@ -13,11 +18,8 @@ interface UserTableProps {
 }
 
 /**
- * Component: RoleBadge
- * --------------------
- * Displays a visual badge for a user's role with appropriate color coding.
- *
- * @param role - The user's role string.
+ * Component that displays a visual badge for a user's role with appropriate color coding.
+ * @param {string} role - The user's role string.
  */
 const RoleBadge: React.FC<{ role: string }> = ({ role }) => {
   const roleMap: Record<string, { label: string; color: string }> = {
@@ -64,13 +66,10 @@ const RoleBadge: React.FC<{ role: string }> = ({ role }) => {
 };
 
 /**
- * Component: ActionButtons
- * ------------------------
- * Renders the Edit and Delete buttons for each user row.
- *
- * @param user - The user object.
- * @param onEdit - Callback for editing a user.
- * @param onDelete - Callback for deleting a user.
+ * Component that renders the Edit and Delete buttons for each user row.
+ * @param {User} user - The user object.
+ * @param {Function} onEdit - Callback for editing a user.
+ * @param {Function} onDelete - Callback for deleting a user.
  */
 const ActionButtons: React.FC<{
   user: User;
@@ -98,15 +97,12 @@ const ActionButtons: React.FC<{
 );
 
 /**
- * Component: UserTable
- * --------------------
- * Displays a table of users for the admin panel.
+ * Component that displays a table of users for the admin panel.
  * Filters out any user with username "kuma" from the list.
- *
- * @param users - The array of users to display.
- * @param onDelete - Callback when a user is deleted.
- * @param onEdit - Callback when a user is edited.
- * @param loading - Indicates whether user data is being loaded.
+ * @param {User[]} users - The array of users to display.
+ * @param {Function} onDelete - Callback when a user is deleted.
+ * @param {Function} onEdit - Callback when a user is edited.
+ * @param {boolean} loading - Indicates whether user data is being loaded.
  */
 const UserTable: React.FC<UserTableProps> = ({
   users = [],

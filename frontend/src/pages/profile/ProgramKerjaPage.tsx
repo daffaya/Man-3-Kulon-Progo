@@ -1,11 +1,27 @@
+/**
+ * @fileoverview ProgramKerjaPage component for displaying the work program of MAN 3 Kulon Progo.
+ * This component renders a comprehensive list of work programs organized by categories,
+ * including annual activities, curriculum implementation, supervision, and leadership responsibilities.
+ */
+
 import React from "react";
 import Layout from "../../components/layout/Layout";
 
+/**
+ * Interface defining the structure of a program section.
+ * @typedef {Object} ProgramSection
+ * @property {string} title - The title of the program section.
+ * @property {string[]} items - List of items/activities within the program section.
+ */
 interface ProgramSection {
   title: string;
   items: string[];
 }
 
+/**
+ * Array containing all program sections with their respective activities.
+ * This data represents the complete work program for MAN 3 Kulon Progo for the academic year 2024/2025.
+ */
 const PROGRAM_KERJA: ProgramSection[] = [
   {
     title: "Kegiatan Awal Tahun Pelajaran",
@@ -160,6 +176,11 @@ const PROGRAM_KERJA: ProgramSection[] = [
   },
 ];
 
+/**
+ * Component that renders the work program page for MAN 3 Kulon Progo.
+ * This page displays a comprehensive list of work programs organized by categories,
+ * including annual activities, curriculum implementation, supervision, and leadership responsibilities.
+ */
 const ProgramKerjaPage: React.FC = () => {
   return (
     <Layout>
