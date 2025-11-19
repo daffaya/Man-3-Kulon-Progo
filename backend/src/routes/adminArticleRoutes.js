@@ -1,4 +1,8 @@
-// backend/src/routes/adminArticleRoutes.js
+/**
+ * @fileoverview Defines the Express router for administrative article management.
+ * This module sets up the routes for creating, reading, updating, and deleting articles,
+ * with authentication and role-based access control.
+ */
 
 import { Router } from "express";
 import {
@@ -28,7 +32,6 @@ import createArticleController from "../controllers/articleController.js";
 const adminArticleRouterFactory = ({ pool, JWT_SECRET }) => {
   const router = Router();
 
-  // --- Middleware Setup ---
   // Apply authentication to all routes in this router
   const authenticateToken = authenticateTokenFactory({ JWT_SECRET });
   router.use(authenticateToken);
@@ -36,7 +39,6 @@ const adminArticleRouterFactory = ({ pool, JWT_SECRET }) => {
   // Restrict access to specific roles
   router.use(restrictTo(["super_admin", "jurnalis"]));
 
-  // --- Model and Controller Initialization ---
   const articleModel = createArticleModel({ pool });
   const categoryModel = createCategoryModel({ pool });
   const userModel = createUserModel({ pool });
@@ -47,41 +49,10 @@ const adminArticleRouterFactory = ({ pool, JWT_SECRET }) => {
     userModel,
   });
 
-  // --- API Endpoints ---
-
-  /**
-   * @route   POST /
-   * @desc    Create a new article with an optional image upload.
-   * @access  Private (Super Admin, Jurnalis)
-   */
   router.post("/", imageUpload, articleController.createArticle);
-
-  /**
-   * @route   GET /
-   * @desc    Get a list of all articles.
-   * @access  Private (Super Admin, Jurnalis)
-   */
   router.get("/", articleController.getAllArticles);
-
-  /**
-   * @route   GET /:id
-   * @desc    Get a single article by its ID.
-   * @access  Private (Super Admin, Jurnalis)
-   */
   router.get("/:id", articleController.getArticleById);
-
-  /**
-   * @route   PUT /:id
-   * @desc    Update an existing article by its ID with an optional image upload.
-   * @access  Private (Super Admin, Jurnalis)
-   */
   router.put("/:id", imageUpload, articleController.updateArticle);
-
-  /**
-   * @route   DELETE /:id
-   * @desc    Delete an article by its ID.
-   * @access  Private (Super Admin, Jurnalis)
-   */
   router.delete("/:id", articleController.deleteArticle);
 
   return router;

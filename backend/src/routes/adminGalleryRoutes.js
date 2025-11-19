@@ -1,4 +1,9 @@
-// backend/src/routes/adminGalleryRoutes.js
+/**
+ * @fileoverview Router for managing admin gallery-related endpoints.
+ * This module defines and configures an Express router for CRUD operations on albums and photos.
+ * It applies authentication and role-based authorization middleware to all routes.
+ */
+
 import { Router } from "express";
 import {
   authenticateTokenFactory,
@@ -10,18 +15,17 @@ import createGalleryController from "../controllers/galleryController.js";
 import createGalleryUploadService from "../services/galleryUploadService.js";
 
 /**
- * Membuat router untuk manajemen galeri admin.
- * Router ini menangani CRUD album dan foto, dengan autentikasi dan pembatasan akses peran.
+ * Factory function that creates the admin gallery router.
+ * This router handles CRUD operations for albums and photos, with authentication and role-based access restrictions.
  *
- * @param {object} dependencies - Dependensi router.
- * @param {import('mysql2/promise').Pool} dependencies.pool - Koneksi pool MySQL.
- * @param {string} dependencies.JWT_SECRET - Secret key untuk autentikasi JWT.
- * @returns {import('express').Router} Router Express yang sudah dikonfigurasi.
+ * @param {object} dependencies - The dependencies object.
+ * @param {import('mysql2/promise').Pool} dependencies.pool - MySQL connection pool.
+ * @param {string} dependencies.JWT_SECRET - Secret key for JWT authentication.
+ * @returns {import('express').Router} Configured Express router.
  */
 const adminGalleryRouterFactory = ({ pool, JWT_SECRET }) => {
   const router = Router();
 
-  // Middleware autentikasi & otorisasi
   const authenticateToken = authenticateTokenFactory({ JWT_SECRET });
   router.use(authenticateToken);
 
@@ -35,7 +39,6 @@ const adminGalleryRouterFactory = ({ pool, JWT_SECRET }) => {
     ])
   );
 
-  // Inisialisasi model, service, dan controller
   const galleryModel = createGalleryModel({ pool });
   const galleryUploadService = createGalleryUploadService();
   const galleryController = createGalleryController({
@@ -43,18 +46,12 @@ const adminGalleryRouterFactory = ({ pool, JWT_SECRET }) => {
     galleryUploadService,
   });
 
-  /**
-   * Album Routes
-   */
   router.post("/albums", galleryController.createAlbum);
   router.get("/albums", galleryController.getAllAlbums);
   router.get("/albums/:id", galleryController.getAlbumById);
   router.put("/albums/:id", galleryController.updateAlbum);
   router.delete("/albums/:id", galleryController.deleteAlbum);
 
-  /**
-   * Photo Routes
-   */
   router.post(
     "/photos",
     createGalleryUploadMiddleware(),

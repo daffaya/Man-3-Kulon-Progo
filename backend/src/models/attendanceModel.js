@@ -1,6 +1,22 @@
-// backend/src/models/attendanceModel.js
+/**
+ * @fileoverview Data access layer for attendance-related operations.
+ * This module provides a factory function to create an attendance model object with methods
+ * for retrieving and managing attendance data in the database.
+ */
+
+/**
+ * Creates an attendance model with methods to interact with the attendance database tables.
+ * @param {object} options - The options object.
+ * @param {mysql.Pool} options.pool - The database connection pool.
+ * @returns {object} An object containing attendance model methods.
+ */
 const attendanceModelFactory = ({ pool }) => {
-  // Get students by class
+  /**
+   * Retrieves all active students in a specific class.
+   * @async
+   * @param {number} classId - The ID of the class.
+   * @returns {Promise<Array<object>>} A promise that resolves to an array of student objects with id, nisn, and name.
+   */
   const getStudentsByClass = async (classId) => {
     const [students] = await pool.query(
       `SELECT s.id, s.nisn, s.name
@@ -14,7 +30,13 @@ const attendanceModelFactory = ({ pool }) => {
     return students;
   };
 
-  // Get attendance by date and class
+  /**
+   * Retrieves attendance records for a specific date and class.
+   * @async
+   * @param {string} date - The date in YYYY-MM-DD format.
+   * @param {number} classId - The ID of the class.
+   * @returns {Promise<Array<object>>} A promise that resolves to an array of attendance objects.
+   */
   const getAttendanceByDateAndClass = async (date, classId) => {
     const [attendance] = await pool.query(
       `SELECT a.student_id, a.status, a.notes
@@ -27,7 +49,15 @@ const attendanceModelFactory = ({ pool }) => {
     return attendance;
   };
 
-  // Get attendance recap by period
+  /**
+   * Retrieves attendance recapitulation for a class within a specific period.
+   * @async
+   * @param {number} classId - The ID of the class.
+   * @param {string} period - The period type ('daily', 'monthly', or 'semester').
+   * @param {string} startDate - The start date in YYYY-MM-DD format.
+   * @param {string} endDate - The end date in YYYY-MM-DD format.
+   * @returns {Promise<Array<object>>} A promise that resolves to an array of attendance recap data.
+   */
   const getAttendanceRecap = async (classId, period, startDate, endDate) => {
     let query = "";
     let queryParams = [];
@@ -81,7 +111,14 @@ const attendanceModelFactory = ({ pool }) => {
     return recap;
   };
 
-  // Get attendance by student and date range
+  /**
+   * Retrieves attendance records for a specific student within a date range.
+   * @async
+   * @param {number} studentId - The ID of the student.
+   * @param {string} startDate - The start date in YYYY-MM-DD format.
+   * @param {string} endDate - The end date in YYYY-MM-DD format.
+   * @returns {Promise<Array<object>>} A promise that resolves to an array of attendance objects.
+   */
   const getAttendanceByStudentAndDateRange = async (
     studentId,
     startDate,
@@ -98,7 +135,13 @@ const attendanceModelFactory = ({ pool }) => {
     return attendance;
   };
 
-  // Get attendance statistics
+  /**
+   * Retrieves attendance statistics for a specific date range.
+   * @async
+   * @param {string} startDate - The start date in YYYY-MM-DD format.
+   * @param {string} endDate - The end date in YYYY-MM-DD format.
+   * @returns {Promise<object>} A promise that resolves to an object containing attendance counts by status.
+   */
   const getAttendanceStats = async (startDate, endDate) => {
     const [stats] = await pool.query(
       `SELECT 
@@ -130,9 +173,13 @@ const attendanceModelFactory = ({ pool }) => {
     return result;
   };
 
-  // Get today's attendance statistics
+  /**
+   * Retrieves attendance statistics for a specific date, considering holidays.
+   * @async
+   * @param {string} date - The date in YYYY-MM-DD format.
+   * @returns {Promise<object>} A promise that resolves to an object containing attendance counts by status.
+   */
   const getTodayAttendanceStats = async (date) => {
-    // Check if it's a holiday
     const [holidayCheck] = await pool.query(
       "SELECT COUNT(*) as count FROM school_holidays WHERE date = ?",
       [date]
@@ -148,7 +195,6 @@ const attendanceModelFactory = ({ pool }) => {
       };
     }
 
-    // Get attendance stats
     const [stats] = await pool.query(
       `SELECT 
         status,
@@ -179,7 +225,14 @@ const attendanceModelFactory = ({ pool }) => {
     return result;
   };
 
-  // Get archived attendance data
+  /**
+   * Retrieves archived attendance data with optional filtering.
+   * @async
+   * @param {string} [academicYear] - The academic year to filter by.
+   * @param {string} [semester] - The semester to filter by.
+   * @param {number} [classId] - The class ID to filter by.
+   * @returns {Promise<Array<object>>} A promise that resolves to an array of archived attendance records.
+   */
   const getArchivedAttendanceData = async (academicYear, semester, classId) => {
     let query = `
       SELECT 
@@ -215,7 +268,13 @@ const attendanceModelFactory = ({ pool }) => {
     return archives;
   };
 
-  // Check existing attendance
+  /**
+   * Checks if attendance records already exist for a specific date and class.
+   * @async
+   * @param {string} date - The date in YYYY-MM-DD format.
+   * @param {number} classId - The ID of the class.
+   * @returns {Promise<Array<object>>} A promise that resolves to an array of existing attendance records.
+   */
   const checkExistingAttendance = async (date, classId) => {
     const [existing] = await pool.query(
       `SELECT a.student_id, a.status, a.notes
@@ -228,7 +287,12 @@ const attendanceModelFactory = ({ pool }) => {
     return existing;
   };
 
-  // Get attendance by date
+  /**
+   * Retrieves all attendance records for a specific date, including student and class information.
+   * @async
+   * @param {string} date - The date in YYYY-MM-DD format.
+   * @returns {Promise<Array<object>>} A promise that resolves to an array of attendance records with student and class details.
+   */
   const getAttendanceByDate = async (date) => {
     const [attendance] = await pool.query(
       `SELECT 
@@ -250,7 +314,11 @@ const attendanceModelFactory = ({ pool }) => {
     return attendance;
   };
 
-  // Get classes
+  /**
+   * Retrieves all classes with their student counts.
+   * @async
+   * @returns {Promise<Array<object>>} A promise that resolves to an array of class objects with student counts.
+   */
   const getClasses = async () => {
     const [classes] = await pool.query(
       `SELECT 
@@ -269,7 +337,12 @@ const attendanceModelFactory = ({ pool }) => {
     return classes;
   };
 
-  // Get holidays
+  /**
+   * Retrieves school holidays with optional filtering by academic year.
+   * @async
+   * @param {string} [academicYear] - The academic year to filter by.
+   * @returns {Promise<Array<object>>} A promise that resolves to an array of holiday objects.
+   */
   const getHolidays = async (academicYear) => {
     let query = "SELECT * FROM school_holidays";
     const params = [];
@@ -285,7 +358,12 @@ const attendanceModelFactory = ({ pool }) => {
     return holidays;
   };
 
-  // Get holiday by date
+  /**
+   * Retrieves a specific holiday by date.
+   * @async
+   * @param {string} date - The date in YYYY-MM-DD format.
+   * @returns {Promise<object|null>} A promise that resolves to a holiday object or null if not found.
+   */
   const getHolidayByDate = async (date) => {
     const [holiday] = await pool.query(
       "SELECT * FROM school_holidays WHERE date = ?",
@@ -295,9 +373,14 @@ const attendanceModelFactory = ({ pool }) => {
     return holiday[0] || null;
   };
 
-  // Archive attendance data
+  /**
+   * Archives attendance data for a specific academic year and semester.
+   * @async
+   * @param {string} academicYear - The academic year to archive.
+   * @param {string} semester - The semester to archive.
+   * @returns {Promise<object>} A promise that resolves to an object indicating the success of the operation.
+   */
   const archiveAttendanceData = async (academicYear, semester) => {
-    // Get all students with their attendance data
     const [students] = await pool.query(
       `SELECT 
         s.id as student_id,
@@ -318,7 +401,6 @@ const attendanceModelFactory = ({ pool }) => {
       [semester, academicYear]
     );
 
-    // Calculate percentage and insert into archive table
     for (const student of students) {
       const percentage =
         student.total_days > 0

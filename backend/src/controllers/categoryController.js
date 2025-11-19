@@ -1,6 +1,18 @@
+/**
+ * Factory function to create a Category Controller with CRUD operations.
+ * @param {Object} dependencies - Dependencies to be injected.
+ * @param {Object} dependencies.categoryModel - Model for category operations.
+ * @returns {Object} Controller with CRUD methods for categories.
+ */
 const createCategoryController = ({ categoryModel }) => {
+  /**
+   * Helper function to handle errors and send a standardized JSON response.
+   * @param {Object} res - Express response object.
+   * @param {string} context - The context in which the error occurred (e.g., "create category").
+   * @param {Object} error - The error object.
+   * @returns {Object} Express response object with a 500 status code.
+   */
   const handleError = (res, context, error) => {
-    console.error(`[CategoryController] Error ${context}:`, error);
     return res.status(500).json({
       message: `Failed to ${context}`,
       error: error.message,
@@ -8,7 +20,13 @@ const createCategoryController = ({ categoryModel }) => {
   };
 
   return {
-    // Ambil semua kategori untuk admin
+    /**
+     * Retrieves all categories.
+     * @async
+     * @param {Object} req - Express request object.
+     * @param {Object} res - Express response object.
+     * @returns {Promise<void>}
+     */
     getAllCategories: async (req, res) => {
       try {
         const categories = await categoryModel.findAll();
@@ -18,7 +36,13 @@ const createCategoryController = ({ categoryModel }) => {
       }
     },
 
-    // Buat kategori baru
+    /**
+     * Creates a new category.
+     * @async
+     * @param {Object} req - Express request object.
+     * @param {Object} res - Express response object.
+     * @returns {Promise<void>}
+     */
     createCategory: async (req, res) => {
       try {
         const { name, description } = req.body;
@@ -26,18 +50,22 @@ const createCategoryController = ({ categoryModel }) => {
           return res.status(400).json({ message: "Category name is required" });
 
         const newCategory = await categoryModel.create({ name, description });
-        res
-          .status(201)
-          .json({
-            message: "Category created successfully",
-            category: newCategory,
-          });
+        res.status(201).json({
+          message: "Category created successfully",
+          category: newCategory,
+        });
       } catch (error) {
         handleError(res, "create category", error);
       }
     },
 
-    // Update kategori
+    /**
+     * Updates a category by its ID.
+     * @async
+     * @param {Object} req - Express request object.
+     * @param {Object} res - Express response object.
+     * @returns {Promise<void>}
+     */
     updateCategory: async (req, res) => {
       try {
         const { id } = req.params;
@@ -52,18 +80,22 @@ const createCategoryController = ({ categoryModel }) => {
         if (!updatedCategory)
           return res.status(404).json({ message: "Category not found" });
 
-        res
-          .status(200)
-          .json({
-            message: "Category updated successfully",
-            category: updatedCategory,
-          });
+        res.status(200).json({
+          message: "Category updated successfully",
+          category: updatedCategory,
+        });
       } catch (error) {
         handleError(res, "update category", error);
       }
     },
 
-    // Hapus kategori
+    /**
+     * Deletes a category by its ID.
+     * @async
+     * @param {Object} req - Express request object.
+     * @param {Object} res - Express response object.
+     * @returns {Promise<void>}
+     */
     deleteCategory: async (req, res) => {
       try {
         const { id } = req.params;

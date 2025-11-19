@@ -4,7 +4,7 @@ import multer from "multer";
 import path from "path";
 import { fileURLToPath } from "url";
 import fs from "fs";
-import slugify from "slugify"; // Pastikan Anda sudah mengimpor slugify
+import slugify from "slugify";
 
 // Polyfill for __dirname in ES Modules
 const __filename = fileURLToPath(import.meta.url);

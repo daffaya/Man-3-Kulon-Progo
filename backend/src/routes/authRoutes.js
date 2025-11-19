@@ -1,3 +1,10 @@
+/**
+ * @fileoverview Defines the Express router for authentication-related endpoints.
+ * This module creates and configures routes for user login and registration.
+ * It includes middleware for authentication and role-based access control to protect
+ * the registration endpoint, ensuring only super admins can create new users.
+ */
+
 import { Router } from "express";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
@@ -9,11 +16,11 @@ import createUserModel from "../models/userModel.js";
 
 /**
  * Factory function to create authentication routes with login and register endpoints.
- * @param {Object} dependencies - Dependencies to be injected
- * @param {Object} dependencies.pool - Database connection pool
- * @param {string} dependencies.JWT_SECRET - Secret key for JWT signing
- * @param {string} dependencies.JWT_EXPIRATION - Expiration time for JWT tokens
- * @returns {Router} Express router with authentication endpoints
+ * @param {Object} dependencies - Dependencies to be injected.
+ * @param {mysql.Pool} dependencies.pool - Database connection pool.
+ * @param {string} dependencies.JWT_SECRET - Secret key for JWT signing.
+ * @param {string} dependencies.JWT_EXPIRATION - Expiration time for JWT tokens.
+ * @returns {Router} Express router with authentication endpoints.
  */
 const authRouterFactory = ({ pool, JWT_SECRET, JWT_EXPIRATION }) => {
   const authRouter = Router();
@@ -21,7 +28,8 @@ const authRouterFactory = ({ pool, JWT_SECRET, JWT_EXPIRATION }) => {
   const userModel = createUserModel({ pool });
 
   /**
-   * Array of valid user roles in the system
+   * Array of valid user roles in the system.
+   * @type {string[]}
    */
   const VALID_ROLES = [
     "arsiparis",
@@ -32,20 +40,19 @@ const authRouterFactory = ({ pool, JWT_SECRET, JWT_EXPIRATION }) => {
   ];
 
   /**
-   * Handles user login and returns a JWT token
+   * Handles user login and returns a JWT token.
    * @route POST /login
-   * @param {Object} req - Express request object
-   * @param {Object} req.body - Request body
-   * @param {string} req.body.username - User's username
-   * @param {string} req.body.password - User's password
-   * @param {Object} res - Express response object
-   * @returns {Object} JSON response with user data and JWT token
+   * @param {Object} req - Express request object.
+   * @param {Object} req.body - Request body.
+   * @param {string} req.body.username - User's username.
+   * @param {string} req.body.password - User's password.
+   * @param {Object} res - Express response object.
+   * @returns {Object} JSON response with user data and JWT token.
    */
   authRouter.post("/login", async (req, res) => {
     const { username, password } = req.body;
 
     try {
-      // Validate input
       if (!username || !password) {
         return res.status(400).json({
           success: false,
@@ -53,7 +60,6 @@ const authRouterFactory = ({ pool, JWT_SECRET, JWT_EXPIRATION }) => {
         });
       }
 
-      // Find user by username
       const user = await userModel.findByUsername(username);
 
       if (!user) {
@@ -63,7 +69,6 @@ const authRouterFactory = ({ pool, JWT_SECRET, JWT_EXPIRATION }) => {
         });
       }
 
-      // Verify password
       const isPasswordValid = await bcrypt.compare(
         password,
         user.password_hash
@@ -76,7 +81,6 @@ const authRouterFactory = ({ pool, JWT_SECRET, JWT_EXPIRATION }) => {
         });
       }
 
-      // Generate JWT token
       const token = jwt.sign(
         { id: user.id, username: user.username, role: user.role },
         JWT_SECRET,
@@ -85,7 +89,6 @@ const authRouterFactory = ({ pool, JWT_SECRET, JWT_EXPIRATION }) => {
         }
       );
 
-      // Return user data without password
       const { password_hash, ...userWithoutPassword } = user;
 
       if (
@@ -111,16 +114,16 @@ const authRouterFactory = ({ pool, JWT_SECRET, JWT_EXPIRATION }) => {
   });
 
   /**
-   * Handles user registration (restricted to super_admin role)
+   * Handles user registration (restricted to super_admin role).
    * @route POST /register
-   * @param {Object} req - Express request object
-   * @param {Object} req.body - Request body
-   * @param {string} req.body.username - New user's username
-   * @param {string} req.body.password - New user's password
-   * @param {string} req.body.role - New user's role
-   * @param {string} [req.body.full_name] - New user's full name
-   * @param {Object} res - Express response object
-   * @returns {Object} JSON response with registration status
+   * @param {Object} req - Express request object.
+   * @param {Object} req.body - Request body.
+   * @param {string} req.body.username - New user's username.
+   * @param {string} req.body.password - New user's password.
+   * @param {string} req.body.role - New user's role.
+   * @param {string} [req.body.full_name] - New user's full name.
+   * @param {Object} res - Express response object.
+   * @returns {Object} JSON response with registration status.
    */
   authRouter.post(
     "/register",
@@ -130,7 +133,6 @@ const authRouterFactory = ({ pool, JWT_SECRET, JWT_EXPIRATION }) => {
       const { username, password, role, full_name = "" } = req.body;
 
       try {
-        // Validate input
         if (!username || !password || !role) {
           return res.status(400).json({
             success: false,
@@ -138,7 +140,6 @@ const authRouterFactory = ({ pool, JWT_SECRET, JWT_EXPIRATION }) => {
           });
         }
 
-        // Check if user already exists
         const existingUser = await userModel.findByUsername(username);
 
         if (existingUser) {
@@ -148,7 +149,6 @@ const authRouterFactory = ({ pool, JWT_SECRET, JWT_EXPIRATION }) => {
           });
         }
 
-        // Validate role
         if (!VALID_ROLES.includes(role)) {
           return res.status(400).json({
             success: false,
@@ -156,11 +156,9 @@ const authRouterFactory = ({ pool, JWT_SECRET, JWT_EXPIRATION }) => {
           });
         }
 
-        // Hash password
         const saltRounds = 10;
         const passwordHash = await bcrypt.hash(password, saltRounds);
 
-        // Create new user
         const userId = await userModel.create({
           username,
           password_hash: passwordHash,

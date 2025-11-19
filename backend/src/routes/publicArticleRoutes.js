@@ -1,24 +1,34 @@
+/**
+ * @fileoverview Router for public article endpoints.
+ * This module defines and configures an Express router for fetching published articles.
+ * It provides endpoints for listing articles with pagination and filtering, and for fetching
+ * individual articles by slug.
+ */
+
 import { Router } from "express";
-import slugify from "slugify";
 
 /**
  * Factory function that creates the public article router.
+ * This router handles endpoints for fetching published articles.
  *
- * @param {object} options
- * @param {import('mysql2/promise').Pool} options.pool - MySQL connection pool
- * @returns {import('express').Router} Express router for public article routes
+ * @param {object} options - The options object.
+ * @param {import('mysql2/promise').Pool} options.pool - MySQL connection pool.
+ * @returns {import('express').Router} Express router for public article routes.
  */
 const publicArticleRouterFactory = ({ pool }) => {
   const publicArticleRouter = Router();
 
   /**
    * GET /api/articles
+   * Fetches a paginated list of published articles with optional filtering.
    *
-   * Fetches a paginated list of published articles, with optional filters:
-   * - `tag`: Filter by one or multiple tags.
-   * - `category`: Filter by category slug.
-   * - `keyword`: Search by title or content.
-   * - `page`, `limit`: Pagination options.
+   * @route GET /api/articles
+   * @param {string} [req.query.tag] - Filter by one or multiple tags.
+   * @param {string} [req.query.category] - Filter by category slug.
+   * @param {string} [req.query.keyword] - Search by title or content.
+   * @param {number} [req.query.page=1] - Page number for pagination.
+   * @param {number} [req.query.limit=10] - Number of articles per page.
+   * @returns {object} Paginated list of articles with metadata.
    */
   publicArticleRouter.get("/", async (req, res) => {
     const { tag, keyword, category: categoryFilter } = req.query;
@@ -30,13 +40,11 @@ const publicArticleRouterFactory = ({ pool }) => {
       const conditions = ["articles.published = TRUE"];
       const queryParams = [];
 
-      // Keyword filter
       if (keyword) {
         conditions.push("(articles.title LIKE ? OR articles.content LIKE ?)");
         queryParams.push(`%${keyword}%`, `%${keyword}%`);
       }
 
-      // Tag filter
       const tagsToFilter = Array.isArray(tag) ? tag : tag ? [tag] : [];
       if (tagsToFilter.length > 0) {
         const tagConditions = tagsToFilter.map(
@@ -46,7 +54,6 @@ const publicArticleRouterFactory = ({ pool }) => {
         queryParams.push(...tagsToFilter);
       }
 
-      // Category filter
       if (categoryFilter) {
         conditions.push("categories.slug = ?");
         queryParams.push(categoryFilter);
@@ -55,7 +62,6 @@ const publicArticleRouterFactory = ({ pool }) => {
       const whereClause =
         conditions.length > 0 ? `WHERE ${conditions.join(" AND ")}` : "";
 
-      // Fetch paginated articles
       const sql = `
         SELECT
           articles.id,
@@ -86,7 +92,6 @@ const publicArticleRouterFactory = ({ pool }) => {
 
       const [rows] = await pool.execute(sql, queryParams);
 
-      // Count total results
       const [totalRows] = await pool.execute(
         `
         SELECT COUNT(*) AS total
@@ -98,7 +103,6 @@ const publicArticleRouterFactory = ({ pool }) => {
       );
       const totalArticles = totalRows[0].total;
 
-      // Normalize and sanitize article data
       const articles = rows.map((row) => {
         let tagsArray = [];
 
@@ -159,8 +163,11 @@ const publicArticleRouterFactory = ({ pool }) => {
 
   /**
    * GET /api/articles/:slug
+   * Fetches a single published article by its slug.
    *
-   * Fetch a single published article by slug.
+   * @route GET /api/articles/:slug
+   * @param {string} req.params.slug - The slug of the article to fetch.
+   * @returns {object} The requested article or an error message.
    */
   publicArticleRouter.get("/:slug", async (req, res) => {
     const { slug } = req.params;

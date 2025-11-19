@@ -1,8 +1,19 @@
 import fs from "fs";
 
-// src/controllers/studentController.ts
+/**
+ * Factory function to create a Student Controller with CRUD operations.
+ * @param {Object} dependencies - Dependencies to be injected
+ * @param {Object} dependencies.pool - Database connection pool
+ * @param {Object} dependencies.importStudentService - Service for importing student data
+ * @returns {Object} Controller with CRUD methods
+ */
 const studentControllerFactory = ({ pool, importStudentService }) => {
-  // 1. LIST STUDENTS (dengan pagination, search, filter kelas)
+  /**
+   * Retrieves a list of students with pagination, search, and filtering capabilities.
+   * @param {Object} req - Express request object
+   * @param {Object} res - Express response object
+   * @returns {Promise<void>}
+   */
   const getStudents = async (req, res) => {
     try {
       const {
@@ -17,7 +28,7 @@ const studentControllerFactory = ({ pool, importStudentService }) => {
       const [students] = await pool.execute(
         `SELECT 
         s.id, s.nisn, s.name, s.jenis_kelamin, s.status, 
-        .name as className, c.level, c.rombel,
+        c.name as className, c.level, c.rombel,
         sah.academicYear
        FROM students s
        LEFT JOIN student_academic_history sah ON s.id = sah.studentId
@@ -53,7 +64,12 @@ const studentControllerFactory = ({ pool, importStudentService }) => {
     }
   };
 
-  // 2. CREATE STUDENT MANUAL
+  /**
+   * Creates a new student record with the provided information.
+   * @param {Object} req - Express request object
+   * @param {Object} res - Express response object
+   * @returns {Promise<void>}
+   */
   const createStudent = async (req, res) => {
     try {
       const {
@@ -70,14 +86,12 @@ const studentControllerFactory = ({ pool, importStudentService }) => {
         classId,
       } = req.body;
 
-      // Validasi
       if (!nisn || !name || !classId) {
         return res
           .status(400)
           .json({ error: "NISN, Nama, dan Kelas wajib diisi" });
       }
 
-      // Cek duplikat NISN
       const [existing] = await pool.execute(
         "SELECT id FROM students WHERE nisn = ?",
         [nisn]
@@ -86,7 +100,6 @@ const studentControllerFactory = ({ pool, importStudentService }) => {
         return res.status(400).json({ error: "NISN sudah terdaftar" });
       }
 
-      // Cek kelas exists
       const [classCheck] = await pool.execute(
         "SELECT id FROM classes WHERE id = ?",
         [classId]
@@ -95,7 +108,6 @@ const studentControllerFactory = ({ pool, importStudentService }) => {
         return res.status(400).json({ error: "Kelas tidak ditemukan" });
       }
 
-      // Create student
       const [result] = await pool.execute(
         `INSERT INTO students (nisn, name, jenis_kelamin, nik, birthPlace, 
           birthDate, address, phone, parentName, status) 
@@ -115,7 +127,6 @@ const studentControllerFactory = ({ pool, importStudentService }) => {
 
       const studentId = result.insertId;
 
-      // Create academic history
       await pool.execute(
         "INSERT INTO student_academic_history (studentId, classId, academicYear) VALUES (?, ?, ?)",
         [studentId, classId, academicYear || "2025/2026"]
@@ -130,7 +141,12 @@ const studentControllerFactory = ({ pool, importStudentService }) => {
     }
   };
 
-  // 3. GET STUDENT BY ID
+  /**
+   * Retrieves a specific student by their ID.
+   * @param {Object} req - Express request object
+   * @param {Object} res - Express response object
+   * @returns {Promise<void>}
+   */
   const getStudentById = async (req, res) => {
     try {
       const { id } = req.params;
@@ -156,13 +172,17 @@ const studentControllerFactory = ({ pool, importStudentService }) => {
     }
   };
 
-  // 4. UPDATE STUDENT
+  /**
+   * Updates an existing student's information.
+   * @param {Object} req - Express request object
+   * @param {Object} res - Express response object
+   * @returns {Promise<void>}
+   */
   const updateStudent = async (req, res) => {
     try {
       const { id } = req.params;
       const updates = req.body;
 
-      // Validasi NISN unik (kecuali dirinya sendiri)
       if (updates.nisn) {
         const [existing] = await pool.execute(
           "SELECT id FROM students WHERE nisn = ? AND id != ?",
@@ -175,7 +195,6 @@ const studentControllerFactory = ({ pool, importStudentService }) => {
         }
       }
 
-      // Build dynamic update query
       const fields = [];
       const values = [];
 
@@ -184,7 +203,7 @@ const studentControllerFactory = ({ pool, importStudentService }) => {
         values.push(updates.name);
       }
       if (updates.jenisKelamin) {
-        fields.push("jenis_kelamin, = ?");
+        fields.push("jenis_kelamin = ?");
         values.push(updates.jenisKelamin);
       }
       if (updates.nik) {
@@ -224,7 +243,7 @@ const studentControllerFactory = ({ pool, importStudentService }) => {
         return res.status(400).json({ error: "Tidak ada data yang diupdate" });
       }
 
-      values.push(id); // WHERE id = ?
+      values.push(id);
       const query = `UPDATE students SET ${fields.join(", ")} WHERE id = ?`;
 
       const [result] = await pool.execute(query, values);
@@ -233,7 +252,6 @@ const studentControllerFactory = ({ pool, importStudentService }) => {
         return res.status(404).json({ error: "Siswa tidak ditemukan" });
       }
 
-      // Update academic history kalau ada classId baru
       if (updates.classId) {
         await pool.execute(
           `UPDATE student_academic_history 
@@ -253,12 +271,16 @@ const studentControllerFactory = ({ pool, importStudentService }) => {
     }
   };
 
-  // 5. DELETE STUDENT
+  /**
+   * Soft deletes a student by setting their status to inactive.
+   * @param {Object} req - Express request object
+   * @param {Object} res - Express response object
+   * @returns {Promise<void>}
+   */
   const deleteStudent = async (req, res) => {
     try {
       const { id } = req.params;
 
-      // Cek exists
       const [student] = await pool.execute(
         "SELECT id FROM students WHERE id = ?",
         [id]
@@ -267,7 +289,6 @@ const studentControllerFactory = ({ pool, importStudentService }) => {
         return res.status(404).json({ error: "Siswa tidak ditemukan" });
       }
 
-      // Soft delete (set status = 'Tidak Aktif')
       await pool.execute(
         'UPDATE students SET status = "Tidak Aktif" WHERE id = ?',
         [id]
@@ -279,9 +300,14 @@ const studentControllerFactory = ({ pool, importStudentService }) => {
     }
   };
 
+  /**
+   * Retrieves statistics about students.
+   * @param {Object} req - Express request object
+   * @param {Object} res - Express response object
+   * @returns {Promise<void>}
+   */
   const getStudentStats = async (req, res) => {
     try {
-      // Query untuk menghitung total siswa yang aktif dan tidak dihapus
       const [rows] = await pool.execute(
         "SELECT COUNT(*) as total FROM students WHERE is_active = 1 AND is_deleted = 0"
       );
@@ -297,6 +323,12 @@ const studentControllerFactory = ({ pool, importStudentService }) => {
     }
   };
 
+  /**
+   * Imports student data from a file.
+   * @param {Object} req - Express request object
+   * @param {Object} res - Express response object
+   * @returns {Promise<void>}
+   */
   const importStudents = async (req, res) => {
     try {
       if (!req.file) {
@@ -307,7 +339,6 @@ const studentControllerFactory = ({ pool, importStudentService }) => {
         req.file.path
       );
 
-      // **FIX TOAST LOGIC: Warning kalau success=0 atau failed>0**
       const response = {
         success: results.success,
         failed: results.failed,

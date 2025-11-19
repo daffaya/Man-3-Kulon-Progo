@@ -1,9 +1,21 @@
-// src/controllers/alumniController.js
 import alumniModelFactory from "../models/alumniModel.js";
 
+/**
+ * Factory function to create an Alumni Controller.
+ * @param {Object} dependencies - The dependencies to be injected.
+ * @param {Object} dependencies.pool - The database connection pool.
+ * @returns {Object} An object containing alumni controller methods.
+ */
 const alumniControllerFactory = ({ pool }) => {
   const alumniModel = alumniModelFactory({ pool });
 
+  /**
+   * Handles the request to get a list of alumni with filtering and pagination.
+   * @async
+   * @param {Object} req - Express request object.
+   * @param {Object} res - Express response object.
+   * @returns {Promise<void>}
+   */
   const handleGetAlumni = async (req, res) => {
     const { search, graduationYear, page, limit } = req.query;
 
@@ -20,6 +32,13 @@ const alumniControllerFactory = ({ pool }) => {
     }
   };
 
+  /**
+   * Handles the request to update an alumnus's data by ID.
+   * @async
+   * @param {Object} req - Express request object.
+   * @param {Object} res - Express response object.
+   * @returns {Promise<void>}
+   */
   const handleUpdateAlumni = async (req, res) => {
     const { id } = req.params;
     const { status, workplace, business, university } = req.body;

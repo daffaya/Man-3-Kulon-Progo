@@ -1,14 +1,30 @@
-// src/services/exportService.js
+/**
+ * @fileoverview Service for exporting data to Excel and PDF formats.
+ * This module provides functions to generate Excel and PDF reports for student attendance,
+ * including formatting, styling, and file management.
+ */
+
 import ExcelJS from "exceljs";
 import PDFDocument from "pdfkit";
 import fs from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
 
-// Helper untuk mendapatkan __dirname di ES Module
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
+/**
+ * Exports student attendance data to an Excel file.
+ * @param {Array<Object>} data - The student data to export.
+ * @param {Object} options - Configuration options for the export.
+ * @param {string} options.className - The name of the class.
+ * @param {string} options.period - The period of the report ('daily', 'monthly', 'semesteran').
+ * @param {string} options.academicYear - The academic year.
+ * @param {string} options.semester - The semester.
+ * @param {string} [options.startDate] - The start date for the report period.
+ * @param {string} [options.endDate] - The end date for the report period.
+ * @returns {Promise<Object>} A promise that resolves to an object containing the filename, filepath, and mimetype of the generated file.
+ */
 export const exportToExcel = async (data, options) => {
   const {
     classId,
@@ -20,19 +36,14 @@ export const exportToExcel = async (data, options) => {
     endDate,
   } = options;
 
-  // Create a new workbook
   const workbook = new ExcelJS.Workbook();
-
-  // Add a worksheet
   const worksheet = workbook.addWorksheet("Rekap Presensi");
 
-  // Add title
   const titleRow = worksheet.addRow(["REKAP PRESENSI SISWA"]);
   titleRow.font = { size: 16, bold: true };
   titleRow.alignment = { horizontal: "center" };
   worksheet.mergeCells("A1:H1");
 
-  // Add class info
   const infoRow = worksheet.addRow([
     `Kelas: ${className}`,
     `Tahun Ajaran: ${academicYear}`,
@@ -49,17 +60,14 @@ export const exportToExcel = async (data, options) => {
   worksheet.mergeCells("A2:D2");
   worksheet.mergeCells("E2:H2");
 
-  // Add date range if not daily
   if (period !== "daily") {
     const dateRow = worksheet.addRow([`Tanggal: ${startDate} - ${endDate}`]);
     dateRow.font = { size: 12 };
     worksheet.mergeCells("A3:H3");
   }
 
-  // Add empty row
   worksheet.addRow([]);
 
-  // Add headers
   const headers = ["No", "NISN", "Nama Siswa"];
   if (period !== "daily") {
     headers.push(
@@ -82,7 +90,6 @@ export const exportToExcel = async (data, options) => {
     fgColor: { argb: "FFD3D3D3" },
   };
 
-  // Add data
   data.forEach((student, index) => {
     const row = [index + 1, student.nisn, student.name];
 
@@ -102,24 +109,20 @@ export const exportToExcel = async (data, options) => {
     worksheet.addRow(row);
   });
 
-  // Auto-fit columns
   worksheet.columns.forEach((column) => {
     if (column.header) {
       column.width = column.header.length < 15 ? 15 : column.header.length;
     }
   });
 
-  // Generate filename
   const date = new Date().toISOString().split("T")[0];
   const filename = `rekap_presensi_${className}_${period}_${date}.xlsx`;
   const filepath = path.join(__dirname, "../temp", filename);
 
-  // Ensure temp directory exists
   if (!fs.existsSync(path.join(__dirname, "../temp"))) {
     fs.mkdirSync(path.join(__dirname, "../temp"), { recursive: true });
   }
 
-  // Save the workbook
   await workbook.xlsx.writeFile(filepath);
 
   return {
@@ -130,6 +133,18 @@ export const exportToExcel = async (data, options) => {
   };
 };
 
+/**
+ * Exports student attendance data to a PDF file.
+ * @param {Array<Object>} data - The student data to export.
+ * @param {Object} options - Configuration options for the export.
+ * @param {string} options.className - The name of the class.
+ * @param {string} options.period - The period of the report ('daily', 'monthly', 'semesteran').
+ * @param {string} options.academicYear - The academic year.
+ * @param {string} options.semester - The semester.
+ * @param {string} [options.startDate] - The start date for the report period.
+ * @param {string} [options.endDate] - The end date for the report period.
+ * @returns {Promise<Object>} A promise that resolves to an object containing the filename, filepath, and mimetype of the generated file.
+ */
 export const exportToPDF = async (data, options) => {
   const {
     classId,
@@ -160,9 +175,9 @@ export const exportToPDF = async (data, options) => {
       const stream = fs.createWriteStream(filepath);
       doc.pipe(stream);
 
-      // =============================
-      // HEADER (TITLE + INFO)
-      // =============================
+      /**
+       * Draws the page header with title and report information.
+       */
       const drawPageHeader = () => {
         doc.fontSize(18).text("REKAP PRESENSI SISWA", { align: "center" });
         doc.moveDown();
@@ -189,9 +204,6 @@ export const exportToPDF = async (data, options) => {
 
       drawPageHeader();
 
-      // =============================
-      // TABLE SETTINGS
-      // =============================
       const tableConfig = {
         headers: ["No", "NISN", "Nama Siswa"],
         columnWidths: [35, 80, 150],
@@ -214,9 +226,11 @@ export const exportToPDF = async (data, options) => {
         tableConfig.columnWidths.push(70, 120);
       }
 
-      // =============================
-      // DRAW TABLE HEADER
-      // =============================
+      /**
+       * Draws the table header on the current page.
+       * @param {number} y - The y-coordinate to start drawing the header.
+       * @returns {number} The y-coordinate after drawing the header.
+       */
       const drawTableHeader = (y) => {
         let x = tableConfig.margin;
 
@@ -230,7 +244,6 @@ export const exportToPDF = async (data, options) => {
           x += tableConfig.columnWidths[i];
         });
 
-        // Garis bawah header
         doc
           .moveTo(tableConfig.margin, y + 18)
           .lineTo(
@@ -245,9 +258,9 @@ export const exportToPDF = async (data, options) => {
 
       let currentY = drawTableHeader(doc.y);
 
-      // =============================
-      // PAGE BREAK CHECKER
-      // =============================
+      /**
+       * Checks if a new page is needed and adds one if so.
+       */
       const checkPageBreak = () => {
         if (currentY > doc.page.height - doc.page.margins.bottom - 40) {
           doc.addPage();
@@ -256,9 +269,6 @@ export const exportToPDF = async (data, options) => {
         }
       };
 
-      // =============================
-      // ROW DRAWING
-      // =============================
       doc.font("Helvetica").fontSize(10);
 
       data.forEach((student, index) => {
@@ -266,14 +276,12 @@ export const exportToPDF = async (data, options) => {
 
         let x = tableConfig.margin;
 
-        // No
         doc.text(index + 1, x, currentY, {
           width: tableConfig.columnWidths[0],
           align: "center",
         });
         x += tableConfig.columnWidths[0];
 
-        // NISN
         const nisn =
           student.nisn && student.nisn.length > 12
             ? student.nisn.substring(0, 12) + "..."
@@ -284,7 +292,6 @@ export const exportToPDF = async (data, options) => {
         });
         x += tableConfig.columnWidths[1];
 
-        // Name
         const name =
           student.name && student.name.length > 25
             ? student.name.substring(0, 25) + "..."
@@ -328,7 +335,6 @@ export const exportToPDF = async (data, options) => {
           });
         }
 
-        // Garis pemisah baris (lebih aman dan tidak menabrak teks)
         const lineY = currentY + tableConfig.rowHeight - 3;
         doc
           .moveTo(tableConfig.margin, lineY)
@@ -342,9 +348,6 @@ export const exportToPDF = async (data, options) => {
         currentY += tableConfig.rowHeight;
       });
 
-      // =============================
-      // END PDF
-      // =============================
       doc.end();
 
       stream.on("finish", () => {

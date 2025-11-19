@@ -1,32 +1,28 @@
-import mysql from "mysql2/promise";
+/**
+ * @fileoverview Database connection pool configuration.
+ * This module configures and exports a MySQL connection pool using `mysql2/promise`.
+ * It retrieves connection details from environment variables and throws an error
+ * if required configurations are missing.
+ */
 
-console.log("[Connection] Initializing database connection...");
+import mysql from "mysql2/promise";
 
 const DATABASE_HOST = process.env.DATABASE_HOST;
 const DATABASE_USER = process.env.DATABASE_USER;
-const DATABASE_PASSWORD = process.env.DATABASE_PASSWORD || ""; // Kembalikan fallback untuk debug
+const DATABASE_PASSWORD = process.env.DATABASE_PASSWORD || ""; // Fallback for local development
 const DATABASE_NAME = process.env.DATABASE_NAME;
 
-console.log("[Connection] DB Config:", {
-  DATABASE_HOST,
-  DATABASE_USER,
-  DATABASE_PASSWORD: DATABASE_PASSWORD ? "[set]" : "[empty]",
-  DATABASE_NAME,
-});
-
 if (!DATABASE_HOST || !DATABASE_USER || !DATABASE_NAME) {
-  console.error(
-    "[Connection] FATAL ERROR: Required database environment variables are not set!"
+  throw new Error(
+    "Database configuration incomplete. Check DATABASE_HOST, DATABASE_USER, and DATABASE_NAME environment variables."
   );
-  console.error("[Connection] Environment variables:", {
-    DATABASE_HOST: process.env.DATABASE_HOST,
-    DATABASE_USER: process.env.DATABASE_USER,
-    DATABASE_PASSWORD: process.env.DATABASE_PASSWORD,
-    DATABASE_NAME: process.env.DATABASE_NAME,
-  });
-  throw new Error("Database configuration incomplete");
 }
 
+/**
+ * MySQL connection pool.
+ * Provides a pool of connections to the MySQL database to be used throughout the application.
+ * @type {mysql.Pool}
+ */
 const pool = mysql.createPool({
   host: DATABASE_HOST,
   user: DATABASE_USER,

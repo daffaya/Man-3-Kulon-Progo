@@ -50,6 +50,7 @@ const createUserController = ({ userModel }) => {
   /**
    * Safely deletes an old avatar file from the filesystem.
    * @param {string} avatarUrl - The URL of the old avatar.
+   * @returns {void}
    */
   const deleteOldAvatar = (avatarUrl) => {
     if (!avatarUrl || !avatarUrl.includes("/uploads/avatars/")) {
@@ -99,39 +100,27 @@ const createUserController = ({ userModel }) => {
      * @param {Object} res - Express response object.
      * @param {Function} next - Express next function for error handling.
      */
-    // backend/src/controllers/userController.js
     updateUserProfile: async (req, res, next) => {
       try {
-        console.log("Update profile request:", req.body);
-        console.log("User ID from token:", req.user.id);
-
         const { full_name } = req.body;
         const user = await userModel.findById(req.user.id);
 
         if (!user) {
-          console.log("User not found with ID:", req.user.id);
           return res.status(404).json({ message: "User not found." });
         }
-
-        console.log("Current user data:", user);
 
         const updated = await userModel.updateProfile(req.user.id, {
           full_name,
           avatar: user.avatar, // Preserve existing avatar
         });
 
-        console.log("Update result:", updated);
-
         if (updated) {
           const updatedUser = await userModel.findById(req.user.id);
-          console.log("Updated user data:", updatedUser);
           res.json({ success: true, data: updatedUser });
         } else {
-          console.log("Failed to update profile");
           res.status(400).json({ message: "Failed to update profile." });
         }
       } catch (error) {
-        console.error("Error in updateUserProfile:", error);
         next(error);
       }
     },

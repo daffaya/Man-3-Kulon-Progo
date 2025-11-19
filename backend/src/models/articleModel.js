@@ -1,18 +1,26 @@
-// backend/src/models/articleModel.js
+/**
+ * @fileoverview Article model for database interactions.
+ * This module provides a factory function to create an Article model.
+ * The model includes methods for CRUD (Create, Read, Update, Delete) operations
+ * on the 'articles' table in the database, including functionalities to find
+ * articles by various criteria like ID, slug, tags, and category.
+ */
 
 /**
  * Factory function that creates an Article model for interacting with the database.
  *
  * @param {object} options
- * @param {import('mysql2/promise').Pool} options.pool - MySQL connection pool
- * @returns {object} Article model methods
+ * @param {import('mysql2/promise').Pool} options.pool - MySQL connection pool.
+ * @returns {object} Article model methods.
  */
 const createArticleModel = ({ pool }) => {
   /**
-   * Normalize raw tag data from MySQL into a consistent string array.
-   * Handles cases where tags may be JSON, string, array, or object.
-   * @param {any} rawTags
-   * @returns {string[]}
+   * Normalizes raw tag data from the database into a consistent array of strings.
+   * Handles various input formats such as JSON strings, comma-separated strings,
+   * arrays, or objects.
+   *
+   * @param {any} rawTags - The raw tag data from the database.
+   * @returns {string[]} An array of normalized tag strings.
    */
   const normalizeTags = (rawTags) => {
     let tagsArray = [];
@@ -38,9 +46,24 @@ const createArticleModel = ({ pool }) => {
 
   return {
     /**
-     * Create a new article record.
+     * Creates a new article record in the database.
+     *
      * @param {object} articleData - Data for the new article.
-     * @returns {Promise<string|number>} Inserted article ID.
+     * @param {string|number} articleData.id - Unique identifier for the article.
+     * @param {string} articleData.title - Title of the article.
+     * @param {string} articleData.slug - URL-friendly slug for the article.
+     * @param {string} articleData.content - Full content of the article.
+     * @param {string} articleData.overview - A short summary or overview of the article.
+     * @param {string|null} articleData.coverImage - URL to the article's cover image.
+     * @param {string[]} articleData.tags - An array of tags associated with the article.
+     * @param {Date} articleData.publishedDate - The publication date of the article.
+     * @param {boolean} articleData.featured - Whether the article is featured.
+     * @param {boolean} articleData.published - Whether the article is published.
+     * @param {string} articleData.authorName - Name of the author.
+     * @param {string} articleData.authorAvatar - URL to the author's avatar.
+     * @param {number} articleData.readingTime - Estimated reading time in minutes.
+     * @param {number} articleData.categoryId - ID of the article's category.
+     * @returns {Promise<string|number>} A promise that resolves to the ID of the newly created article.
      */
     async create(articleData) {
       try {
@@ -106,10 +129,17 @@ const createArticleModel = ({ pool }) => {
     },
 
     /**
-     * Find all articles with optional filters and pagination.
-     * Supports filters for keyword, published, featured, tag, and category.
-     * @param {object} [filters={}]
-     * @returns {Promise<{articles: object[], totalArticles: number, totalPages: number, currentPage: number, articlesPerPage: number}>}
+     * Finds all articles with optional filters and pagination.
+     *
+     * @param {object} [filters={}] - Filtering and pagination options.
+     * @param {string} [filters.keyword=""] - Keyword to search in title and content.
+     * @param {boolean|null} [filters.published=null] - Filter by publication status.
+     * @param {boolean|null} [filters.featured=null] - Filter by featured status.
+     * @param {string|string[]} [filters.tag=""] - Filter by one or more tags.
+     * @param {string} [filters.category=""] - Filter by category slug.
+     * @param {number} [filters.page=1] - The page number for pagination.
+     * @param {number} [filters.limit=10] - The number of articles per page.
+     * @returns {Promise<{articles: object[], totalArticles: number, totalPages: number, currentPage: number, articlesPerPage: number}>} A promise that resolves to an object containing the articles and pagination metadata.
      */
     async findAll(filters = {}) {
       const {
@@ -234,9 +264,10 @@ const createArticleModel = ({ pool }) => {
     },
 
     /**
-     * Find article by its ID.
-     * @param {string|number} id
-     * @returns {Promise<object|null>}
+     * Finds a single article by its unique ID.
+     *
+     * @param {string|number} id - The ID of the article to find.
+     * @returns {Promise<object|null>} A promise that resolves to the article object if found, otherwise `null`.
      */
     async findById(id) {
       const [rows] = await pool.execute(
@@ -298,9 +329,10 @@ const createArticleModel = ({ pool }) => {
     },
 
     /**
-     * Find article by slug.
-     * @param {string} slug
-     * @returns {Promise<object|null>}
+     * Finds a single article by its unique slug.
+     *
+     * @param {string} slug - The slug of the article to find.
+     * @returns {Promise<object|null>} A promise that resolves to the article object if found, otherwise `null`.
      */
     async findBySlug(slug) {
       const [rows] = await pool.execute(
@@ -362,10 +394,11 @@ const createArticleModel = ({ pool }) => {
     },
 
     /**
-     * Update article by ID.
-     * @param {string|number} id
-     * @param {object} articleData
-     * @returns {Promise<boolean>} Whether the update succeeded
+     * Updates an existing article in the database by its ID.
+     *
+     * @param {string|number} id - The ID of the article to update.
+     * @param {object} articleData - An object containing the article data to be updated.
+     * @returns {Promise<boolean>} A promise that resolves to `true` if the article was successfully updated, otherwise `false`.
      */
     async update(id, articleData) {
       const {
@@ -424,9 +457,10 @@ const createArticleModel = ({ pool }) => {
     },
 
     /**
-     * Delete article by ID.
-     * @param {string|number} id
-     * @returns {Promise<boolean>}
+     * Deletes an article from the database by its ID.
+     *
+     * @param {string|number} id - The ID of the article to delete.
+     * @returns {Promise<boolean>} A promise that resolves to `true` if the article was successfully deleted, otherwise `false`.
      */
     async delete(id) {
       const [result] = await pool.execute(

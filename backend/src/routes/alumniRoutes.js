@@ -1,3 +1,10 @@
+/**
+ * @fileoverview Defines the Express router for alumni-related endpoints.
+ * This module creates and configures routes for retrieving and updating alumni data.
+ * It includes public endpoints for fetching alumni and protected endpoints for administrative updates,
+ * utilizing middleware for rate limiting, authentication, and role-based access control.
+ */
+
 import express from "express";
 import alumniControllerFactory from "../controllers/alumniController.js";
 import {
@@ -6,25 +13,28 @@ import {
 } from "../middleware/authMiddleware.js";
 import rateLimiter from "../middleware/rateLimiter.js";
 
+/**
+ * Factory function to create an Express router for alumni routes.
+ * @param {Object} dependencies - The dependencies for the router.
+ * @param {mysql.Pool} dependencies.pool - The database connection pool.
+ * @param {string} dependencies.JWT_SECRET - The secret key for JWT authentication.
+ * @returns {express.Router} The configured Express router for alumni endpoints.
+ */
 const alumniRouterFactory = ({ pool, JWT_SECRET }) => {
   const router = express.Router();
 
-  // Inisiasi controller dengan pool
   const { handleGetAlumni, handleUpdateAlumni } = alumniControllerFactory({
     pool,
   });
 
-  // Rate limiter
   const limiter = rateLimiter({
-    windowMs: 15 * 60 * 1000, // 15 menit
-    max: 100, // 100 request per IP
+    windowMs: 15 * 60 * 1000,
+    max: 100,
     message: { error: "Terlalu banyak permintaan. Coba lagi nanti" },
   });
 
-  // Public Endpoint
   router.get("/", limiter, handleGetAlumni);
 
-  // Protected Endpoint
   router.put(
     "/admin/:id",
     limiter,

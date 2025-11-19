@@ -1,15 +1,29 @@
-// src/controllers/attendanceController.js
 import attendanceModelFactory from "../models/attendanceModel.js";
 
+/**
+ * Factory function to create an attendance controller.
+ * @param {Object} dependencies - The dependencies to be injected.
+ * @param {Object} dependencies.pool - The database connection pool.
+ * @returns {Object} An object containing attendance controller methods.
+ */
 const attendanceControllerFactory = ({ pool }) => {
   const attendanceModel = attendanceModelFactory({ pool });
 
-  // Save attendance data using UPSERT
+  /**
+   * Saves attendance data for a specific class and date.
+   * Uses an UPSERT operation to create new records or update existing ones.
+   * @param {Object} req - The Express request object.
+   * @param {Object} req.body - The request body.
+   * @param {string} req.body.classId - The ID of the class.
+   * @param {string} req.body.date - The date of attendance (YYYY-MM-DD).
+   * @param {Array<Object>} req.body.attendances - An array of attendance objects.
+   * @param {Object} res - The Express response object.
+   * @returns {Promise<void>}
+   */
   const saveAttendance = async (req, res) => {
     const { classId, date, attendances } = req.body;
 
     try {
-      // Check if it's a holiday using model
       const holiday = await attendanceModel.getHolidayByDate(date);
 
       if (holiday) {
@@ -23,7 +37,6 @@ const attendanceControllerFactory = ({ pool }) => {
         });
       }
 
-      // Prepare values for UPSERT
       const values = attendances.map((att) => [
         att.studentId,
         date,
@@ -32,7 +45,6 @@ const attendanceControllerFactory = ({ pool }) => {
         req.user.id,
       ]);
 
-      // Single UPSERT operation (more efficient than DELETE + INSERT)
       const [result] = await pool.query(
         `INSERT INTO attendances (student_id, date, status, notes, recorded_by) 
          VALUES ? 
@@ -55,7 +67,15 @@ const attendanceControllerFactory = ({ pool }) => {
     }
   };
 
-  // Get attendance by date and class
+  /**
+   * Retrieves attendance data for a specific class and date.
+   * @param {Object} req - The Express request object.
+   * @param {Object} req.query - The query parameters.
+   * @param {string} req.query.classId - The ID of the class.
+   * @param {string} req.query.date - The date of attendance (YYYY-MM-DD).
+   * @param {Object} res - The Express response object.
+   * @returns {Promise<void>}
+   */
   const getAttendanceByDateAndClass = async (req, res) => {
     const { classId, date } = req.query;
 
@@ -71,7 +91,14 @@ const attendanceControllerFactory = ({ pool }) => {
     }
   };
 
-  // Get students by class
+  /**
+   * Retrieves a list of students for a specific class.
+   * @param {Object} req - The Express request object.
+   * @param {Object} req.query - The query parameters.
+   * @param {string} req.query.classId - The ID of the class.
+   * @param {Object} res - The Express response object.
+   * @returns {Promise<void>}
+   */
   const getStudentsByClass = async (req, res) => {
     const { classId } = req.query;
 
@@ -84,7 +111,17 @@ const attendanceControllerFactory = ({ pool }) => {
     }
   };
 
-  // Get attendance recap
+  /**
+   * Retrieves a recap of attendance data for a class over a period.
+   * @param {Object} req - The Express request object.
+   * @param {Object} req.query - The query parameters.
+   * @param {string} req.query.classId - The ID of the class.
+   * @param {string} [req.query.period] - The period (e.g., 'monthly').
+   * @param {string} [req.query.startDate] - The start date of the period (YYYY-MM-DD).
+   * @param {string} [req.query.endDate] - The end date of the period (YYYY-MM-DD).
+   * @param {Object} res - The Express response object.
+   * @returns {Promise<void>}
+   */
   const getAttendanceRecap = async (req, res) => {
     const { classId, period, startDate, endDate } = req.query;
 
@@ -109,7 +146,17 @@ const attendanceControllerFactory = ({ pool }) => {
     }
   };
 
-  // Get attendance by student and date range
+  /**
+   * Retrieves attendance records for a specific student within a date range.
+   * @param {Object} req - The Express request object.
+   * @param {Object} req.params - The route parameters.
+   * @param {string} req.params.studentId - The ID of the student.
+   * @param {Object} req.query - The query parameters.
+   * @param {string} req.query.startDate - The start date (YYYY-MM-DD).
+   * @param {string} req.query.endDate - The end date (YYYY-MM-DD).
+   * @param {Object} res - The Express response object.
+   * @returns {Promise<void>}
+   */
   const getAttendanceByStudentAndDateRange = async (req, res) => {
     const { studentId } = req.params;
     const { startDate, endDate } = req.query;
@@ -135,7 +182,15 @@ const attendanceControllerFactory = ({ pool }) => {
     }
   };
 
-  // Get attendance statistics
+  /**
+   * Retrieves overall attendance statistics within a given date range.
+   * @param {Object} req - The Express request object.
+   * @param {Object} req.query - The query parameters.
+   * @param {string} req.query.startDate - The start date (YYYY-MM-DD).
+   * @param {string} req.query.endDate - The end date (YYYY-MM-DD).
+   * @param {Object} res - The Express response object.
+   * @returns {Promise<void>}
+   */
   const getAttendanceStats = async (req, res) => {
     const { startDate, endDate } = req.query;
 
@@ -159,7 +214,14 @@ const attendanceControllerFactory = ({ pool }) => {
     }
   };
 
-  // Get today's attendance statistics
+  /**
+   * Retrieves attendance statistics for a specific day.
+   * @param {Object} req - The Express request object.
+   * @param {Object} req.query - The query parameters.
+   * @param {string} req.query.date - The date (YYYY-MM-DD).
+   * @param {Object} res - The Express response object.
+   * @returns {Promise<void>}
+   */
   const getTodayAttendanceStats = async (req, res) => {
     const { date } = req.query;
 
@@ -180,7 +242,16 @@ const attendanceControllerFactory = ({ pool }) => {
     }
   };
 
-  // Get archived attendance data
+  /**
+   * Retrieves archived attendance data for a specific academic year and semester.
+   * @param {Object} req - The Express request object.
+   * @param {Object} req.query - The query parameters.
+   * @param {string} req.query.academicYear - The academic year (e.g., '2023/2024').
+   * @param {string} req.query.semester - The semester (e.g., '1' or '2').
+   * @param {string} [req.query.classId] - The ID of the class to filter by.
+   * @param {Object} res - The Express response object.
+   * @returns {Promise<void>}
+   */
   const getArchivedAttendanceData = async (req, res) => {
     const { academicYear, semester, classId } = req.query;
 
@@ -198,7 +269,15 @@ const attendanceControllerFactory = ({ pool }) => {
     }
   };
 
-  // Check existing attendance
+  /**
+   * Checks if attendance data already exists for a specific class and date.
+   * @param {Object} req - The Express request object.
+   * @param {Object} req.query - The query parameters.
+   * @param {string} req.query.classId - The ID of the class.
+   * @param {string} req.query.date - The date (YYYY-MM-DD).
+   * @param {Object} res - The Express response object.
+   * @returns {Promise<void>}
+   */
   const checkExistingAttendance = async (req, res) => {
     const { classId, date } = req.query;
 
@@ -220,7 +299,14 @@ const attendanceControllerFactory = ({ pool }) => {
     }
   };
 
-  // Get attendance by date
+  /**
+   * Retrieves all attendance records for a specific date.
+   * @param {Object} req - The Express request object.
+   * @param {Object} req.query - The query parameters.
+   * @param {string} req.query.date - The date (YYYY-MM-DD).
+   * @param {Object} res - The Express response object.
+   * @returns {Promise<void>}
+   */
   const getAttendanceByDate = async (req, res) => {
     const { date } = req.query;
 
@@ -241,7 +327,12 @@ const attendanceControllerFactory = ({ pool }) => {
     }
   };
 
-  // Get classes
+  /**
+   * Retrieves a list of all classes.
+   * @param {Object} req - The Express request object.
+   * @param {Object} res - The Express response object.
+   * @returns {Promise<void>}
+   */
   const getClasses = async (req, res) => {
     try {
       const classes = await attendanceModel.getClasses();
@@ -252,7 +343,14 @@ const attendanceControllerFactory = ({ pool }) => {
     }
   };
 
-  // Get holidays
+  /**
+   * Retrieves a list of holidays for a given academic year.
+   * @param {Object} req - The Express request object.
+   * @param {Object} req.query - The query parameters.
+   * @param {string} [req.query.academicYear] - The academic year to filter holidays by.
+   * @param {Object} res - The Express response object.
+   * @returns {Promise<void>}
+   */
   const getHolidays = async (req, res) => {
     const { academicYear } = req.query;
 
@@ -265,7 +363,14 @@ const attendanceControllerFactory = ({ pool }) => {
     }
   };
 
-  // Get holiday by date
+  /**
+   * Checks if a specific date is a holiday.
+   * @param {Object} req - The Express request object.
+   * @param {Object} req.query - The query parameters.
+   * @param {string} req.query.date - The date to check (YYYY-MM-DD).
+   * @param {Object} res - The Express response object.
+   * @returns {Promise<void>}
+   */
   const getHolidayByDate = async (req, res) => {
     const { date } = req.query;
 
@@ -286,7 +391,15 @@ const attendanceControllerFactory = ({ pool }) => {
     }
   };
 
-  // Archive attendance data
+  /**
+   * Archives attendance data for a completed academic year and semester.
+   * @param {Object} req - The Express request object.
+   * @param {Object} req.body - The request body.
+   * @param {string} req.body.academicYear - The academic year to archive (e.g., '2023/2024').
+   * @param {string} req.body.semester - The semester to archive (e.g., '1' or '2').
+   * @param {Object} res - The Express response object.
+   * @returns {Promise<void>}
+   */
   const archiveAttendanceData = async (req, res) => {
     const { academicYear, semester } = req.body;
 

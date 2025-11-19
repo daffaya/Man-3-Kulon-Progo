@@ -1,4 +1,10 @@
-// backend/server.js
+/**
+ * @fileoverview Main application entry point.
+ * This file initializes and starts the Express server. It configures middleware,
+ * mounts API routes, serves static assets (uploads and the frontend build),
+ * and sets up a catch-all route for client-side routing.
+ */
+
 import express from "express";
 import cors from "cors";
 import path from "path";
@@ -10,6 +16,12 @@ import apiRouterFactory from "./src/routes/api.js";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
+/**
+ * Immediately-invoked function expression (IIFE) to initialize and start the server.
+ * It first bootstraps the application to get necessary dependencies like the
+ * database pool and configuration, then configures and starts the Express app.
+ * @async
+ */
 (async () => {
   try {
     const { pool, JWT_SECRET, JWT_EXPIRATION, FRONTEND_URL } =
@@ -18,16 +30,20 @@ const __dirname = dirname(__filename);
     const app = express();
     const PORT = process.env.PORT || 3001;
 
-    // Middleware
+    // Middleware Configuration
     app.use(
       cors({
-        origin: process.env.FRONTEND_URL || "http://localhost:5173", // Sesuaikan dengan URL frontend Anda
+        origin: process.env.FRONTEND_URL || "http://localhost:5173",
         credentials: true,
       })
     );
     app.use(express.json());
 
-    // Serve uploads dengan header CORS yang aman
+    /**
+     * Serves uploaded files from the 'uploads' directory.
+     * Sets a Cross-Origin-Resource-Policy header to allow access.
+     * @route GET /uploads/*
+     */
     const uploadsPath = path.join(__dirname, "uploads");
     app.use(
       "/uploads",
@@ -38,7 +54,7 @@ const __dirname = dirname(__filename);
       express.static(uploadsPath)
     );
 
-    // API routes
+    // API Routes
     const apiRoutes = apiRouterFactory({
       pool,
       JWT_SECRET,
@@ -47,10 +63,15 @@ const __dirname = dirname(__filename);
     });
     app.use("/api", apiRoutes);
 
-    // Serve frontend build
+    // Frontend Static Assets
     const buildPath = path.join(__dirname, "..", "frontend", "dist");
     app.use(express.static(buildPath));
 
+    /**
+     * Catch-all handler to serve the frontend's index.html for any non-API routes.
+     * This enables client-side routing for a Single Page Application (SPA).
+     * @route GET /*
+     */
     app.get(/.*/, (req, res) => {
       res.sendFile(path.join(buildPath, "index.html"));
     });

@@ -1,3 +1,8 @@
+/**
+ * @fileoverview Main API router. This module aggregates and mounts all
+ * sub-routers for the application, separating public, admin, and other protected routes.
+ */
+
 import { Router } from "express";
 import authRouterFactory from "./authRoutes.js";
 import tagRouterFactory from "./tagRoutes.js";
@@ -8,18 +13,11 @@ import adminCategoryRouterFactory from "./adminCategoryRoutes.js";
 import attendanceRouterFactory from "./attendanceRoutes.js";
 import archiveRouterFactory from "./archiveRoutes.js";
 import studentRouterFactory from "./studentRoutes.js";
-
 import publicStudentStatsRouterFactory from "./publicStudentStatRoutes.js";
-
 import alumniRouterFactory from "./alumniRoutes.js";
 import userRouterFactory from "./userRoutes.js";
 import publicGalleryRouterFactory from "./publicGalleryRoutes.js";
 import adminGalleryRouterFactory from "./adminGalleryRoutes.js";
-
-/**
- * @fileoverview Main API router. This module aggregates and mounts all
- * sub-routers for the application, separating public, admin, and other protected routes.
- */
 
 /**
  * @typedef {object} ApiRouterOptions
@@ -47,16 +45,16 @@ const apiRouterFactory = ({
   const apiRouter = Router();
 
   /**
-   * @description
-   * A simple health check endpoint to verify that the API is running.
+   * Health check endpoint to verify that the API is running.
    * Useful for load balancers and monitoring services.
+   * @route GET /
+   * @returns {object} Status message indicating API is running
    */
   apiRouter.get("/", (req, res) => {
     res.status(200).json({ status: "OK", message: "API is running" });
   });
 
-  // --- Public Routes ---
-  // These routes do not require authentication.
+  // Public Routes - These routes do not require authentication
   apiRouter.use(
     "/auth",
     authRouterFactory({
@@ -70,11 +68,9 @@ const apiRouterFactory = ({
   apiRouter.use("/categories", publicCategoryRouterFactory({ pool }));
   apiRouter.use("/tags", tagRouterFactory({ pool }));
   apiRouter.use("/articles", publicArticleRouterFactory({ pool }));
-  // Tambahkan public gallery routes
   apiRouter.use("/gallery", publicGalleryRouterFactory({ pool }));
 
-  // --- Admin Routes ---
-  // These routes are protected and intended for administrative users.
+  // Admin Routes - These routes are protected and intended for administrative users
   apiRouter.use(
     "/atmin/articles",
     adminArticleRouterFactory({ pool, JWT_SECRET })
@@ -83,22 +79,19 @@ const apiRouterFactory = ({
     "/atmin/categories",
     adminCategoryRouterFactory({ pool, JWT_SECRET })
   );
-  // Tambahkan admin gallery routes
   apiRouter.use(
     "/atmin/gallery",
     adminGalleryRouterFactory({ pool, JWT_SECRET })
   );
 
-  // --- User Routes ---
-  // Routes for authenticated users to manage their own profiles.
+  // User Routes - Routes for authenticated users to manage their own profiles
   apiRouter.use("/users", userRouterFactory({ pool, JWT_SECRET }));
 
-  // Routes that require authentication but are not strictly for user profiles or admin tasks.
+  // Protected Routes - Routes that require authentication but are not strictly for user profiles or admin tasks
   apiRouter.use("/attendance", attendanceRouterFactory({ pool, JWT_SECRET }));
   apiRouter.use("/archives", archiveRouterFactory({ pool, JWT_SECRET }));
   apiRouter.use("/students", studentRouterFactory({ pool, JWT_SECRET }));
   apiRouter.use("/alumni", alumniRouterFactory({ pool, JWT_SECRET }));
-
   apiRouter.use("/studentStats", publicStudentStatsRouterFactory({ pool }));
 
   return apiRouter;

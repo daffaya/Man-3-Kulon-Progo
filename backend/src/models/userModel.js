@@ -20,6 +20,12 @@
  */
 
 /**
+ * @fileoverview User model factory for database operations.
+ * This module creates and exports a user model with methods to perform
+ * CRUD operations on user records in the database.
+ */
+
+/**
  * Factory function to create a User Model for database interactions.
  * This model uses a dependency-injected database pool for queries.
  *
@@ -141,16 +147,13 @@ const createUserModel = ({ pool }) => {
      * @throws {Error} If a database error occurs.
      */
     updateProfile: async (id, { full_name, avatar }) => {
-      // Validasi parameter
       if (id === undefined || id === null) {
         throw new Error("User ID is required");
       }
 
-      // Siapkan parameter query
       const params = [];
       let query = "UPDATE users SET ";
 
-      // Tambahkan field yang akan diupdate
       const updates = [];
 
       if (full_name !== undefined) {
@@ -163,12 +166,10 @@ const createUserModel = ({ pool }) => {
         params.push(avatar);
       }
 
-      // Jika tidak ada field yang diupdate, kembalikan false
       if (updates.length === 0) {
         return false;
       }
 
-      // Gabungkan query
       query += updates.join(", ") + " WHERE id = ?";
       params.push(id);
 

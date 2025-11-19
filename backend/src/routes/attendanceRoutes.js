@@ -1,4 +1,9 @@
-// src/routes/attendanceRoutes.js
+/**
+ * @fileoverview Router for managing attendance-related endpoints.
+ * This module defines and configures an Express router for attendance operations,
+ * including recording attendance, generating reports, managing holidays, and archiving data.
+ */
+
 import { Router } from "express";
 import fs from "fs";
 import path from "path";
@@ -11,11 +16,15 @@ import attendanceControllerFactory from "../controllers/attendanceController.js"
 import attendanceModelFactory from "../models/attendanceModel.js";
 import { exportToExcel, exportToPDF } from "../services/exportService.js";
 
-// Helper untuk mendapatkan __dirname di ES Module
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-// Helper functions untuk validasi input
+/**
+ * Validates that all required parameters are present in the provided params object.
+ * @param {object} params - The parameters to validate.
+ * @param {string[]} requiredParams - Array of required parameter names.
+ * @throws {Error} If any required parameter is missing.
+ */
 const validateRequiredParams = (params, requiredParams) => {
   const missingParams = requiredParams.filter((param) => !params[param]);
   if (missingParams.length > 0) {
@@ -23,6 +32,13 @@ const validateRequiredParams = (params, requiredParams) => {
   }
 };
 
+/**
+ * Validates that a value is one of the allowed enum values.
+ * @param {string} value - The value to validate.
+ * @param {string[]} validValues - Array of valid values.
+ * @param {string} paramName - The name of the parameter being validated.
+ * @throws {Error} If the value is not in the validValues array.
+ */
 const validateEnumValue = (value, validValues, paramName) => {
   if (!validValues.includes(value)) {
     throw new Error(
@@ -31,11 +47,25 @@ const validateEnumValue = (value, validValues, paramName) => {
   }
 };
 
-// Error handler middleware
+/**
+ * Error handler middleware for async route handlers.
+ * @param {Function} fn - The async route handler function.
+ * @returns {Function} Middleware function that catches errors and forwards them to the error handler.
+ */
 const asyncHandler = (fn) => (req, res, next) => {
   Promise.resolve(fn(req, res, next)).catch(next);
 };
 
+/**
+ * Factory function that creates and configures the attendance router.
+ * This router handles all attendance-related endpoints including recording attendance,
+ * generating reports, managing holidays, and archiving data.
+ *
+ * @param {object} options - The options object.
+ * @param {import('mysql2/promise').Pool} options.pool - MySQL connection pool.
+ * @param {string} options.JWT_SECRET - Secret key for JWT authentication.
+ * @returns {import('express').Router} Configured Express router for attendance endpoints.
+ */
 const attendanceRouterFactory = ({ pool, JWT_SECRET }) => {
   const router = Router();
   const authenticateToken = authenticateTokenFactory({ JWT_SECRET });
@@ -44,23 +74,43 @@ const attendanceRouterFactory = ({ pool, JWT_SECRET }) => {
 
   router.use(authenticateToken);
 
-  // POST / - Save attendance data
+  /**
+   * @route   POST /
+   * @desc    Save attendance records for a specific class and date.
+   * @access  Private (guru_bk, super_admin)
+   */
   router.post(
     "/",
     restrictTo(["guru_bk", "super_admin"]),
     attendanceController.saveAttendance
   );
 
-  // GET / - Get attendance data
+  /**
+   * @route   GET /
+   * @desc    Get attendance records filtered by date and class.
+   * @access  Private
+   */
   router.get("/", attendanceController.getAttendanceByDateAndClass);
 
-  // GET /students - Get students by class
+  /**
+   * @route   GET /students
+   * @desc    Get a list of students filtered by class.
+   * @access  Private
+   */
   router.get("/students", attendanceController.getStudentsByClass);
 
-  // GET /recap - Get attendance recap
+  /**
+   * @route   GET /recap
+   * @desc    Get a recap of attendance records.
+   * @access  Private
+   */
   router.get("/recap", attendanceController.getAttendanceRecap);
 
-  // GET /check-existing - Check existing attendance for date
+  /**
+   * @route   GET /check-existing
+   * @desc    Check if attendance data already exists for a given class and date.
+   * @access  Private
+   */
   router.get(
     "/check-existing",
     asyncHandler(async (req, res) => {
@@ -76,7 +126,11 @@ const attendanceRouterFactory = ({ pool, JWT_SECRET }) => {
     })
   );
 
-  // GET /verify - Verify attendance data after save
+  /**
+   * @route   GET /verify
+   * @desc    Verify and retrieve attendance data for a specific class and date.
+   * @access  Private
+   */
   router.get(
     "/verify",
     asyncHandler(async (req, res) => {
@@ -86,7 +140,6 @@ const attendanceRouterFactory = ({ pool, JWT_SECRET }) => {
 
       const attendance = await attendanceModel.getAttendanceByDate(date);
 
-      // Filter by class
       const filteredAttendance = attendance.filter(
         (att) => att.class_id === parseInt(classId)
       );
@@ -98,7 +151,11 @@ const attendanceRouterFactory = ({ pool, JWT_SECRET }) => {
     })
   );
 
-  // GET /classes - Get classes list
+  /**
+   * @route   GET /classes
+   * @desc    Get a list of all available classes.
+   * @access  Private
+   */
   router.get(
     "/classes",
     asyncHandler(async (req, res) => {
@@ -107,7 +164,11 @@ const attendanceRouterFactory = ({ pool, JWT_SECRET }) => {
     })
   );
 
-  // GET /student/:studentId - Get student attendance details
+  /**
+   * @route   GET /student/:studentId
+   * @desc    Get attendance records for a specific student within a date range.
+   * @access  Private
+   */
   router.get(
     "/student/:studentId",
     asyncHandler(async (req, res) => {
@@ -131,7 +192,11 @@ const attendanceRouterFactory = ({ pool, JWT_SECRET }) => {
     })
   );
 
-  // GET /today-stats - Get today's attendance statistics
+  /**
+   * @route   GET /today-stats
+   * @desc    Get attendance statistics for a specific date.
+   * @access  Private
+   */
   router.get(
     "/today-stats",
     asyncHandler(async (req, res) => {
@@ -144,7 +209,11 @@ const attendanceRouterFactory = ({ pool, JWT_SECRET }) => {
     })
   );
 
-  // GET /stats - Get attendance statistics for date range
+  /**
+   * @route   GET /stats
+   * @desc    Get attendance statistics for a date range.
+   * @access  Private
+   */
   router.get(
     "/stats",
     asyncHandler(async (req, res) => {
@@ -164,7 +233,11 @@ const attendanceRouterFactory = ({ pool, JWT_SECRET }) => {
     })
   );
 
-  // POST /holidays - Add holiday
+  /**
+   * @route   POST /holidays
+   * @desc    Add a new school holiday.
+   * @access  Private (guru_bk, super_admin)
+   */
   router.post(
     "/holidays",
     restrictTo(["guru_bk", "super_admin"]),
@@ -177,14 +250,12 @@ const attendanceRouterFactory = ({ pool, JWT_SECRET }) => {
         "academicYear",
       ]);
 
-      // Cek apakah tanggal sudah ada
       const existingHoliday = await attendanceModel.getHolidayByDate(date);
 
       if (existingHoliday) {
         return res.status(400).json({ error: "Tanggal libur sudah ada" });
       }
 
-      // Insert hari libur
       await pool.query(
         "INSERT INTO school_holidays (date, description, academic_year) VALUES (?, ?, ?)",
         [date, description, academicYear]
@@ -194,7 +265,11 @@ const attendanceRouterFactory = ({ pool, JWT_SECRET }) => {
     })
   );
 
-  // GET /holidays - Get holidays list
+  /**
+   * @route   GET /holidays
+   * @desc    Get a list of school holidays for a specific academic year.
+   * @access  Private
+   */
   router.get(
     "/holidays",
     asyncHandler(async (req, res) => {
@@ -205,7 +280,11 @@ const attendanceRouterFactory = ({ pool, JWT_SECRET }) => {
     })
   );
 
-  // DELETE /holidays/:id - Delete holiday
+  /**
+   * @route   DELETE /holidays/:id
+   * @desc    Delete a school holiday by its ID.
+   * @access  Private (guru_bk, super_admin)
+   */
   router.delete(
     "/holidays/:id",
     restrictTo(["guru_bk", "super_admin"]),
@@ -225,7 +304,11 @@ const attendanceRouterFactory = ({ pool, JWT_SECRET }) => {
     })
   );
 
-  // GET /export - Export attendance data
+  /**
+   * @route   GET /export
+   * @desc    Export attendance data to an Excel or PDF file.
+   * @access  Private (guru_bk, super_admin)
+   */
   router.get(
     "/export",
     restrictTo(["guru_bk", "super_admin"]),
@@ -239,7 +322,6 @@ const attendanceRouterFactory = ({ pool, JWT_SECRET }) => {
       ]);
       validateEnumValue(format, ["excel", "pdf"], "Format");
 
-      // Get recap data directly from model
       const recap = await attendanceModel.getAttendanceRecap(
         classId,
         period,
@@ -247,7 +329,6 @@ const attendanceRouterFactory = ({ pool, JWT_SECRET }) => {
         endDate
       );
 
-      // Get class info
       const [classInfo] = await pool.query(
         "SELECT name, academic_year, semester FROM classes WHERE id = ?",
         [classId]
@@ -257,7 +338,6 @@ const attendanceRouterFactory = ({ pool, JWT_SECRET }) => {
       const academicYear = classInfo[0]?.academic_year || "";
       const semester = classInfo[0]?.semester || "";
 
-      // Generate file based on format
       let result;
       if (format === "excel") {
         result = await exportToExcel(recap, {
@@ -281,26 +361,22 @@ const attendanceRouterFactory = ({ pool, JWT_SECRET }) => {
         });
       }
 
-      // Ensure temp directory exists
       const tempDir = path.join(__dirname, "../temp");
       if (!fs.existsSync(tempDir)) {
         fs.mkdirSync(tempDir, { recursive: true });
       }
 
-      // Set response headers
       res.setHeader("Content-Type", result.mimetype);
       res.setHeader(
         "Content-Disposition",
         `attachment; filename="${result.filename}"`
       );
 
-      // Send file
       res.sendFile(result.filepath, (err) => {
         if (err) {
           console.error("Error sending file:", err);
           res.status(500).json({ error: "Gagal mengirim file" });
         } else {
-          // Delete the file after sending
           fs.unlink(result.filepath, (unlinkErr) => {
             if (unlinkErr) console.error("Error deleting file:", unlinkErr);
           });
@@ -309,7 +385,11 @@ const attendanceRouterFactory = ({ pool, JWT_SECRET }) => {
     })
   );
 
-  // POST /archive - Archive attendance data
+  /**
+   * @route   POST /archive
+   * @desc    Archive attendance data for a specific academic year and semester.
+   * @access  Private (guru_bk, super_admin)
+   */
   router.post(
     "/archive",
     restrictTo(["guru_bk", "super_admin"]),
@@ -330,7 +410,11 @@ const attendanceRouterFactory = ({ pool, JWT_SECRET }) => {
     })
   );
 
-  // GET /archive - Get archived attendance data
+  /**
+   * @route   GET /archive
+   * @desc    Get archived attendance data.
+   * @access  Private
+   */
   router.get(
     "/archive",
     asyncHandler(async (req, res) => {
@@ -346,7 +430,11 @@ const attendanceRouterFactory = ({ pool, JWT_SECRET }) => {
     })
   );
 
-  // GET /archive/export - Export archived attendance data
+  /**
+   * @route   GET /archive/export
+   * @desc    Export archived attendance data to an Excel or PDF file.
+   * @access  Private (guru_bk, super_admin)
+   */
   router.get(
     "/archive/export",
     restrictTo(["guru_bk", "super_admin"]),
@@ -366,7 +454,6 @@ const attendanceRouterFactory = ({ pool, JWT_SECRET }) => {
         classId
       );
 
-      // Get class info if classId is provided
       let className = "";
       if (classId) {
         const [classInfo] = await pool.query(
@@ -376,7 +463,6 @@ const attendanceRouterFactory = ({ pool, JWT_SECRET }) => {
         className = classInfo[0]?.name || "";
       }
 
-      // Generate file based on format
       let result;
       if (format === "excel") {
         result = await exportToExcel(archivedData, {
@@ -396,26 +482,22 @@ const attendanceRouterFactory = ({ pool, JWT_SECRET }) => {
         });
       }
 
-      // Ensure temp directory exists
       const tempDir = path.join(__dirname, "../temp");
       if (!fs.existsSync(tempDir)) {
         fs.mkdirSync(tempDir, { recursive: true });
       }
 
-      // Set response headers
       res.setHeader("Content-Type", result.mimetype);
       res.setHeader(
         "Content-Disposition",
         `attachment; filename="${result.filename}"`
       );
 
-      // Send file
       res.sendFile(result.filepath, (err) => {
         if (err) {
           console.error("Error sending file:", err);
           res.status(500).json({ error: "Gagal mengirim file" });
         } else {
-          // Delete the file after sending
           fs.unlink(result.filepath, (unlinkErr) => {
             if (unlinkErr) console.error("Error deleting file:", unlinkErr);
           });
@@ -424,7 +506,10 @@ const attendanceRouterFactory = ({ pool, JWT_SECRET }) => {
     })
   );
 
-  // Error handling middleware
+  /**
+   * Global error handler for this router.
+   * Catches any errors from the above routes and sends a JSON response.
+   */
   router.use((err, req, res, next) => {
     console.error(err);
     res.status(500).json({

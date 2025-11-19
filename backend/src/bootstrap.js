@@ -1,16 +1,34 @@
+/**
+ * @fileoverview Application bootstrap and dependency injection.
+ * This module is responsible for initializing the application by loading environment
+ * variables, establishing a database connection, and providing core dependencies
+ * (like the database pool and JWT secret) to the rest of the application.
+ * It performs critical checks and will terminate the process if essential
+ * configurations are missing or the database connection fails.
+ */
+
 import dotenv from "dotenv";
-import nodemailer from "nodemailer";
 import path from "path";
 import { fileURLToPath } from "url";
 import { dirname } from "path";
 import mysql from "mysql2/promise";
 
+/**
+ * Initializes the application and its core dependencies.
+ * @async
+ * @function initializeApplication
+ * @returns {Promise<Object>} A promise that resolves to an object containing the core dependencies.
+ * @property {mysql.Pool} pool - The MySQL connection pool.
+ * @property {string} JWT_SECRET - The secret key for JWT signing.
+ * @property {string} JWT_EXPIRATION - The expiration time for JWT tokens.
+ * @property {string} FRONTEND_URL - The URL of the frontend application.
+ * @throws {Error} Terminates the process if required environment variables are missing or the database connection fails.
+ */
 const initializeApplication = async () => {
   const __filename = fileURLToPath(import.meta.url);
   const __dirname = dirname(__filename);
 
   dotenv.config({ path: path.resolve(__dirname, "../.env") });
-  console.log("[Bootstrap] .env loaded.");
 
   const JWT_SECRET = process.env.JWT_SECRET;
   const JWT_EXPIRATION = process.env.JWT_EXPIRATION;
@@ -39,11 +57,11 @@ const initializeApplication = async () => {
     console.error(
       "EMAIL_HOST, EMAIL_PORT, EMAIL_USER, EMAIL_PASS, EMAIL_SENDER, FRONTEND_URL\n"
     );
-    process.exit(1); // Hentikan proses jika variabel env penting tidak ada
+    process.exit(1);
   }
 
   const pool = mysql.createPool({
-    host: DATABASE_HOST, // Gunakan konstanta yang sudah dibaca
+    host: DATABASE_HOST,
     user: DATABASE_USER,
     password: DATABASE_PASSWORD,
     database: DATABASE_NAME,
@@ -53,17 +71,13 @@ const initializeApplication = async () => {
   });
 
   try {
-    // Opsional: Coba koneksi DB untuk memastikan berhasil
-    const [rows] = await pool.query("SELECT 1 + 1 AS solution");
-    if (rows[0].solution !== 2) {
-      throw new Error("Database connection test failed");
-    }
+    await pool.query("SELECT 1");
   } catch (error) {
-    console.error("\nFATAL ERROR: Database connection failed:", error);
+    console.error("\nFATAL ERROR: Database connection failed:", error.message);
     console.error(
       "Check your database credentials and server status in .env.\n"
     );
-    process.exit(1); // Hentikan proses jika koneksi DB gagal
+    process.exit(1);
   }
 
   return {

@@ -1,9 +1,14 @@
 import archiveModelFactory from "../models/ArchiveModel.js";
 import path from "path";
-import fsPromises from "fs/promises"; // Untuk operasi Promise-based
-import fs from "fs"; // Untuk streaming
-import { parse, format } from "date-fns";
+import fsPromises from "fs/promises";
+import fs from "fs";
 
+/**
+ * Factory function to create an Archive Controller with CRUD operations.
+ * @param {Object} dependencies - Dependencies to be injected
+ * @param {Object} dependencies.pool - Database connection pool
+ * @returns {Object} Controller with CRUD methods
+ */
 const archiveControllerFactory = ({ pool }) => {
   const {
     getArchive,
@@ -14,12 +19,16 @@ const archiveControllerFactory = ({ pool }) => {
     deleteArchive,
   } = archiveModelFactory({ pool });
 
-  // Get list archives (public endpoint)
+  /**
+   * Retrieves archives with pagination and filtering.
+   * @param {Object} req - Express request object
+   * @param {Object} res - Express response object
+   * @returns {Promise<void>}
+   */
   const handleGetArchive = async (req, res) => {
     try {
       const { search, page = 1, limit = 10, categoryId } = req.query;
 
-      // Validasi dan normalisasi input
       const validatedPage = Math.max(1, parseInt(page) || 1);
       const validatedLimit = Math.min(50, Math.max(1, parseInt(limit) || 10));
       const normalizedSearch = search ? String(search).trim() : "";
@@ -56,7 +65,12 @@ const archiveControllerFactory = ({ pool }) => {
     }
   };
 
-  // Get archive categories (public endpoint untuk dropdown)
+  /**
+   * Retrieves all archive categories.
+   * @param {Object} req - Express request object
+   * @param {Object} res - Express response object
+   * @returns {Promise<void>}
+   */
   const handleGetArchiveCategories = async (req, res) => {
     try {
       const categories = await getArchiveCategories();
@@ -76,7 +90,12 @@ const archiveControllerFactory = ({ pool }) => {
     }
   };
 
-  // Download archive file (public endpoint)
+  /**
+   * Downloads an archive file by ID.
+   * @param {Object} req - Express request object
+   * @param {Object} res - Express response object
+   * @returns {Promise<void>}
+   */
   const handleDownloadArchive = async (req, res) => {
     try {
       const { id } = req.params;
@@ -96,7 +115,6 @@ const archiveControllerFactory = ({ pool }) => {
         });
       }
 
-      // Cek apakah file masih ada di server
       const filePath = path.resolve(archive.file_path);
       try {
         await fsPromises.access(filePath);
@@ -107,7 +125,6 @@ const archiveControllerFactory = ({ pool }) => {
         });
       }
 
-      // Set headers untuk download
       res.setHeader("Content-Type", archive.mime_type);
       res.setHeader(
         "Content-Disposition",
@@ -115,7 +132,6 @@ const archiveControllerFactory = ({ pool }) => {
       );
       res.setHeader("Content-Length", archive.file_size);
 
-      // Stream file
       const fileStream = fs.createReadStream(filePath);
       fileStream.pipe(res);
     } catch (error) {
@@ -130,10 +146,14 @@ const archiveControllerFactory = ({ pool }) => {
     }
   };
 
-  // Create new archive (protected - arsiparis or super_admin)
+  /**
+   * Creates a new archive record with file upload.
+   * @param {Object} req - Express request object
+   * @param {Object} res - Express response object
+   * @returns {Promise<void>}
+   */
   const handleCreateArchive = async (req, res) => {
     try {
-      // Cek apakah ada file upload
       if (!req.file) {
         return res.status(400).json({
           success: false,
@@ -144,7 +164,6 @@ const archiveControllerFactory = ({ pool }) => {
       const { description, category_id, document_number, document_date } =
         req.body;
 
-      // Validasi basic input
       if (!req.file.originalname) {
         return res.status(400).json({
           success: false,
@@ -152,7 +171,6 @@ const archiveControllerFactory = ({ pool }) => {
         });
       }
 
-      // Validasi category_id
       if (category_id) {
         const [categories] = await pool.query(
           "SELECT id FROM archive_categories WHERE id = ?",
@@ -166,7 +184,6 @@ const archiveControllerFactory = ({ pool }) => {
         }
       }
 
-      // Parse document_date kalau ada
       let parsedDocumentDate = null;
       if (document_date) {
         parsedDocumentDate = String(document_date).trim();
@@ -208,7 +225,6 @@ const archiveControllerFactory = ({ pool }) => {
         error.message
       );
 
-      // Handle multer error
       if (error.message.includes("multer")) {
         return res.status(400).json({
           success: false,
@@ -217,7 +233,6 @@ const archiveControllerFactory = ({ pool }) => {
         });
       }
 
-      // Handle foreign key error
       if (error.message.includes("foreign key constraint")) {
         return res.status(400).json({
           success: false,
@@ -232,7 +247,12 @@ const archiveControllerFactory = ({ pool }) => {
     }
   };
 
-  // Update archive (protected - arsiparis or super_admin)
+  /**
+   * Updates an existing archive by ID.
+   * @param {Object} req - Express request object
+   * @param {Object} res - Express response object
+   * @returns {Promise<void>}
+   */
   const handleUpdateArchive = async (req, res) => {
     try {
       const { id } = req.params;
@@ -247,7 +267,6 @@ const archiveControllerFactory = ({ pool }) => {
       const { description, category_id, document_number, document_date } =
         req.body;
 
-      // 1. Ambil data arsip lama untuk mempertahankan detail file jika tidak ada upload baru
       const existingArchive = await getArchiveById(id);
       if (!existingArchive) {
         return res.status(404).json({
@@ -255,7 +274,7 @@ const archiveControllerFactory = ({ pool }) => {
           error: "Arsip tidak ditemukan",
         });
       }
-      // Validasi category_id
+
       if (category_id) {
         const [categories] = await pool.query(
           "SELECT id FROM archive_categories WHERE id = ?",
@@ -277,7 +296,6 @@ const archiveControllerFactory = ({ pool }) => {
         String(document_date).trim() !== ""
       ) {
         const trimmedDate = String(document_date).trim();
-        // Validasi format YYYY-MM-DD
         if (
           !/^\d{4}-\d{2}-\d{2}$/.test(trimmedDate) ||
           isNaN(Date.parse(trimmedDate))
@@ -290,7 +308,6 @@ const archiveControllerFactory = ({ pool }) => {
         newDocumentDate = trimmedDate;
       }
 
-      // Prepare update data
       const updateData = {
         description: description
           ? String(description).trim()
@@ -308,7 +325,6 @@ const archiveControllerFactory = ({ pool }) => {
         file_size: existingArchive.file_size,
       };
 
-      // Handle file re-upload (optional)
       if (req.file) {
         updateData.file_name = req.file.originalname;
         updateData.file_path = req.file.path;
@@ -335,7 +351,6 @@ const archiveControllerFactory = ({ pool }) => {
         });
       }
 
-      // Handle foreign key error
       if (error.message.includes("foreign key constraint")) {
         return res.status(400).json({
           success: false,
@@ -350,7 +365,12 @@ const archiveControllerFactory = ({ pool }) => {
     }
   };
 
-  // Delete archive (protected - arsiparis or super_admin)
+  /**
+   * Deletes an archive by ID.
+   * @param {Object} req - Express request object
+   * @param {Object} res - Express response object
+   * @returns {Promise<void>}
+   */
   const handleDeleteArchive = async (req, res) => {
     try {
       const { id } = req.params;

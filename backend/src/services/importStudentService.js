@@ -1,9 +1,23 @@
-// src/services/importStudentService.js
+/**
+ * @fileoverview Service for importing student data from Excel files.
+ * This module provides a factory function that creates a service for processing Excel files
+ * containing student data, with functions for mapping columns, validating data, and importing
+ * students into the database.
+ */
+
 import ExcelJS from "exceljs";
 import fs from "fs";
 
+/**
+ * Factory function that creates a student import service.
+ * This service processes Excel files containing student data and imports valid records
+ * into the database while handling various Excel formats and data validation.
+ *
+ * @param {object} dependencies - The dependencies object.
+ * @param {object} dependencies.studentModel - The student model for database operations.
+ * @returns {object} An object containing the import service methods.
+ */
 const importStudentServiceFactory = ({ studentModel }) => {
-  // Daftar alias untuk setiap field database
   const fieldAliases = {
     nisn: ["nisn", "no induk", "no. induk", "nomor induk", "id siswa"],
     name: ["nama", "nama lengkap", "nama siswa", "siswa", "nama lengkap siswa"],
@@ -34,24 +48,35 @@ const importStudentServiceFactory = ({ studentModel }) => {
     ],
   };
 
-  // Normalisasi string untuk pencocokan
+  /**
+   * Normalizes a string by removing special characters and standardizing formatting.
+   * Used for matching Excel column headers to database fields.
+   *
+   * @param {string} str - The string to normalize.
+   * @returns {string} The normalized string.
+   */
   const normalizeString = (str) => {
     if (!str) return "";
 
     return str
       .toString()
       .toLowerCase()
-      .replace(/[^\w\s\-\/]/g, " ") // Ganti karakter khusus dengan spasi, kecuali - dan /
-      .replace(/\s+/g, " ") // Gabungkan multiple spasi
-      .replace(/[\-\/]+/g, "-") // Gabungkan multiple - dan / menjadi -
+      .replace(/[^\w\s\-\/]/g, " ")
+      .replace(/\s+/g, " ")
+      .replace(/[\-\/]+/g, "-")
       .trim();
   };
 
-  // Cari field database berdasarkan header
+  /**
+   * Finds the corresponding database field for an Excel header.
+   * First checks EMIS headers, then checks against the field aliases.
+   *
+   * @param {string} header - The Excel header to match.
+   * @returns {string|null} The matching database field or null if not found.
+   */
   const findFieldByHeader = (header) => {
     const normalizedHeader = normalizeString(header);
 
-    // Special handling for EMIS headers
     const emisHeaders = {
       "tingkat - rombel": "className",
       "tingkat rombel": "className",
@@ -66,12 +91,10 @@ const importStudentServiceFactory = ({ studentModel }) => {
       "nama ibu kandung": "parentName",
     };
 
-    // Check EMIS headers first
     if (emisHeaders[normalizedHeader]) {
       return emisHeaders[normalizedHeader];
     }
 
-    // Then check regular aliases
     for (const [field, aliases] of Object.entries(fieldAliases)) {
       for (const alias of aliases) {
         if (normalizeString(alias) === normalizedHeader) {
@@ -83,7 +106,13 @@ const importStudentServiceFactory = ({ studentModel }) => {
     return null;
   };
 
-  // Baca header dan buat mapping
+  /**
+   * Creates a mapping between Excel column headers and database fields.
+   * Reads the first row of the worksheet and maps each column to its corresponding field.
+   *
+   * @param {ExcelJS.Worksheet} worksheet - The Excel worksheet to process.
+   * @returns {object} An object mapping field names to column numbers.
+   */
   const createHeaderMapping = (worksheet) => {
     const headerRow = worksheet.getRow(1);
     const mapping = {};
@@ -101,13 +130,18 @@ const importStudentServiceFactory = ({ studentModel }) => {
     return mapping;
   };
 
-  // **FIX: Fungsi standarisasi jenis kelamin yang lebih robust**
+  /**
+   * Standardizes gender values to 'L' (Laki-laki) or 'P' (Perempuan).
+   * Handles various input formats for gender data.
+   *
+   * @param {string} jenisKelamin - The gender value to standardize.
+   * @returns {string|null} 'L' for male, 'P' for female, or null if unrecognizable.
+   */
   const standardizeJenisKelamin = (jenisKelamin) => {
     if (!jenisKelamin) return null;
 
     const normalized = jenisKelamin.toString().toUpperCase().trim();
 
-    // Mapping berbagai format jenis kelamin
     if (
       normalized.includes("LAKI") ||
       normalized.includes("L") ||
@@ -124,11 +158,17 @@ const importStudentServiceFactory = ({ studentModel }) => {
       return "P";
     }
 
-    return null; // Format tidak dikenali
+    return null;
   };
 
+  /**
+   * Determines if a row is a summary row that should be skipped.
+   * Checks for various indicators that a row contains summary data rather than student data.
+   *
+   * @param {object} rowData - The row data to check.
+   * @returns {boolean} True if the row should be skipped, false otherwise.
+   */
   const isSummaryRow = (rowData) => {
-    // Skip kalau TIDAK ADA NISN atau NAMA
     if (!rowData.nisn || !rowData.name) {
       return true;
     }
@@ -136,7 +176,6 @@ const importStudentServiceFactory = ({ studentModel }) => {
     const nameLower = rowData.name.toString().toLowerCase().trim();
     const nisnStr = rowData.nisn.toString().trim();
 
-    // **FIX: HANYA CEK NAME & NISN, BUKAN ALAMAT!**
     const summaryKeywords = [
       "jumlah",
       "total",
@@ -160,26 +199,31 @@ const importStudentServiceFactory = ({ studentModel }) => {
         nameLower.includes(keyword) || nisnStr.toLowerCase().includes(keyword)
     );
 
-    // **FIX: Nama 1 karakter SAJA yang di-skip**
     const nameIsSingleChar =
       nameLower.length === 1 && !/^[pl]$/i.test(nameLower);
 
-    // **FIX: NISN harus 10+ digit**
     const nisnIsValid = /^\d{10,}$/.test(nisnStr);
 
-    // **LOGIC BARU: Skip KALAU:**
-    return (
-      hasSummaryKeyword || // Keyword summary di NAME/NISN
-      nameIsSingleChar || // Nama 1 karakter (bukan P/L)
-      !nisnIsValid // NISN invalid
-    );
+    return hasSummaryKeyword || nameIsSingleChar || !nisnIsValid;
   };
 
-  // Cek apakah baris adalah baris kosong
+  /**
+   * Checks if a row is empty (contains no data).
+   *
+   * @param {ExcelJS.Row} row - The Excel row to check.
+   * @returns {boolean} True if the row is empty, false otherwise.
+   */
   const isEmptyRow = (row) => {
     return !row.values || row.values.every((cell) => !cell);
   };
 
+  /**
+   * Standardizes class names to a consistent format (e.g., "X-A", "XI-B").
+   * Handles various input formats for class names.
+   *
+   * @param {string} className - The class name to standardize.
+   * @returns {string} The standardized class name.
+   */
   const standardizeClassName = (className) => {
     if (!className) return "";
 
@@ -194,10 +238,7 @@ const importStudentServiceFactory = ({ studentModel }) => {
       .replace(/\s*[–—]\s*/g, "-")
       .replace(/\s*-\s*/g, "-");
 
-    console.log(`🔍 [CLASS] "${className}" -> "${standardized}"`);
-
-    // **FIX 1: EMIS Pattern - Ambil ROMBEL TERAKHIR (A, B, C, D, etc)**
-    const emisPattern = /^(\d+)\s*-?\s*[\dXVI]*\s*-?\s*([A-Z]{1,3})$/i; // {1,3} untuk A, B, C, AB, etc
+    const emisPattern = /^(\d+)\s*-?\s*[\dXVI]*\s*-?\s*([A-Z]{1,3})$/i;
     const emisMatch = standardized.match(emisPattern);
 
     if (emisMatch) {
@@ -209,22 +250,16 @@ const importStudentServiceFactory = ({ studentModel }) => {
       else if (level === 11) romanLevel = "XI";
       else if (level === 12) romanLevel = "XII";
 
-      const result = `${romanLevel}-${rombel}`;
-      console.log(`✅ [EMIS] "${standardized}" -> ${result}`);
-      return result;
+      return `${romanLevel}-${rombel}`;
     }
 
-    // **FIX 2: Space to dash dulu**
-    standardized = standardized.replace(/([A-Z0-9])\s+([A-Z0-9])/g, "$1-$2"); // "X C" -> "X-C", "10 A" -> "10-A"
+    standardized = standardized.replace(/([A-Z0-9])\s+([A-Z0-9])/g, "$1-$2");
 
-    console.log(`🔍 [CLASS] After space: "${standardized}"`);
-
-    // **FIX 3: Split by dash untuk ambil ROMBEL terakhir**
     const parts = standardized.split("-").filter((part) => part.trim());
     if (parts.length >= 2) {
       const levelPart = parts[0].trim();
-      const rombelCandidates = parts.slice(1); // Ambil semua setelah level
-      const rombel = rombelCandidates[rombelCandidates.length - 1]; // ROMBEL TERAKHIR
+      const rombelCandidates = parts.slice(1);
+      const rombel = rombelCandidates[rombelCandidates.length - 1];
 
       let romanLevel = levelPart;
       const levelNum = parseInt(levelPart);
@@ -232,14 +267,9 @@ const importStudentServiceFactory = ({ studentModel }) => {
       else if (levelNum === 11) romanLevel = "XI";
       else if (levelNum === 12) romanLevel = "XII";
 
-      const result = `${romanLevel}-${rombel}`;
-      console.log(
-        `✅ [SPLIT] ${levelPart}|${rombelCandidates.join("|")} -> ${result}`
-      );
-      return result;
+      return `${romanLevel}-${rombel}`;
     }
 
-    // **FIX 4: Simple patterns**
     const simplePattern = /^(\d+|[XVI]+)\s*-?\s*([A-Z]+)$/i;
     const simpleMatch = standardized.match(simplePattern);
 
@@ -253,26 +283,28 @@ const importStudentServiceFactory = ({ studentModel }) => {
       else if (levelNum === 11) romanLevel = "XI";
       else if (levelNum === 12) romanLevel = "XII";
 
-      const result = `${romanLevel}-${rombelPart}`;
-      console.log(`✅ [SIMPLE] "${standardized}" -> ${result}`);
-      return result;
+      return `${romanLevel}-${rombelPart}`;
     }
 
-    console.log(`❌ [NO MATCH] "${standardized}"`);
     return standardized;
   };
 
-  // Proses satu baris data
+  /**
+   * Processes a single row of Excel data and maps it to student data fields.
+   * Uses the header mapping to extract data from the appropriate columns.
+   *
+   * @param {ExcelJS.Row} row - The Excel row to process.
+   * @param {object} headerMapping - The mapping of fields to column numbers.
+   * @returns {object} An object containing the extracted student data.
+   */
   const processRow = (row, headerMapping) => {
     const result = {};
 
-    // Ambil data berdasarkan mapping header
     Object.keys(headerMapping).forEach((field) => {
       const columnIndex = headerMapping[field];
       if (columnIndex) {
         const cellValue = row.getCell(columnIndex).value;
 
-        // Handle khusus untuk tanggal
         if (field === "birthDate" && cellValue) {
           if (typeof cellValue === "number") {
             const date = new Date((cellValue - 25569) * 86400 * 1000);
@@ -289,7 +321,14 @@ const importStudentServiceFactory = ({ studentModel }) => {
     return result;
   };
 
-  // **FIX: processWorksheet dengan skip breakdown lengkap**
+  /**
+   * Processes an entire worksheet of student data.
+   * Validates data, handles various formats, and prepares data for import.
+   *
+   * @param {ExcelJS.Worksheet} worksheet - The Excel worksheet to process.
+   * @param {string} worksheetName - The name of the worksheet.
+   * @returns {Promise<object>} A promise that resolves to an object containing import results.
+   */
   const processWorksheet = async (worksheet, worksheetName) => {
     const skipReasons = {
       summary: 0,
@@ -308,30 +347,21 @@ const importStudentServiceFactory = ({ studentModel }) => {
       skipped: 0,
       errors: [],
       hasCriticalError: false,
-      skipBreakdown: skipReasons, // **TAMBAHAN: Return skip breakdown**
+      skipBreakdown: skipReasons,
     };
 
-    // Skip worksheet "Tidak Aktif"
     if (worksheetName.toLowerCase().includes("tidak aktif")) {
-      console.log(`Skipping worksheet: ${worksheetName}`);
       return results;
     }
 
-    console.log(`\n=== Processing worksheet: ${worksheetName} ===`);
-
-    // Buat header mapping
     const headerMapping = createHeaderMapping(worksheet);
 
-    // Cek field wajib
     const requiredFields = ["nisn", "name", "className"];
     const missingFields = requiredFields.filter(
       (field) => !headerMapping[field]
     );
 
     if (missingFields.length > 0) {
-      console.log(
-        `[ERROR] Missing required fields: ${missingFields.join(", ")}`
-      );
       results.hasCriticalError = true;
       results.errors.push({
         row: 1,
@@ -342,11 +372,9 @@ const importStudentServiceFactory = ({ studentModel }) => {
     }
 
     const academicYear = await studentModel.getCurrentAcademicYear();
-    console.log(`[Import] Using academic year: ${academicYear}`);
 
     const tempData = [];
 
-    // Validasi data
     const validateRowData = (rowData, rowNumber) => {
       const errors = [];
 
@@ -354,7 +382,6 @@ const importStudentServiceFactory = ({ studentModel }) => {
       if (!rowData.name) errors.push("Nama kosong");
       if (!rowData.className) errors.push("Kelas kosong");
 
-      // **FIX: Validasi NISN lebih ketat (10+ digit)**
       if (rowData.nisn && !/^\d{10,}$/.test(rowData.nisn.toString())) {
         errors.push("NISN harus 10+ digit angka");
       }
@@ -364,14 +391,12 @@ const importStudentServiceFactory = ({ studentModel }) => {
       }
 
       if (errors.length > 0) {
-        console.log(`[Row ${rowNumber}] Validation errors:`, errors);
         return false;
       }
 
       return true;
     };
 
-    // Hitung actual row count
     let actualRowCount = 0;
     for (let i = worksheet.rowCount; i >= 2; i--) {
       const row = worksheet.getRow(i);
@@ -381,9 +406,6 @@ const importStudentServiceFactory = ({ studentModel }) => {
       }
     }
 
-    console.log(`[Worksheet] Actual rows: ${actualRowCount - 1}`);
-
-    // **PROSES BARIS PER BARIS DENGAN LOG DETAIL**
     for (let i = 2; i <= actualRowCount; i++) {
       try {
         const row = worksheet.getRow(i);
@@ -396,17 +418,12 @@ const importStudentServiceFactory = ({ studentModel }) => {
 
         const rowData = processRow(row, headerMapping);
 
-        // Skip summary rows
         if (isSummaryRow(rowData)) {
           skipReasons.summary++;
           results.skipped++;
-          console.log(
-            `[Row ${i}] SKIPPED - Summary: ${rowData.name || "EMPTY"}`
-          );
           continue;
         }
 
-        // Skip missing required data
         if (!rowData.nisn || !rowData.name || !rowData.className) {
           skipReasons.missingData++;
           results.skipped++;
@@ -418,14 +435,12 @@ const importStudentServiceFactory = ({ studentModel }) => {
           continue;
         }
 
-        // Validate data
         if (!validateRowData(rowData, i)) {
           skipReasons.validationError++;
           results.skipped++;
           continue;
         }
 
-        // **VALIDASI GENDER**
         const standardizedJenisKelamin = standardizeJenisKelamin(
           rowData.jenisKelamin
         );
@@ -440,7 +455,6 @@ const importStudentServiceFactory = ({ studentModel }) => {
           continue;
         }
 
-        // **STANDARISASI & VALIDASI KELAS (FIX UTAMA)**
         const originalClassName = rowData.className;
         const className = standardizeClassName(originalClassName);
 
@@ -470,18 +484,15 @@ const importStudentServiceFactory = ({ studentModel }) => {
           continue;
         }
 
-        // **CEK DUPLIKAT**
         const existingStudent = await studentModel.getStudentByNISN(
           rowData.nisn
         );
         if (existingStudent) {
           skipReasons.duplicate++;
           results.skipped++;
-          console.log(`[Row ${i}] SKIPPED - Duplicate: ${rowData.nisn}`);
           continue;
         }
 
-        // **DATA VALID - Simpan ke temp**
         tempData.push({
           nisn: rowData.nisn,
           name: rowData.name,
@@ -496,12 +507,7 @@ const importStudentServiceFactory = ({ studentModel }) => {
           className,
           classId: classData.id,
         });
-
-        console.log(
-          `[Row ${i}] ✅ VALID - ${rowData.name} (${rowData.nisn}) -> ${className}`
-        );
       } catch (error) {
-        console.error(`[Row ${i}] ERROR:`, error);
         skipReasons.validationError++;
         results.skipped++;
         results.errors.push({
@@ -512,8 +518,6 @@ const importStudentServiceFactory = ({ studentModel }) => {
       }
     }
 
-    // **COMMIT KE DATABASE**
-    console.log(`\n[COMMIT] Saving ${tempData.length} students...`);
     for (const data of tempData) {
       try {
         const studentId = await studentModel.createStudent({
@@ -537,7 +541,6 @@ const importStudentServiceFactory = ({ studentModel }) => {
 
         results.success++;
       } catch (error) {
-        console.error(`[COMMIT] Failed ${data.nisn}:`, error);
         results.failed++;
         results.errors.push({
           row: 0,
@@ -547,16 +550,16 @@ const importStudentServiceFactory = ({ studentModel }) => {
       }
     }
 
-    console.log(`\n=== ${worksheetName} SUMMARY ===`);
-    console.log(
-      `Success: ${results.success}, Skipped: ${results.skipped}, Failed: ${results.failed}`
-    );
-    console.log("Skip Breakdown:", skipReasons);
-
     return results;
   };
 
-  // Proses import file Excel
+  /**
+   * Processes an Excel file containing student data.
+   * Reads the file, processes each worksheet, and returns import results.
+   *
+   * @param {string} filePath - The path to the Excel file.
+   * @returns {Promise<object>} A promise that resolves to an object containing import results.
+   */
   const processImportFile = async (filePath) => {
     try {
       const workbook = new ExcelJS.Workbook();
@@ -599,7 +602,6 @@ const importStudentServiceFactory = ({ studentModel }) => {
 
       fs.unlinkSync(filePath);
 
-      console.log("\n=== FINAL RESULTS ===", results);
       return results;
     } catch (error) {
       if (fs.existsSync(filePath)) fs.unlinkSync(filePath);

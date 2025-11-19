@@ -1,10 +1,28 @@
+/**
+ * @fileoverview Gallery upload service for handling image uploads.
+ * This module provides a service for handling gallery image uploads, including file validation,
+ * storage, and image processing such as thumbnail generation and optimization.
+ */
+
 import multer from "multer";
 import path from "path";
 import sharp from "sharp";
 import fs from "fs/promises";
 import { v4 as uuidv4 } from "uuid";
 
+/**
+ * Service class for handling gallery image uploads.
+ * Provides functionality for file validation, storage, and image processing.
+ */
 class GalleryUploadService {
+  /**
+   * Creates an instance of GalleryUploadService.
+   * @param {Object} options - Configuration options for the service.
+   * @param {string} [options.basePath="uploads/gallery"] - Base path for storing uploaded images.
+   * @param {number} [options.maxFiles=10] - Maximum number of files allowed per upload.
+   * @param {number} [options.maxFileSize=10485760] - Maximum file size in bytes (default: 10MB).
+   * @param {string[]} [options.allowedMimeTypes] - Array of allowed MIME types.
+   */
   constructor(options = {}) {
     this.basePath = options.basePath || "uploads/gallery";
     this.maxFiles = options.maxFiles || 10;
@@ -17,41 +35,36 @@ class GalleryUploadService {
       "image/webp",
     ];
 
-    // Ensure base path exists on initialization
     this._ensureBasePath();
   }
 
+  /**
+   * Ensures the base path for storing images exists.
+   * @private
+   */
   async _ensureBasePath() {
     try {
       const resolvedPath = path.resolve(this.basePath);
       await fs.mkdir(resolvedPath, { recursive: true });
-      console.log("Base path created/verified:", resolvedPath);
     } catch (error) {
       console.error("Failed to create base path:", error);
     }
   }
 
+  /**
+   * Creates a multer middleware for handling file uploads.
+   * @returns {Function} Express middleware function for handling file uploads.
+   */
   createMiddleware() {
-    console.log("Creating gallery upload middleware");
-
-    // Gunakan storage sederhana seperti fileUploadService
     const storage = multer.diskStorage({
       destination: (req, file, cb) => {
-        console.log("Storage destination called for:", file.originalname);
-
-        // Resolve path seperti di fileUploadService
         const uploadPath = path.resolve(this.basePath);
-        console.log("Upload path:", uploadPath);
-
-        // Langsung cb tanpa async operation
         cb(null, uploadPath);
       },
       filename: (req, file, cb) => {
-        console.log("Generating filename for:", file.originalname);
         const uniqueId = uuidv4();
         const ext = path.extname(file.originalname);
         const filename = `${uniqueId}${ext}`;
-        console.log("Generated filename:", filename);
         cb(null, filename);
       },
     });
@@ -64,16 +77,9 @@ class GalleryUploadService {
       limits: { fileSize: this.maxFileSize, files: this.maxFiles },
     }).array("photos", this.maxFiles);
 
-    // Gunakan error handling sederhana seperti fileUploadService
     return (req, res, next) => {
-      console.log("=== GALLERY UPLOAD MIDDLEWARE START ===");
-      console.log("Request body:", req.body);
-
       upload(req, res, (err) => {
-        console.log("=== MULTER UPLOAD CALLBACK ===");
-
         if (err instanceof multer.MulterError) {
-          console.error("Multer error:", err);
           let message = "File upload error.";
           if (err.code === "LIMIT_FILE_SIZE") {
             message = `File is too large. Maximum size is ${
@@ -84,27 +90,25 @@ class GalleryUploadService {
           }
           return res.status(400).json({ message });
         } else if (err) {
-          console.error("Unknown error:", err);
           return res.status(400).json({ message: err.message });
         }
 
-        console.log("Files received:", req.files ? req.files.length : 0);
-
         if (!req.files || req.files.length === 0) {
-          console.log("No files in request");
           return res.status(400).json({ message: "No files uploaded" });
         }
 
-        // Langsung next tanpa proses kompleks
-        console.log("Upload successful, calling next()");
         next();
       });
     };
   }
 
+  /**
+   * Creates a file filter function for validating file types.
+   * @private
+   * @returns {Function} File filter function for multer.
+   */
   _createFileFilter() {
     return (req, file, cb) => {
-      console.log("File filter called for:", file.originalname, file.mimetype);
       if (this.allowedMimeTypes.includes(file.mimetype)) {
         cb(null, true);
       } else {
@@ -120,12 +124,13 @@ class GalleryUploadService {
     };
   }
 
-  // Method ini untuk dipanggil di controller setelah upload berhasil
-  // Di dalam method processImages di GalleryUploadService.js
+  /**
+   * Processes uploaded images by moving them to album folders and creating thumbnails.
+   * @param {Array<Object>} files - Array of uploaded file objects from multer.
+   * @param {string} albumId - ID of the album to organize images into.
+   * @returns {Promise<Array<Object>>} Promise that resolves to an array of processed file information.
+   */
   async processImages(files, albumId) {
-    console.log("Processing images:", files.length, "for album:", albumId);
-
-    // Buat folder album jika belum ada
     const albumPath = path.join(this.basePath, albumId);
     await fs.mkdir(albumPath, { recursive: true });
 
@@ -133,21 +138,14 @@ class GalleryUploadService {
 
     for (const file of files) {
       try {
-        console.log(`Processing file: ${file.originalname}`);
-
-        // Pindahkan file dari temp location ke album folder
         const sourcePath = file.path;
         const destPath = path.join(albumPath, file.filename);
-
-        console.log(`Moving from ${sourcePath} to ${destPath}`);
         await fs.rename(sourcePath, destPath);
 
-        // Proses image (buat thumbnail, kompresi)
         const processed = await this._processSingleImage(destPath, file);
         processedFiles.push(processed);
       } catch (error) {
         console.error(`Failed to process image ${file.filename}:`, error);
-        // Tetap masukkan ke array dengan info dasar
         processedFiles.push({
           originalName: file.originalname,
           filename: file.filename,
@@ -158,15 +156,18 @@ class GalleryUploadService {
       }
     }
 
-    console.log("Image processing completed");
     return processedFiles;
   }
 
+  /**
+   * Processes a single image by creating a thumbnail and optimizing the original.
+   * @private
+   * @param {string} filePath - Path to the image file.
+   * @param {Object} file - File object from multer.
+   * @returns {Promise<Object>} Promise that resolves to processed file information.
+   */
   async _processSingleImage(filePath, file) {
-    console.log(`Processing single image: ${file.originalname}`);
-
     try {
-      // Generate thumbnail
       const thumbnailFilename = `thumb_${file.filename}`;
       const thumbnailPath = path.join(
         path.dirname(filePath),
@@ -178,7 +179,6 @@ class GalleryUploadService {
         .jpeg({ quality: 80 })
         .toFile(thumbnailPath);
 
-      // Optimize original image
       await sharp(filePath)
         .resize(1920, 1080, { fit: "inside", withoutEnlargement: true })
         .jpeg({ quality: 85 })
@@ -194,7 +194,6 @@ class GalleryUploadService {
       };
     } catch (error) {
       console.error("Sharp processing error:", error);
-      // Return basic info if processing fails
       const albumId = path.basename(path.dirname(filePath));
       return {
         originalName: file.originalname,
@@ -207,8 +206,12 @@ class GalleryUploadService {
   }
 }
 
+/**
+ * Factory function to create a gallery upload service with its methods bound.
+ * @param {Object} options - Configuration options for the service.
+ * @returns {Object} Object containing the gallery upload middleware and image processing method.
+ */
 const createGalleryUploadService = (options = {}) => {
-  console.log("Creating gallery upload service");
   const service = new GalleryUploadService(options);
   return {
     galleryUpload: service.createMiddleware.bind(service),

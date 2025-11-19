@@ -1,7 +1,17 @@
-// services/attendanceService.js
-import { useAuth } from "../contexts/AuthContext";
+/**
+ * @fileoverview Service for handling attendance-related API requests.
+ * This module provides functions for saving attendance data, retrieving attendance recaps,
+ * and exporting attendance data in different formats.
+ */
 
-// Fungsi untuk input presensi
+/**
+ * Saves attendance data to the server.
+ * @async
+ * @param {object} attendanceData - The attendance data to save.
+ * @param {string} token - Authentication token for authorization.
+ * @returns {Promise<object>} A promise that resolves to the response data.
+ * @throws {Error} If the request fails or returns an error.
+ */
 export const saveAttendance = async (attendanceData, token) => {
   const response = await fetch(
     `${import.meta.env.VITE_BACKEND_API_URL}/api/attendance`,
@@ -22,7 +32,16 @@ export const saveAttendance = async (attendanceData, token) => {
   throw new Error(data.error || "Gagal menyimpan presensi");
 };
 
-// Fungsi untuk get rekap presensi
+/**
+ * Retrieves attendance recap data from the server.
+ * @async
+ * @param {string} classId - The ID of the class.
+ * @param {string} period - The period type for the recap.
+ * @param {string} startDate - The start date for the recap period.
+ * @param {string} endDate - The end date for the recap period.
+ * @returns {Promise<object>} A promise that resolves to the attendance recap data.
+ * @throws {Error} If the request fails or returns an error.
+ */
 export const getAttendanceRecap = async (
   classId,
   period,
@@ -49,7 +68,18 @@ export const getAttendanceRecap = async (
   throw new Error(data.error || "Gagal memuat rekap presensi");
 };
 
-// Fungsi untuk export data
+/**
+ * Exports attendance data from the server in the specified format.
+ * @async
+ * @param {string} classId - The ID of the class.
+ * @param {string} period - The period type for the export.
+ * @param {string} startDate - The start date for the export period.
+ * @param {string} endDate - The end date for the export period.
+ * @param {string} format - The export format (e.g., 'excel', 'pdf').
+ * @param {string} token - Authentication token for authorization.
+ * @returns {Promise<void>} A promise that resolves when the file is downloaded.
+ * @throws {Error} If the request fails.
+ */
 export const exportAttendance = async (
   classId,
   period,

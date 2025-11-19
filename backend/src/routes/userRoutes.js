@@ -1,4 +1,9 @@
-// backend/src/routes/userRoutes.js
+/**
+ * @fileoverview Defines the Express router for user-related endpoints.
+ * This module creates and configures routes for user profile management and administrative user operations.
+ * It includes endpoints for profile management, avatar uploads, password changes, and CRUD operations for users,
+ * utilizing middleware for authentication, role-based access control, and input validation.
+ */
 
 import { Router } from "express";
 import { body } from "express-validator";
@@ -7,13 +12,13 @@ import {
   restrictTo,
 } from "../middleware/authMiddleware.js";
 import { avatarUpload } from "../services/fileUploadService.js";
-
-// Models and Controllers
 import createUserModel from "../models/userModel.js";
 import createUserController from "../controllers/userController.js";
 
-// --- Validation Rule Constants ---
-// In a larger application, consider moving these to a dedicated validation file.
+/**
+ * Array of valid user roles in the system.
+ * @type {string[]}
+ */
 const VALID_ROLES = [
   "arsiparis",
   "pengelola_bmn",
@@ -22,6 +27,10 @@ const VALID_ROLES = [
   "super_admin",
 ];
 
+/**
+ * Validation rules for creating a new user.
+ * @type {Array}
+ */
 const createUserValidation = [
   body("username")
     .notEmpty()
@@ -46,6 +55,10 @@ const createUserValidation = [
     .withMessage("Full name cannot exceed 255 characters."),
 ];
 
+/**
+ * Validation rules for updating a user.
+ * @type {Array}
+ */
 const updateUserValidation = [
   body("username")
     .notEmpty()
@@ -82,17 +95,11 @@ const updateUserValidation = [
 const userRouterFactory = ({ pool, JWT_SECRET }) => {
   const router = Router();
 
-  // --- Model and Controller Initialization ---
   const userModel = createUserModel({ pool });
   const userController = createUserController({ userModel });
 
-  // --- Middleware Setup ---
-  // Apply authentication to all routes in this router
   const authenticate = authenticateTokenFactory({ JWT_SECRET });
   router.use(authenticate);
-
-  // --- Profile Management Routes ---
-  // These routes are for any authenticated user to manage their own profile.
 
   /**
    * @route   GET /profile
@@ -130,8 +137,29 @@ const userRouterFactory = ({ pool, JWT_SECRET }) => {
     userController.updateAvatarByUrl
   );
 
-  // --- User Administration Routes ---
-  // These routes are restricted to Super Admins only.
+  /**
+   * @route   PUT /change-password
+   * @desc    Change the current user's password.
+   * @access  Private
+   */
+  router.put(
+    "/change-password",
+    [
+      body("currentPassword")
+        .notEmpty()
+        .withMessage("Current password is required."),
+      body("newPassword")
+        .isLength({ min: 6 })
+        .withMessage("New password must be at least 6 characters long."),
+      body("confirmPassword").custom((value, { req }) => {
+        if (value !== req.body.newPassword) {
+          throw new Error("Password confirmation does not match.");
+        }
+        return true;
+      }),
+    ],
+    userController.changePassword
+  );
 
   /**
    * @route   GET /users
@@ -163,103 +191,6 @@ const userRouterFactory = ({ pool, JWT_SECRET }) => {
     updateUserValidation,
     userController.updateUser
   );
-
-  /**
-   * Factory function that creates and configures the router for user-related operations.
-   * This router handles profile management for authenticated users and administrative
-   * CRUD operations for super admins.
-   *
-   * @param {object} dependencies - The dependencies for the router.
-   * @param {import('mysql2/promise').Pool} dependencies.pool - MySQL connection pool.
-   * @param {string} dependencies.JWT_SECRET - Secret key for JWT authentication.
-   * @returns {import('express').Router} Configured Express router for user routes.
-   */
-  const userRouterFactory = ({ pool, JWT_SECRET }) => {
-    const router = Router();
-
-    // --- Model and Controller Initialization ---
-    const userModel = createUserModel({ pool });
-    const userController = createUserController({ userModel });
-
-    // --- Middleware Setup ---
-    // Apply authentication to all routes in this router
-    const authenticate = authenticateTokenFactory({ JWT_SECRET });
-    router.use(authenticate);
-
-    // --- Profile Management Routes ---
-    // These routes are for any authenticated user to manage their own profile.
-
-    /**
-     * @route   GET /profile
-     * @desc    Get the current user's profile.
-     * @access  Private
-     */
-    router.get("/profile", userController.getUserProfile);
-
-    /**
-     * @route   PUT /profile
-     * @desc    Update the current user's profile (e.g., full name).
-     * @access  Private
-     */
-    router.put(
-      "/profile",
-      [body("full_name").notEmpty().withMessage("Full name is required.")],
-      userController.updateUserProfile
-    );
-
-    /**
-     * @route   POST /profile/avatar
-     * @desc    Upload an avatar image for the current user.
-     * @access  Private
-     */
-    router.post("/profile/avatar", avatarUpload, userController.uploadAvatar);
-
-    /**
-     * @route   PUT /profile/avatar
-     * @desc    Update the current user's avatar using a URL.
-     * @access  Private
-     */
-    router.put(
-      "/profile/avatar",
-      [
-        body("avatarUrl")
-          .isURL()
-          .withMessage("Avatar URL must be a valid URL."),
-      ],
-      userController.updateAvatarByUrl
-    );
-
-    // --- Password Management Route ---
-    /**
-     * @route   PUT /change-password
-     * @desc    Change the current user's password.
-     * @access  Private
-     */
-    router.put(
-      "/change-password",
-      [
-        body("currentPassword")
-          .notEmpty()
-          .withMessage("Current password is required."),
-        body("newPassword")
-          .isLength({ min: 6 })
-          .withMessage("New password must be at least 6 characters long."),
-        body("confirmPassword").custom((value, { req }) => {
-          if (value !== req.body.newPassword) {
-            throw new Error("Password confirmation does not match.");
-          }
-          return true;
-        }),
-      ],
-      userController.changePassword
-    );
-
-    // --- User Administration Routes ---
-    // These routes are restricted to Super Admins only.
-    // ... route lainnya ...
-
-    return router;
-  };
 
   /**
    * @route   DELETE /users/:id

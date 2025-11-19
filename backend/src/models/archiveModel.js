@@ -1,4 +1,26 @@
+/**
+ * @fileoverview Archive model factory for database operations.
+ * This module creates and exports an archive model with methods to perform
+ * CRUD operations on archive records and archive categories in the database.
+ */
+
+/**
+ * Factory function that creates an archive model with database operations.
+ * @param {Object} options - Configuration options.
+ * @param {mysql.Pool} options.pool - MySQL connection pool for database operations.
+ * @returns {Object} An object containing archive model methods.
+ */
 const archiveModelFactory = ({ pool }) => {
+  /**
+   * Retrieves archives with pagination, search, and category filtering.
+   * @param {Object} options - Query options.
+   * @param {string} [options.search=""] - Search term to filter archives by file name, description, or document number.
+   * @param {number} [options.page=1] - Page number for pagination.
+   * @param {number} [options.limit=10] - Number of items per page.
+   * @param {number} [options.categoryId] - Category ID to filter archives by category.
+   * @returns {Promise<Object>} Promise that resolves to an object containing archive data, pagination info, and total count.
+   * @throws {Error} If database query fails.
+   */
   const getArchive = async ({
     search = "",
     page = 1,
@@ -67,6 +89,12 @@ const archiveModelFactory = ({ pool }) => {
     }
   };
 
+  /**
+   * Retrieves a single archive by its ID.
+   * @param {number} id - The ID of the archive to retrieve.
+   * @returns {Promise<Object|null>} Promise that resolves to the archive object or null if not found.
+   * @throws {Error} If database query fails.
+   */
   const getArchiveById = async (id) => {
     try {
       const [rows] = await pool.query(
@@ -93,6 +121,11 @@ const archiveModelFactory = ({ pool }) => {
     }
   };
 
+  /**
+   * Retrieves all archive categories.
+   * @returns {Promise<Array>} Promise that resolves to an array of category objects.
+   * @throws {Error} If database query fails.
+   */
   const getArchiveCategories = async () => {
     try {
       const [rows] = await pool.query(
@@ -104,6 +137,20 @@ const archiveModelFactory = ({ pool }) => {
     }
   };
 
+  /**
+   * Creates a new archive record in the database.
+   * @param {Object} data - Archive data to create.
+   * @param {string} data.file_name - Name of the file.
+   * @param {string} data.file_path - Path to the file.
+   * @param {string} data.mime_type - MIME type of the file.
+   * @param {string} [data.description] - Description of the archive.
+   * @param {number} [data.category_id] - Category ID of the archive.
+   * @param {number} data.file_size - Size of the file.
+   * @param {string} [data.document_number] - Document number.
+   * @param {Date} [data.document_date] - Document date.
+   * @returns {Promise<Object>} Promise that resolves to an object containing the new archive ID and success message.
+   * @throws {Error} If database operation fails.
+   */
   const createArchive = async (data) => {
     try {
       const {
@@ -142,6 +189,21 @@ const archiveModelFactory = ({ pool }) => {
     }
   };
 
+  /**
+   * Updates an existing archive record in the database.
+   * @param {number} id - ID of the archive to update.
+   * @param {Object} data - Updated archive data.
+   * @param {string} data.file_name - Name of the file.
+   * @param {string} data.file_path - Path to the file.
+   * @param {string} data.mime_type - MIME type of the file.
+   * @param {string} [data.description] - Description of the archive.
+   * @param {number} [data.category_id] - Category ID of the archive.
+   * @param {number} data.file_size - Size of the file.
+   * @param {string} [data.document_number] - Document number.
+   * @param {Date} [data.document_date] - Document date.
+   * @returns {Promise<Object>} Promise that resolves to an object containing a success message.
+   * @throws {Error} If archive not found or database operation fails.
+   */
   const updateArchive = async (id, data) => {
     try {
       const {
@@ -186,6 +248,12 @@ const archiveModelFactory = ({ pool }) => {
     }
   };
 
+  /**
+   * Soft deletes an archive by setting its is_active flag to false.
+   * @param {number} id - ID of the archive to delete.
+   * @returns {Promise<Object>} Promise that resolves to an object containing a success message.
+   * @throws {Error} If archive not found or database operation fails.
+   */
   const deleteArchive = async (id) => {
     try {
       const query = `UPDATE archives SET is_active = false WHERE id = ? AND is_active = true`;
