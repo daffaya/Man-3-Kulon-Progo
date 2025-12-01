@@ -14,40 +14,14 @@ import {
   PaginationData,
   GalleryFilters,
 } from "../types/galleryTypes";
+import { apiFetch } from "../lib/api";
 
 /**
- * The base URL for the backend API, retrieved from environment variables.
- * Defaults to "http://localhost:3001" for local development.
- * @type {string}
+ * Retrieves the authorization token from localStorage.
+ * @returns {string | null} The JWT token if present, otherwise null.
  */
-const API_URL = import.meta.env.VITE_BACKEND_API_URL || "http://localhost:3001";
-
-/**
- * Retrieves the authorization headers for API requests.
- * Checks localStorage for a JWT token and includes it in the headers if present.
- * @returns {Record<string, string>} The authorization headers.
- */
-const getAuthHeaders = (): Record<string, string> => {
-  const token = localStorage.getItem("token");
-  return {
-    ...(token ? { Authorization: `Bearer ${token}` } : {}),
-  };
-};
-
-/**
- * Handles the response from a fetch API call.
- * Checks if the response is OK and parses the JSON body.
- * Throws an error with a message from the response body if the response is not OK.
- * @param {Response} response - The response object from a fetch call.
- * @returns {Promise<any>} A promise that resolves with the parsed JSON data.
- * @throws {Error} If the response status is not OK.
- */
-const handleResponse = async (response: Response): Promise<any> => {
-  if (!response.ok) {
-    const errorData = await response.json();
-    throw new Error(errorData.message || "Something went wrong");
-  }
-  return response.json();
+const getAuthToken = (): string | null => {
+  return localStorage.getItem("token");
 };
 
 /**
@@ -61,16 +35,12 @@ const galleryApi = {
    * @throws {Error} If the API request fails.
    */
   createAlbum: async (formData: AlbumFormData): Promise<Album> => {
-    const response = await fetch(`${API_URL}/api/atmin/gallery/albums`, {
+    const token = getAuthToken();
+    const result = await apiFetch("/atmin/gallery/albums", {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        ...getAuthHeaders(),
-      },
+      headers: token ? { Authorization: `Bearer ${token}` } : {},
       body: JSON.stringify(formData),
     });
-
-    const result = await handleResponse(response);
     return result.album || result;
   },
 
@@ -90,14 +60,10 @@ const galleryApi = {
     if (filters.page) params.append("page", filters.page.toString());
     if (filters.limit) params.append("limit", filters.limit.toString());
 
-    const response = await fetch(
-      `${API_URL}/api/atmin/gallery/albums?${params}`,
-      {
-        headers: getAuthHeaders(),
-      }
-    );
-
-    return handleResponse(response);
+    const token = getAuthToken();
+    return apiFetch(`/atmin/gallery/albums?${params}`, {
+      headers: token ? { Authorization: `Bearer ${token}` } : {},
+    });
   },
 
   /**
@@ -116,8 +82,7 @@ const galleryApi = {
     if (filters.page) params.append("page", filters.page.toString());
     if (filters.limit) params.append("limit", filters.limit.toString());
 
-    const response = await fetch(`${API_URL}/api/gallery/albums?${params}`);
-    return handleResponse(response);
+    return apiFetch(`/gallery/albums?${params}`);
   },
 
   /**
@@ -129,12 +94,11 @@ const galleryApi = {
   getAlbumById: async (
     id: string
   ): Promise<{ album: Album; photos: Photo[] }> => {
-    const response = await fetch(`${API_URL}/api/atmin/gallery/albums/${id}`, {
-      headers: getAuthHeaders(),
+    const token = getAuthToken();
+    return apiFetch(`/atmin/gallery/albums/${id}`, {
+      headers: token ? { Authorization: `Bearer ${token}` } : {},
       cache: "no-cache",
     });
-
-    return handleResponse(response);
   },
 
   /**
@@ -146,8 +110,7 @@ const galleryApi = {
   getPublicAlbumById: async (
     id: string
   ): Promise<{ album: Album; photos: Photo[] }> => {
-    const response = await fetch(`${API_URL}/api/gallery/albums/${id}`);
-    return handleResponse(response);
+    return apiFetch(`/gallery/albums/${id}`);
   },
 
   /**
@@ -158,16 +121,12 @@ const galleryApi = {
    * @throws {Error} If the API request fails.
    */
   updateAlbum: async (id: string, formData: AlbumFormData): Promise<Album> => {
-    const response = await fetch(`${API_URL}/api/atmin/gallery/albums/${id}`, {
+    const token = getAuthToken();
+    const result = await apiFetch(`/atmin/gallery/albums/${id}`, {
       method: "PUT",
-      headers: {
-        "Content-Type": "application/json",
-        ...getAuthHeaders(),
-      },
+      headers: token ? { Authorization: `Bearer ${token}` } : {},
       body: JSON.stringify(formData),
     });
-
-    const result = await handleResponse(response);
     return result.album || result;
   },
 
@@ -178,12 +137,11 @@ const galleryApi = {
    * @throws {Error} If the API request fails.
    */
   deleteAlbum: async (id: string): Promise<void> => {
-    const response = await fetch(`${API_URL}/api/atmin/gallery/albums/${id}`, {
+    const token = getAuthToken();
+    await apiFetch(`/atmin/gallery/albums/${id}`, {
       method: "DELETE",
-      headers: getAuthHeaders(),
+      headers: token ? { Authorization: `Bearer ${token}` } : {},
     });
-
-    await handleResponse(response);
   },
 
   /**
@@ -206,14 +164,17 @@ const galleryApi = {
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 60000); // 60 seconds timeout
 
-      const response = await fetch(`${API_URL}/api/atmin/gallery/photos`, {
-        method: "POST",
-        headers: {
-          ...getAuthHeaders(),
-        },
-        body: formData,
-        signal: controller.signal,
-      });
+      // For FormData, we need to use fetch directly to avoid Content-Type header
+      const token = getAuthToken();
+      const response = await fetch(
+        `https://backend.man3kulonprogo.sch.id/api/atmin/gallery/photos`,
+        {
+          method: "POST",
+          headers: token ? { Authorization: `Bearer ${token}` } : {},
+          body: formData,
+          signal: controller.signal,
+        }
+      );
 
       clearTimeout(timeoutId);
 
@@ -247,19 +208,12 @@ const galleryApi = {
    * @throws {Error} If the API request fails.
    */
   setAlbumCover: async (albumId: string, photoId: string): Promise<void> => {
-    const response = await fetch(
-      `${API_URL}/api/atmin/gallery/albums/${albumId}/cover`,
-      {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-          ...getAuthHeaders(),
-        },
-        body: JSON.stringify({ photo_id: photoId }),
-      }
-    );
-
-    await handleResponse(response);
+    const token = getAuthToken();
+    await apiFetch(`/atmin/gallery/albums/${albumId}/cover`, {
+      method: "PUT",
+      headers: token ? { Authorization: `Bearer ${token}` } : {},
+      body: JSON.stringify({ photo_id: photoId }),
+    });
   },
 
   /**
@@ -273,19 +227,12 @@ const galleryApi = {
     albumId: string,
     photoOrders: { id: string; order: number }[]
   ): Promise<void> => {
-    const response = await fetch(
-      `${API_URL}/api/atmin/gallery/albums/${albumId}/photos/order`,
-      {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-          ...getAuthHeaders(),
-        },
-        body: JSON.stringify({ photo_orders: photoOrders }),
-      }
-    );
-
-    await handleResponse(response);
+    const token = getAuthToken();
+    await apiFetch(`/atmin/gallery/albums/${albumId}/photos/order`, {
+      method: "PUT",
+      headers: token ? { Authorization: `Bearer ${token}` } : {},
+      body: JSON.stringify({ photo_orders: photoOrders }),
+    });
   },
 
   /**
@@ -295,12 +242,11 @@ const galleryApi = {
    * @throws {Error} If the API request fails.
    */
   deletePhoto: async (id: string): Promise<void> => {
-    const response = await fetch(`${API_URL}/api/atmin/gallery/photos/${id}`, {
+    const token = getAuthToken();
+    await apiFetch(`/atmin/gallery/photos/${id}`, {
       method: "DELETE",
-      headers: getAuthHeaders(),
+      headers: token ? { Authorization: `Bearer ${token}` } : {},
     });
-
-    await handleResponse(response);
   },
 };
 

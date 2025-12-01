@@ -6,9 +6,7 @@ export type UserRole =
   | "jurnalis"
   | "arsiparis"
   | "guru_bk"
-  | "pengelola_bmn"
-  | "operator"
-  | "kepala_sekolah";
+  | "pengelola_bmn";
 
 /**
  * Represents a user in the system.

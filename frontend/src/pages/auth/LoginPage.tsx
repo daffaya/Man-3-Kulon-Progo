@@ -45,8 +45,6 @@ const LoginPage: React.FC = () => {
       "arsiparis",
       "guru_bk",
       "pengelola_bmn",
-      "operator",
-      "kepala_sekolah",
     ];
 
     const role = data.user.role as UserRole;

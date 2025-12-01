@@ -82,8 +82,6 @@ const WebAppPage: React.FC = () => {
         "arsiparis",
         "guru_bk",
         "pengelola_bmn",
-        "operator",
-        "kepala_sekolah",
       ] as UserRole[],
       to: "/atmin/gallery",
     },

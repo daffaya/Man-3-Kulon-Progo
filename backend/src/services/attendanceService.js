@@ -14,7 +14,7 @@
  */
 export const saveAttendance = async (attendanceData, token) => {
   const response = await fetch(
-    `${import.meta.env.VITE_BACKEND_API_URL}/api/attendance`,
+    `https://backend.man3kulonprogo.sch.id/api/attendance`,
     {
       method: "POST",
       headers: {
@@ -56,9 +56,7 @@ export const getAttendanceRecap = async (
   });
 
   const response = await fetch(
-    `${
-      import.meta.env.VITE_BACKEND_API_URL
-    }/api/attendance/recap?${query.toString()}`
+    `https://backend.man3kulonprogo.sch.id/api/attendance/recap?${query.toString()}`
   );
 
   const data = await response.json();
@@ -97,9 +95,7 @@ export const exportAttendance = async (
   });
 
   const response = await fetch(
-    `${
-      import.meta.env.VITE_BACKEND_API_URL
-    }/api/attendance/export?${query.toString()}`,
+    `https://backend.man3kulonprogo.sch.id/api/attendance/export?${query.toString()}`,
     {
       headers: {
         Authorization: `Bearer ${token}`,

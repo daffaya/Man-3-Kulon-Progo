@@ -7,7 +7,7 @@
 import { useState, useEffect } from "react";
 import { Class } from "../types/studentTypes";
 
-const API_URL = import.meta.env.VITE_BACKEND_API_URL;
+const API_URL = `https://backend.man3kulonprogo.sch.id`;
 
 /**
  * Custom hook to fetch and manage a list of classes from the API.

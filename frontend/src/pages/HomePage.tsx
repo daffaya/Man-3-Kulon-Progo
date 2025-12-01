@@ -30,14 +30,15 @@ import { useGallery } from "../contexts/GalleryContext";
 import AlbumCard from "../components/gallery/AlbumCard";
 import { Article, Category } from "../types/articleTypes";
 import { useStudentStats } from "../contexts/StudentStatsContext";
+import articleApi from "../api/articleApi"; // Import articleApi
 
 /**
  * Main home page component that displays various sections of the school website.
  * Fetches and displays articles, albums, and student statistics.
  */
 const HomePage: React.FC = () => {
-  const { state, fetchArticles } = useArticles();
-  const { articles, loading } = state;
+  const { state, fetchArticles, fetchCategories } = useArticles();
+  const { articles, loading, categories } = state;
   const { state: galleryState, fetchAlbums } = useGallery();
   const { albums: galleryAlbums, loading: galleryLoading } = galleryState;
   const { state: studentStatsState } = useStudentStats();
@@ -47,34 +48,25 @@ const HomePage: React.FC = () => {
   useEffect(() => {
     fetchArticles({ limit: 10 });
     fetchAlbums({ limit: 6 });
-  }, [fetchArticles, fetchAlbums]);
+    fetchCategories();
+  }, [fetchArticles, fetchAlbums, fetchCategories]);
 
   useEffect(() => {
-    // Fetch kategori untuk mendapatkan ID kategori "Prestasi"
-    const fetchPrestasiArticles = async () => {
-      try {
-        // Ambil daftar kategori
-        const categoriesResponse = await fetch(
-          `${
-            import.meta.env.VITE_BACKEND_API_URL || "http://localhost:3001"
-          }/api/categories`
-        );
-        const categories = await categoriesResponse.json();
+    if (categories.length === 0) return;
 
-        // Cari kategori "Prestasi"
+    const fetchPrestasiArticles = async () => {
+      setAchievementLoading(true);
+      try {
         const prestasiCategory = categories.find(
           (cat: Category) => cat.name === "Prestasi"
         );
 
         if (prestasiCategory) {
-          // Ambil artikel dengan kategori "Prestasi"
-          const articlesResponse = await fetch(
-            `${
-              import.meta.env.VITE_BACKEND_API_URL || "http://localhost:3001"
-            }/api/articles?category=${prestasiCategory.slug}&limit=4`
-          );
-          const articlesData = await articlesResponse.json();
-          setAchievementArticles(articlesData.articles || []);
+          const data = await articleApi.getPublicArticles({
+            category: prestasiCategory.slug,
+            limit: 4,
+          });
+          setAchievementArticles(data.articles || []);
         }
         setAchievementLoading(false);
       } catch (error) {
@@ -84,7 +76,7 @@ const HomePage: React.FC = () => {
     };
 
     fetchPrestasiArticles();
-  }, [fetchArticles, fetchAlbums]);
+  }, [categories]);
 
   if (loading) {
     return (

@@ -7,7 +7,7 @@
 import { useState, useEffect } from "react";
 import { useAuth } from "../contexts/AuthContext";
 
-const API_URL = import.meta.env.VITE_BACKEND_API_URL;
+const API_URL = `https://backend.man3kulonprogo.sch.id`;
 
 /**
  * Interface representing an angkatan (batch/cohort) with its count.

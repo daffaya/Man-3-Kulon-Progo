@@ -70,7 +70,9 @@ const createUserController = ({ userModel }) => {
    * @returns {string} The full public URL to the avatar.
    */
   const generateAvatarUrl = (req, filename) => {
-    return `${req.protocol}://${req.get("host")}/uploads/avatars/${filename}`;
+    const backendUrl =
+      process.env.BACKEND_URL || `https://backend.man3kulonprogo.sch.id`;
+    return `${backendUrl}/uploads/avatars/${filename}`;
   };
 
   // --- Controller Methods ---

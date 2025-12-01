@@ -1,4 +1,4 @@
-import archiveModelFactory from "../models/ArchiveModel.js";
+import archiveModelFactory from "../models/archiveModel.js";
 import path from "path";
 import fsPromises from "fs/promises";
 import fs from "fs";

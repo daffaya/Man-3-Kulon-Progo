@@ -5,6 +5,7 @@
  */
 
 import { Archive, Category } from "../types/archiveTypes";
+import { apiFetch } from "../lib/api";
 
 /**
  * Fetches all available categories from the backend API.
@@ -12,11 +13,8 @@ import { Archive, Category } from "../types/archiveTypes";
  * @throws {Error} Throws an error if the network request fails or the server returns an error message.
  */
 export const fetchCategories = async (): Promise<Category[]> => {
-  const response = await fetch(
-    `${import.meta.env.VITE_BACKEND_API_URL}/api/archives/categories`
-  );
-  const data = await response.json();
-  if (response.ok && data.success) {
+  const data = await apiFetch("/archives/categories");
+  if (data.success) {
     return data.data;
   }
   throw new Error(data.error || "Gagal memuat kategori");
@@ -36,11 +34,9 @@ export const fetchArchives = async (
   const query = new URLSearchParams();
   if (searchQuery) query.append("search", searchQuery);
   if (categoryId) query.append("categoryId", categoryId);
-  const response = await fetch(
-    `${import.meta.env.VITE_BACKEND_API_URL}/api/archives?${query.toString()}`
-  );
-  const data = await response.json();
-  if (response.ok && data.success) {
+
+  const data = await apiFetch(`/archives?${query.toString()}`);
+  if (data.success) {
     return data.data;
   }
   throw new Error(data.error || "Gagal memuat arsip");
@@ -54,19 +50,19 @@ export const fetchArchives = async (
  */
 export const downloadArchive = async (id: number, fileName: string) => {
   const response = await fetch(
-    `${import.meta.env.VITE_BACKEND_API_URL}/api/archives/${id}/download`
+    `https://backend.man3kulonprogo.sch.id/api/archives/${id}/download`,
+    {
+      credentials: "include",
+    }
   );
-  if (!response.ok) {
-    throw new Error("Gagal mendownload arsip");
-  }
+  if (!response.ok) throw new Error("Gagal mendownload arsip");
   const blob = await response.blob();
   const url = window.URL.createObjectURL(blob);
-  const link = document.createElement("a");
-  link.href = url;
-  link.setAttribute("download", fileName);
-  document.body.appendChild(link);
-  link.click();
-  link.remove();
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = fileName;
+  a.click();
+  a.remove();
   window.URL.revokeObjectURL(url);
 };
 
@@ -77,18 +73,10 @@ export const downloadArchive = async (id: number, fileName: string) => {
  * @throws {Error} Throws an error if the deletion request fails.
  */
 export const deleteArchive = async (id: number, token: string | null) => {
-  const response = await fetch(
-    `${import.meta.env.VITE_BACKEND_API_URL}/api/archives/${id}`,
-    {
-      method: "DELETE",
-      headers: { Authorization: `Bearer ${token}` },
-    }
-  );
-  const data = await response.json();
-  if (response.ok && data.success) {
-    return;
-  }
-  throw new Error(data.error || "Gagal menghapus arsip");
+  await apiFetch(`/archives/${id}`, {
+    method: "DELETE",
+    headers: token ? { Authorization: `Bearer ${token}` } : {},
+  });
 };
 
 /**
@@ -103,18 +91,18 @@ export const updateArchive = async (
   id: number,
   formData: FormData,
   token: string | null
-): Promise<Partial<Archive>> => {
+) => {
   const response = await fetch(
-    `${import.meta.env.VITE_BACKEND_API_URL}/api/archives/${id}`,
+    `https://backend.man3kulonprogo.sch.id/api/archives/${id}`,
     {
       method: "PUT",
-      headers: { Authorization: `Bearer ${token}` },
+      headers: token ? { Authorization: `Bearer ${token}` } : {},
       body: formData,
+      credentials: "include",
     }
   );
+
   const data = await response.json();
-  if (response.ok && data.success) {
-    return data.data;
-  }
-  throw new Error(data.error || "Gagal mengedit arsip");
+  if (!response.ok) throw new Error(data.error || "Gagal mengedit arsip");
+  return data.data;
 };

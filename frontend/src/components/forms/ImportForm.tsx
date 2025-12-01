@@ -168,9 +168,7 @@ export const ImportForm: React.FC<ImportFormProps> = ({ onSuccess }) => {
     }
 
     try {
-      const templateURL = `${
-        import.meta.env.VITE_BACKEND_API_URL
-      }/api/students/template`;
+      const templateURL = `https://backend.man3kulonprogo.sch.id/api/students/template`;
 
       const link = document.createElement("a");
       link.href = templateURL;

@@ -5,67 +5,66 @@
  */
 
 import { User, UserProfileData, UserFormData } from "../types/userTypes";
+import { apiFetch } from "../lib/api";
+
+/**
+ * Retrieves the authentication token from localStorage.
+ * @returns {string | null} The JWT token if present, otherwise null.
+ */
+const getAuthToken = (): string | null => {
+  return localStorage.getItem("token");
+};
+
+/**
+ * Handles unauthorized responses by clearing token and user data.
+ * @throws {Error} Always throws an unauthorized error.
+ */
+const handleUnauthorized = () => {
+  localStorage.removeItem("token");
+  localStorage.removeItem("user");
+  window.dispatchEvent(new CustomEvent("unauthorized"));
+  throw new Error("Unauthorized: Please login again");
+};
 
 /**
  * The base URL for the backend API.
- * Defaults to localhost:3001 if not specified in environment variables.
  */
-const API_URL = import.meta.env.VITE_BACKEND_API_URL || "http://localhost:3001";
+const API_URL = "https://backend.man3kulonprogo.sch.id";
 
 /**
  * API client object for user-related operations.
  */
 const userApi = {
   /**
-   * Creates authorization headers for API requests.
-   * @returns {Record<string, string>} Headers object with authorization token if available.
-   */
-  getAuthHeaders: (): Record<string, string> => {
-    const token = localStorage.getItem("token");
-    if (token) {
-      return { Authorization: `Bearer ${token}` };
-    }
-    return {};
-  },
-
-  /**
-   * Handles API responses, especially error cases.
-   * @param {Response} response - The fetch API response object.
-   * @returns {Promise<any>} Promise that resolves to the JSON response data.
-   * @throws {Error} If the response is not ok, with appropriate error handling for 401 status.
-   */
-  handleResponse: async (response: Response): Promise<any> => {
-    if (!response.ok) {
-      if (response.status === 401) {
-        localStorage.removeItem("token");
-        localStorage.removeItem("user");
-        window.dispatchEvent(new CustomEvent("unauthorized"));
-        throw new Error("Unauthorized: Please login again");
-      }
-
-      const errorData = await response.json().catch(() => ({}));
-      const errorMessage = errorData.message || "Something went wrong";
-      throw new Error(errorMessage);
-    }
-    return response.json();
-  },
-
-  /**
    * Retrieves the current user's profile information.
    * @returns {Promise<User>} Promise that resolves to the user profile data.
    */
   getUserProfile: async (): Promise<User> => {
-    const response = await fetch(`${API_URL}/api/users/profile`, {
-      headers: userApi.getAuthHeaders(),
-    });
-    const data = await userApi.handleResponse(response);
+    try {
+      const token = getAuthToken();
+      const data = await apiFetch("/users/profile", {
+        headers: token ? { Authorization: `Bearer ${token}` } : {},
+      });
 
-    // Ensure avatar URL is complete
-    if (data.data && data.data.avatar && !data.data.avatar.startsWith("http")) {
-      data.data.avatar = `${API_URL}${data.data.avatar}`;
+      // Ensure avatar URL is complete
+      if (
+        data.data &&
+        data.data.avatar &&
+        !data.data.avatar.startsWith("http")
+      ) {
+        data.data.avatar = `${API_URL}${data.data.avatar}`;
+      }
+
+      return data.data;
+    } catch (error: any) {
+      if (
+        error.message.includes("401") ||
+        error.message.includes("Unauthorized")
+      ) {
+        handleUnauthorized();
+      }
+      throw error;
     }
-
-    return data.data;
   },
 
   /**
@@ -74,42 +73,33 @@ const userApi = {
    * @returns {Promise<User>} Promise that resolves to the updated user profile data.
    */
   updateUserProfile: async (profileData: UserProfileData): Promise<User> => {
-    const headers = {
-      "Content-Type": "application/json",
-      ...userApi.getAuthHeaders(),
-    };
+    try {
+      const token = getAuthToken();
+      const data = await apiFetch("/users/profile", {
+        method: "PUT",
+        headers: token ? { Authorization: `Bearer ${token}` } : {},
+        body: JSON.stringify(profileData),
+      });
 
-    const response = await fetch(`${API_URL}/api/users/profile`, {
-      method: "PUT",
-      headers,
-      body: JSON.stringify(profileData),
-    });
-
-    if (!response.ok) {
-      if (response.status === 401) {
-        localStorage.removeItem("token");
-        localStorage.removeItem("user");
-        window.dispatchEvent(new CustomEvent("unauthorized"));
-        throw new Error("Unauthorized: Please login again");
+      if (!data.data) {
+        throw new Error("Invalid response structure");
       }
 
-      const errorData = await response.json().catch(() => ({}));
-      const errorMessage = errorData.message || "Something went wrong";
-      throw new Error(errorMessage);
+      // Ensure avatar URL is complete
+      if (data.data.avatar && !data.data.avatar.startsWith("http")) {
+        data.data.avatar = `${API_URL}${data.data.avatar}`;
+      }
+
+      return data.data;
+    } catch (error: any) {
+      if (
+        error.message.includes("401") ||
+        error.message.includes("Unauthorized")
+      ) {
+        handleUnauthorized();
+      }
+      throw error;
     }
-
-    const data = await response.json();
-
-    if (!data.data) {
-      throw new Error("Invalid response structure");
-    }
-
-    // Ensure avatar URL is complete
-    if (data.data.avatar && !data.data.avatar.startsWith("http")) {
-      data.data.avatar = `${API_URL}${data.data.avatar}`;
-    }
-
-    return data.data;
   },
 
   /**
@@ -121,12 +111,26 @@ const userApi = {
     const formData = new FormData();
     formData.append("avatar", file);
 
-    const response = await fetch(`${API_URL}/api/users/profile/avatar`, {
-      method: "POST",
-      headers: userApi.getAuthHeaders(),
-      body: formData,
-    });
-    return userApi.handleResponse(response);
+    // For FormData, we need to use fetch directly to avoid Content-Type header
+    const token = getAuthToken();
+    const response = await fetch(
+      `https://backend.man3kulonprogo.sch.id/api/users/profile/avatar`,
+      {
+        method: "POST",
+        headers: token ? { Authorization: `Bearer ${token}` } : {},
+        body: formData,
+      }
+    );
+
+    if (!response.ok) {
+      if (response.status === 401) {
+        handleUnauthorized();
+      }
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(errorData.message || "Something went wrong");
+    }
+
+    return response.json();
   },
 
   /**
@@ -135,15 +139,22 @@ const userApi = {
    * @returns {Promise<{ avatar: string }>} Promise that resolves to the updated avatar URL.
    */
   updateAvatarByUrl: async (avatarUrl: string): Promise<{ avatar: string }> => {
-    const response = await fetch(`${API_URL}/api/users/profile/avatar`, {
-      method: "PUT",
-      headers: {
-        "Content-Type": "application/json",
-        ...userApi.getAuthHeaders(),
-      },
-      body: JSON.stringify({ avatarUrl }),
-    });
-    return userApi.handleResponse(response);
+    try {
+      const token = getAuthToken();
+      return await apiFetch("/users/profile/avatar", {
+        method: "PUT",
+        headers: token ? { Authorization: `Bearer ${token}` } : {},
+        body: JSON.stringify({ avatarUrl }),
+      });
+    } catch (error: any) {
+      if (
+        error.message.includes("401") ||
+        error.message.includes("Unauthorized")
+      ) {
+        handleUnauthorized();
+      }
+      throw error;
+    }
   },
 
   /**
@@ -151,10 +162,20 @@ const userApi = {
    * @returns {Promise<{ success: boolean; data: User[] }>} Promise that resolves to the list of users.
    */
   getAllUsers: async (): Promise<{ success: boolean; data: User[] }> => {
-    const response = await fetch(`${API_URL}/api/users/users`, {
-      headers: userApi.getAuthHeaders(),
-    });
-    return userApi.handleResponse(response);
+    try {
+      const token = getAuthToken();
+      return await apiFetch("/users/users", {
+        headers: token ? { Authorization: `Bearer ${token}` } : {},
+      });
+    } catch (error: any) {
+      if (
+        error.message.includes("401") ||
+        error.message.includes("Unauthorized")
+      ) {
+        handleUnauthorized();
+      }
+      throw error;
+    }
   },
 
   /**
@@ -165,15 +186,22 @@ const userApi = {
   createUser: async (
     userData: UserFormData
   ): Promise<{ success: boolean; data: User; message: string }> => {
-    const response = await fetch(`${API_URL}/api/users/users`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        ...userApi.getAuthHeaders(),
-      },
-      body: JSON.stringify(userData),
-    });
-    return userApi.handleResponse(response);
+    try {
+      const token = getAuthToken();
+      return await apiFetch("/users/users", {
+        method: "POST",
+        headers: token ? { Authorization: `Bearer ${token}` } : {},
+        body: JSON.stringify(userData),
+      });
+    } catch (error: any) {
+      if (
+        error.message.includes("401") ||
+        error.message.includes("Unauthorized")
+      ) {
+        handleUnauthorized();
+      }
+      throw error;
+    }
   },
 
   /**
@@ -186,15 +214,22 @@ const userApi = {
     id: number,
     userData: UserFormData
   ): Promise<{ success: boolean; data: User; message: string }> => {
-    const response = await fetch(`${API_URL}/api/users/users/${id}`, {
-      method: "PUT",
-      headers: {
-        "Content-Type": "application/json",
-        ...userApi.getAuthHeaders(),
-      },
-      body: JSON.stringify(userData),
-    });
-    return userApi.handleResponse(response);
+    try {
+      const token = getAuthToken();
+      return await apiFetch(`/users/users/${id}`, {
+        method: "PUT",
+        headers: token ? { Authorization: `Bearer ${token}` } : {},
+        body: JSON.stringify(userData),
+      });
+    } catch (error: any) {
+      if (
+        error.message.includes("401") ||
+        error.message.includes("Unauthorized")
+      ) {
+        handleUnauthorized();
+      }
+      throw error;
+    }
   },
 
   /**
@@ -206,15 +241,22 @@ const userApi = {
     currentPassword: string;
     newPassword: string;
   }): Promise<{ success: boolean; message: string }> => {
-    const response = await fetch(`${API_URL}/api/users/change-password`, {
-      method: "PUT",
-      headers: {
-        "Content-Type": "application/json",
-        ...userApi.getAuthHeaders(),
-      },
-      body: JSON.stringify(passwords),
-    });
-    return userApi.handleResponse(response);
+    try {
+      const token = getAuthToken();
+      return await apiFetch("/users/change-password", {
+        method: "PUT",
+        headers: token ? { Authorization: `Bearer ${token}` } : {},
+        body: JSON.stringify(passwords),
+      });
+    } catch (error: any) {
+      if (
+        error.message.includes("401") ||
+        error.message.includes("Unauthorized")
+      ) {
+        handleUnauthorized();
+      }
+      throw error;
+    }
   },
 
   /**
@@ -225,11 +267,21 @@ const userApi = {
   deleteUser: async (
     id: number
   ): Promise<{ success: boolean; message: string }> => {
-    const response = await fetch(`${API_URL}/api/users/users/${id}`, {
-      method: "DELETE",
-      headers: userApi.getAuthHeaders(),
-    });
-    return userApi.handleResponse(response);
+    try {
+      const token = getAuthToken();
+      return await apiFetch(`/users/users/${id}`, {
+        method: "DELETE",
+        headers: token ? { Authorization: `Bearer ${token}` } : {},
+      });
+    } catch (error: any) {
+      if (
+        error.message.includes("401") ||
+        error.message.includes("Unauthorized")
+      ) {
+        handleUnauthorized();
+      }
+      throw error;
+    }
   },
 };
 

@@ -1,19 +1,20 @@
 /**
  * @fileoverview Admin header component with navigation and user profile functionality.
  * This component provides a responsive header for the admin interface with a logo,
- * notification indicator, theme toggle, and user profile dropdown. It adapts its
+ * theme toggle, and user profile dropdown. It adapts its
  * appearance based on scroll position and includes a mobile menu for smaller screens.
  */
 
 import React, { useState, useEffect, useRef } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
-import { Bell, User, LogOut, Menu, ChevronDown, X } from "lucide-react";
+import { User, LogOut, Menu, ChevronDown, X } from "lucide-react";
 import ThemeToggle from "../ui/ThemeToggle";
 import { useAuth } from "../../contexts/AuthContext";
+import ImageWithFallback from "../ui/ImageWithFallback";
 
 /**
  * Admin header component with navigation and user profile functionality.
- * Provides a responsive header with logo, notifications, theme toggle, and user profile dropdown.
+ * Provides a responsive header with logo, theme toggle, and user profile dropdown.
  * Adapts appearance based on scroll position and includes a mobile menu.
  *
  * @returns {JSX.Element} The rendered admin header
@@ -117,14 +118,6 @@ const AdminHeader: React.FC = () => {
         </div>
 
         <div className="flex items-center space-x-4 ml-auto">
-          <button
-            className="relative p-1 text-secondary hover:text-foreground transition-colors"
-            aria-label="Notifications"
-          >
-            <Bell size={20} />
-            <span className="absolute top-0 right-0 block h-2 w-2 rounded-full bg-error" />
-          </button>
-
           <ThemeToggle />
 
           <div className="relative" ref={dropdownRef}>
@@ -134,10 +127,11 @@ const AdminHeader: React.FC = () => {
             >
               <div className="h-8 w-8 rounded-full bg-[rgb(var(--color-secondary-button))] flex items-center justify-center overflow-hidden">
                 {userAvatar ? (
-                  <img
+                  <ImageWithFallback
                     src={userAvatar}
                     alt={displayName}
                     className="w-full h-full object-cover"
+                    fallback="/logo.png"
                   />
                 ) : (
                   <User size={18} className="text-secondary" />
@@ -157,13 +151,14 @@ const AdminHeader: React.FC = () => {
                 <div className="px-4 py-2 border-b border-[rgb(var(--color-secondary-button),0.3)] flex items-center space-x-3">
                   <div className="h-10 w-10 rounded-full bg-[rgb(var(--color-secondary-button))] flex items-center justify-center overflow-hidden">
                     {userAvatar ? (
-                      <img
+                      <ImageWithFallback
                         src={userAvatar}
                         alt={displayName}
                         className="w-full h-full object-cover"
+                        fallback="/logo.png"
                       />
                     ) : (
-                      <User size={20} className="text-secondary" />
+                      <User size={18} className="text-secondary" />
                     )}
                   </div>
                   <div>
@@ -203,13 +198,14 @@ const AdminHeader: React.FC = () => {
             <div className="flex items-center space-x-3 p-2 border-b border-[rgb(var(--color-secondary-button),0.3)]">
               <div className="h-12 w-12 rounded-full bg-[rgb(var(--color-secondary-button))] flex items-center justify-center overflow-hidden">
                 {userAvatar ? (
-                  <img
+                  <ImageWithFallback
                     src={userAvatar}
                     alt={displayName}
                     className="w-full h-full object-cover"
+                    fallback="/logo.png"
                   />
                 ) : (
-                  <User size={24} className="text-secondary" />
+                  <User size={18} className="text-secondary" />
                 )}
               </div>
               <div>

@@ -37,8 +37,7 @@ const LoginForm: React.FC<LoginFormProps> = ({
     "username" | "password" | null
   >(null);
 
-  const BACKEND_API_URL =
-    import.meta.env.VITE_BACKEND_API_URL || "http://localhost:3001";
+  const BACKEND_API_URL = "https://backend.man3kulonprogo.sch.id";
 
   /**
    * Toggles the visibility of the password field

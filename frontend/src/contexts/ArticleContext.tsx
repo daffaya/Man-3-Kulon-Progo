@@ -23,6 +23,7 @@ import {
   PaginationData,
 } from "../types/articleTypes";
 import { useAuth } from "./AuthContext";
+import { apiFetch } from "../lib/api";
 
 /**
  * Represents the state structure for articles, categories, tags, loading states, errors, and pagination.
@@ -352,18 +353,8 @@ export const ArticleProvider: React.FC<{ children: React.ReactNode }> = ({
     async (slug: string): Promise<Article | null> => {
       dispatch({ type: "FETCH_ARTICLE_BY_SLUG_REQUEST" });
       try {
-        const response = await fetch(
-          `${
-            import.meta.env.VITE_BACKEND_API_URL || "http://localhost:3001"
-          }/api/articles/${slug}`
-        );
+        const article = await articleApi.getArticleBySlug(slug);
 
-        if (!response.ok) {
-          const error = await response.text();
-          throw new Error(error || "Article not found");
-        }
-
-        const article = await response.json();
         const normalizedArticle = {
           ...article,
           tags: normalizeTags(article.tags),
@@ -389,24 +380,13 @@ export const ArticleProvider: React.FC<{ children: React.ReactNode }> = ({
     },
     [state.articles.length, fetchArticles]
   );
-
   /**
    * Fetches all public categories from the API.
    */
   const fetchCategories = useCallback(async () => {
     dispatch({ type: "FETCH_CATEGORIES_REQUEST" });
     try {
-      const response = await fetch(
-        `${
-          import.meta.env.VITE_BACKEND_API_URL || "http://localhost:3001"
-        }/api/categories`
-      );
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.message || "Failed to fetch categories");
-      }
-
+      const data = await apiFetch("/categories");
       dispatch({ type: "FETCH_CATEGORIES_SUCCESS", payload: data });
     } catch (error) {
       dispatch({
@@ -423,17 +403,7 @@ export const ArticleProvider: React.FC<{ children: React.ReactNode }> = ({
   const fetchTags = useCallback(async () => {
     dispatch({ type: "FETCH_TAGS_REQUEST" });
     try {
-      const response = await fetch(
-        `${
-          import.meta.env.VITE_BACKEND_API_URL || "http://localhost:3001"
-        }/api/tags`
-      );
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.message || "Failed to fetch tags");
-      }
-
+      const data = await apiFetch("/tags");
       dispatch({ type: "FETCH_TAGS_SUCCESS", payload: data });
     } catch (error) {
       dispatch({

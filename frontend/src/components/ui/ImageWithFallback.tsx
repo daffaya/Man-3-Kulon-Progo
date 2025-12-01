@@ -55,8 +55,7 @@ const ImageWithFallback: React.FC<ImageWithFallbackProps> = ({
     if (imagePath.startsWith("http") || imagePath.startsWith("blob:")) {
       return imagePath;
     }
-    const baseUrl =
-      import.meta.env.VITE_BACKEND_API_URL || "http://localhost:3001";
+    const baseUrl = "https://backend.man3kulonprogo.sch.id";
     const normalizedPath = imagePath.startsWith("/")
       ? imagePath
       : `/${imagePath}`;

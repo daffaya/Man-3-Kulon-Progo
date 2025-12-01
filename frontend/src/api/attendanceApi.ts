@@ -5,7 +5,7 @@
  * All functions require an authentication token.
  */
 
-const API_URL = import.meta.env.VITE_BACKEND_API_URL;
+import { apiFetch } from "../lib/api";
 
 /**
  * Fetches a list of students belonging to a specific class.
@@ -15,20 +15,11 @@ const API_URL = import.meta.env.VITE_BACKEND_API_URL;
  * @throws {Error} If the fetch request fails.
  */
 export const fetchStudentsByClass = async (classId: number, token: string) => {
-  const response = await fetch(
-    `${API_URL}/api/attendance/students?classId=${classId}`,
-    {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    }
-  );
-
-  if (!response.ok) {
-    throw new Error("Failed to fetch students");
-  }
-
-  return response.json();
+  return apiFetch(`/attendance/students?classId=${classId}`, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
 };
 
 /**
@@ -44,20 +35,11 @@ export const fetchAttendanceByDateAndClass = async (
   date: string,
   token: string
 ) => {
-  const response = await fetch(
-    `${API_URL}/api/attendance?classId=${classId}&date=${date}`,
-    {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    }
-  );
-
-  if (!response.ok) {
-    throw new Error("Failed to fetch attendance");
-  }
-
-  return response.json();
+  return apiFetch(`/attendance?classId=${classId}&date=${date}`, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
 };
 
 /**
@@ -79,21 +61,13 @@ export const saveAttendance = async (
   },
   token: string
 ) => {
-  const response = await fetch(`${API_URL}/api/attendance`, {
+  return apiFetch(`/attendance`, {
     method: "POST",
     headers: {
-      "Content-Type": "application/json",
       Authorization: `Bearer ${token}`,
     },
     body: JSON.stringify(data),
   });
-
-  if (!response.ok) {
-    const errorData = await response.json();
-    throw new Error(errorData.error || "Failed to save attendance");
-  }
-
-  return response.json();
 };
 
 /**
@@ -112,23 +86,17 @@ export const fetchAttendanceRecap = async (
   },
   token: string
 ) => {
-  let url = `${API_URL}/api/attendance/recap?classId=${params.classId}&period=${params.period}&startDate=${params.startDate}`;
+  let url = `/attendance/recap?classId=${params.classId}&period=${params.period}&startDate=${params.startDate}`;
 
   if (params.endDate) {
     url += `&endDate=${params.endDate}`;
   }
 
-  const response = await fetch(url, {
+  return apiFetch(url, {
     headers: {
       Authorization: `Bearer ${token}`,
     },
   });
-
-  if (!response.ok) {
-    throw new Error("Failed to fetch attendance recap");
-  }
-
-  return response.json();
 };
 
 /**
@@ -138,17 +106,11 @@ export const fetchAttendanceRecap = async (
  * @throws {Error} If the fetch request fails.
  */
 export const fetchClasses = async (token: string) => {
-  const response = await fetch(`${API_URL}/api/attendance/classes`, {
+  return apiFetch(`/attendance/classes`, {
     headers: {
       Authorization: `Bearer ${token}`,
     },
   });
-
-  if (!response.ok) {
-    throw new Error("Failed to fetch classes");
-  }
-
-  return response.json();
 };
 
 /**
@@ -159,20 +121,11 @@ export const fetchClasses = async (token: string) => {
  * @throws {Error} If the fetch request fails.
  */
 export const fetchTodayStats = async (date: string, token: string) => {
-  const response = await fetch(
-    `${API_URL}/api/attendance/today-stats?date=${date}`,
-    {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    }
-  );
-
-  if (!response.ok) {
-    throw new Error("Failed to fetch today's stats");
-  }
-
-  return response.json();
+  return apiFetch(`/attendance/today-stats?date=${date}`, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
 };
 
 /**
@@ -182,17 +135,11 @@ export const fetchTodayStats = async (date: string, token: string) => {
  * @throws {Error} If the fetch request fails.
  */
 export const fetchHolidays = async (token: string) => {
-  const response = await fetch(`${API_URL}/api/attendance/holidays`, {
+  return apiFetch(`/attendance/holidays`, {
     headers: {
       Authorization: `Bearer ${token}`,
     },
   });
-
-  if (!response.ok) {
-    throw new Error("Failed to fetch holidays");
-  }
-
-  return response.json();
 };
 
 /**
@@ -210,21 +157,13 @@ export const addHoliday = async (
   },
   token: string
 ) => {
-  const response = await fetch(`${API_URL}/api/attendance/holidays`, {
+  return apiFetch(`/attendance/holidays`, {
     method: "POST",
     headers: {
-      "Content-Type": "application/json",
       Authorization: `Bearer ${token}`,
     },
     body: JSON.stringify(data),
   });
-
-  if (!response.ok) {
-    const errorData = await response.json();
-    throw new Error(errorData.error || "Failed to add holiday");
-  }
-
-  return response.json();
 };
 
 /**
@@ -235,19 +174,12 @@ export const addHoliday = async (
  * @throws {Error} If the delete operation fails.
  */
 export const deleteHoliday = async (id: number, token: string) => {
-  const response = await fetch(`${API_URL}/api/attendance/holidays/${id}`, {
+  return apiFetch(`/attendance/holidays/${id}`, {
     method: "DELETE",
     headers: {
       Authorization: `Bearer ${token}`,
     },
   });
-
-  if (!response.ok) {
-    const errorData = await response.json();
-    throw new Error(errorData.error || "Failed to delete holiday");
-  }
-
-  return response.json();
 };
 
 /**
@@ -267,12 +199,12 @@ export const exportAttendanceData = async (
   },
   token: string
 ) => {
-  let url = `${API_URL}/api/attendance/export?classId=${params.classId}&period=${params.period}&startDate=${params.startDate}&format=${params.format}`;
-
+  let url = `https://backend.man3kulonprogo.sch.id/api/attendance/export?classId=${params.classId}&period=${params.period}&startDate=${params.startDate}&format=${params.format}`;
   if (params.endDate) {
     url += `&endDate=${params.endDate}`;
   }
 
+  // For blob responses, we need to use fetch directly
   const response = await fetch(url, {
     headers: {
       Authorization: `Bearer ${token}`,

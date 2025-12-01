@@ -38,7 +38,7 @@ interface ClassData {
   semester: string;
 }
 
-const API_URL = import.meta.env.VITE_BACKEND_API_URL;
+const API_URL = `https://backend.man3kulonprogo.sch.id`;
 const ALLOWED_ROLES = ["guru_bk", "super_admin"] as const;
 
 /**

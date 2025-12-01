@@ -5,7 +5,7 @@
  * with the backend API, including setting up query parameters and authentication headers.
  */
 
-const API_URL = import.meta.env.VITE_BACKEND_API_URL || "http://localhost:3000";
+const API_URL = `https://backend.man3kulonprogo.sch.id`;
 
 export const alumniService = {
   /**

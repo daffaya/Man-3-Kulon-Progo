@@ -13,7 +13,7 @@ import {
   Class,
 } from "../types/studentTypes";
 
-const API_URL = import.meta.env.VITE_BACKEND_API_URL || "http://localhost:3000";
+const API_URL = `https://backend.man3kulonprogo.sch.id`;
 
 /**
  * Service object containing methods for student-related API operations.

@@ -132,12 +132,7 @@ const processImageUrls = (htmlContent: string): string => {
   images.forEach((img) => {
     const src = img.getAttribute("src");
     if (src && src.startsWith("/")) {
-      img.setAttribute(
-        "src",
-        `${
-          import.meta.env.VITE_BACKEND_API_URL || "http://localhost:3001"
-        }${src}`
-      );
+      img.setAttribute("src", `https://backend.man3kulonprogo.sch.id${src}`);
     }
   });
 

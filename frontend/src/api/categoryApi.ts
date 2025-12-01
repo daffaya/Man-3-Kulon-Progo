@@ -5,35 +5,14 @@
  */
 
 import { Category, CategoryFormData } from "../types/articleTypes";
-
-/** The base URL for the API, configurable via environment variables. */
-const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3001/api";
+import { apiFetch } from "../lib/api";
 
 /**
- * Retrieves the authentication headers required for API requests.
- * Includes the Content-Type and a Bearer token if available in localStorage.
- * @returns An object containing the necessary request headers.
+ * Retrieves the authentication token from localStorage.
+ * @returns {string | null} The JWT token if present, otherwise null.
  */
-const getAuthHeaders = () => {
-  const token = localStorage.getItem("token");
-  return {
-    "Content-Type": "application/json",
-    ...(token ? { Authorization: `Bearer ${token}` } : {}),
-  };
-};
-
-/**
- * Handles the API response, checking for errors and parsing the JSON body.
- * Throws an error with a message from the response body if the request was not successful.
- * @param response - The fetch API Response object.
- * @returns A promise that resolves to the parsed JSON data.
- */
-const handleResponse = async (response: Response) => {
-  if (!response.ok) {
-    const errorData = await response.json();
-    throw new Error(errorData.message || "Something went wrong");
-  }
-  return response.json();
+const getAuthToken = (): string | null => {
+  return localStorage.getItem("token");
 };
 
 /**
@@ -45,10 +24,11 @@ const categoryApi = {
    * @returns A promise that resolves to an array of Category objects.
    */
   getAdminCategories: async (): Promise<Category[]> => {
-    const response = await fetch(`${API_URL}/atmin/categories`, {
-      headers: getAuthHeaders(),
+    const token = getAuthToken();
+    const data = await apiFetch("/atmin/categories", {
+      headers: token ? { Authorization: `Bearer ${token}` } : {},
     });
-    return handleResponse(response);
+    return data.categories || data;
   },
 
   /**
@@ -57,12 +37,12 @@ const categoryApi = {
    * @returns A promise that resolves to the newly created Category object.
    */
   createCategory: async (categoryData: CategoryFormData): Promise<Category> => {
-    const response = await fetch(`${API_URL}/atmin/categories`, {
+    const token = getAuthToken();
+    const data = await apiFetch("/atmin/categories", {
       method: "POST",
-      headers: getAuthHeaders(),
+      headers: token ? { Authorization: `Bearer ${token}` } : {},
       body: JSON.stringify(categoryData),
     });
-    const data = await handleResponse(response);
     return data.category;
   },
 
@@ -76,12 +56,12 @@ const categoryApi = {
     id: number,
     categoryData: Partial<CategoryFormData>
   ): Promise<Category> => {
-    const response = await fetch(`${API_URL}/atmin/categories/${id}`, {
+    const token = getAuthToken();
+    const data = await apiFetch(`/atmin/categories/${id}`, {
       method: "PUT",
-      headers: getAuthHeaders(),
+      headers: token ? { Authorization: `Bearer ${token}` } : {},
       body: JSON.stringify(categoryData),
     });
-    const data = await handleResponse(response);
     return data.category;
   },
 
@@ -91,11 +71,11 @@ const categoryApi = {
    * @returns A promise that resolves when the category is successfully deleted.
    */
   deleteCategory: async (id: number): Promise<void> => {
-    const response = await fetch(`${API_URL}/atmin/categories/${id}`, {
+    const token = getAuthToken();
+    await apiFetch(`/atmin/categories/${id}`, {
       method: "DELETE",
-      headers: getAuthHeaders(),
+      headers: token ? { Authorization: `Bearer ${token}` } : {},
     });
-    await handleResponse(response);
   },
 };
 

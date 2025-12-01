@@ -8,6 +8,7 @@
 import React, { useState, useEffect } from "react";
 import { Navigate, useLocation } from "react-router-dom";
 import { useAuth } from "./contexts/AuthContext";
+import { apiFetch } from "./lib/api";
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
@@ -36,23 +37,13 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
 
       if (isLoggedIn && token) {
         try {
-          const response = await fetch(
-            `${
-              import.meta.env.VITE_BACKEND_API_URL || "http://localhost:3001"
-            }/api/users/profile`,
-            {
-              headers: {
-                Authorization: `Bearer ${token}`,
-              },
-            }
-          );
+          await apiFetch("/users/profile", {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          });
 
-          if (response.ok) {
-            setIsAuthenticated(true);
-          } else {
-            logout();
-            setIsAuthenticated(false);
-          }
+          setIsAuthenticated(true);
         } catch (error) {
           console.error("Token validation error:", error);
           logout();

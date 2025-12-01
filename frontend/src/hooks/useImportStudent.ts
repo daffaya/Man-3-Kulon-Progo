@@ -97,7 +97,7 @@ export const useImportStudent = (): UseImportStudentReturn => {
       formData.append("file", file);
 
       const response = await fetch(
-        `${import.meta.env.VITE_BACKEND_API_URL}/api/students/import`,
+        `https://backend.man3kulonprogo.sch.id/api/students/import`,
         {
           method: "POST",
           headers: {

@@ -5,7 +5,7 @@
 
 import { ImportResult } from "../types/importTypes";
 
-const API_URL = import.meta.env.VITE_BACKEND_API_URL;
+const API_URL = `https://backend.man3kulonprogo.sch.id`;
 
 /**
  * Sends a file to the backend to import student data.

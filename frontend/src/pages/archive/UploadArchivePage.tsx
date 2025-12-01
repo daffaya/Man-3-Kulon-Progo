@@ -14,7 +14,7 @@ import { Category } from "../../types/archiveTypes";
 import { fetchCategories } from "../../api/archiveApi";
 import { useToast } from "../../contexts/ToastContext";
 
-export const API_URL = import.meta.env.VITE_BACKEND_API_URL;
+export const API_URL = `https://backend.man3kulonprogo.sch.id`;
 export const ALLOWED_ROLES = ["arsiparis", "super_admin"] as const;
 
 /**

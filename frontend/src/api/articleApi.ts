@@ -12,40 +12,14 @@ import {
   ArticleFilters,
   PaginationData,
 } from "../types/articleTypes";
+import { apiFetch } from "../lib/api";
 
 /**
- * The base URL for the backend API, retrieved from environment variables.
- * Defaults to "http://localhost:3001" for local development.
- * @type {string}
+ * Retrieves the authorization token from localStorage.
+ * @returns {string | null} The JWT token if present, otherwise null.
  */
-const API_URL = import.meta.env.VITE_BACKEND_API_URL || "http://localhost:3001";
-
-/**
- * Retrieves the authorization headers for API requests.
- * Checks localStorage for a JWT token and includes it in the headers if present.
- * @returns {Record<string, string>} The authorization headers.
- */
-const getAuthHeaders = (): Record<string, string> => {
-  const token = localStorage.getItem("token");
-  return {
-    ...(token ? { Authorization: `Bearer ${token}` } : {}),
-  };
-};
-
-/**
- * Handles the response from a fetch API call.
- * Checks if the response is OK and parses the JSON body.
- * Throws an error with a message from the response body if the response is not OK.
- * @param {Response} response - The response object from a fetch call.
- * @returns {Promise<any>} A promise that resolves with the parsed JSON data.
- * @throws {Error} If the response status is not OK.
- */
-const handleResponse = async (response: Response): Promise<any> => {
-  if (!response.ok) {
-    const errorData = await response.json();
-    throw new Error(errorData.message || "Something went wrong");
-  }
-  return response.json();
+const getAuthToken = (): string | null => {
+  return localStorage.getItem("token");
 };
 
 /**
@@ -75,13 +49,22 @@ const articleApi = {
 
     if (file) data.append("coverImageFile", file);
 
-    const response = await fetch(`${API_URL}/api/atmin/articles`, {
-      method: "POST",
-      headers: getAuthHeaders(),
-      body: data,
-    });
+    // For FormData, we need to use fetch directly to avoid Content-Type header
+    const token = getAuthToken();
+    const response = await fetch(
+      `https://backend.man3kulonprogo.sch.id/api/atmin/articles`,
+      {
+        method: "POST",
+        headers: token ? { Authorization: `Bearer ${token}` } : {},
+        body: data,
+      }
+    );
 
-    const result = await handleResponse(response);
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.message || "Something went wrong");
+    }
+    const result = await response.json();
     return result.article || result;
   },
 
@@ -113,11 +96,10 @@ const articleApi = {
     if (filters.page) params.append("page", filters.page.toString());
     if (filters.limit) params.append("limit", filters.limit.toString());
 
-    const response = await fetch(`${API_URL}/api/atmin/articles?${params}`, {
-      headers: getAuthHeaders(),
+    const token = getAuthToken();
+    return apiFetch(`/atmin/articles?${params}`, {
+      headers: token ? { Authorization: `Bearer ${token}` } : {},
     });
-
-    return handleResponse(response);
   },
 
   /**
@@ -144,8 +126,7 @@ const articleApi = {
     if (filters.page) params.append("page", filters.page.toString());
     if (filters.limit) params.append("limit", filters.limit.toString());
 
-    const response = await fetch(`${API_URL}/api/articles?${params}`);
-    return handleResponse(response);
+    return apiFetch(`/articles?${params}`);
   },
 
   /**
@@ -155,11 +136,10 @@ const articleApi = {
    * @throws {Error} If the API request fails.
    */
   getArticleById: async (id: string): Promise<Article> => {
-    const response = await fetch(`${API_URL}/api/atmin/articles/${id}`, {
-      headers: getAuthHeaders(),
+    const token = getAuthToken();
+    const data = await apiFetch(`/atmin/articles/${id}`, {
+      headers: token ? { Authorization: `Bearer ${token}` } : {},
     });
-
-    const data = await handleResponse(response);
     return data.article || data;
   },
 
@@ -170,8 +150,7 @@ const articleApi = {
    * @throws {Error} If the API request fails.
    */
   getArticleBySlug: async (slug: string): Promise<Article> => {
-    const response = await fetch(`${API_URL}/api/articles/slug/${slug}`);
-    const data = await handleResponse(response);
+    const data = await apiFetch(`/articles/${slug}`);
     return data.article || data;
   },
 
@@ -201,13 +180,22 @@ const articleApi = {
 
     if (file) data.append("coverImageFile", file);
 
-    const response = await fetch(`${API_URL}/api/atmin/articles/${id}`, {
-      method: "PUT",
-      headers: getAuthHeaders(),
-      body: data,
-    });
+    // For FormData, we need to use fetch directly to avoid Content-Type header
+    const token = getAuthToken();
+    const response = await fetch(
+      `https://backend.man3kulonprogo.sch.id/api/atmin/articles/${id}`,
+      {
+        method: "PUT",
+        headers: token ? { Authorization: `Bearer ${token}` } : {},
+        body: data,
+      }
+    );
 
-    const result = await handleResponse(response);
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.message || "Something went wrong");
+    }
+    const result = await response.json();
     return result.article || result;
   },
 
@@ -218,12 +206,11 @@ const articleApi = {
    * @throws {Error} If the API request fails.
    */
   deleteArticle: async (id: string): Promise<void> => {
-    const response = await fetch(`${API_URL}/api/atmin/articles/${id}`, {
+    const token = getAuthToken();
+    await apiFetch(`/atmin/articles/${id}`, {
       method: "DELETE",
-      headers: getAuthHeaders(),
+      headers: token ? { Authorization: `Bearer ${token}` } : {},
     });
-
-    await handleResponse(response);
   },
 };
 

@@ -329,8 +329,6 @@ const UserManagementPage: React.FC = () => {
                 <option value="pengelola_bmn">Pengelola BMN</option>
                 <option value="guru_bk">Guru BK</option>
                 <option value="jurnalis">Jurnalis</option>
-                <option value="operator">Operator</option>
-                <option value="kepala_sekolah">Kepala Sekolah</option>
               </select>
             </div>
           </div>
