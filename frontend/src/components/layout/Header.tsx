@@ -80,7 +80,11 @@ const Header: React.FC = () => {
       "fixed top-0 left-0 right-0 z-50 transition-all duration-300";
     const scrolledClasses =
       "bg-[rgb(var(--color-background))] shadow-md py-2 opacity-95";
-    const transparentClasses = "bg-transparent py-4";
+
+    const transparentClasses =
+      window.innerWidth < 768
+        ? "bg-[rgb(var(--color-background))] py-4"
+        : "bg-transparent py-4";
 
     return `${baseClasses} ${
       isScrolled ? scrolledClasses : transparentClasses

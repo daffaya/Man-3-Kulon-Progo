@@ -39,7 +39,12 @@ export const MobileMenu: React.FC<MobileMenuProps> = ({
   if (!isOpen) return null;
 
   return (
-    <div className="md:hidden card shadow-lg">
+    <div
+      className={`md:hidden fixed top-16 left-0 right-0 z-40 bg-background card shadow-lg max-h-[calc(100vh-4rem)] overflow-y-auto transition-transform duration-300 ${
+        isOpen ? "translate-y-0" : "-translate-y-full"
+      }`}
+    >
+      {" "}
       <nav className="container mx-auto px-4 py-4 flex flex-col space-y-4">
         <NavLink to="/" label="Home" icon={<Home size={18} />} isMobile />
         <NavLink
@@ -85,6 +90,18 @@ export const MobileMenu: React.FC<MobileMenuProps> = ({
           to="/webApp"
           label="Web App"
           icon={<AppWindow size={18} />}
+          isMobile
+        />
+        <NavLink
+          to="/alumni"
+          label="Alumni"
+          icon={<GraduationCap size={18} />}
+          isMobile
+        />
+        <NavLink
+          to="/contact"
+          label="Kontak"
+          icon={<Mail size={18} />}
           isMobile
         />
       </nav>
