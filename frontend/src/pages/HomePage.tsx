@@ -338,9 +338,12 @@ const HomePage: React.FC = () => {
           ) : achievementArticles.length > 0 ? (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {achievementArticles.map((article) => (
-                <div key={article.id} className="card p-6 flex items-start">
-                  <div className="bg-accent/10 p-3 rounded-full mr-4 flex-shrink-0">
-                    <Award className="text-accent" size={24} />
+                <div
+                  key={article.id}
+                  className="card pl-2 pr-6 py-6 flex items-start"
+                >
+                  <div className="flex-shrink-0 w-12 h-12 sm:w-14 sm:h-14 bg-accent/10 rounded-full flex items-center justify-center mr-4">
+                    <Award className="w-6 h-6 sm:w-7 sm:h-7 text-accent" />
                   </div>
                   <div>
                     <h3 className="font-bold text-lg mb-1 text-foreground">

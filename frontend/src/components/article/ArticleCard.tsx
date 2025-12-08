@@ -44,7 +44,7 @@ const ArticleCard: React.FC<ArticleCardProps> = ({
   if (featured) {
     return (
       <article className="relative overflow-hidden rounded-xl shadow-lg transition-transform duration-300 hover:-translate-y-1 hover:shadow-xl flex flex-col">
-        <div className="aspect-[16/9] overflow-hidden max-w-full h-120">
+        <div className="aspect-[16/9] sm:aspect-[21/9] overflow-hidden max-w-full">
           <ImageWithFallback
             src={coverImage}
             alt={title}
@@ -53,45 +53,50 @@ const ArticleCard: React.FC<ArticleCardProps> = ({
           />
         </div>
         <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent">
-          <div className="absolute bottom-0 left-0 right-0 px-48 py-8 text-white">
-            <div className="flex flex-wrap gap-2 mb-3">
+          <div className="absolute inset-x-0 bottom-0 px-4 sm:px-6 md:px-8 lg:px-12 xl:px-20 2xl:px-32 py-8 sm:py-10 md:py-10 text-white">
+            {" "}
+            <div className="flex flex-wrap gap-1 sm:gap-2 mb-2 sm:mb-3">
               {(tags || []).slice(0, 3).map((tag) => (
                 <span
                   key={tag}
-                  className="inline-block px-3 py-1 text-xs font-medium bg-accent/80 rounded-full"
+                  className="inline-block px-2 sm:px-3 py-1 text-xs font-medium bg-accent/80 rounded-full"
                 >
                   {tag}
                 </span>
               ))}
             </div>
-            <h2 className="text-2xl sm:text-3xl font-serif font-bold mb-3">
+            <h2 className="text-xl sm:text-2xl md:text-3xl font-serif font-bold mb-2 sm:mb-3">
               <Link to={`/berita/${slug}`} className="hover:underline">
                 {title}
               </Link>
             </h2>
-            <p className="text-gray-200 mb-4 line-clamp-2">
+            <p className="text-gray-200 mb-3 sm:mb-4 line-clamp-2 text-sm sm:text-base">
               <Link to={`/berita/${slug}`}>{overview}</Link>
             </p>
-            <div className="flex items-center justify-between text-sm mt-auto">
-              <Link to={`/Profile`}>
-                <div className="flex items-center gap-2">
-                  <ImageWithFallback
-                    src={author.avatar}
-                    alt={author.name}
-                    className="w-8 h-8 rounded-full object-cover"
-                    fallback="/logo.png"
-                  />
-                  <span>{author.name}</span>
-                </div>
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-0 text-xs sm:text-sm mt-auto">
+              <Link
+                to={`/Profile`}
+                className="flex items-center gap-2 max-w-full"
+              >
+                <ImageWithFallback
+                  src={author.avatar}
+                  alt={author.name}
+                  className="w-5 h-5 sm:w-8 sm:h-8 rounded-full object-cover flex-shrink-0"
+                  fallback="/logo.png"
+                />
+                <span className="truncate font-medium">{author.name}</span>
               </Link>
-              <div className="flex items-center gap-4 text-sm">
+              <div className="flex items-center gap-3 sm:gap-4 text-xs sm:text-sm">
                 <span className="flex items-center gap-1">
-                  <Calendar size={16} />
-                  {formatDate(publishedDate)}
+                  <Calendar size={12} className="sm:size-5" />
+                  <span className="hidden sm:inline">
+                    {formatDate(publishedDate)}
+                  </span>
+                  <span className="sm:hidden">{formatDate(publishedDate)}</span>
                 </span>
                 <span className="flex items-center gap-1">
-                  <Clock size={16} />
-                  {readingTime} min read
+                  <Clock size={12} className="sm:size-5" />
+                  {readingTime} min
                 </span>
               </div>
             </div>
