@@ -37,7 +37,8 @@ interface ClassData {
   total_siswa: number;
 }
 
-const API_URL = `https://backend.man3kulonprogo.sch.id`;
+const backendUrl =
+  import.meta.env.VITE_BACKEND_URL || "https://backend.man3kulonprogo.sch.id";
 const ALLOWED_ROLES = ["guru_bk", "super_admin"] as const;
 
 /**
@@ -89,7 +90,7 @@ const AttendanceRecapPage: React.FC = () => {
   useEffect(() => {
     const fetchClasses = async () => {
       try {
-        const response = await fetch(`${API_URL}/api/attendance/classes`, {
+        const response = await fetch(`${backendUrl}/api/attendance/classes`, {
           headers: {
             Authorization: `Bearer ${token}`,
           },
@@ -115,7 +116,7 @@ const AttendanceRecapPage: React.FC = () => {
     const fetchRecapData = async () => {
       if (!selectedClass || !recapPeriod || !recapStartDate) return;
 
-      let url = `${API_URL}/api/attendance/recap?classId=${selectedClass}&period=${recapPeriod}&startDate=${recapStartDate}`;
+      let url = `${backendUrl}/api/attendance/recap?classId=${selectedClass}&period=${recapPeriod}&startDate=${recapStartDate}`;
 
       if (recapPeriod !== "daily" && recapEndDate) {
         url += `&endDate=${recapEndDate}`;
@@ -169,7 +170,7 @@ const AttendanceRecapPage: React.FC = () => {
     setLoading(true);
 
     try {
-      let url = `${API_URL}/api/attendance/export?classId=${selectedClass}&period=${recapPeriod}&startDate=${recapStartDate}&format=${format}`;
+      let url = `${backendUrl}/api/attendance/export?classId=${selectedClass}&period=${recapPeriod}&startDate=${recapStartDate}&format=${format}`;
 
       if (recapPeriod !== "daily" && recapEndDate) {
         url += `&endDate=${recapEndDate}`;

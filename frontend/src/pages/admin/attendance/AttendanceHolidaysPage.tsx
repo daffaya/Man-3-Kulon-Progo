@@ -24,7 +24,8 @@ interface Holiday {
   academic_year: string;
 }
 
-const API_URL = `https://backend.man3kulonprogo.sch.id`;
+const backendUrl =
+  import.meta.env.VITE_BACKEND_URL || "https://backend.man3kulonprogo.sch.id";
 const ALLOWED_ROLES = ["guru_bk", "super_admin"] as const;
 
 /**
@@ -60,7 +61,7 @@ const AttendanceHolidaysPage: React.FC = () => {
   useEffect(() => {
     const fetchHolidays = async () => {
       try {
-        const response = await fetch(`${API_URL}/api/attendance/holidays`, {
+        const response = await fetch(`${backendUrl}/api/attendance/holidays`, {
           headers: {
             Authorization: `Bearer ${token}`,
           },
@@ -95,7 +96,7 @@ const AttendanceHolidaysPage: React.FC = () => {
     setLoading(true);
 
     try {
-      const response = await fetch(`${API_URL}/api/attendance/holidays`, {
+      const response = await fetch(`${backendUrl}/api/attendance/holidays`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -115,7 +116,7 @@ const AttendanceHolidaysPage: React.FC = () => {
         setNewHoliday({ date: "", description: "" });
 
         const holidaysResponse = await fetch(
-          `${API_URL}/api/attendance/holidays`,
+          `${backendUrl}/api/attendance/holidays`,
           {
             headers: {
               Authorization: `Bearer ${token}`,
@@ -150,12 +151,15 @@ const AttendanceHolidaysPage: React.FC = () => {
     setLoading(true);
 
     try {
-      const response = await fetch(`${API_URL}/api/attendance/holidays/${id}`, {
-        method: "DELETE",
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
+      const response = await fetch(
+        `${backendUrl}/api/attendance/holidays/${id}`,
+        {
+          method: "DELETE",
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
 
       const data = await response.json();
 
@@ -163,7 +167,7 @@ const AttendanceHolidaysPage: React.FC = () => {
         showSuccessToast(data.message || "Hari libur berhasil dihapus");
 
         const holidaysResponse = await fetch(
-          `${API_URL}/api/attendance/holidays`,
+          `${backendUrl}/api/attendance/holidays`,
           {
             headers: {
               Authorization: `Bearer ${token}`,

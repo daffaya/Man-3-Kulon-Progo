@@ -7,7 +7,8 @@
 import { useState, useEffect } from "react";
 import { Class } from "../types/studentTypes";
 
-const API_URL = `https://backend.man3kulonprogo.sch.id`;
+const backendUrl =
+  import.meta.env.VITE_BACKEND_URL || "https://backend.man3kulonprogo.sch.id";
 
 /**
  * Custom hook to fetch and manage a list of classes from the API.
@@ -35,7 +36,7 @@ export const useClasses = () => {
 
     try {
       const token = localStorage.getItem("token");
-      const response = await fetch(`${API_URL}/api/attendance/classes`, {
+      const response = await fetch(`${backendUrl}/api/attendance/classes`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },

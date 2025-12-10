@@ -13,7 +13,8 @@ import {
   Class,
 } from "../types/studentTypes";
 
-const API_URL = `https://backend.man3kulonprogo.sch.id`;
+const backendUrl =
+  import.meta.env.VITE_BACKEND_URL || "https://backend.man3kulonprogo.sch.id";
 
 /**
  * Service object containing methods for student-related API operations.
@@ -49,7 +50,7 @@ export const studentService = {
       }
     });
 
-    const url = `${API_URL}/api/students?${queryParams.toString()}`;
+    const url = `${backendUrl}/api/students?${queryParams.toString()}`;
 
     try {
       const response = await fetch(url, {
@@ -105,7 +106,7 @@ export const studentService = {
       throw new Error("Token is required");
     }
 
-    const response = await fetch(`${API_URL}/api/students`, {
+    const response = await fetch(`${backendUrl}/api/students`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -146,7 +147,7 @@ export const studentService = {
       throw new Error("Token is required");
     }
 
-    const response = await fetch(`${API_URL}/api/students/${id}`, {
+    const response = await fetch(`${backendUrl}/api/students/${id}`, {
       method: "PUT",
       headers: {
         "Content-Type": "application/json",
@@ -176,7 +177,7 @@ export const studentService = {
       throw new Error("Token is required");
     }
 
-    const response = await fetch(`${API_URL}/api/students/${id}`, {
+    const response = await fetch(`${backendUrl}/api/students/${id}`, {
       method: "DELETE",
       headers: {
         Authorization: `Bearer ${token}`,
@@ -209,7 +210,7 @@ export const studentService = {
     }
 
     const response = await fetch(
-      `${API_URL}/api/students/${studentId}/move-class`,
+      `${backendUrl}/api/students/${studentId}/move-class`,
       {
         method: "POST",
         headers: {
@@ -247,7 +248,7 @@ export const studentService = {
   ): Promise<BulkMoveClassResponse> => {
     if (!token) throw new Error("Token is required");
 
-    const response = await fetch(`${API_URL}/api/students/bulk-move-class`, {
+    const response = await fetch(`${backendUrl}/api/students/bulk-move-class`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -279,7 +280,7 @@ export const studentService = {
   ): Promise<GraduateStudentsResponse> => {
     if (!token) throw new Error("Token is required");
 
-    const response = await fetch(`${API_URL}/api/students/graduate`, {
+    const response = await fetch(`${backendUrl}/api/students/graduate`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -306,7 +307,7 @@ export const studentService = {
       throw new Error("Token is required");
     }
 
-    const url = `${API_URL}/api/students/angkatans`;
+    const url = `${backendUrl}/api/students/angkatans`;
 
     try {
       const response = await fetch(url, {
@@ -356,7 +357,7 @@ export const studentService = {
   ): Promise<Class[]> => {
     if (!token) throw new Error("Token is required");
 
-    const url = `${API_URL}/api/students?getClassesByAngkatan=true&angkatan=${encodeURIComponent(
+    const url = `${backendUrl}/api/students?getClassesByAngkatan=true&angkatan=${encodeURIComponent(
       angkatan
     )}`;
 
@@ -407,7 +408,7 @@ export const studentService = {
   getClassesByLevel: async (token: string, level: string): Promise<Class[]> => {
     if (!token) throw new Error("Token is required");
 
-    const url = `${API_URL}/api/students?getClassesByLevel=${level}`;
+    const url = `${backendUrl}/api/students?getClassesByLevel=${level}`;
 
     try {
       const response = await fetch(url, {

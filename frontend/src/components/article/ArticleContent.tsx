@@ -128,11 +128,13 @@ const processImageUrls = (htmlContent: string): string => {
   const parser = new DOMParser();
   const doc = parser.parseFromString(htmlContent, "text/html");
   const images = doc.querySelectorAll("img");
+  const backendUrl =
+    import.meta.env.VITE_BACKEND_URL || "https://backend.man3kulonprogo.sch.id";
 
   images.forEach((img) => {
     const src = img.getAttribute("src");
     if (src && src.startsWith("/")) {
-      img.setAttribute("src", `https://backend.man3kulonprogo.sch.id${src}`);
+      img.setAttribute("src", `${backendUrl}${src}`);
     }
   });
 

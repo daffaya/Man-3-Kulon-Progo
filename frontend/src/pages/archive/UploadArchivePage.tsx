@@ -14,7 +14,8 @@ import { Category } from "../../types/archiveTypes";
 import { fetchCategories } from "../../api/archiveApi";
 import { useToast } from "../../contexts/ToastContext";
 
-export const API_URL = `https://backend.man3kulonprogo.sch.id`;
+const backendUrl =
+  import.meta.env.VITE_BACKEND_URL || "https://backend.man3kulonprogo.sch.id";
 export const ALLOWED_ROLES = ["arsiparis", "super_admin"] as const;
 
 /**
@@ -134,7 +135,7 @@ const UploadArchivePage: React.FC = () => {
     formData.append("document_date", documentDate);
 
     try {
-      const response = await fetch(`${API_URL}/api/archives`, {
+      const response = await fetch(`${backendUrl}/api/archives`, {
         method: "POST",
         headers: {
           Authorization: `Bearer ${token}`,

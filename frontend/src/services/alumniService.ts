@@ -5,7 +5,8 @@
  * with the backend API, including setting up query parameters and authentication headers.
  */
 
-const API_URL = `https://backend.man3kulonprogo.sch.id`;
+const backendUrl =
+  import.meta.env.VITE_BACKEND_URL || "https://backend.man3kulonprogo.sch.id";
 
 export const alumniService = {
   /**
@@ -35,9 +36,12 @@ export const alumniService = {
     if (params.page) query.append("page", params.page.toString());
     if (params.limit) query.append("limit", params.limit.toString());
 
-    const response = await fetch(`${API_URL}/api/alumni?${query.toString()}`, {
-      headers: token ? { Authorization: `Bearer ${token}` } : {},
-    });
+    const response = await fetch(
+      `${backendUrl}/api/alumni?${query.toString()}`,
+      {
+        headers: token ? { Authorization: `Bearer ${token}` } : {},
+      }
+    );
 
     if (!response.ok) {
       const errorData = await response.json();
@@ -71,7 +75,7 @@ export const alumniService = {
   ) => {
     if (!token) throw new Error("Token is required");
 
-    const response = await fetch(`${API_URL}/api/alumni/${id}`, {
+    const response = await fetch(`${backendUrl}/api/alumni/${id}`, {
       method: "PATCH",
       headers: {
         "Content-Type": "application/json",

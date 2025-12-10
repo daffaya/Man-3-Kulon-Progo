@@ -94,14 +94,6 @@ const WebAppPage: React.FC = () => {
       to: "https://perpustakaan.man3kulonprogo.sch.id/",
     },
     {
-      id: "persuratan",
-      title: "Persuratan",
-      description: "Kelola surat menyurat sekolah secara online",
-      icon: <Clipboard className="w-6 h-6" />,
-      requiredRole: [],
-      to: "http://persuratan.man3kulonprogo.sch.id/",
-    },
-    {
       id: "rapor",
       title: "Rapor Siswa",
       description: "Akses informasi rapor dan nilai siswa",

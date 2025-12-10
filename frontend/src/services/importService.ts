@@ -5,7 +5,8 @@
 
 import { ImportResult } from "../types/importTypes";
 
-const API_URL = `https://backend.man3kulonprogo.sch.id`;
+const backendUrl =
+  import.meta.env.VITE_BACKEND_URL || "https://backend.man3kulonprogo.sch.id";
 
 /**
  * Sends a file to the backend to import student data.
@@ -25,7 +26,7 @@ export const importStudents = async (
   const formData = new FormData();
   formData.append("file", file);
 
-  const response = await fetch(`${API_URL}/api/students/import`, {
+  const response = await fetch(`${backendUrl}/api/students/import`, {
     method: "POST",
     headers: {
       Authorization: `Bearer ${token}`,

@@ -199,7 +199,11 @@ export const exportAttendanceData = async (
   },
   token: string
 ) => {
-  let url = `https://backend.man3kulonprogo.sch.id/api/attendance/export?classId=${params.classId}&period=${params.period}&startDate=${params.startDate}&format=${params.format}`;
+  const backendUrl =
+    import.meta.env.VITE_BACKEND_URL ||
+    "https://backend.man3kulonprogo.sch.id/api";
+
+  let url = `${backendUrl}/attendance/export?classId=${params.classId}&period=${params.period}&startDate=${params.startDate}&format=${params.format}`;
   if (params.endDate) {
     url += `&endDate=${params.endDate}`;
   }

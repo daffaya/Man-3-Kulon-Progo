@@ -38,7 +38,8 @@ interface ClassData {
   semester: string;
 }
 
-const API_URL = `https://backend.man3kulonprogo.sch.id`;
+const backendUrl =
+  import.meta.env.VITE_BACKEND_URL || "https://backend.man3kulonprogo.sch.id";
 const ALLOWED_ROLES = ["guru_bk", "super_admin"] as const;
 
 /**
@@ -77,7 +78,7 @@ const AttendanceArchivePage: React.FC = () => {
   useEffect(() => {
     const fetchClasses = async () => {
       try {
-        const response = await fetch(`${API_URL}/api/attendance/classes`, {
+        const response = await fetch(`${backendUrl}/api/attendance/classes`, {
           headers: {
             Authorization: `Bearer ${token}`,
           },
@@ -102,7 +103,7 @@ const AttendanceArchivePage: React.FC = () => {
   useEffect(() => {
     const fetchArchiveData = async () => {
       try {
-        let url = `${API_URL}/api/attendance/archive?academicYear=${selectedYear}&semester=${selectedSemester}`;
+        let url = `${backendUrl}/api/attendance/archive?academicYear=${selectedYear}&semester=${selectedSemester}`;
 
         if (selectedClass > 0) {
           url += `&classId=${selectedClass}`;
@@ -150,7 +151,7 @@ const AttendanceArchivePage: React.FC = () => {
     setLoading(true);
 
     try {
-      const response = await fetch(`${API_URL}/api/attendance/archive`, {
+      const response = await fetch(`${backendUrl}/api/attendance/archive`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -168,7 +169,7 @@ const AttendanceArchivePage: React.FC = () => {
         showSuccessToast(data.message || "Data presensi berhasil diarsipkan");
 
         const archiveResponse = await fetch(
-          `${API_URL}/api/attendance/archive?academicYear=${selectedYear}&semester=${selectedSemester}`,
+          `${backendUrl}/api/attendance/archive?academicYear=${selectedYear}&semester=${selectedSemester}`,
           {
             headers: {
               Authorization: `Bearer ${token}`,

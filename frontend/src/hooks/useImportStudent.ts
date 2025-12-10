@@ -96,16 +96,17 @@ export const useImportStudent = (): UseImportStudentReturn => {
       const formData = new FormData();
       formData.append("file", file);
 
-      const response = await fetch(
-        `https://backend.man3kulonprogo.sch.id/api/students/import`,
-        {
-          method: "POST",
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-          body: formData,
-        }
-      );
+      const backendUrl =
+        import.meta.env.VITE_BACKEND_URL ||
+        "https://backend.man3kulonprogo.sch.id";
+
+      const response = await fetch(`${backendUrl}/api/students/import`, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+        body: formData,
+      });
 
       if (!response.ok) {
         const errorData = await response.json();

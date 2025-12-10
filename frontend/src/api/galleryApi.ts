@@ -163,18 +163,18 @@ const galleryApi = {
     try {
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 60000); // 60 seconds timeout
+      const backendUrl =
+        import.meta.env.VITE_BACKEND_URL ||
+        "https://backend.man3kulonprogo.sch.id/api";
 
       // For FormData, we need to use fetch directly to avoid Content-Type header
       const token = getAuthToken();
-      const response = await fetch(
-        `https://backend.man3kulonprogo.sch.id/api/atmin/gallery/photos`,
-        {
-          method: "POST",
-          headers: token ? { Authorization: `Bearer ${token}` } : {},
-          body: formData,
-          signal: controller.signal,
-        }
-      );
+      const response = await fetch(`${backendUrl}/atmin/gallery/photos`, {
+        method: "POST",
+        headers: token ? { Authorization: `Bearer ${token}` } : {},
+        body: formData,
+        signal: controller.signal,
+      });
 
       clearTimeout(timeoutId);
 

@@ -6,7 +6,9 @@
  * default headers, cookie-based authentication, timeouts, and comprehensive error handling.
  */
 
-const API_BASE = "https://backend.man3kulonprogo.sch.id/api";
+const API_BASE =
+  import.meta.env.VITE_BACKEND_URL ||
+  "https://backend.man3kulonprogo.sch.id/api";
 
 /**
  * A wrapper function around the native `fetch` API to simplify communication with the backend.

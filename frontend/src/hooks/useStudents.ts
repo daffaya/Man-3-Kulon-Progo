@@ -79,19 +79,20 @@ export const useStudents = (filters?: StudentFilters) => {
     setError(null);
 
     try {
+      const backendUrl =
+        import.meta.env.VITE_BACKEND_URL ||
+        "https://backend.man3kulonprogo.sch.id";
       const response = await fetch(
-        `https://backend.man3kulonprogo.sch.id/api/students?${new URLSearchParams(
-          {
-            ...(filters?.classId && { classId: String(filters.classId) }),
-            ...(filters?.search && { search: filters.search }),
-            ...(filters?.academicYear && {
-              academicYear: filters.academicYear,
-            }),
-            ...(filters?.angkatan && { angkatan: filters.angkatan }),
-            ...(filters?.page && { page: String(filters.page) }),
-            ...(filters?.limit && { limit: String(filters.limit) }),
-          }
-        )}`,
+        `${backendUrl}/api/students?${new URLSearchParams({
+          ...(filters?.classId && { classId: String(filters.classId) }),
+          ...(filters?.search && { search: filters.search }),
+          ...(filters?.academicYear && {
+            academicYear: filters.academicYear,
+          }),
+          ...(filters?.angkatan && { angkatan: filters.angkatan }),
+          ...(filters?.page && { page: String(filters.page) }),
+          ...(filters?.limit && { limit: String(filters.limit) }),
+        })}`,
         {
           headers: {
             Authorization: `Bearer ${currentToken}`,

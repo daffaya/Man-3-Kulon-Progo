@@ -7,6 +7,10 @@
 import { Archive, Category } from "../types/archiveTypes";
 import { apiFetch } from "../lib/api";
 
+const backendUrl =
+  import.meta.env.VITE_BACKEND_URL ||
+  "https://backend.man3kulonprogo.sch.id/api";
+
 /**
  * Fetches all available categories from the backend API.
  * @returns {Promise<Category[]>} A promise that resolves to an array of Category objects.
@@ -49,12 +53,9 @@ export const fetchArchives = async (
  * @throws {Error} Throws an error if the download request fails.
  */
 export const downloadArchive = async (id: number, fileName: string) => {
-  const response = await fetch(
-    `https://backend.man3kulonprogo.sch.id/api/archives/${id}/download`,
-    {
-      credentials: "include",
-    }
-  );
+  const response = await fetch(`${backendUrl}/archives/${id}/download`, {
+    credentials: "include",
+  });
   if (!response.ok) throw new Error("Gagal mendownload arsip");
   const blob = await response.blob();
   const url = window.URL.createObjectURL(blob);
@@ -92,15 +93,12 @@ export const updateArchive = async (
   formData: FormData,
   token: string | null
 ) => {
-  const response = await fetch(
-    `https://backend.man3kulonprogo.sch.id/api/archives/${id}`,
-    {
-      method: "PUT",
-      headers: token ? { Authorization: `Bearer ${token}` } : {},
-      body: formData,
-      credentials: "include",
-    }
-  );
+  const response = await fetch(`${backendUrl}/archives/${id}`, {
+    method: "PUT",
+    headers: token ? { Authorization: `Bearer ${token}` } : {},
+    body: formData,
+    credentials: "include",
+  });
 
   const data = await response.json();
   if (!response.ok) throw new Error(data.error || "Gagal mengedit arsip");

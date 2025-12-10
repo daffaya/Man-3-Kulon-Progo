@@ -7,7 +7,8 @@
 import { useState, useEffect } from "react";
 import { useAuth } from "../contexts/AuthContext";
 
-const API_URL = `https://backend.man3kulonprogo.sch.id`;
+const backendUrl =
+  import.meta.env.VITE_BACKEND_URL || "https://backend.man3kulonprogo.sch.id";
 
 /**
  * Interface representing an angkatan (batch/cohort) with its count.
@@ -51,7 +52,7 @@ export const useAngkatans = () => {
     try {
       // Gunakan endpoint /students dengan parameter getAngkatans=true
       const response = await fetch(
-        `${API_URL}/api/students?getAngkatans=true`,
+        `${backendUrl}/api/students?getAngkatans=true`,
         {
           headers: {
             Authorization: `Bearer ${token}`,

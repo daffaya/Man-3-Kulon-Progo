@@ -35,7 +35,8 @@ interface ClassData {
   total_siswa: number;
 }
 
-const API_URL = `https://backend.man3kulonprogo.sch.id`;
+const backendUrl =
+  import.meta.env.VITE_BACKEND_URL || "https://backend.man3kulonprogo.sch.id";
 const ALLOWED_ROLES = ["guru_bk", "super_admin"] as const;
 
 /**
@@ -86,7 +87,7 @@ const AttendanceInputPage: React.FC = () => {
      */
     const fetchClasses = async () => {
       try {
-        const response = await fetch(`${API_URL}/api/attendance/classes`, {
+        const response = await fetch(`${backendUrl}/api/attendance/classes`, {
           headers: {
             Authorization: `Bearer ${token}`,
           },
@@ -118,7 +119,7 @@ const AttendanceInputPage: React.FC = () => {
 
       try {
         const response = await fetch(
-          `${API_URL}/api/attendance/students?classId=${selectedClass}`,
+          `${backendUrl}/api/attendance/students?classId=${selectedClass}`,
           {
             headers: {
               Authorization: `Bearer ${token}`,
@@ -160,7 +161,7 @@ const AttendanceInputPage: React.FC = () => {
 
       try {
         const response = await fetch(
-          `${API_URL}/api/attendance?classId=${selectedClass}&date=${selectedDate}`,
+          `${backendUrl}/api/attendance?classId=${selectedClass}&date=${selectedDate}`,
           {
             headers: {
               Authorization: `Bearer ${token}`,
@@ -262,7 +263,7 @@ const AttendanceInputPage: React.FC = () => {
         })),
       };
 
-      const response = await fetch(`${API_URL}/api/attendance`, {
+      const response = await fetch(`${backendUrl}/api/attendance`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -279,7 +280,7 @@ const AttendanceInputPage: React.FC = () => {
         setTimeout(async () => {
           try {
             const verifyResponse = await fetch(
-              `${API_URL}/api/attendance/verify?classId=${selectedClass}&date=${selectedDate}`,
+              `${backendUrl}/api/attendance/verify?classId=${selectedClass}&date=${selectedDate}`,
               {
                 headers: {
                   Authorization: `Bearer ${token}`,
@@ -313,7 +314,7 @@ const AttendanceInputPage: React.FC = () => {
 
     try {
       const response = await fetch(
-        `${API_URL}/api/attendance/check-existing?classId=${selectedClass}&date=${selectedDate}`,
+        `${backendUrl}/api/attendance/check-existing?classId=${selectedClass}&date=${selectedDate}`,
         {
           headers: {
             Authorization: `Bearer ${token}`,

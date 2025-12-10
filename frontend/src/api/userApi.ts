@@ -29,7 +29,9 @@ const handleUnauthorized = () => {
 /**
  * The base URL for the backend API.
  */
-const API_URL = "https://backend.man3kulonprogo.sch.id";
+const backendUrl =
+  import.meta.env.VITE_BACKEND_URL ||
+  "https://backend.man3kulonprogo.sch.id/api";
 
 /**
  * API client object for user-related operations.
@@ -52,7 +54,7 @@ const userApi = {
         data.data.avatar &&
         !data.data.avatar.startsWith("http")
       ) {
-        data.data.avatar = `${API_URL}${data.data.avatar}`;
+        data.data.avatar = `${backendUrl}${data.data.avatar}`;
       }
 
       return data.data;
@@ -87,7 +89,7 @@ const userApi = {
 
       // Ensure avatar URL is complete
       if (data.data.avatar && !data.data.avatar.startsWith("http")) {
-        data.data.avatar = `${API_URL}${data.data.avatar}`;
+        data.data.avatar = `${backendUrl}${data.data.avatar}`;
       }
 
       return data.data;
@@ -113,14 +115,11 @@ const userApi = {
 
     // For FormData, we need to use fetch directly to avoid Content-Type header
     const token = getAuthToken();
-    const response = await fetch(
-      `https://backend.man3kulonprogo.sch.id/api/users/profile/avatar`,
-      {
-        method: "POST",
-        headers: token ? { Authorization: `Bearer ${token}` } : {},
-        body: formData,
-      }
-    );
+    const response = await fetch(`${backendUrl}/users/profile/avatar`, {
+      method: "POST",
+      headers: token ? { Authorization: `Bearer ${token}` } : {},
+      body: formData,
+    });
 
     if (!response.ok) {
       if (response.status === 401) {

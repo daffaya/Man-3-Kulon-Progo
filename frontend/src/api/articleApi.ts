@@ -14,6 +14,10 @@ import {
 } from "../types/articleTypes";
 import { apiFetch } from "../lib/api";
 
+const backendUrl =
+  import.meta.env.VITE_BACKEND_URL ||
+  "https://backend.man3kulonprogo.sch.id/api";
+
 /**
  * Retrieves the authorization token from localStorage.
  * @returns {string | null} The JWT token if present, otherwise null.
@@ -51,14 +55,11 @@ const articleApi = {
 
     // For FormData, we need to use fetch directly to avoid Content-Type header
     const token = getAuthToken();
-    const response = await fetch(
-      `https://backend.man3kulonprogo.sch.id/api/atmin/articles`,
-      {
-        method: "POST",
-        headers: token ? { Authorization: `Bearer ${token}` } : {},
-        body: data,
-      }
-    );
+    const response = await fetch(`${backendUrl}/atmin/articles`, {
+      method: "POST",
+      headers: token ? { Authorization: `Bearer ${token}` } : {},
+      body: data,
+    });
 
     if (!response.ok) {
       const errorData = await response.json();
@@ -182,14 +183,11 @@ const articleApi = {
 
     // For FormData, we need to use fetch directly to avoid Content-Type header
     const token = getAuthToken();
-    const response = await fetch(
-      `https://backend.man3kulonprogo.sch.id/api/atmin/articles/${id}`,
-      {
-        method: "PUT",
-        headers: token ? { Authorization: `Bearer ${token}` } : {},
-        body: data,
-      }
-    );
+    const response = await fetch(`${backendUrl}/atmin/articles/${id}`, {
+      method: "PUT",
+      headers: token ? { Authorization: `Bearer ${token}` } : {},
+      body: data,
+    });
 
     if (!response.ok) {
       const errorData = await response.json();

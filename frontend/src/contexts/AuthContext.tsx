@@ -55,7 +55,10 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     if (!user) return null;
 
     if (user.avatar && !user.avatar.startsWith("http")) {
-      const backendUrl = "https://backend.man3kulonprogo.sch.id";
+      const backendUrl =
+        import.meta.env.VITE_BACKEND_URL ||
+        "https://backend.man3kulonprogo.sch.id";
+
       return {
         ...user,
         avatar: `${backendUrl}${user.avatar}`,

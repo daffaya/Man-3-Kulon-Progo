@@ -4,6 +4,9 @@
  * and exporting attendance data in different formats.
  */
 
+const backendUrl =
+  process.env.BACKEND_URL || "https://backend.man3kulonprogo.sch.id";
+
 /**
  * Saves attendance data to the server.
  * @async
@@ -13,17 +16,14 @@
  * @throws {Error} If the request fails or returns an error.
  */
 export const saveAttendance = async (attendanceData, token) => {
-  const response = await fetch(
-    `https://backend.man3kulonprogo.sch.id/api/attendance`,
-    {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-      },
-      body: JSON.stringify(attendanceData),
-    }
-  );
+  const response = await fetch(`${backendUrl}/api/attendance`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify(attendanceData),
+  });
 
   const data = await response.json();
   if (response.ok && data.success) {
@@ -56,7 +56,7 @@ export const getAttendanceRecap = async (
   });
 
   const response = await fetch(
-    `https://backend.man3kulonprogo.sch.id/api/attendance/recap?${query.toString()}`
+    `${backendUrl}/api/attendance/recap?${query.toString()}`
   );
 
   const data = await response.json();
@@ -95,7 +95,7 @@ export const exportAttendance = async (
   });
 
   const response = await fetch(
-    `https://backend.man3kulonprogo.sch.id/api/attendance/export?${query.toString()}`,
+    `${backendUrl}/api/attendance/export?${query.toString()}`,
     {
       headers: {
         Authorization: `Bearer ${token}`,

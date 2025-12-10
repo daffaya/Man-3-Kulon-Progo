@@ -37,7 +37,8 @@ const LoginForm: React.FC<LoginFormProps> = ({
     "username" | "password" | null
   >(null);
 
-  const BACKEND_API_URL = "https://backend.man3kulonprogo.sch.id";
+  const backendUrl =
+    import.meta.env.VITE_BACKEND_URL || "https://backend.man3kulonprogo.sch.id";
 
   /**
    * Toggles the visibility of the password field
@@ -53,7 +54,7 @@ const LoginForm: React.FC<LoginFormProps> = ({
     setLoading(true);
 
     try {
-      const response = await fetch(`${BACKEND_API_URL}/api/auth/login`, {
+      const response = await fetch(`${backendUrl}/api/auth/login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ username, password }),
@@ -63,7 +64,7 @@ const LoginForm: React.FC<LoginFormProps> = ({
 
       if (response.ok && data.success) {
         if (data.user.avatar && !data.user.avatar.startsWith("http")) {
-          data.user.avatar = `${BACKEND_API_URL}${data.user.avatar}`;
+          data.user.avatar = `${backendUrl}${data.user.avatar}`;
         }
         onLoginSuccess({ user: data.user, token: data.token });
       } else {

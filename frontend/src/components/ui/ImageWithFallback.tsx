@@ -55,11 +55,14 @@ const ImageWithFallback: React.FC<ImageWithFallbackProps> = ({
     if (imagePath.startsWith("http") || imagePath.startsWith("blob:")) {
       return imagePath;
     }
-    const baseUrl = "https://backend.man3kulonprogo.sch.id";
+    const backendUrl =
+      import.meta.env.VITE_BACKEND_URL ||
+      "https://backend.man3kulonprogo.sch.id";
+
     const normalizedPath = imagePath.startsWith("/")
       ? imagePath
       : `/${imagePath}`;
-    return `${baseUrl}${normalizedPath}`;
+    return `${backendUrl}${normalizedPath}`;
   };
 
   useEffect(() => {
