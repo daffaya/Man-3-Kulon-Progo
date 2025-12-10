@@ -144,7 +144,7 @@ const PpdbPage: React.FC = () => {
   ];
 
   const kontakInformasi = [
-    { nama: "Admin PPDB MAN 3 Kulon Progo", telepon: "081328233869" },
+    { nama: "Admin PPDB MAN 3 Kulon Progo", telepon: "0823-2229-8062" },
   ];
 
   const registrationLink =

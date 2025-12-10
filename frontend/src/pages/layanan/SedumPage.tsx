@@ -128,8 +128,7 @@ const SedumPage: React.FC = () => {
 
             <div className="text-center">
               <a
-                //TODO: ganti link google form
-                href="https://forms.gle/CONTOHLINK"
+                href="https://forms.gle/HmxhgcbJvt8XB5P2A"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="btn btn-primary btn-lg inline-flex items-center"
@@ -201,14 +200,14 @@ const SedumPage: React.FC = () => {
                   </div>
                   <div>
                     <p className="font-medium mb-1 text-foreground">WhatsApp</p>
-                    <p className="text-secondary">0813-2823-3869</p>
+                    <p className="text-secondary">0823-2229-8062</p>
                   </div>
                 </div>
                 <p className="text-sm text-secondary mb-4">
                   Kirim pesan langsung melalui WhatsApp
                 </p>
                 <a
-                  href="https://wa.me/6281328233869"
+                  href="https://wa.me/6282322298062"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="text-accent hover:underline text-sm font-medium flex items-center"
