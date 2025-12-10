@@ -7,7 +7,7 @@
 import React, { useState } from "react";
 import { Photo } from "../../types/galleryTypes";
 import ImageWithFallback from "../ui/ImageWithFallback";
-import { X, Eye } from "lucide-react";
+import { X } from "lucide-react";
 
 /**
  * Props for the PhotoGrid component
@@ -54,22 +54,18 @@ const PhotoGrid: React.FC<PhotoGridProps> = ({
       {photos.map((photo, index) => (
         <div
           key={`${photo.id}`}
-          className="relative group aspect-square overflow-hidden rounded-lg bg-gray-100 dark:bg-gray-800"
+          className="relative group aspect-square overflow-hidden rounded-lg bg-gray-100 dark:bg-gray-800 cursor-pointer"
           onMouseEnter={() => setHoveredPhoto(photo.id)}
           onMouseLeave={() => setHoveredPhoto(null)}
+          onClick={() => onPhotoClick?.(photo, index)}
         >
-          {/* Photo - Wrapped with div for onClick */}
-          <div
-            className="w-full h-full cursor-pointer"
-            onClick={() => onPhotoClick?.(photo, index)}
-          >
-            <ImageWithFallback
-              src={photo.thumbnail_url}
-              alt={photo.alt_text || photo.title}
-              className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
-              fallback="/placeholder-image.jpg"
-            />
-          </div>
+          {/* Photo */}
+          <ImageWithFallback
+            src={photo.thumbnail_url}
+            alt={photo.alt_text || photo.title}
+            className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+            fallback="/placeholder-image.jpg"
+          />
 
           {/* Overlay */}
           <div
@@ -77,19 +73,13 @@ const PhotoGrid: React.FC<PhotoGridProps> = ({
               hoveredPhoto === photo.id ? "opacity-100" : "opacity-0"
             }`}
           >
-            {/* View Button */}
-            <button
-              onClick={() => onPhotoClick?.(photo, index)}
-              className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-white/90 text-gray-800 p-2 rounded-full hover:bg-white transition-colors"
-              aria-label="Lihat foto"
-            >
-              <Eye size={20} />
-            </button>
-
             {/* Delete Button */}
             {showDeleteButton && (
               <button
-                onClick={() => onPhotoDelete?.(photo.id)}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onPhotoDelete?.(photo.id);
+                }}
                 className="absolute top-2 right-2 bg-red-600 text-white p-1.5 rounded-full hover:bg-red-700 transition-colors"
                 aria-label="Hapus foto"
               >
@@ -103,19 +93,15 @@ const PhotoGrid: React.FC<PhotoGridProps> = ({
                 <input
                   type="checkbox"
                   checked={selectedPhotos.includes(photo.id)}
-                  onChange={() => onPhotoSelect?.(photo.id)}
+                  onChange={(e) => {
+                    e.stopPropagation();
+                    onPhotoSelect?.(photo.id);
+                  }}
                   className="w-5 h-5 text-accent bg-white border-gray-300 rounded focus:ring-accent"
                 />
               </div>
             )}
           </div>
-
-          {/* Photo Title */}
-          {photo.title && (
-            <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent p-2">
-              <p className="text-white text-xs truncate">{photo.title}</p>
-            </div>
-          )}
         </div>
       ))}
     </div>

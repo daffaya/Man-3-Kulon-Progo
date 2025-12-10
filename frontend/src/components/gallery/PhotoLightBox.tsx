@@ -110,10 +110,13 @@ const PhotoLightbox: React.FC<PhotoLightboxProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-[rgb(var(--color-foreground)/0.9)] backdrop-blur-sm">
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/85 backdrop-blur-md"
+      onClick={onClose}
+    >
       <button
         onClick={onClose}
-        className="absolute top-4 right-4 text-[rgb(var(--color-background))] hover:text-[rgb(var(--color-secondary))] transition-colors z-10"
+        className="absolute top-4 left-4 text-white hover:text-gray-300 transition-colors z-10"
         aria-label="Tutup"
       >
         <X size={32} />
@@ -122,7 +125,8 @@ const PhotoLightbox: React.FC<PhotoLightboxProps> = ({
       {photos.length > 1 && (
         <>
           <button
-            onClick={() => {
+            onClick={(e) => {
+              e.stopPropagation(); // Prevent closing when clicking navigation buttons
               onPrevious?.();
               setImageError(false);
               setImageLoaded(false);
@@ -134,7 +138,8 @@ const PhotoLightbox: React.FC<PhotoLightboxProps> = ({
             <ChevronLeft size={48} />
           </button>
           <button
-            onClick={() => {
+            onClick={(e) => {
+              e.stopPropagation(); // Prevent closing when clicking navigation buttons
               onNext?.();
               setImageError(false);
               setImageLoaded(false);
@@ -148,7 +153,10 @@ const PhotoLightbox: React.FC<PhotoLightboxProps> = ({
         </>
       )}
 
-      <div className="relative max-w-7xl max-h-[90vh] mx-auto p-4">
+      <div
+        className="relative max-w-7xl max-h-[90vh] mx-auto p-4"
+        onClick={(e) => e.stopPropagation()} // Prevent closing when clicking on the image
+      >
         {!imageLoaded && !imageError && (
           <div className="absolute inset-0 flex items-center justify-center">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[rgb(var(--color-background))]"></div>
@@ -179,21 +187,21 @@ const PhotoLightbox: React.FC<PhotoLightboxProps> = ({
         )}
 
         <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-[rgb(var(--color-foreground)/0.8)] to-transparent p-6 text-[rgb(var(--color-background))]">
-          <h3 className="text-xl font-semibold mb-2">
-            {currentPhoto.title || `Foto ${currentIndex + 1}`}
-          </h3>
           {currentPhoto.description && (
             <p className="text-[rgb(var(--color-secondary))] mb-2">
               {currentPhoto.description}
             </p>
           )}
           <div className="flex items-center justify-between">
-            <span className="text-sm text-[rgb(var(--color-secondary))]">
+            <span className="text-sm text-white">
               {currentIndex + 1} dari {photos.length}
             </span>
             <button
-              onClick={handleDownload}
-              className="flex items-center gap-2 text-[rgb(var(--color-background))] hover:text-[rgb(var(--color-secondary))] transition-colors"
+              onClick={(e) => {
+                e.stopPropagation(); // Prevent closing when clicking download button
+                handleDownload();
+              }}
+              className="flex items-center gap-2 text-white hover:text-[rgb(var(--color-secondary))] transition-colors"
               aria-label="Download foto"
             >
               <Download size={20} />
