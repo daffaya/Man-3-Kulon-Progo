@@ -8,7 +8,16 @@ import React from "react";
 import { useNavigate } from "react-router-dom";
 import Layout from "../components/layout/Layout";
 import AppCard from "../components/ui/AppCard";
-import { Archive, Clipboard, Users, BookOpen, Image, Book } from "lucide-react";
+import {
+  Archive,
+  Clipboard,
+  Users,
+  BookOpen,
+  Image,
+  Book,
+  Heart,
+  MessageCircle,
+} from "lucide-react";
 import { useAuth } from "../contexts/AuthContext";
 import { useToastMessage } from "../hooks/useToastMessage";
 import type { UserRole } from "../types/userTypes";
@@ -48,12 +57,12 @@ const WebAppPage: React.FC = () => {
    */
   const apps: AppItem[] = [
     {
-      id: "articles",
-      title: "Artikel Sekolah",
-      description: "Buat dan kelola artikel untuk website sekolah",
-      icon: <BookOpen className="w-6 h-6" />,
-      requiredRole: "jurnalis",
-      to: "/atmin/articles",
+      id: "presensi",
+      title: "Presensi Siswa",
+      description: "Rekap presensi dan kehadiran siswa",
+      icon: <Users className="w-6 h-6" />,
+      requiredRole: "guru_bk",
+      to: "/atmin/presensi",
     },
     {
       id: "archive",
@@ -64,12 +73,36 @@ const WebAppPage: React.FC = () => {
       to: "/archives",
     },
     {
-      id: "presensi",
-      title: "Presensi Siswa",
-      description: "Rekap presensi dan kehadiran siswa",
-      icon: <Users className="w-6 h-6" />,
-      requiredRole: "guru_bk",
-      to: "/atmin/presensi",
+      id: "berkah",
+      title: "Layanan BK",
+      description: "Wadah aman untuk curhat, dan mendapatkan bimbingan pribadi",
+      icon: <MessageCircle className="w-6 h-6" />,
+      requiredRole: [],
+      to: "https://sites.google.com/view/bkman3kpberkah/",
+    },
+    {
+      id: "digital-library",
+      title: "Perpus Digital",
+      description: "Akses perpustakaan digital sekolah secara online",
+      icon: <Book className="w-6 h-6" />,
+      requiredRole: [],
+      to: "https://perpustakaan.man3kulonprogo.sch.id/",
+    },
+    {
+      id: "rapor",
+      title: "Rapor Siswa",
+      description: "Akses informasi rapor dan nilai siswa",
+      icon: <BookOpen className="w-6 h-6" />,
+      requiredRole: [],
+      to: "http://raport.man3kulonprogo.sch.id/",
+    },
+    {
+      id: "articles",
+      title: "Artikel Sekolah",
+      description: "Buat dan kelola artikel untuk website sekolah",
+      icon: <BookOpen className="w-6 h-6" />,
+      requiredRole: "jurnalis",
+      to: "/atmin/articles",
     },
     {
       id: "galeri",
@@ -92,6 +125,14 @@ const WebAppPage: React.FC = () => {
       icon: <Book className="w-6 h-6" />,
       requiredRole: [],
       to: "https://perpustakaan.man3kulonprogo.sch.id/",
+    },
+    {
+      id: "persuratan",
+      title: "Persuratan",
+      description: "Kelola surat menyurat sekolah secara online",
+      icon: <Clipboard className="w-6 h-6" />,
+      requiredRole: [],
+      to: "http://persuratan.man3kulonprogo.sch.id/",
     },
     {
       id: "rapor",

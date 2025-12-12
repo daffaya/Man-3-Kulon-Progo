@@ -75,12 +75,12 @@ const Hero: React.FC = () => {
                 </button>
               </a>
               <a
-                href="/layanan/sedum"
+                href="https://sites.google.com/view/e-survey-man-3-kulon-progo/publikasi-spkp"
                 className="inline-block"
                 aria-label="Laporkan Pengaduan"
               >
                 <button className="bg-transparent border-2 border-white hover:bg-white hover:text-gray-900 text-white font-semibold py-4 px-10 rounded-xl text-lg transition duration-300 w-full sm:w-auto">
-                  Laporkan Pengaduan
+                  Hasil e-Survey
                 </button>
               </a>
             </div>
