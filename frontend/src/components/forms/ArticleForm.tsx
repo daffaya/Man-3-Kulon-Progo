@@ -47,8 +47,8 @@ const ArticleForm: React.FC<ArticleFormProps> = ({
     coverImage: "",
     tags: [],
     publishedDate: format(new Date(), "yyyy-MM-dd"),
-    featured: false,
-    published: false,
+    featured: true,
+    published: true,
     author: {
       name: user?.full_name || user?.username || "Penulis Pena",
       avatar: user?.avatar || "/logo.png",
@@ -86,8 +86,8 @@ const ArticleForm: React.FC<ArticleFormProps> = ({
         publishedDate: article.publishedDate
           ? format(new Date(article.publishedDate), "yyyy-MM-dd")
           : "",
-        featured: article.featured ?? false,
-        published: article.published ?? false,
+        featured: article.featured ?? true,
+        published: article.published ?? true,
         author: article.author || {
           name: user?.full_name || user?.username || "Penulis Pena",
           avatar: user?.avatar || "/logo.png",
@@ -102,8 +102,8 @@ const ArticleForm: React.FC<ArticleFormProps> = ({
         coverImage: "",
         tags: [],
         publishedDate: format(new Date(), "yyyy-MM-dd"),
-        featured: false,
-        published: false,
+        featured: true,
+        published: true,
         author: {
           name: user?.full_name || user?.username || "Penulis Pena",
           avatar: user?.avatar || "/logo.png",

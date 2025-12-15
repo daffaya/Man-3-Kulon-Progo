@@ -122,7 +122,13 @@ const createArticleController = ({
         }
 
         const articleData = await prepareArticleData(req);
+
         const newArticleId = await articleModel.create(articleData);
+
+        if (articleData.featured) {
+          await articleModel.unfeatureAllExcept(newArticleId);
+        }
+
         const newArticle = await articleModel.findById(newArticleId);
 
         res.status(201).json({
@@ -159,10 +165,15 @@ const createArticleController = ({
         }
 
         const articleData = await prepareArticleData(req, id);
+
         const updated = await articleModel.update(id, articleData);
 
         if (!updated) {
           return res.status(404).json({ message: "Article not found" });
+        }
+
+        if (articleData.featured) {
+          await articleModel.unfeatureAllExcept(id);
         }
 
         const updatedArticle = await articleModel.findById(id);

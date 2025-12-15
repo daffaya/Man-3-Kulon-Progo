@@ -469,6 +469,39 @@ const createArticleModel = ({ pool }) => {
       );
       return result.affectedRows > 0;
     },
+
+    /**
+     * Unfeatures all articles except the one specified by ID.
+     * @param {string|number} excludeId - The ID of the article to keep featured.
+     * @returns {Promise<boolean>} A promise that resolves to `true` if successful.
+     */
+    async unfeatureAllExcept(excludeId) {
+      try {
+        const [featuredArticles] = await pool.execute(
+          "SELECT id FROM articles WHERE featured = 1 AND id != ?",
+          [excludeId]
+        );
+
+        if (featuredArticles.length === 0) {
+          return true;
+        }
+
+        const sql = `
+      UPDATE articles 
+      SET featured = 0 
+      WHERE id != ? AND featured = 1;
+    `;
+        const [result] = await pool.execute(sql, [excludeId]);
+
+        console.log(
+          `[ArticleModel] Unfeatured ${result.affectedRows} articles`
+        );
+        return result.affectedRows > 0;
+      } catch (error) {
+        console.error("[ArticleModel] Error unfeaturing articles:", error);
+        throw error;
+      }
+    },
   };
 };
 
