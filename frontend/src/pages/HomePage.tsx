@@ -20,6 +20,8 @@ import {
   Mail,
   Phone,
   MessageCircle,
+  ExternalLink,
+  Zap,
 } from "lucide-react";
 import Layout from "../components/layout/Layout";
 import ArticleCard from "../components/article/ArticleCard";
@@ -463,7 +465,7 @@ const HomePage: React.FC = () => {
                     Ajukan Aduan/Saran
                   </Link>
                   <a
-                    href="https://forms.gle/CONTOHLINK"
+                    href="https://forms.gle/HmxhgcbJvt8XB5P2A"
                     target="_blank"
                     rel="noopener noreferrer"
                     className="btn btn-secondary"
@@ -475,37 +477,31 @@ const HomePage: React.FC = () => {
             </div>
 
             {/* Right Column - Contact Options */}
-            <div>
-              <div className="bg-semibackground p-6 rounded-lg shadow-sm h-full">
-                <h3 className="text-xl font-bold mb-4 text-foreground">
-                  Saluran Pengaduan
+            <div className="space-y-6">
+              {/* --- Card 1: Primary Channels --- */}
+              <div className="bg-semibackground p-6 rounded-lg shadow-sm border border-border/50 hover:shadow-md transition-shadow">
+                <h3 className="text-lg font-bold mb-4 text-foreground flex items-center">
+                  <Zap
+                    size={20}
+                    className="mr-2 text-accent"
+                    aria-hidden="true"
+                  />
+                  Saluran Utama
                 </h3>
-                <ul className="space-y-4">
-                  <li className="flex items-start">
-                    <div className="bg-accent/10 p-2 rounded-full mr-3">
-                      <Mail className="text-accent" size={18} />
-                    </div>
-                    <div>
-                      <span className="font-medium text-foreground">Email</span>
-                      <p className="text-sm text-secondary">
-                        man3kulonprogo@gmail.com
-                      </p>
-                    </div>
-                  </li>
-                  <li className="flex items-start">
-                    <div className="bg-accent/10 p-2 rounded-full mr-3">
-                      <Phone className="text-accent" size={18} />
-                    </div>
-                    <div>
-                      <span className="font-medium text-foreground">
-                        Hotline
-                      </span>
-                      <p className="text-sm text-secondary">0274-2821138</p>
-                    </div>
-                  </li>
-                  <li className="flex items-start">
-                    <div className="bg-accent/10 p-2 rounded-full mr-3">
-                      <MessageCircle className="text-accent" size={18} />
+                <address className="not-italic space-y-4">
+                  <a
+                    href="https://wa.me/6281234567890"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-start group hover:bg-accent/5 p-2 -m-2 rounded transition-colors"
+                    aria-label="Hubungi via WhatsApp ke 0812-3456-7890"
+                  >
+                    <div className="bg-accent/10 p-2 rounded-full mr-3 flex-shrink-0">
+                      <MessageCircle
+                        className="text-accent"
+                        size={18}
+                        aria-hidden="true"
+                      />
                     </div>
                     <div>
                       <span className="font-medium text-foreground">
@@ -513,16 +509,99 @@ const HomePage: React.FC = () => {
                       </span>
                       <p className="text-sm text-secondary">0812-3456-7890</p>
                     </div>
-                  </li>
-                </ul>
+                  </a>
+                  <a
+                    href="mailto:man3kulonprogo@gmail.com"
+                    className="flex items-start group hover:bg-accent/5 p-2 -m-2 rounded transition-colors"
+                    aria-label="Kirim email ke man3kulonprogo@gmail.com"
+                  >
+                    <div className="bg-accent/10 p-2 rounded-full mr-3 flex-shrink-0">
+                      <Mail
+                        className="text-accent"
+                        size={18}
+                        aria-hidden="true"
+                      />
+                    </div>
+                    <div>
+                      <span className="font-medium text-foreground">Email</span>
+                      <p className="text-sm text-secondary">
+                        man3kulonprogo@gmail.com
+                      </p>
+                    </div>
+                  </a>
+                  <a
+                    href="tel:02742821138"
+                    className="flex items-start group hover:bg-accent/5 p-2 -m-2 rounded transition-colors"
+                    aria-label="Telepon ke 0274-2821138"
+                  >
+                    <div className="bg-accent/10 p-2 rounded-full mr-3 flex-shrink-0">
+                      <Phone
+                        className="text-accent"
+                        size={18}
+                        aria-hidden="true"
+                      />
+                    </div>
+                    <div>
+                      <span className="font-medium text-foreground">
+                        Hotline
+                      </span>
+                      <p className="text-sm text-secondary">0274-2821138</p>
+                    </div>
+                  </a>
+                </address>
+              </div>
 
-                <div className="mt-6 pt-4 border-t border-border">
-                  <h4 className="font-bold mb-2 text-foreground">
-                    Kotak Pengaduan Fisik
-                  </h4>
-                  <p className="text-sm text-secondary">
-                    Tersedia di depan ruang Tata Usaha sekolah
-                  </p>
+              {/* --- Card 2: Other Channels --- */}
+              <div className="bg-semibackground p-6 rounded-lg shadow-sm border border-border/50">
+                <h3 className="text-lg font-bold mb-4 text-foreground">
+                  Saluran Lainnya
+                </h3>
+                <div className="space-y-4">
+                  <div>
+                    <h4 className="font-medium text-foreground mb-1">
+                      Kotak Pengaduan Fisik
+                    </h4>
+                    <p className="text-sm text-secondary">
+                      Tersedia di depan ruang Tata Usaha sekolah.
+                    </p>
+                  </div>
+                  <div>
+                    <h4 className="font-medium text-foreground mb-2">
+                      Pengaduan Nasional
+                    </h4>
+                    <ul className="space-y-2">
+                      <li>
+                        <a
+                          href="https://sippn.menpan.go.id/"
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-sm text-accent hover:underline flex items-center transition-colors"
+                        >
+                          <ExternalLink
+                            size={14}
+                            className="mr-1"
+                            aria-hidden="true"
+                          />
+                          SIPPN
+                        </a>
+                      </li>
+                      <li>
+                        <a
+                          href="https://lapor.go.id/"
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-sm text-accent hover:underline flex items-center transition-colors"
+                        >
+                          <ExternalLink
+                            size={14}
+                            className="mr-1"
+                            aria-hidden="true"
+                          />
+                          SP4N Lapor
+                        </a>
+                      </li>
+                    </ul>
+                  </div>
                 </div>
               </div>
             </div>
