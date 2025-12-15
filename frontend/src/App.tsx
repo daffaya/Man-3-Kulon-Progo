@@ -60,6 +60,7 @@ import AlbumPhotosPage from "./pages/admin/gallery/AlbumPhotosPage";
 import PpdbPage from "./pages/layanan/PpdbPage";
 import ZonaIntegritasPage from "./pages/layanan/ZonaIntegritasPage";
 import SedumPage from "./pages/layanan/SedumPage";
+import PtspPage from "./pages/layanan/PtspPage";
 
 /**
  * Layout wrapper component for admin routes that requires authentication.
@@ -100,6 +101,7 @@ function App() {
                       element={<ZonaIntegritasPage />}
                     />
                     <Route path="/layanan/sedum" element={<SedumPage />} />
+                    <Route path="/layanan/ptsp" element={<PtspPage />} />
 
                     {/* Gallery Routes */}
                     <Route path="/galeri" element={<GalleryPage />} />

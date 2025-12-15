@@ -587,7 +587,7 @@ const HomePage: React.FC = () => {
                       </li>
                       <li>
                         <a
-                          href="https://lapor.go.id/"
+                          href="https://www.lapor.go.id/instansi/man-3-kulon-progo"
                           target="_blank"
                           rel="noopener noreferrer"
                           className="text-sm text-accent hover:underline flex items-center transition-colors"

@@ -18,6 +18,7 @@ import {
   AppWindow,
   Image,
   Layers,
+  FileCheck, // <-- PERUBAHAN 1: Tambahkan import ikon FileCheck
 } from "lucide-react";
 import ThemeToggle from "../ui/ThemeToggle";
 import { NavLink } from "../ui/NavLink";
@@ -58,6 +59,7 @@ const Header: React.FC = () => {
     { to: "/layanan/zona-integritas", label: "Zona Integritas" },
     { to: "/layanan/ppdb", label: "PPDB" },
     { to: "/layanan/sedum", label: "Sedum" },
+    { to: "/layanan/ptsp", label: "PTSP Online" }, // <-- PERUBAHAN 2: Tambahkan item PTSP
   ];
 
   useEffect(() => {
