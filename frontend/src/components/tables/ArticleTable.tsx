@@ -152,22 +152,22 @@ const ArticleTable: React.FC<ArticleTableProps> = ({
       <table className="min-w-full divide-y divide-zinc-800">
         <thead className="bg-semibackground">
           <tr>
-            <th className="px-6 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider">
+            <th className="px-4 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider w-1/4">
               Title
             </th>
-            <th className="px-6 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider">
+            <th className="px-4 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider w-1/6 hidden sm:table-cell">
               Status
             </th>
-            <th className="px-6 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider">
+            <th className="px-4 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider w-1/5 hidden md:table-cell">
               Tags
             </th>
-            <th className="px-6 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider">
+            <th className="px-4 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider w-1/6 hidden lg:table-cell">
               Category
             </th>
-            <th className="px-6 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider">
+            <th className="px-4 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider w-1/6 hidden sm:table-cell">
               Date
             </th>
-            <th className="px-6 py-4 text-right text-xs font-medium text-secondary uppercase tracking-wider">
+            <th className="px-4 py-3 text-right text-xs font-medium text-secondary uppercase tracking-wider w-1/12">
               Actions
             </th>
           </tr>
@@ -178,7 +178,7 @@ const ArticleTable: React.FC<ArticleTableProps> = ({
               key={article.id}
               className="hover:bg-semibackground transition-colors"
             >
-              <td className="px-6 py-4 whitespace-nowrap">
+              <td className="px-4 py-4 whitespace-nowrap">
                 <div className="flex items-center">
                   <div className="flex-shrink-0 h-10 w-10">
                     <ImageWithFallback
@@ -187,50 +187,58 @@ const ArticleTable: React.FC<ArticleTableProps> = ({
                       className="h-10 w-10 rounded-md object-cover"
                     />
                   </div>
-                  <div className="ml-4">
-                    <div className="text-sm font-medium text-foreground">
-                      {truncateText(article.title, 40)}
+                  <div className="ml-3">
+                    <div className="text-sm font-medium text-foreground truncate max-w-xs">
+                      {truncateText(article.title, 30)}
                     </div>
-                    <div className="text-sm text-secondary">
-                      {article.readingTime} min read
+                    <div className="text-xs text-secondary sm:hidden">
+                      <StatusBadge article={article} />
+                    </div>
+                    <div className="text-xs text-secondary sm:hidden">
+                      {formatDate(article.publishedDate)}
                     </div>
                   </div>
                 </div>
               </td>
 
-              <td className="px-6 py-4 whitespace-nowrap">
+              <td className="px-4 py-4 whitespace-nowrap hidden sm:table-cell">
                 <StatusBadge article={article} />
               </td>
 
-              <td className="px-6 py-4 whitespace-nowrap">
+              <td className="px-4 py-4 whitespace-nowrap hidden md:table-cell">
                 <div className="flex flex-wrap gap-1 max-w-xs">
                   {Array.isArray(article.tags) && article.tags.length > 0 ? (
-                    article.tags.map((tag, index) => (
+                    article.tags.slice(0, 2).map((tag, index) => (
                       <span
                         key={index}
                         className="px-2 py-1 text-xs bg-accent/20 text-accent rounded-full"
                       >
-                        {truncateText(tag, 10)}
+                        {truncateText(tag, 8)}
                       </span>
                     ))
                   ) : (
                     <span className="text-secondary text-sm">No tags</span>
                   )}
+                  {article.tags.length > 2 && (
+                    <span className="text-xs text-secondary">
+                      +{article.tags.length - 2}
+                    </span>
+                  )}
                 </div>
               </td>
 
-              <td className="px-6 py-4 whitespace-nowrap text-sm text-secondary">
+              <td className="px-4 py-4 whitespace-nowrap text-sm text-secondary hidden lg:table-cell">
                 {truncateText(
                   article.category ? article.category.name : "-",
-                  10
+                  12
                 )}
               </td>
 
-              <td className="px-6 py-4 whitespace-nowrap text-sm text-secondary">
+              <td className="px-4 py-4 whitespace-nowrap text-sm text-secondary hidden sm:table-cell">
                 {formatDate(article.publishedDate)}
               </td>
 
-              <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+              <td className="px-4 py-4 whitespace-nowrap text-right text-sm font-medium">
                 <ActionButtons article={article} onDelete={onDelete} />
               </td>
             </tr>
