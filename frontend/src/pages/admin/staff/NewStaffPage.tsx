@@ -26,18 +26,6 @@ const NewStaffPage: React.FC = () => {
       setIsLoading(false);
     }
   };
-  const testRoute = async () => {
-    try {
-      const result = await staffApi.testStaffRoute();
-      alert("Test route berhasil: " + JSON.stringify(result));
-    } catch (error) {
-      if (error instanceof Error) {
-        alert("Test route gagal: " + error.message);
-      } else {
-        alert("Test route gagal");
-      }
-    }
-  };
 
   return (
     <AdminLayout>
@@ -50,13 +38,6 @@ const NewStaffPage: React.FC = () => {
             <StaffForm onSubmit={handleSubmit} isLoading={isLoading} />
           </div>
         </div>
-        <button
-          type="button"
-          onClick={testRoute}
-          className="btn btn-secondary mb-4"
-        >
-          Test Route
-        </button>
       </div>
     </AdminLayout>
   );
