@@ -7,11 +7,12 @@
 import React, { useEffect, useState, useMemo, useRef } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
 import { ChevronLeft } from "lucide-react";
-import Layout from "../components/layout/Layout";
-import ArticleContent from "../components/article/ArticleContent";
-import ArticleCard from "../components/article/ArticleCard";
-import { useArticles } from "../contexts/ArticleContext";
-import { Article } from "../types/articleTypes";
+import Layout from "../../components/layout/Layout";
+import ArticleContent from "../../components/article/ArticleContent";
+import ArticleCard from "../../components/article/ArticleCard";
+import { useArticles } from "../../contexts/ArticleContext";
+import { Article } from "../../types/articleTypes";
+import ShareButtons from "../../components/ui/ShareButton";
 
 /**
  * Component that displays a detailed view of a single article.
@@ -165,6 +166,8 @@ const NewsDetailPage: React.FC = () => {
         </div>
 
         <ArticleContent article={article} />
+
+        <ShareButtons title={article.title} url={window.location.href} />
 
         {relatedArticles.length > 0 && (
           <div className="mt-16">

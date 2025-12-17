@@ -7,10 +7,10 @@
 import React, { useState, useEffect, useMemo, useCallback } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { RefreshCw, X, ChevronLeft, ChevronRight } from "lucide-react";
-import Layout from "../components/layout/Layout";
-import ArticleList from "../components/article/ArticleList";
-import { useArticles } from "../contexts/ArticleContext";
-import { Article, ArticleFilters } from "../types/articleTypes";
+import Layout from "../../components/layout/Layout";
+import ArticleList from "../../components/article/ArticleList";
+import { useArticles } from "../../contexts/ArticleContext";
+import { Article, ArticleFilters } from "../../types/articleTypes";
 
 /**
  * Component that renders the news/articles page with filtering and pagination.

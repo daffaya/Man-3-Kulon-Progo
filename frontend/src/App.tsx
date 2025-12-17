@@ -15,8 +15,8 @@ import { StudentStatsProvider } from "./contexts/StudentStatsContext";
 
 // Pages
 import HomePage from "./pages/HomePage";
-import NewsPage from "./pages/NewsPage";
-import NewsDetailPage from "./pages/NewsDetailPage";
+import NewsPage from "./pages/news/NewsPage";
+import NewsDetailPage from "./pages/news/NewsDetailPage";
 import ProfilePage from "./pages/ProfilePage";
 import ContactPage from "./pages/ContactPage";
 import AdminDashboard from "./pages/admin/AdminDashboard";
