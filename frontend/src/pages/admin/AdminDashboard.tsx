@@ -14,6 +14,7 @@ import {
   BookOpen,
   Image,
   LogIn,
+  UserCheck, // Tambahkan icon untuk staff management
 } from "lucide-react";
 import AppCard from "../../components/ui/AppCard";
 import { useAuth } from "../../contexts/AuthContext";
@@ -104,6 +105,15 @@ const AdminDashboard: React.FC = () => {
         "pengelola_bmn",
       ] as UserRole[],
       to: "/atmin/gallery",
+    },
+    // Tambahkan Staff Management
+    {
+      id: "staff",
+      title: "Manajemen Guru & Staf",
+      description: "Kelola data guru dan tenaga kependidikan",
+      icon: <UserCheck className="w-6 h-6" />,
+      requiredRole: ["super_admin"] as UserRole[],
+      to: "/atmin/staff",
     },
   ];
 

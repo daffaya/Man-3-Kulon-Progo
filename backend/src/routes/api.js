@@ -18,6 +18,8 @@ import alumniRouterFactory from "./alumniRoutes.js";
 import userRouterFactory from "./userRoutes.js";
 import publicGalleryRouterFactory from "./publicGalleryRoutes.js";
 import adminGalleryRouterFactory from "./adminGalleryRoutes.js";
+import staffRouterFactory from "./staffRoutes.js";
+import publicStaffRouterFactory from "./publicStaffRoutes.js";
 
 /**
  * @typedef {object} ApiRouterOptions
@@ -69,6 +71,7 @@ const apiRouterFactory = ({
   apiRouter.use("/tags", tagRouterFactory({ pool }));
   apiRouter.use("/articles", publicArticleRouterFactory({ pool }));
   apiRouter.use("/gallery", publicGalleryRouterFactory({ pool }));
+  apiRouter.use("/staff", publicStaffRouterFactory({ pool }));
 
   // Admin Routes - These routes are protected and intended for administrative users
   apiRouter.use(
@@ -83,6 +86,7 @@ const apiRouterFactory = ({
     "/atmin/gallery",
     adminGalleryRouterFactory({ pool, JWT_SECRET })
   );
+  apiRouter.use("/atmin/staff", staffRouterFactory({ pool, JWT_SECRET }));
 
   // User Routes - Routes for authenticated users to manage their own profiles
   apiRouter.use("/users", userRouterFactory({ pool, JWT_SECRET }));
