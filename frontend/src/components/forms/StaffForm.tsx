@@ -1,30 +1,26 @@
 /**
- * @fileoverview StaffForm component for creating and editing staff data.
- * This component provides a comprehensive form with fields for type, name, NIP, gender,
- * status, and position. It supports both creating new staff and editing existing ones.
+ * @fileoverview Form component for creating and editing staff records.
+ * Handles input fields for staff type, name, NIP, gender, employment status, and position.
+ * Supports both new entry creation and existing record editing.
  */
 
 import React, { useState, useEffect } from "react";
 import { Staff, StaffFormData } from "../../types/staffTypes";
-import { useStaff } from "../../contexts/staffContext";
 import { RefreshCw } from "lucide-react";
 
-/** Props for StaffForm component. */
+/** Props for the StaffForm component */
 interface StaffFormProps {
-  /** The staff data to pre-fill the form for editing. */
+  /** Existing staff data to pre-fill the form (edit mode) */
   staff?: Staff;
-  /** Function to call when the form is submitted. */
+  /** Callback invoked on form submission with the collected data */
   onSubmit: (formData: StaffFormData) => void;
-  /** Whether the form is in a loading state. */
+  /** Indicates if the form is in a submitting/loading state */
   isLoading?: boolean;
 }
 
 /**
- * A form component for creating and editing staff data.
- * It handles all staff fields and supports both creating and editing.
- *
- * @param {StaffFormProps} props - The component props.
- * @returns {JSX.Element} The rendered StaffForm component.
+ * StaffForm component.
+ * Renders a controlled form with validation and responsive disabled state during submission.
  */
 const StaffForm: React.FC<StaffFormProps> = ({
   staff,
@@ -40,10 +36,7 @@ const StaffForm: React.FC<StaffFormProps> = ({
     jabatan: "",
   });
 
-  /**
-   * Populates the form with staff data if a staff prop is provided (for editing).
-   * Otherwise, it resets the form to its default state.
-   */
+  // Pre-fill form when editing an existing staff member
   useEffect(() => {
     if (staff) {
       setFormData({
@@ -55,6 +48,7 @@ const StaffForm: React.FC<StaffFormProps> = ({
         jabatan: staff.jabatan,
       });
     } else {
+      // Reset to defaults for create mode
       setFormData({
         type: "teacher",
         nama: "",
@@ -66,10 +60,6 @@ const StaffForm: React.FC<StaffFormProps> = ({
     }
   }, [staff]);
 
-  /**
-   * Handles input changes for form fields.
-   * @param {React.ChangeEvent<HTMLInputElement | HTMLSelectElement>} e - The change event from the input element.
-   */
   const handleInputChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
   ) => {
@@ -80,11 +70,6 @@ const StaffForm: React.FC<StaffFormProps> = ({
     }));
   };
 
-  /**
-   * Handles the form submission event.
-   * Calls the onSubmit prop with the form data.
-   * @param {React.FormEvent} e - The form submission event.
-   */
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     onSubmit(formData);
@@ -92,6 +77,7 @@ const StaffForm: React.FC<StaffFormProps> = ({
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
+      {/* Tipe */}
       <div>
         <label
           htmlFor="type"
@@ -113,6 +99,7 @@ const StaffForm: React.FC<StaffFormProps> = ({
         </select>
       </div>
 
+      {/* Nama Lengkap */}
       <div>
         <label
           htmlFor="nama"
@@ -132,6 +119,7 @@ const StaffForm: React.FC<StaffFormProps> = ({
         />
       </div>
 
+      {/* NIP */}
       <div>
         <label
           htmlFor="nip"
@@ -151,6 +139,7 @@ const StaffForm: React.FC<StaffFormProps> = ({
         />
       </div>
 
+      {/* Jenis Kelamin */}
       <div>
         <label
           htmlFor="gender"
@@ -173,6 +162,7 @@ const StaffForm: React.FC<StaffFormProps> = ({
         </select>
       </div>
 
+      {/* Status Kepegawaian */}
       <div>
         <label
           htmlFor="status"
@@ -196,6 +186,7 @@ const StaffForm: React.FC<StaffFormProps> = ({
         </select>
       </div>
 
+      {/* Jabatan */}
       <div>
         <label
           htmlFor="jabatan"
@@ -215,6 +206,7 @@ const StaffForm: React.FC<StaffFormProps> = ({
         />
       </div>
 
+      {/* Submit Button */}
       <div className="pt-4 flex justify-end">
         <button type="submit" className="btn btn-primary" disabled={isLoading}>
           {isLoading ? (

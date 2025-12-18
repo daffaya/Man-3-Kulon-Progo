@@ -174,12 +174,12 @@ const DetailTendikTable: React.FC<{ data: Tendik[] }> = ({ data }) => {
               }
             >
               <td className="border border-gray-300 dark:border-gray-600 px-4 py-2 text-center">
-                {item.no}
+                {index + 1}
               </td>
               <td className="border border-gray-300 dark:border-gray-600 px-4 py-2">
                 {item.nama}
               </td>
-              <td className="border border-gray-300 dark:border-gray-600 px-4 py-2 font-mono text-xs">
+              <td className="border border-gray-300 dark:border-gray-600 px-4 py-2">
                 {item.nip}
               </td>
               <td className="border border-gray-300 dark:border-gray-600 px-4 py-2 text-center">

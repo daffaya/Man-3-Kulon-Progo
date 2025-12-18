@@ -1,7 +1,7 @@
 /**
  * @fileoverview API service for staff management.
- * Provides functions to interact with the backend staff endpoints.
- * Includes both administrative (with auth token) and public operations.
+ * Provides functions to interact with backend staff endpoints for administrative
+ * and public operations. All admin endpoints require JWT authentication.
  */
 
 import {
@@ -16,22 +16,18 @@ import { apiFetch } from "../lib/api";
 
 /**
  * Retrieves the JWT authorization token from localStorage.
- * @returns {string | null} The JWT token if present, otherwise null.
+ * @returns {string | null} The token if present, otherwise null.
  */
 const getAuthToken = (): string | null => localStorage.getItem("token");
 
 /**
- * Object containing all API functions related to staff management.
+ * Collection of API methods for staff management.
  */
 export const staffApi = {
   /**
    * Creates a new staff member.
-   * Sends a POST request to `/atmin/staff` with the provided data.
-   * Requires authentication token.
-   *
-   * @param {StaffFormData} data - The data for the new staff.
-   * @returns {Promise<Staff>} The newly created staff object.
-   * @throws {Error} If the request fails.
+   * @param {StaffFormData} data - Form data for the new staff member.
+   * @returns {Promise<Staff>} The created staff object.
    */
   createStaff: async (data: StaffFormData): Promise<Staff> => {
     const token = getAuthToken();
@@ -44,13 +40,9 @@ export const staffApi = {
 
   /**
    * Updates an existing staff member.
-   * Sends a PUT request to `/atmin/staff/:id` with updated data.
-   * Requires authentication token.
-   *
-   * @param {number} id - The ID of the staff to update.
-   * @param {StaffFormData} data - The updated staff data.
+   * @param {number} id - The ID of the staff member to update.
+   * @param {StaffFormData} data - Updated form data.
    * @returns {Promise<Staff>} The updated staff object.
-   * @throws {Error} If the request fails.
    */
   updateStaff: async (id: number, data: StaffFormData): Promise<Staff> => {
     const token = getAuthToken();
@@ -63,12 +55,8 @@ export const staffApi = {
 
   /**
    * Deletes a staff member by ID.
-   * Sends a DELETE request to `/atmin/staff/:id`.
-   * Requires authentication token.
-   *
-   * @param {number} id - The ID of the staff to delete.
-   * @returns {Promise<void>} Resolves when deletion is successful.
-   * @throws {Error} If the request fails.
+   * @param {number} id - The ID of the staff member to delete.
+   * @returns {Promise<void>}
    */
   deleteStaff: async (id: number): Promise<void> => {
     const token = getAuthToken();
@@ -80,30 +68,21 @@ export const staffApi = {
 
   /**
    * Fetches a single staff member by ID.
-   * Sends a GET request to `/atmin/staff/:id`.
-   * Requires authentication token.
-   *
-   * @param {number} id - The ID of the staff to fetch.
+   * @param {number} id - The staff member ID.
    * @returns {Promise<Staff>} The staff object.
-   * @throws {Error} If the request fails.
    */
   getStaffById: async (id: number): Promise<Staff> => {
     const token = getAuthToken();
-    const data = await apiFetch<Staff>(`/atmin/staff/${id}`, {
+    const response = await apiFetch<{ data: Staff }>(`/atmin/staff/${id}`, {
       headers: token ? { Authorization: `Bearer ${token}` } : {},
     });
-    return data;
+    return response.data;
   },
 
   /**
-   * Fetches a list of staff members with optional filters.
-   * Supports keyword, type, gender, status, pagination.
-   * Sends a GET request to `/atmin/staff`.
-   * Requires authentication token.
-   *
-   * @param {StaffFilters} [filters={}] - Filters to apply.
-   * @returns {Promise<StaffPaginationData>} Paginated list of staff.
-   * @throws {Error} If the request fails.
+   * Fetches a paginated list of staff members with optional filters.
+   * @param {StaffFilters} [filters={}] - Filters (keyword, type, gender, status, pagination).
+   * @returns {Promise<StaffPaginationData>} Paginated staff list with metadata.
    */
   getStaffList: async (
     filters: StaffFilters = {}
@@ -128,30 +107,24 @@ export const staffApi = {
   },
 
   /**
-   * Fetches teacher recap data (public endpoint).
-   *
-   * @returns {Promise<{ data: StaffRecap[] }>} List of teacher recap data.
-   * @throws {Error} If the request fails.
+   * Fetches public teacher recap data.
+   * @returns {Promise<{ data: StaffRecap[] }>} Array of teacher recap records.
    */
   getTeacherRecap: async (): Promise<{ data: StaffRecap[] }> => {
     return apiFetch<{ data: StaffRecap[] }>("/staff/teachers/recap");
   },
 
   /**
-   * Fetches staff recap data (public endpoint).
-   *
-   * @returns {Promise<{ data: StaffRecap[] }>} List of staff recap data.
-   * @throws {Error} If the request fails.
+   * Fetches public staff recap data.
+   * @returns {Promise<{ data: StaffRecap[] }>} Array of staff recap records.
    */
   getStaffRecap: async (): Promise<{ data: StaffRecap[] }> => {
     return apiFetch<{ data: StaffRecap[] }>("/staff/staff/recap");
   },
 
   /**
-   * Fetches all tendik data (public endpoint).
-   *
-   * @returns {Promise<{ data: Tendik[] }>} List of tendik data.
-   * @throws {Error} If the request fails.
+   * Fetches all public tendik (non-teaching staff) data.
+   * @returns {Promise<{ data: Tendik[] }>} Array of tendik records.
    */
   getAllTendik: async (): Promise<{ data: Tendik[] }> => {
     return apiFetch<{ data: Tendik[] }>("/staff/tendik");

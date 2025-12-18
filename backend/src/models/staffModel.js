@@ -223,15 +223,15 @@ const createStaffModel = ({ pool }) => {
      */
     async getRecapByType(type) {
       const query = `
-    SELECT
-      status,
-      SUM(CASE WHEN gender = 'L' THEN 1 ELSE 0 END) AS male,
-      SUM(CASE WHEN gender = 'P' THEN 1 ELSE 0 END) AS female
-    FROM tendik
-    WHERE type = ?
-    GROUP BY status
-    ORDER BY FIELD(status, 'PNS', 'PPPK', 'CPNS')
-  `;
+        SELECT
+          status,
+          SUM(CASE WHEN gender = 'L' THEN 1 ELSE 0 END) AS male,
+          SUM(CASE WHEN gender = 'P' THEN 1 ELSE 0 END) AS female
+        FROM tendik
+        WHERE type = ?
+        GROUP BY status
+        ORDER BY FIELD(status, 'PNS', 'PPPK', 'CPNS')
+      `;
 
       const [rows] = await pool.execute(query, [type]);
       return rows;
@@ -248,7 +248,7 @@ const createStaffModel = ({ pool }) => {
             ROW_NUMBER() OVER (ORDER BY id) as no,
             nama, nip, gender, status, jabatan
           FROM tendik
-          ORDER BY no
+          ORDER BY nama ASC
         `;
 
         const [rows] = await pool.execute(query);

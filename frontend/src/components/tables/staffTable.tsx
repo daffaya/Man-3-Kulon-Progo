@@ -1,18 +1,14 @@
 /**
- * @fileoverview React component for displaying staff data in a table format.
- * This component provides a table view of staff with type badges, and action buttons
- * for editing and deleting staff. It includes loading and empty states.
+ * @fileoverview Table component for displaying a list of staff members in the admin panel.
+ * Responsive table with mobile-first layout.
  */
 
 import React from "react";
+import { Link } from "react-router-dom";
 import { Edit, Trash2, RefreshCw } from "lucide-react";
 import { Staff } from "../../types/staffTypes";
-import { formatDate } from "../../lib/utils";
 
-/**
- * Props for the StaffTable component
- * @interface StaffTableProps
- */
+/** Props for the StaffTable component */
 interface StaffTableProps {
   staff: Staff[];
   onDelete: (id: number) => void;
@@ -21,21 +17,8 @@ interface StaffTableProps {
   itemsPerPage: number;
 }
 
-/**
- * Props for the TypeBadge component
- * @interface TypeBadgeProps
- */
-interface TypeBadgeProps {
-  staff: Staff;
-}
-
-/**
- * Badge component to display staff type (teacher or staff).
- *
- * @param {TypeBadgeProps} props - The component props
- * @returns {JSX.Element} The rendered type badge
- */
-const TypeBadge: React.FC<TypeBadgeProps> = ({ staff }) => (
+/** Badge displaying staff type (Guru / Staf) */
+const TypeBadge: React.FC<{ staff: Staff }> = ({ staff }) => (
   <span
     className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
       staff.type === "teacher"
@@ -47,57 +30,29 @@ const TypeBadge: React.FC<TypeBadgeProps> = ({ staff }) => (
   </span>
 );
 
-/**
- * Props for the ActionButtons component
- * @interface ActionButtonsProps
- */
-interface ActionButtonsProps {
+/** Action buttons */
+const ActionButtons: React.FC<{
   staff: Staff;
   onDelete: (id: number) => void;
-}
+}> = ({ staff, onDelete }) => (
+  <div className="flex justify-end space-x-2">
+    <Link
+      to={`/atmin/staff/${staff.id}/edit`}
+      className="text-accent hover:text-hover transition-colors"
+      title="Edit staff"
+    >
+      <Edit size={18} />
+    </Link>
+    <button
+      onClick={() => onDelete(staff.id)}
+      className="text-error hover:text-error/80 transition-colors"
+      title="Hapus staff"
+    >
+      <Trash2 size={18} />
+    </button>
+  </div>
+);
 
-/**
- * Action buttons component for each staff row.
- * Provides buttons to edit and delete a staff.
- *
- * @param {ActionButtonsProps} props - The component props
- * @returns {JSX.Element} The rendered action buttons
- */
-const ActionButtons: React.FC<ActionButtonsProps> = ({ staff, onDelete }) => {
-  return (
-    <div className="flex justify-end space-x-2">
-      <button
-        onClick={() => {
-          // This will be handled by the parent component
-          window.location.href = `/atmin/staff/${staff.id}/edit`;
-        }}
-        className="text-accent hover:text-hover transition-colors"
-        aria-label="Edit staff"
-        title="Edit staff"
-      >
-        <Edit size={18} />
-      </button>
-
-      <button
-        onClick={() => onDelete(staff.id)}
-        className="text-error hover:text-error/80 transition-colors"
-        aria-label="Delete staff"
-        title="Delete staff"
-      >
-        <Trash2 size={18} />
-      </button>
-    </div>
-  );
-};
-
-/**
- * Table component for displaying a list of staff in the admin interface.
- * Shows staff details including name, NIP, type, gender, status, position, and action buttons.
- * Handles loading and empty states.
- *
- * @param {StaffTableProps} props - The component props
- * @returns {JSX.Element} The rendered staff table
- */
 const StaffTable: React.FC<StaffTableProps> = ({
   staff,
   onDelete,
@@ -107,10 +62,10 @@ const StaffTable: React.FC<StaffTableProps> = ({
 }) => {
   if (loading) {
     return (
-      <div className="overflow-x-auto rounded-lg border border-zinc-800 relative min-h-[200px] flex items-center justify-center">
+      <div className="overflow-x-auto rounded-lg border border-zinc-800 min-h-[200px] flex items-center justify-center relative">
         <RefreshCw size={40} className="animate-spin text-accent" />
-        <p className="mt-4 text-secondary absolute bottom-4">
-          Loading staff data...
+        <p className="absolute bottom-4 text-secondary text-sm">
+          Memuat data staff...
         </p>
       </div>
     );
@@ -120,82 +75,109 @@ const StaffTable: React.FC<StaffTableProps> = ({
     return (
       <div className="text-center py-12">
         <h3 className="text-xl font-medium text-secondary">
-          No staff found matching filters.
+          Tidak ada data staff.
         </h3>
       </div>
     );
   }
 
   return (
-    <div className="overflow-x-auto rounded-lg border border-zinc-800 relative">
-      <table className="min-w-full divide-y divide-zinc-800">
+    <div className="overflow-x-auto rounded-lg border border-zinc-800">
+      <table className="min-w-full table-fixed divide-y divide-zinc-800">
         <thead className="bg-semibackground">
           <tr>
-            <th className="px-4 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider w-1/12">
+            {/* No */}
+            <th className="px-2 py-3 w-10 text-center text-xs font-medium text-secondary uppercase">
               No
             </th>
-            <th className="px-4 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider w-1/4">
+
+            {/* Nama */}
+            <th className="px-4 py-3 text-left text-xs font-medium text-secondary uppercase">
               Nama
             </th>
-            <th className="px-4 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider w-1/6">
+
+            {/* NIP */}
+            <th className="px-4 py-3 text-left text-xs font-medium text-secondary uppercase hidden sm:table-cell">
               NIP
             </th>
-            <th className="px-4 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider w-1/12 hidden sm:table-cell">
+
+            {/* Tipe */}
+            <th className="px-2 py-3 text-center text-xs font-medium text-secondary uppercase hidden sm:table-cell whitespace-nowrap w-fit">
               Tipe
             </th>
-            <th className="px-4 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider w-1/12 hidden sm:table-cell">
+
+            {/* Gender */}
+            <th className="px-4 py-3 text-left text-xs font-medium text-secondary uppercase hidden md:table-cell">
               Gender
             </th>
-            <th className="px-4 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider w-1/6 hidden md:table-cell">
+
+            {/* Status */}
+            <th className="px-2 py-3 text-center text-xs font-medium text-secondary uppercase hidden md:table-cell whitespace-nowrap w-fit">
               Status
             </th>
-            <th className="px-4 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider w-1/5 hidden lg:table-cell">
+
+            {/* Jabatan */}
+            <th className="px-4 py-3 text-left text-xs font-medium text-secondary uppercase hidden lg:table-cell w-fit">
               Jabatan
             </th>
-            <th className="px-4 py-3 text-right text-xs font-medium text-secondary uppercase tracking-wider w-1/12">
-              Actions
+
+            {/* Aksi */}
+            <th className="px-2 py-3 text-center text-xs font-medium text-secondary uppercase whitespace-nowrap w-fit">
+              Aksi
             </th>
           </tr>
         </thead>
+
         <tbody className="divide-y divide-zinc-800">
           {staff.map((item, index) => (
             <tr
               key={item.id}
               className="hover:bg-semibackground transition-colors"
             >
-              <td className="px-4 py-4 whitespace-nowrap text-sm text-secondary">
+              {/* No */}
+              <td className="px-2 py-4 w-10 text-center text-sm text-secondary whitespace-nowrap">
                 {(currentPage - 1) * itemsPerPage + index + 1}
               </td>
-              <td className="px-4 py-4 whitespace-nowrap">
+
+              {/* Nama + mobile info */}
+              <td className="px-4 py-4">
                 <div className="text-sm font-medium text-foreground">
                   {item.nama}
                 </div>
-                <div className="text-xs text-secondary sm:hidden">
+
+                <div className="sm:hidden mt-1 flex flex-wrap gap-2 text-xs text-secondary">
                   <TypeBadge staff={item} />
+                  <span>• {item.nip}</span>
                 </div>
               </td>
 
-              <td className="px-4 py-4 whitespace-nowrap text-sm text-secondary">
+              {/* NIP */}
+              <td className="px-4 py-4 text-sm text-secondary hidden sm:table-cell">
                 {item.nip}
               </td>
 
-              <td className="px-4 py-4 whitespace-nowrap hidden sm:table-cell">
+              {/* Tipe */}
+              <td className="px-2 py-4 text-center hidden sm:table-cell whitespace-nowrap">
                 <TypeBadge staff={item} />
               </td>
 
-              <td className="px-4 py-4 whitespace-nowrap text-sm text-secondary hidden sm:table-cell">
-                {item.gender}
+              {/* Gender */}
+              <td className="px-4 py-4 text-sm text-secondary hidden md:table-cell">
+                {item.gender === "L" ? "Laki-laki" : "Perempuan"}
               </td>
 
-              <td className="px-4 py-4 whitespace-nowrap text-sm text-secondary hidden md:table-cell">
+              {/* Status */}
+              <td className="px-2 py-4 text-center text-sm text-secondary hidden md:table-cell whitespace-nowrap">
                 {item.status}
               </td>
 
-              <td className="px-4 py-4 whitespace-nowrap text-sm text-secondary hidden lg:table-cell">
+              {/* Jabatan */}
+              <td className="px-4 py-4 text-sm text-secondary hidden lg:table-cell">
                 {item.jabatan}
               </td>
 
-              <td className="px-4 py-4 whitespace-nowrap text-right text-sm font-medium">
+              {/* Aksi */}
+              <td className="px-2 py-4 text-right whitespace-nowrap">
                 <ActionButtons staff={item} onDelete={onDelete} />
               </td>
             </tr>
