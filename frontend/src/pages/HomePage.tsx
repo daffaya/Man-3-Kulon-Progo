@@ -1,7 +1,7 @@
 /**
  * @fileoverview HomePage component for displaying the main landing page of the MAN 3 Kulon Progo website.
  * This component renders various sections including carousel, hero, statistics, school information,
- * integrity zone, featured articles, achievements, photo gallery, public complaint service, and quick actions.
+ * integrity zone, survey results, featured articles, achievements, photo gallery, public complaint service, and quick actions.
  */
 
 import React, { useEffect, useState } from "react";
@@ -32,7 +32,8 @@ import { useGallery } from "../contexts/GalleryContext";
 import AlbumCard from "../components/gallery/AlbumCard";
 import { Article, Category } from "../types/articleTypes";
 import { useStudentStats } from "../contexts/StudentStatsContext";
-import articleApi from "../api/articleApi"; // Import articleApi
+import articleApi from "../api/articleApi";
+import SurveySlider from "../components/ui/SurveySlider";
 
 /**
  * Main home page component that displays various sections of the school website.
@@ -273,24 +274,31 @@ const HomePage: React.FC = () => {
         </div>
       </section>
 
-      {/* Featured Articles */}
-      <div className="text-center my-8 fade-in">
-        <h1 className="text-4xl md:text-5xl sm:text-6xl font-serif font-bold mb-4 text-foreground">
-          Artikel & Berita Pilihan
-        </h1>
-        <p className="text-lg text-secondary max-w-3xl mx-auto">
-          Lihat sekilas cerita seru, prestasi keren, dan momen berharga di MAN 3
-          Kulon Progo. Dari kegiatan sekolah sampai kabar terbaru, semua bisa
-          kamu nikmati di sini! <br />
-          Jangan sampai ketinggalan, ya!
-        </p>
-      </div>
+      {/* Survey Results Section*/}
+      <SurveySlider />
 
-      {featuredArticles.length > 0 && (
-        <div className="mb-16 slide-up">
-          <ArticleCard article={featuredArticles[0]} featured />
+      {/* Featured Articles */}
+      <section className="py-12 bg-background">
+        <div className="container max-w-6xl mx-auto px-4 sm:px-6">
+          <div className="text-center mb-8 fade-in">
+            <h1 className="text-4xl md:text-5xl sm:text-6xl font-serif font-bold mb-4 text-foreground">
+              Artikel & Berita Pilihan
+            </h1>
+            <p className="text-lg text-secondary max-w-3xl mx-auto">
+              Lihat sekilas cerita seru, prestasi keren, dan momen berharga di
+              MAN 3 Kulon Progo. Dari kegiatan sekolah sampai kabar terbaru,
+              semua bisa kamu nikmati di sini! <br />
+              Jangan sampai ketinggalan, ya!
+            </p>
+          </div>
+
+          {featuredArticles.length > 0 && (
+            <div className="mb-16 slide-up">
+              <ArticleCard article={featuredArticles[0]} featured />
+            </div>
+          )}
         </div>
-      )}
+      </section>
 
       {/* Recent News */}
       <section className="py-12 bg-semibackground">
