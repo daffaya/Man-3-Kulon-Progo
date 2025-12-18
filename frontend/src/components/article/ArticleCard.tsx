@@ -71,14 +71,14 @@ const ArticleCard: React.FC<ArticleCardProps> = ({
             </div>
 
             {/* Title with responsive font size */}
-            <h2 className="text-lg sm:text-xl md:text-2xl lg:text-3xl font-serif font-bold mb-2 sm:mb-3 leading-tight">
+            <h2 className="text-lg sm:text-lg md:text-xl lg:text-2xl font-serif font-bold mb-2 sm:mb-3 leading-tight">
               <Link to={`/berita/${slug}`} className="hover:underline">
                 {title}
               </Link>
             </h2>
 
-            {/* Overview with responsive line clamping */}
-            <p className="text-gray-200 mb-3 sm:mb-4 line-clamp-2 sm:line-clamp-3 text-sm sm:text-base">
+            {/* Overview */}
+            <p className="text-gray-200 mb-3 sm:mb-4 text-xs sm:text-sm overflow-hidden truncate md:overflow-ellipsis">
               <Link to={`/berita/${slug}`}>{overview}</Link>
             </p>
 
