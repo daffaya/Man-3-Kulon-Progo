@@ -1,0 +1,370 @@
+📦backend
+ ┣ 📂node_modules
+ ┣ 📂src
+ ┃ ┣ 📂config
+ ┃ ┃ ┗ 📜connection.js
+ ┃ ┣ 📂controllers
+ ┃ ┃ ┣ 📜alumniController.js
+ ┃ ┃ ┣ 📜archiveController.js
+ ┃ ┃ ┣ 📜articleController.js
+ ┃ ┃ ┣ 📜attendanceController.js
+ ┃ ┃ ┣ 📜categoryController.js
+ ┃ ┃ ┣ 📜galleryController.js
+ ┃ ┃ ┣ 📜staffController.js
+ ┃ ┃ ┣ 📜studentController.js
+ ┃ ┃ ┗ 📜userController.js
+ ┃ ┣ 📂middleware
+ ┃ ┃ ┣ 📜authMiddleware.js
+ ┃ ┃ ┣ 📜galleryUpload.js
+ ┃ ┃ ┣ 📜rateLimiter.js
+ ┃ ┃ ┗ 📜uploadAvatar.js
+ ┃ ┣ 📂models
+ ┃ ┃ ┣ 📜alumniModel.js
+ ┃ ┃ ┣ 📜archiveModel.js
+ ┃ ┃ ┣ 📜articleModel.js
+ ┃ ┃ ┣ 📜attendanceModel.js
+ ┃ ┃ ┣ 📜categoryModel.js
+ ┃ ┃ ┣ 📜galleryModel.js
+ ┃ ┃ ┣ 📜staffModel.js
+ ┃ ┃ ┣ 📜studentModel.js
+ ┃ ┃ ┗ 📜userModel.js
+ ┃ ┣ 📂routes
+ ┃ ┃ ┣ 📜adminArticleRoutes.js
+ ┃ ┃ ┣ 📜adminCategoryRoutes.js
+ ┃ ┃ ┣ 📜adminGalleryRoutes.js
+ ┃ ┃ ┣ 📜alumniRoutes.js
+ ┃ ┃ ┣ 📜api.js
+ ┃ ┃ ┣ 📜archiveRoutes.js
+ ┃ ┃ ┣ 📜attendanceRoutes.js
+ ┃ ┃ ┣ 📜authRoutes.js
+ ┃ ┃ ┣ 📜publicArticleRoutes.js
+ ┃ ┃ ┣ 📜publicCategoryRoutes.js
+ ┃ ┃ ┣ 📜publicGalleryRoutes.js
+ ┃ ┃ ┣ 📜publicStaffRoutes.js
+ ┃ ┃ ┣ 📜publicStudentStatRoutes.js
+ ┃ ┃ ┣ 📜staffRoutes.js
+ ┃ ┃ ┣ 📜studentRoutes.js
+ ┃ ┃ ┣ 📜tagRoutes.js
+ ┃ ┃ ┗ 📜userRoutes.js
+ ┃ ┣ 📂services
+ ┃ ┃ ┣ 📜attendanceService.js
+ ┃ ┃ ┣ 📜exportService.js
+ ┃ ┃ ┣ 📜fileUploadService.js
+ ┃ ┃ ┣ 📜galleryService.js
+ ┃ ┃ ┣ 📜galleryUploadService.js
+ ┃ ┃ ┣ 📜imageProcessingServices.js
+ ┃ ┃ ┗ 📜importStudentService.js
+ ┃ ┣ 📂temp
+ ┃ ┃ ┗ 📜rekap_presensi_XII-A_monthly_2025-10-28.pdf
+ ┃ ┣ 📂uploads
+ ┃ ┃ ┣ 📂gallery
+ ┃ ┃ ┃ ┗ 📂temp
+ ┃ ┃ ┣ 📜1761188401372-template-import-siswa.xlsx
+ ┃ ┃ ┣ 📜1761189024084-Daftar_Siswa_2024_2025_Ganjil_kelas_XI.xlsx
+ ┃ ┃ ┗ 📜1761189213182-Daftar_Siswa_2024_2025_Ganjil_kelas_XI.xlsx
+ ┃ ┣ 📂utils
+ ┃ ┃ ┗ 📜helper.js
+ ┃ ┗ 📜bootstrap.js
+ ┣ 📂template
+ ┃ ┗ 📜template-import-siswa.xlsx
+ ┣ 📂uploads
+ ┃ ┣ 📂avatars
+ ┃ ┃ ┣ 📜1762241969930-logo.png
+ ┃ ┃ ┣ 📜1762525315034-profile.jpg
+ ┃ ┃ ┣ 📜1762737066110-YAMAOO.jpg
+ ┃ ┃ ┣ 📜1762743431612-10.jpg
+ ┃ ┃ ┗ 📜1762743916663-Rabitto.png
+ ┃ ┣ 📂covers
+ ┃ ┃ ┣ 📜man3kulonprogo-book_loan_perpustakaan_perkaya_koleksi_bacaan_siswa.jpeg
+ ┃ ┃ ┣ 📜man3kulonprogo-jemput_bola_pameran_buku_perpustakaan_man_3_kulon_progo.jpeg
+ ┃ ┃ ┣ 📜man3kulonprogo-kompetisi_karya_kreatif_mading_siswa_perpustakaan_kanzul_ilmi.jpeg
+ ┃ ┃ ┣ 📜man3kulonprogo-kontingen_man_3_kp_raih_juara_1_dalam_pawai_semarak_80_tahun_indonesia_merdeka.jpeg
+ ┃ ┃ ┣ 📜man3kulonprogo-maknai_kelulusan_lewat_aksi_hijau_man_3_kulon_progo_bagikan_bibit_tanaman.jpeg
+ ┃ ┃ ┣ 📜man3kulonprogo-man_3_kp_gelar_pelatihan_jurnalistik_untuk_pemula.jpeg
+ ┃ ┃ ┣ 📜man3kulonprogo-man_3_kulon_progo_berikan_apresiasi_dan_penghargaan_untuk_siswa_berprestasi_tingkat_diy_dan_nasional.jpeg
+ ┃ ┃ ┣ 📜man3kulonprogo-man_3_kulon_progo_harumkan_nama_di_kejuaraan_shorinji_kempo_2025.jpeg
+ ┃ ┃ ┣ 📜man3kulonprogo-pembekalan_dan_doa_bersama_tim_pkm_2025_man_3_kulon_progo.jpeg
+ ┃ ┃ ┣ 📜man3kulonprogo-penampilan_memukau_man_3_kp_dalam_peringatan_hut_ke80_republik_indonesia.jpeg
+ ┃ ┃ ┣ 📜man3kulonprogo-penarikan_mahasiswa_praktik_kependidikan_uny_di_man_3_kulon_progo.jpeg
+ ┃ ┃ ┣ 📜man3kulonprogo-pengalaman_baru_mengikuti_pwd_diy_2025.jpeg
+ ┃ ┃ ┣ 📜man3kulonprogo-saka_bhayangkara_gelar_sosialisasi_di_gugus_depan_man_3_kulon_progo.jpeg
+ ┃ ┃ ┣ 📜man3kulonprogo-senam_sehat_jumat_pagi_sehati_man_3_kp.jpeg
+ ┃ ┃ ┣ 📜man3kulonprogo-siswa_kelas_10_man_3_kp_mengikuti_kemah_wahana_krida_remaja.jpeg
+ ┃ ┃ ┣ 📜man3kulonprogo-siswa_man_3_kp_belajar_fikih_dari_penyembelihan_seekor_sapi.jpeg
+ ┃ ┃ ┣ 📜man3kulonprogo-siswa_man_3_kulon_progo_ikuti_pengukuhan_paskibra.jpeg
+ ┃ ┃ ┣ 📜man3kulonprogo-suasana_hangat_mewarnai_pisah_sambut_kepala_man_3_kulon_progo.jpeg
+ ┃ ┃ ┣ 📜man3kulonprogo-tiga_siswa_man_3_kp_sabet_prestasi_dalam_porda_diy_2025_cabor_tarung_derajat.jpeg
+ ┃ ┃ ┗ 📜man3kulonprogo-zikir_kebangsaan_dalam_peringatan_maulid_nabi_muhammad_saw.jpeg
+ ┃ ┣ 📂gallery
+ ┃ ┃ ┣ 📂2778
+ ┃ ┃ ┃ ┣ 📜010ab050-2a15-4deb-b44c-8bd8818a7240.png
+ ┃ ┃ ┃ ┣ 📜19705d6d-25a9-4099-863a-8a74d0dd6a25.png
+ ┃ ┃ ┃ ┣ 📜24f843a4-db42-4751-a566-1eff1cd497ba.png
+ ┃ ┃ ┃ ┣ 📜2b2b6b43-812c-4b4f-8d10-ac10c9058054.png
+ ┃ ┃ ┃ ┣ 📜2f654d12-1fdb-44e5-b078-2701b73a80d1.png
+ ┃ ┃ ┃ ┣ 📜3af1e8c0-3dfd-4bd1-a993-55556b9e89d0.png
+ ┃ ┃ ┃ ┣ 📜44ba1397-591d-4c3b-b260-fda850991b31.png
+ ┃ ┃ ┃ ┣ 📜4bdb5ddd-eff5-41ac-9073-2337be3e5ce5.jpg
+ ┃ ┃ ┃ ┣ 📜5933af17-220f-4565-aee8-b48ff249dd63.png
+ ┃ ┃ ┃ ┣ 📜69277603-594d-4e71-86b9-1f79b4c80388.png
+ ┃ ┃ ┃ ┣ 📜6f5c8190-6790-4200-801b-02ebacf468df.png
+ ┃ ┃ ┃ ┣ 📜71ca9935-763d-4a5c-9e61-81208e4abfcf.png
+ ┃ ┃ ┃ ┣ 📜759a46ff-9e40-4d44-a33e-d5df317fd53c.png
+ ┃ ┃ ┃ ┣ 📜99842e29-7177-474c-a31d-eefab2b89289.png
+ ┃ ┃ ┃ ┣ 📜9d367685-cfc4-4d38-843f-df0fe62be18e.png
+ ┃ ┃ ┃ ┣ 📜a0a992d3-21c3-4db0-a18f-04bbbcecf4e4.png
+ ┃ ┃ ┃ ┣ 📜ae721dd4-556d-4b4f-b3ae-48635ad2fe16.png
+ ┃ ┃ ┃ ┣ 📜c0d525ac-f126-4d7d-878d-d0b1bb56e2f4.jpeg
+ ┃ ┃ ┃ ┣ 📜c635abe9-beea-4217-8ad3-7bd962d027f2.png
+ ┃ ┃ ┃ ┣ 📜e2f7bfb5-49d6-45af-acca-b6ae64143f81.png
+ ┃ ┃ ┃ ┣ 📜e485f683-918b-4580-8c48-d663491939d0.png
+ ┃ ┃ ┃ ┣ 📜eb305f80-d0b6-4c30-bd02-131bca94881c.jpg
+ ┃ ┃ ┃ ┣ 📜thumb_010ab050-2a15-4deb-b44c-8bd8818a7240.png
+ ┃ ┃ ┃ ┣ 📜thumb_19705d6d-25a9-4099-863a-8a74d0dd6a25.png
+ ┃ ┃ ┃ ┣ 📜thumb_24f843a4-db42-4751-a566-1eff1cd497ba.png
+ ┃ ┃ ┃ ┣ 📜thumb_2b2b6b43-812c-4b4f-8d10-ac10c9058054.png
+ ┃ ┃ ┃ ┣ 📜thumb_2f654d12-1fdb-44e5-b078-2701b73a80d1.png
+ ┃ ┃ ┃ ┣ 📜thumb_3af1e8c0-3dfd-4bd1-a993-55556b9e89d0.png
+ ┃ ┃ ┃ ┣ 📜thumb_44ba1397-591d-4c3b-b260-fda850991b31.png
+ ┃ ┃ ┃ ┣ 📜thumb_4bdb5ddd-eff5-41ac-9073-2337be3e5ce5.jpg
+ ┃ ┃ ┃ ┣ 📜thumb_5933af17-220f-4565-aee8-b48ff249dd63.png
+ ┃ ┃ ┃ ┣ 📜thumb_69277603-594d-4e71-86b9-1f79b4c80388.png
+ ┃ ┃ ┃ ┣ 📜thumb_6f5c8190-6790-4200-801b-02ebacf468df.png
+ ┃ ┃ ┃ ┣ 📜thumb_71ca9935-763d-4a5c-9e61-81208e4abfcf.png
+ ┃ ┃ ┃ ┣ 📜thumb_759a46ff-9e40-4d44-a33e-d5df317fd53c.png
+ ┃ ┃ ┃ ┣ 📜thumb_99842e29-7177-474c-a31d-eefab2b89289.png
+ ┃ ┃ ┃ ┣ 📜thumb_9d367685-cfc4-4d38-843f-df0fe62be18e.png
+ ┃ ┃ ┃ ┣ 📜thumb_a0a992d3-21c3-4db0-a18f-04bbbcecf4e4.png
+ ┃ ┃ ┃ ┣ 📜thumb_ae721dd4-556d-4b4f-b3ae-48635ad2fe16.png
+ ┃ ┃ ┃ ┣ 📜thumb_c0d525ac-f126-4d7d-878d-d0b1bb56e2f4.jpeg
+ ┃ ┃ ┃ ┣ 📜thumb_c635abe9-beea-4217-8ad3-7bd962d027f2.png
+ ┃ ┃ ┃ ┣ 📜thumb_e2f7bfb5-49d6-45af-acca-b6ae64143f81.png
+ ┃ ┃ ┃ ┣ 📜thumb_e485f683-918b-4580-8c48-d663491939d0.png
+ ┃ ┃ ┃ ┗ 📜thumb_eb305f80-d0b6-4c30-bd02-131bca94881c.jpg
+ ┃ ┃ ┗ 📂temp
+ ┃ ┣ 📂temp
+ ┃ ┗ 📜20102025_2. Evaluasi SKP TW3 2025 Ali.pdf
+ ┣ 📜.env
+ ┣ 📜.gitignore
+ ┣ 📜package-lock.json
+ ┣ 📜package.json
+ ┣ 📜server.js
+ ┗ 📜vercel.json
+
+
+ 📦frontend
+ ┣ 📂node_modules
+ ┣ 📂public
+ ┃ ┣ 📜Hero.jpg
+ ┃ ┣ 📜kepalamadrasah.jpg
+ ┃ ┣ 📜login_illustration.png
+ ┃ ┣ 📜logo.png
+ ┃ ┣ 📜MAN3.png
+ ┃ ┣ 📜MAN3_1.png
+ ┃ ┣ 📜MAN_3.jpg
+ ┃ ┣ 📜MAN_3_1.jpg
+ ┃ ┣ 📜profile.jpg
+ ┃ ┣ 📜Siswa_ZI.jpeg
+ ┃ ┣ 📜Siswa_ZI.png
+ ┃ ┣ 📜Slider1.jpg
+ ┃ ┣ 📜Slider2.jpeg
+ ┃ ┣ 📜Slider3.jpeg
+ ┃ ┣ 📜SPAK_Triwulan_4.jpg
+ ┃ ┣ 📜SPKP_Triwulan_4.jpeg
+ ┃ ┗ 📜strukturorganisasi.jpg
+ ┣ 📂src
+ ┃ ┣ 📂api
+ ┃ ┃ ┣ 📜archiveApi.ts
+ ┃ ┃ ┣ 📜articleApi.ts
+ ┃ ┃ ┣ 📜attendanceApi.ts
+ ┃ ┃ ┣ 📜categoryApi.ts
+ ┃ ┃ ┣ 📜galleryApi.ts
+ ┃ ┃ ┣ 📜staffApi.ts
+ ┃ ┃ ┣ 📜studentApi.ts
+ ┃ ┃ ┗ 📜userApi.ts
+ ┃ ┣ 📂components
+ ┃ ┃ ┣ 📂alumni
+ ┃ ┃ ┃ ┗ 📜AlumniFilter.tsx
+ ┃ ┃ ┣ 📂archive
+ ┃ ┃ ┃ ┣ 📜ArchiveFilter.tsx
+ ┃ ┃ ┃ ┗ 📜EditArchive.tsx
+ ┃ ┃ ┣ 📂article
+ ┃ ┃ ┃ ┣ 📜ArticleCard.tsx
+ ┃ ┃ ┃ ┣ 📜ArticleContent.tsx
+ ┃ ┃ ┃ ┗ 📜ArticleList.tsx
+ ┃ ┃ ┣ 📂attendance
+ ┃ ┃ ┃ ┣ 📜AttendanceRecap.tsx
+ ┃ ┃ ┃ ┗ 📜HolidayManagement.tsx
+ ┃ ┃ ┣ 📂forms
+ ┃ ┃ ┃ ┣ 📂auth
+ ┃ ┃ ┃ ┃ ┣ 📜ChangePasswordForm.tsx
+ ┃ ┃ ┃ ┃ ┣ 📜LoginForm.tsx
+ ┃ ┃ ┃ ┃ ┗ 📜UserManagementForm.tsx
+ ┃ ┃ ┃ ┣ 📜AlbumForm.tsx
+ ┃ ┃ ┃ ┣ 📜ArticleForm.tsx
+ ┃ ┃ ┃ ┣ 📜AttendanceForm.tsx
+ ┃ ┃ ┃ ┣ 📜ImportForm.tsx
+ ┃ ┃ ┃ ┣ 📜StaffForm.tsx
+ ┃ ┃ ┃ ┗ 📜StudentForm.tsx
+ ┃ ┃ ┣ 📂gallery
+ ┃ ┃ ┃ ┣ 📜AlbumCard.tsx
+ ┃ ┃ ┃ ┣ 📜AlbumCoverSelector.tsx
+ ┃ ┃ ┃ ┣ 📜AlbumList.tsx
+ ┃ ┃ ┃ ┣ 📜GalleryUpload.tsx
+ ┃ ┃ ┃ ┣ 📜PhotoGrid.tsx
+ ┃ ┃ ┃ ┗ 📜PhotoLightBox.tsx
+ ┃ ┃ ┣ 📂integrity
+ ┃ ┃ ┃ ┣ 📜IntegrityAreaCard.tsx
+ ┃ ┃ ┃ ┗ 📜IntegrityModal.tsx
+ ┃ ┃ ┣ 📂layout
+ ┃ ┃ ┃ ┣ 📜AdminHeader.tsx
+ ┃ ┃ ┃ ┣ 📜AdminLayout.tsx
+ ┃ ┃ ┃ ┣ 📜Footer.tsx
+ ┃ ┃ ┃ ┣ 📜Header.tsx
+ ┃ ┃ ┃ ┣ 📜Layout.tsx
+ ┃ ┃ ┃ ┗ 📜MobileMenu.tsx
+ ┃ ┃ ┣ 📂modals
+ ┃ ┃ ┃ ┣ 📜AddStudentModal.tsx
+ ┃ ┃ ┃ ┣ 📜BulkMoveClassModal.tsx
+ ┃ ┃ ┃ ┣ 📜EditStudentModal.tsx
+ ┃ ┃ ┃ ┣ 📜ImportStudentPage.tsx
+ ┃ ┃ ┃ ┗ 📜MoveClassModal.tsx
+ ┃ ┃ ┣ 📂ptsp
+ ┃ ┃ ┃ ┗ 📜PtspServiceCard.tsx
+ ┃ ┃ ┣ 📂tables
+ ┃ ┃ ┃ ┣ 📜AlumniTable.tsx
+ ┃ ┃ ┃ ┣ 📜ArchiveTable.tsx
+ ┃ ┃ ┃ ┣ 📜ArticleTable.tsx
+ ┃ ┃ ┃ ┣ 📜StaffTable.tsx
+ ┃ ┃ ┃ ┣ 📜StudentsTable.tsx
+ ┃ ┃ ┃ ┗ 📜UserTable.tsx
+ ┃ ┃ ┗ 📂ui
+ ┃ ┃ ┃ ┣ 📜AppCard.tsx
+ ┃ ┃ ┃ ┣ 📜AvatarUpload.tsx
+ ┃ ┃ ┃ ┣ 📜Carousel.tsx
+ ┃ ┃ ┃ ┣ 📜Dropdown.tsx
+ ┃ ┃ ┃ ┣ 📜Hero.tsx
+ ┃ ┃ ┃ ┣ 📜ImageUploader.tsx
+ ┃ ┃ ┃ ┣ 📜ImageWithFallback.tsx
+ ┃ ┃ ┃ ┣ 📜NavLink.tsx
+ ┃ ┃ ┃ ┣ 📜QuickActionCard.tsx
+ ┃ ┃ ┃ ┣ 📜ShareButton.tsx
+ ┃ ┃ ┃ ┣ 📜StatCard.tsx
+ ┃ ┃ ┃ ┣ 📜SurveySlider.tsx
+ ┃ ┃ ┃ ┣ 📜ThemeToggle.tsx
+ ┃ ┃ ┃ ┣ 📜Toast.tsx
+ ┃ ┃ ┃ ┗ 📜UnathorizedHandler.tsx
+ ┃ ┣ 📂contexts
+ ┃ ┃ ┣ 📜ArticleContext.tsx
+ ┃ ┃ ┣ 📜AuthContext.tsx
+ ┃ ┃ ┣ 📜GalleryContext.tsx
+ ┃ ┃ ┣ 📜StaffContext.tsx
+ ┃ ┃ ┣ 📜StudentStatsContext.tsx
+ ┃ ┃ ┣ 📜ThemeContext.tsx
+ ┃ ┃ ┗ 📜ToastContext.tsx
+ ┃ ┣ 📂data
+ ┃ ┃ ┗ 📜ptstpService.json
+ ┃ ┣ 📂hooks
+ ┃ ┃ ┣ 📜useAngkatans.ts
+ ┃ ┃ ┣ 📜useClasses.ts
+ ┃ ┃ ┣ 📜useDropdown.ts
+ ┃ ┃ ┣ 📜useImportStudent.ts
+ ┃ ┃ ┣ 📜useStudents.ts
+ ┃ ┃ ┗ 📜useToastMessage.ts
+ ┃ ┣ 📂lib
+ ┃ ┃ ┣ 📜api.ts
+ ┃ ┃ ┣ 📜storage.ts
+ ┃ ┃ ┗ 📜utils.ts
+ ┃ ┣ 📂locales
+ ┃ ┃ ┣ 📂en
+ ┃ ┃ ┃ ┗ 📜translation.json
+ ┃ ┃ ┗ 📂id
+ ┃ ┃ ┃ ┗ 📜translation.json
+ ┃ ┣ 📂pages
+ ┃ ┃ ┣ 📂admin
+ ┃ ┃ ┃ ┣ 📂article
+ ┃ ┃ ┃ ┃ ┣ 📜ArticleManagementPage.tsx
+ ┃ ┃ ┃ ┃ ┣ 📜EditArticlePage.tsx
+ ┃ ┃ ┃ ┃ ┗ 📜NewArticlePage.tsx
+ ┃ ┃ ┃ ┣ 📂attendance
+ ┃ ┃ ┃ ┃ ┣ 📜AttendanceArchivePage.tsx
+ ┃ ┃ ┃ ┃ ┣ 📜AttendanceHolidaysPage.tsx
+ ┃ ┃ ┃ ┃ ┣ 📜AttendanceInputPage.tsx
+ ┃ ┃ ┃ ┃ ┣ 📜AttendanceRecapPage.tsx
+ ┃ ┃ ┃ ┃ ┗ 📜AttendanceStudentPage.tsx
+ ┃ ┃ ┃ ┣ 📂gallery
+ ┃ ┃ ┃ ┃ ┣ 📜AlbumPhotosPage.tsx
+ ┃ ┃ ┃ ┃ ┣ 📜EditAlbumPage.tsx
+ ┃ ┃ ┃ ┃ ┣ 📜GalleryManagementPage.tsx
+ ┃ ┃ ┃ ┃ ┗ 📜NewAlbumPage.tsx
+ ┃ ┃ ┃ ┣ 📂staff
+ ┃ ┃ ┃ ┃ ┣ 📜EditStaffPage.tsx
+ ┃ ┃ ┃ ┃ ┣ 📜NewStaffPage.tsx
+ ┃ ┃ ┃ ┃ ┗ 📜StaffManagementPage.tsx
+ ┃ ┃ ┃ ┣ 📂student-management
+ ┃ ┃ ┃ ┃ ┗ 📜ManagementStudentPage.tsx
+ ┃ ┃ ┃ ┣ 📂user
+ ┃ ┃ ┃ ┃ ┣ 📜UserManagementPage.tsx
+ ┃ ┃ ┃ ┃ ┗ 📜UserProfile.tsx
+ ┃ ┃ ┃ ┗ 📜AdminDashboard.tsx
+ ┃ ┃ ┣ 📂alumni
+ ┃ ┃ ┃ ┣ 📜AlumniPage.tsx
+ ┃ ┃ ┃ ┗ 📜EditAlumniPage.tsx
+ ┃ ┃ ┣ 📂archive
+ ┃ ┃ ┃ ┣ 📜ArchiveManagementPage.tsx
+ ┃ ┃ ┃ ┣ 📜EditArchivePage.tsx
+ ┃ ┃ ┃ ┗ 📜UploadArchivePage.tsx
+ ┃ ┃ ┣ 📂auth
+ ┃ ┃ ┃ ┗ 📜LoginPage.tsx
+ ┃ ┃ ┣ 📂layanan
+ ┃ ┃ ┃ ┣ 📜PpdbPage.tsx
+ ┃ ┃ ┃ ┣ 📜PtspPage.tsx
+ ┃ ┃ ┃ ┣ 📜SedumPage.tsx
+ ┃ ┃ ┃ ┗ 📜ZonaIntegritasPage.tsx
+ ┃ ┃ ┣ 📂news
+ ┃ ┃ ┃ ┣ 📜NewsDetailPage.tsx
+ ┃ ┃ ┃ ┗ 📜NewsPage.tsx
+ ┃ ┃ ┣ 📂profile
+ ┃ ┃ ┃ ┣ 📜GuruStafPage.tsx
+ ┃ ┃ ┃ ┣ 📜KepalaMadrasahPage.tsx
+ ┃ ┃ ┃ ┣ 📜MitraPage.tsx
+ ┃ ┃ ┃ ┣ 📜ProgramKerjaPage.tsx
+ ┃ ┃ ┃ ┣ 📜SaranaPrasaranaPage.tsx
+ ┃ ┃ ┃ ┣ 📜SejarahPage.tsx
+ ┃ ┃ ┃ ┣ 📜SiswaPage.tsx
+ ┃ ┃ ┃ ┣ 📜StrukturOrganisasiPage.tsx
+ ┃ ┃ ┃ ┗ 📜VisiMisiPage.tsx
+ ┃ ┃ ┣ 📜AdminCategoriesPage.tsx
+ ┃ ┃ ┣ 📜AlbumPage.tsx
+ ┃ ┃ ┣ 📜ContactPage.tsx
+ ┃ ┃ ┣ 📜GalleryPage.tsx
+ ┃ ┃ ┣ 📜HomePage.tsx
+ ┃ ┃ ┣ 📜NotFoundPage.tsx
+ ┃ ┃ ┣ 📜ProfilePage.tsx
+ ┃ ┃ ┗ 📜WebAppPage.tsx
+ ┃ ┣ 📂services
+ ┃ ┃ ┣ 📜alumniService.ts
+ ┃ ┃ ┣ 📜importService.ts
+ ┃ ┃ ┗ 📜studentService.ts
+ ┃ ┣ 📂types
+ ┃ ┃ ┣ 📜archiveTypes.ts
+ ┃ ┃ ┣ 📜articleTypes.ts
+ ┃ ┃ ┣ 📜galleryTypes.ts
+ ┃ ┃ ┣ 📜importTypes.ts
+ ┃ ┃ ┣ 📜ptspTypes.ts
+ ┃ ┃ ┣ 📜staffTypes.ts
+ ┃ ┃ ┣ 📜studentTypes.ts
+ ┃ ┃ ┗ 📜userTypes.ts
+ ┃ ┣ 📜App.tsx
+ ┃ ┣ 📜index.css
+ ┃ ┣ 📜main.tsx
+ ┃ ┣ 📜ProtectedRoute.tsx
+ ┃ ┗ 📜vite-env.d.ts
+ ┣ 📜.env
+ ┣ 📜index.html
+ ┣ 📜package-lock.json
+ ┣ 📜package.json
+ ┣ 📜postcss.config.js
+ ┣ 📜tailwind.config.js
+ ┣ 📜tsconfig.app.json
+ ┗ 📜vite.config.ts
