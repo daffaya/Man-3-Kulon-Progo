@@ -409,7 +409,7 @@ const HomePage: React.FC = () => {
               <p className="mt-2 text-secondary">Memuat galeri...</p>
             </div>
           ) : galleryAlbums.length > 0 ? (
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {galleryAlbums.slice(0, 4).map((album) => (
                 <AlbumCard
                   key={album.id}

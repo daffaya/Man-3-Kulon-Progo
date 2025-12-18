@@ -43,8 +43,9 @@ const ArticleCard: React.FC<ArticleCardProps> = ({
 
   if (featured) {
     return (
-      <article className="relative overflow-hidden rounded-xl shadow-lg transition-transform duration-300 hover:-translate-y-1 hover:shadow-xl flex flex-col">
-        <div className="aspect-[16/9] sm:aspect-[21/9] overflow-hidden max-w-full">
+      <article className="relative overflow-hidden rounded-xl shadow-lg transition-transform duration-300 hover:-translate-y-1 hover:shadow-xl flex flex-col w-full">
+        {/* Image container with responsive aspect ratio */}
+        <div className="aspect-[3/4] sm:aspect-[16/9] md:aspect-[21/9] overflow-hidden w-full">
           <ImageWithFallback
             src={coverImage}
             alt={title}
@@ -52,27 +53,36 @@ const ArticleCard: React.FC<ArticleCardProps> = ({
             fallback="/placeholder-image.jpg"
           />
         </div>
-        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent">
-          <div className="absolute inset-x-0 bottom-0 px-4 sm:px-6 md:px-8 lg:px-12 xl:px-20 2xl:px-32 py-8 sm:py-10 md:py-10 text-white">
-            {" "}
+
+        {/* Gradient overlay */}
+        <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/60 to-transparent">
+          {/* Content container with responsive padding */}
+          <div className="absolute inset-x-0 bottom-0 px-4 py-4 sm:px-6 sm:py-6 md:px-8 md:py-8 lg:px-10 lg:py-10 text-white">
+            {/* Tags section */}
             <div className="flex flex-wrap gap-1 sm:gap-2 mb-2 sm:mb-3">
               {(tags || []).slice(0, 3).map((tag) => (
                 <span
                   key={tag}
-                  className="inline-block px-2 sm:px-3 py-1 text-xs font-medium bg-accent/80 rounded-full"
+                  className="inline-block px-2 py-1 text-xs font-medium bg-accent/80 rounded-full"
                 >
                   {tag}
                 </span>
               ))}
             </div>
-            <h2 className="text-xl sm:text-2xl md:text-3xl font-serif font-bold mb-2 sm:mb-3">
+
+            {/* Title with responsive font size */}
+            <h2 className="text-lg sm:text-xl md:text-2xl lg:text-3xl font-serif font-bold mb-2 sm:mb-3 leading-tight">
               <Link to={`/berita/${slug}`} className="hover:underline">
                 {title}
               </Link>
             </h2>
-            <p className="text-gray-200 mb-3 sm:mb-4 line-clamp-2 text-sm sm:text-base">
+
+            {/* Overview with responsive line clamping */}
+            <p className="text-gray-200 mb-3 sm:mb-4 line-clamp-2 sm:line-clamp-3 text-sm sm:text-base">
               <Link to={`/berita/${slug}`}>{overview}</Link>
             </p>
+
+            {/* Author and metadata section */}
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-0 text-xs sm:text-sm mt-auto">
               <Link
                 to={`/Profile`}
@@ -81,21 +91,18 @@ const ArticleCard: React.FC<ArticleCardProps> = ({
                 <ImageWithFallback
                   src={author.avatar}
                   alt={author.name}
-                  className="w-5 h-5 sm:w-8 sm:h-8 rounded-full object-cover flex-shrink-0"
+                  className="w-6 h-6 sm:w-8 sm:h-8 rounded-full object-cover flex-shrink-0"
                   fallback="/logo.png"
                 />
                 <span className="truncate font-medium">{author.name}</span>
               </Link>
               <div className="flex items-center gap-3 sm:gap-4 text-xs sm:text-sm">
                 <span className="flex items-center gap-1">
-                  <Calendar size={12} className="sm:size-5" />
-                  <span className="hidden sm:inline">
-                    {formatDate(publishedDate)}
-                  </span>
-                  <span className="sm:hidden">{formatDate(publishedDate)}</span>
+                  <Calendar size={12} className="sm:size-4" />
+                  <span>{formatDate(publishedDate)}</span>
                 </span>
                 <span className="flex items-center gap-1">
-                  <Clock size={12} className="sm:size-5" />
+                  <Clock size={12} className="sm:size-4" />
                   {readingTime} min
                 </span>
               </div>

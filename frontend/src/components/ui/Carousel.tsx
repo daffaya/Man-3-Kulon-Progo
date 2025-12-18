@@ -5,6 +5,7 @@
  * and transitions between slides.
  */
 
+import { ChevronLeft, ChevronRight } from "lucide-react";
 import React, { useEffect, useState } from "react";
 
 /**
@@ -41,7 +42,7 @@ const Carousel: React.FC = () => {
    * Advances to the next slide in the carousel.
    * Wraps around to the first slide when reaching the end.
    */
-  const nextSlide = (): void => {
+  const goToNextSlide = (): void => {
     setCurrentIndex((prevIndex) => (prevIndex + 1) % slides.length);
   };
 
@@ -49,7 +50,7 @@ const Carousel: React.FC = () => {
    * Moves to the previous slide in the carousel.
    * Wraps around to the last slide when at the beginning.
    */
-  const prevSlide = (): void => {
+  const goToPrevSlide = (): void => {
     setCurrentIndex(
       (prevIndex) => (prevIndex - 1 + slides.length) % slides.length
     );
@@ -58,7 +59,7 @@ const Carousel: React.FC = () => {
   useEffect(() => {
     if (!isPaused) {
       const interval = setInterval(() => {
-        prevSlide();
+        goToPrevSlide();
       }, 5000);
       return () => clearInterval(interval);
     }
@@ -99,16 +100,18 @@ const Carousel: React.FC = () => {
             </div>
           </div>
 
+          {/* Slider Navigation */}
           <button
-            onClick={prevSlide}
-            className="absolute top-1/2 left-0 transform -translate-y-1/2 px-4 py-2 text-white font-bold rounded-full focus:outline-none hover:bg-gray-800 z-20"
+            onClick={goToPrevSlide}
+            className="absolute top-1/2 left-0 transform -translate-y-1/2 px-4 py-2 text-white font-bold rounded-full focus:outline-none hover:bg-hover z-20"
+            aria-label="Slide sebelumnya"
           >
             &#8592;
           </button>
-
           <button
-            onClick={nextSlide}
-            className="absolute top-1/2 right-0 transform -translate-y-1/2 px-4 py-2 text-white font-bold rounded-full focus:outline-none hover:bg-gray-800 z-20"
+            onClick={goToNextSlide}
+            className="absolute top-1/2 right-0 transform -translate-y-1/2 px-4 py-2 text-white font-bold rounded-full focus:outline-none hover:bg-hover z-20"
+            aria-label="Slide berikutnya"
           >
             &#8594;
           </button>
