@@ -1,66 +1,178 @@
 [
   {
     "id": "1",
-    "name": "Pengajuan Surat Keterangan Aktif",
-    "description": "Untuk keperluan beasiswa, pengajuan kerja, atau keperluan lainnya.",
+    "name": "Legalisasi Dokumen",
+    "description": "Layanan legalisasi dokumen akademik untuk keperluan resmi.",
     "category": "Akademik",
-    "googleFormUrl": "https://forms.gle/contoh-surat-aktif",
+    "googleFormUrl": "https://forms.gle/D2fGi9G15j3N2xpc8",
     "icon": "FileCheck"
   },
   {
     "id": "2",
-    "name": "Pengajuan Legalisir Ijazah & SKHUN",
-    "description": "Proses legalisir dokumen ijazah untuk keperluan melanjutkan studi atau pekerjaan.",
+    "name": "Permohonan Surat Keterangan Siswa",
+    "description": "Pengajuan surat keterangan sebagai siswa aktif.",
     "category": "Akademik",
-    "googleFormUrl": "https://forms.gle/contoh-legalisir",
-    "icon": "ShieldCheck"
+    "googleFormUrl": "https://forms.gle/D2fGi9G15j3N2xpc8",
+    "icon": "User"
   },
   {
     "id": "3",
-    "name": "Pengajuan Surat Keterangan Berkelakuan Baik",
-    "description": "Surat keterangan yang diperlukan untuk melamar pekerjaan atau keperluan resmi lain.",
-    "category": "Kesiswaan",
-    "googleFormUrl": "https://forms.gle/contoh-berkelakuan-baik",
-    "icon": "UserCheck"
+    "name": "Surat Tugas Guru / Pegawai / Siswa",
+    "description": "Permohonan surat tugas resmi dari sekolah.",
+    "category": "Akademik",
+    "googleFormUrl": "https://forms.gle/D2fGi9G15j3N2xpc8",
+    "icon": "Clipboard"
   },
   {
     "id": "4",
-    "name": "Pengaduan Sarana & Prasarana",
-    "description": "Laporkan kerusakan atau usulan perbaikan terkait fasilitas sekolah.",
-    "category": "Layanan Umum",
-    "googleFormUrl": "https://forms.gle/contoh-pengaduan-fasilitas",
-    "icon": "Wrench"
+    "name": "Peningkatan Kompetensi Guru & Pegawai",
+    "description": "Pengajuan kegiatan pelatihan atau pengembangan SDM.",
+    "category": "Akademik",
+    "googleFormUrl": "https://forms.gle/D2fGi9G15j3N2xpc8",
+    "icon": "TrendingUp"
   },
   {
     "id": "5",
-    "name": "Pengajuan Proposal Kegiatan Ekstrakurikuler",
-    "description": "Ajukan proposal untuk kegiatan baru atau kegiatan rutin ekstrakurikuler.",
+    "name": "PPDB",
+    "description": "Informasi dan pendaftaran peserta didik baru.",
     "category": "Kesiswaan",
-    "googleFormUrl": "https://forms.gle/contoh-proposal-ekskul",
-    "icon": "CalendarDays"
-  },
-  {
-    "id": "6",
-    "name": "Informasi & Pendaftaran PPDB",
-    "description": "Dapatkan informasi lengkap dan formulir pendaftaran siswa baru.",
-    "category": "Layanan Umum",
-    "googleFormUrl": "https://man3kulonprogo.sch.id/layanan/ppdb",
+    "googleFormUrl": "https://forms.gle/D2fGi9G15j3N2xpc8",
     "icon": "GraduationCap"
   },
   {
+    "id": "6",
+    "name": "Mutasi Siswa Keluar",
+    "description": "Pengajuan mutasi siswa ke sekolah lain.",
+    "category": "Kesiswaan",
+    "googleFormUrl": "https://forms.gle/D2fGi9G15j3N2xpc8",
+    "icon": "LogOut"
+  },
+  {
     "id": "7",
-    "name": "Pengajuan Surat Rekomendasi",
-    "description": "Surat rekomendasi untuk berbagai keperluan, seperti pindah sekolah atau magang.",
-    "category": "Akademik",
-    "googleFormUrl": "https://forms.gle/contoh-rekomendasi",
-    "icon": "FileText"
+    "name": "Mutasi Siswa Masuk",
+    "description": "Pengajuan mutasi siswa pindahan masuk.",
+    "category": "Kesiswaan",
+    "googleFormUrl": "https://forms.gle/D2fGi9G15j3N2xpc8",
+    "icon": "LogIn"
   },
   {
     "id": "8",
-    "name": "Konsultasi Bimbingan Konseling",
-    "description": "Jadwalkan sesi konsultasi untuk masalah akademik, pribadi, atau sosial.",
+    "name": "Rekomendasi Masuk Perguruan Tinggi",
+    "description": "Permohonan surat rekomendasi melanjutkan studi.",
+    "category": "Akademik",
+    "googleFormUrl": "https://forms.gle/D2fGi9G15j3N2xpc8",
+    "icon": "Award"
+  },
+  {
+    "id": "9",
+    "name": "Permohonan Data Siswa",
+    "description": "Permintaan data siswa untuk keperluan resmi.",
+    "category": "Akademik",
+    "googleFormUrl": "https://forms.gle/D2fGi9G15j3N2xpc8",
+    "icon": "Database"
+  },
+  {
+    "id": "10",
+    "name": "Permohonan Data Guru",
+    "description": "Permintaan data guru untuk keperluan administrasi.",
+    "category": "Akademik",
+    "googleFormUrl": "https://forms.gle/D2fGi9G15j3N2xpc8",
+    "icon": "Database"
+  },
+  {
+    "id": "11",
+    "name": "Rekomendasi Lomba",
+    "description": "Pengajuan surat rekomendasi mengikuti lomba.",
     "category": "Kesiswaan",
-    "googleFormUrl": "https://sites.google.com/view/bkman3kpberkah/",
-    "icon": "Users"
+    "googleFormUrl": "https://forms.gle/D2fGi9G15j3N2xpc8",
+    "icon": "Medal"
+  },
+  {
+    "id": "12",
+    "name": "Surat Keterangan Prestasi Siswa",
+    "description": "Surat keterangan prestasi akademik atau nonakademik.",
+    "category": "Akademik",
+    "googleFormUrl": "https://forms.gle/D2fGi9G15j3N2xpc8",
+    "icon": "Star"
+  },
+  {
+    "id": "13",
+    "name": "Kerja Sama Antar Lembaga",
+    "description": "Pengajuan kerja sama dengan instansi atau lembaga lain.",
+    "category": "Humas",
+    "googleFormUrl": "https://forms.gle/D2fGi9G15j3N2xpc8",
+    "icon": "Handshake"
+  },
+  {
+    "id": "14",
+    "name": "Izin PPL / PKL / Magang / Penelitian",
+    "description": "Permohonan izin kegiatan akademik eksternal.",
+    "category": "Humas",
+    "googleFormUrl": "https://forms.gle/D2fGi9G15j3N2xpc8",
+    "icon": "FileText"
+  },
+  {
+    "id": "15",
+    "name": "Permohonan Study Banding",
+    "description": "Pengajuan kunjungan atau studi banding.",
+    "category": "Humas",
+    "googleFormUrl": "https://forms.gle/D2fGi9G15j3N2xpc8",
+    "icon": "Map"
+  },
+  {
+    "id": "16",
+    "name": "Permohonan Tempat Kegiatan",
+    "description": "Permintaan penggunaan lokasi untuk kegiatan.",
+    "category": "Humas",
+    "googleFormUrl": "https://forms.gle/D2fGi9G15j3N2xpc8",
+    "icon": "Building"
+  },
+  {
+    "id": "17",
+    "name": "Sosialisasi Perguruan Tinggi",
+    "description": "Permohonan kegiatan sosialisasi kampus.",
+    "category": "Humas",
+    "googleFormUrl": "https://forms.gle/D2fGi9G15j3N2xpc8",
+    "icon": "Megaphone"
+  },
+  {
+    "id": "18",
+    "name": "Permohonan Dana / Bantuan",
+    "description": "Pengajuan bantuan dana atau sponsorship.",
+    "category": "Humas",
+    "googleFormUrl": "https://forms.gle/D2fGi9G15j3N2xpc8",
+    "icon": "Wallet"
+  },
+  {
+    "id": "19",
+    "name": "Penggunaan ATK",
+    "description": "Permohonan penggunaan alat tulis kantor.",
+    "category": "Sarpras",
+    "googleFormUrl": "https://forms.gle/D2fGi9G15j3N2xpc8",
+    "icon": "PenTool"
+  },
+  {
+    "id": "20",
+    "name": "Pengadaan Alat Pembelajaran",
+    "description": "Permohonan pengadaan alat pendukung pembelajaran.",
+    "category": "Sarpras",
+    "googleFormUrl": "https://forms.gle/D2fGi9G15j3N2xpc8",
+    "icon": "ShoppingCart"
+  },
+  {
+    "id": "21",
+    "name": "Peminjaman Sarana Prasarana",
+    "description": "Layanan peminjaman alat dan fasilitas sekolah.",
+    "category": "Sarpras",
+    "googleFormUrl": "https://forms.gle/D2fGi9G15j3N2xpc8",
+    "icon": "Package"
+  },
+  {
+    "id": "22",
+    "name": "Permohonan Data Sarana Prasarana",
+    "description": "Permintaan data aset dan fasilitas sekolah.",
+    "category": "Sarpras",
+    "googleFormUrl": "https://forms.gle/D2fGi9G15j3N2xpc8",
+    "icon": "Archive"
   }
 ]

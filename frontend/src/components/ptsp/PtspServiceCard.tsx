@@ -7,17 +7,29 @@
 
 import React from "react";
 import { PtspService } from "../../types/ptspTypes";
-// Import only the icons we need from lucide-react
 import {
   FileCheck,
-  ShieldCheck,
-  UserCheck,
-  Wrench,
-  CalendarDays,
+  User,
+  Clipboard,
+  TrendingUp,
   GraduationCap,
+  LogOut,
+  LogIn,
+  Award,
+  Database,
+  Medal,
+  Star,
+  Handshake,
   FileText,
-  Users,
-  FileQuestion, // A good fallback icon for "not found"
+  Map,
+  Building,
+  Megaphone,
+  Wallet,
+  PenTool,
+  ShoppingCart,
+  Package,
+  Archive,
+  FileQuestion,
 } from "lucide-react";
 
 /**
@@ -34,13 +46,26 @@ interface PtspServiceCardProps {
  */
 const iconMap: Record<string, React.ComponentType<any>> = {
   FileCheck,
-  ShieldCheck,
-  UserCheck,
-  Wrench,
-  CalendarDays,
+  User,
+  Clipboard,
+  TrendingUp,
   GraduationCap,
+  LogOut,
+  LogIn,
+  Award,
+  Database,
+  Medal,
+  Star,
+  Handshake,
   FileText,
-  Users,
+  Map,
+  Building,
+  Megaphone,
+  Wallet,
+  PenTool,
+  ShoppingCart,
+  Package,
+  Archive,
 };
 
 /**
