@@ -62,7 +62,7 @@ export const studentService = {
       const contentType = response.headers.get("content-type");
       if (contentType && contentType.includes("text/html")) {
         throw new Error(
-          "Authentication failed. Server returned HTML instead of JSON."
+          "Authentication failed. Server returned HTML instead of JSON.",
         );
       }
 
@@ -93,6 +93,35 @@ export const studentService = {
     } catch (error) {
       throw error;
     }
+  },
+
+  /**
+   * Retrieves a single student by their ID.
+   * @param {number} id - The ID of the student to retrieve.
+   * @param {string} token - Authentication token.
+   * @returns {Promise<Student>} Promise resolving to the student object.
+   */
+  getStudentById: async (id: number, token: string): Promise<Student> => {
+    if (!token) {
+      throw new Error("Token is required");
+    }
+
+    const response = await fetch(`${backendUrl}/api/students/${id}`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
+    if (!response.ok) {
+      let errorMessage = "Failed to fetch student";
+      try {
+        const errorData = await response.json();
+        errorMessage = errorData.error || errorData.message || errorMessage;
+      } catch (e) {}
+      throw new Error(errorMessage);
+    }
+
+    return response.json();
   },
 
   /**
@@ -138,33 +167,53 @@ export const studentService = {
    * @param {string} token - Authentication token.
    * @returns {Promise<Student>} Promise resolving to the updated student.
    */
+
   updateStudent: async (
     id: number,
     studentData: any,
-    token: string
+    token: string,
   ): Promise<Student> => {
-    if (!token) {
-      throw new Error("Token is required");
-    }
+    try {
+      if (!token) {
+        throw new Error("Token is required");
+      }
 
-    const response = await fetch(`${backendUrl}/api/students/${id}`, {
-      method: "PUT",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-      },
-      body: JSON.stringify(studentData),
-    });
+      const response = await fetch(`${backendUrl}/api/students/${id}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(studentData),
+      });
 
-    if (!response.ok) {
-      let errorMessage = "Failed to update student";
+      if (!response.ok) {
+        const responseText = await response.text();
+        let errorMessage = "Failed to update student";
+
+        try {
+          const errorData = JSON.parse(responseText);
+          errorMessage = errorData.error || errorData.message || errorMessage;
+        } catch (e) {
+          if (responseText) {
+            errorMessage = responseText;
+          } else {
+            errorMessage = `Server error: ${response.statusText}`;
+          }
+        }
+
+        throw new Error(errorMessage);
+      }
+
       try {
-        const errorData = await response.json();
-        errorMessage = errorData.error || errorData.message || errorMessage;
-      } catch (e) {}
-      throw new Error(errorMessage);
+        const responseData = await response.json();
+        return responseData;
+      } catch (e) {
+        throw new Error("Invalid response from server");
+      }
+    } catch (error) {
+      throw error;
     }
-    return response.json();
   },
 
   /**
@@ -203,7 +252,7 @@ export const studentService = {
   moveStudentClass: async (
     studentId: number,
     classId: number,
-    token: string | null
+    token: string | null,
   ): Promise<void> => {
     if (!token) {
       throw new Error("Token is required");
@@ -218,7 +267,7 @@ export const studentService = {
           Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({ classId }),
-      }
+      },
     );
 
     if (!response.ok) {
@@ -244,7 +293,7 @@ export const studentService = {
       academicYear: string;
       angkatan: string;
     },
-    token: string | null
+    token: string | null,
   ): Promise<BulkMoveClassResponse> => {
     if (!token) throw new Error("Token is required");
 
@@ -276,7 +325,7 @@ export const studentService = {
    */
   graduateStudents: async (
     data: { classIdFrom: number; academicYear: string; angkatan: string },
-    token: string | null
+    token: string | null,
   ): Promise<GraduateStudentsResponse> => {
     if (!token) throw new Error("Token is required");
 
@@ -353,12 +402,12 @@ export const studentService = {
    */
   getClassesByAngkatan: async (
     token: string,
-    angkatan: string
+    angkatan: string,
   ): Promise<Class[]> => {
     if (!token) throw new Error("Token is required");
 
     const url = `${backendUrl}/api/students?getClassesByAngkatan=true&angkatan=${encodeURIComponent(
-      angkatan
+      angkatan,
     )}`;
 
     try {

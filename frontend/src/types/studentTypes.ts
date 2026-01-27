@@ -11,19 +11,19 @@ export interface Student {
   id: number;
   nisn: string;
   name: string;
+  jenis_kelamin?: "L" | "P";
   academic_year: string;
   is_active: boolean;
   is_deleted: boolean;
-  class_name?: string;
-  class_id?: number;
-  angkatan: string;
-  jenis_kelamin: string;
   nik?: string;
   birth_place?: string;
   birth_date?: string;
   address?: string;
   phone?: string;
   parent_name?: string;
+  angkatan?: string;
+  class_name?: string;
+  class_id?: number;
 }
 
 /**
@@ -32,6 +32,7 @@ export interface Student {
 export interface StudentFormData {
   nisn: string;
   name: string;
+  jenis_kelamin?: "L" | "P";
   class_id: number;
   academic_year: string;
   nik?: string;
@@ -40,6 +41,7 @@ export interface StudentFormData {
   address?: string;
   phone?: string;
   parent_name?: string;
+  angkatan?: string;
 }
 
 /**
@@ -100,4 +102,12 @@ export type BulkMoveOrGraduateResponse =
 export interface Angkatan {
   angkatan: string;
   count: number;
+}
+
+/**
+ * Represents an academic year option for dropdowns
+ */
+export interface AcademicYear {
+  value: string;
+  label: string;
 }

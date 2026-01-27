@@ -4,7 +4,7 @@
  * It handles form submission, displays success/error notifications, and manages the modal's open/close state.
  */
 
-import React from "react";
+import React, { useEffect } from "react";
 import StudentForm from "../forms/StudentForm";
 import { StudentFormData } from "../../types/studentTypes";
 import { studentService } from "../../services/studentService";
@@ -18,6 +18,30 @@ interface EditStudentModalProps {
   onClose: () => void;
   onSuccess: () => void;
 }
+
+/**
+ * Helper function to format date from database to HTML date input format (YYYY-MM-DD)
+ * @param {string|Date} dateValue - The date value from the database
+ * @returns {string} The formatted date string or empty string if invalid
+ */
+const formatDateForInput = (
+  dateValue: string | Date | null | undefined,
+): string => {
+  if (!dateValue) return "";
+
+  try {
+    const date = new Date(dateValue);
+    if (isNaN(date.getTime())) return "";
+
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, "0");
+    const day = String(date.getDate()).padStart(2, "0");
+
+    return `${year}-${month}-${day}`;
+  } catch (error) {
+    return "";
+  }
+};
 
 /**
  * EditStudentModal component that provides a form within a modal to edit student data.
@@ -35,6 +59,28 @@ const EditStudentModal: React.FC<EditStudentModalProps> = ({
   const { token } = useAuth();
   const { showSuccessToast, showErrorToast } = useToastMessage();
   const { classes } = useClasses();
+  const [studentData, setStudentData] = React.useState<any>(null);
+
+  useEffect(() => {
+    const formattedBirthDate = formatDateForInput(student.birth_date);
+
+    const mappedData: StudentFormData = {
+      nisn: student.nisn || "",
+      name: student.name || "",
+      jenis_kelamin: student.jenis_kelamin || undefined,
+      class_id: student.class_id || 0,
+      academic_year: student.academic_year || "",
+      nik: student.nik || "",
+      birth_place: student.birth_place || "",
+      birth_date: formattedBirthDate,
+      address: student.address || "",
+      phone: student.phone || "",
+      parent_name: student.parent_name || "",
+      angkatan: student.angkatan || "",
+    };
+
+    setStudentData(mappedData);
+  }, [student]);
 
   /**
    * Handles the form submission to update a student.
@@ -52,20 +98,35 @@ const EditStudentModal: React.FC<EditStudentModalProps> = ({
       showSuccessToast("Data siswa berhasil diupdate!");
       onSuccess();
     } catch (error: any) {
-      console.error("Error updating student:", error);
       showErrorToast(error.message || "Gagal mengupdate siswa");
       throw error;
     }
   };
 
+  if (!studentData) {
+    return (
+      <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+        <div className="card p-6 w-full max-w-md">
+          <div className="flex justify-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div
       className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4 transition-all"
+      onClick={onClose}
       role="dialog"
       aria-modal="true"
-      aria-labelledby="edit-student-title"
+      aria-labelledby="edit-student-modal-title"
     >
-      <div className="card p-6 w-full max-w-md max-h-[90vh] overflow-y-auto transform transition-all">
+      <div
+        className="card p-6 w-full max-w-3xl max-h-[90vh] overflow-y-auto transform transition-all"
+        onClick={(e) => e.stopPropagation()}
+      >
         <div className="flex justify-between items-center mb-4">
           <h3
             id="edit-student-title"
@@ -82,7 +143,7 @@ const EditStudentModal: React.FC<EditStudentModalProps> = ({
           </button>
         </div>
         <StudentForm
-          initialData={student}
+          initialData={studentData}
           onSubmit={handleSubmit}
           onCancel={onClose}
         />

@@ -6,6 +6,9 @@
 
 import React from "react";
 import { Student } from "../../types/studentTypes";
+import { studentService } from "../../services/studentService";
+import { useAuth } from "../../contexts/AuthContext";
+import { useToastMessage } from "../../hooks/useToastMessage";
 import { Edit, Trash2, Users, RefreshCw } from "lucide-react";
 
 interface StudentsTableProps {
@@ -37,6 +40,9 @@ const StudentsTable: React.FC<StudentsTableProps> = ({
   currentPage = 1,
   itemsPerPage = 30,
 }) => {
+  const { token } = useAuth();
+  const { showErrorToast } = useToastMessage();
+
   /**
    * Returns a status badge component based on the active status of a student
    * @param {boolean} isActive - Whether the student is active
@@ -54,6 +60,51 @@ const StudentsTable: React.FC<StudentsTableProps> = ({
     </span>
   );
 
+  /**
+   * Handles the edit button click by fetching the complete student data
+   * and then calling the onEdit callback with the full data
+   * @param {Student} student - The student object from the table
+   */
+  const handleEdit = async (student: Student) => {
+    if (!token) {
+      showErrorToast("Token tidak tersedia. Silakan login ulang.");
+      return;
+    }
+
+    try {
+      // Show loading state
+      const editButton = document.querySelector(
+        `[data-student-id="${student.id}"]`,
+      );
+      if (editButton) {
+        editButton.setAttribute("disabled", "true");
+        editButton.classList.add("opacity-50", "cursor-not-allowed");
+      }
+
+      // Fetch the complete student data
+      const fullStudentData = await studentService.getStudentById(
+        student.id,
+        token,
+      );
+      console.log("Full student data fetched:", fullStudentData);
+
+      // Call the onEdit callback with the complete data
+      onEdit(fullStudentData);
+    } catch (error: any) {
+      console.error("Error fetching student data:", error);
+      showErrorToast(error.message || "Gagal memuat data siswa");
+    } finally {
+      // Reset loading state
+      const editButton = document.querySelector(
+        `[data-student-id="${student.id}"]`,
+      );
+      if (editButton) {
+        editButton.removeAttribute("disabled");
+        editButton.classList.remove("opacity-50", "cursor-not-allowed");
+      }
+    }
+  };
+
   if (loading) {
     return (
       <div className="card p-8 min-h-[200px] flex flex-col items-center justify-center">
@@ -67,7 +118,7 @@ const StudentsTable: React.FC<StudentsTableProps> = ({
   }
 
   return (
-    <div className="card overflow-hidden">
+    <div className="card overflow-x-auto">
       <table className="min-w-full divide-y divide-zinc-800">
         <thead className="bg-[rgb(var(--color-semi-background))]">
           <tr>
@@ -128,7 +179,8 @@ const StudentsTable: React.FC<StudentsTableProps> = ({
                 <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                   <div className="flex space-x-2">
                     <button
-                      onClick={() => onEdit(student)}
+                      data-student-id={student.id}
+                      onClick={() => handleEdit(student)}
                       className="text-[rgb(var(--color-accent))] hover:text-[rgb(var(--color-hover))]"
                       title="Edit siswa"
                     >

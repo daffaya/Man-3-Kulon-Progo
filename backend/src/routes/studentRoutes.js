@@ -38,7 +38,7 @@ const upload = multer({
   fileFilter: (req, file, cb) => {
     const filetypes = /xlsx|xls/;
     const extname = filetypes.test(
-      path.extname(file.originalname).toLowerCase()
+      path.extname(file.originalname).toLowerCase(),
     );
 
     if (extname) {
@@ -80,7 +80,7 @@ const studentRouterFactory = ({ pool, JWT_SECRET }) => {
   router.get("/template", (req, res) => {
     const filePath = path.join(
       __dirname,
-      "../../template/template-import-siswa.xlsx"
+      "../../template/template-import-siswa.xlsx",
     );
 
     if (!fs.existsSync(filePath)) {
@@ -137,7 +137,7 @@ const studentRouterFactory = ({ pool, JWT_SECRET }) => {
           AND s.angkatan IS NOT NULL
           AND s.angkatan != ''
         GROUP BY s.angkatan
-        ORDER BY s.angkatan DESC`
+        ORDER BY s.angkatan DESC`,
         );
         return res.json(angkatansData);
       }
@@ -145,7 +145,7 @@ const studentRouterFactory = ({ pool, JWT_SECRET }) => {
       if (getClassesByAngkatan) {
         const [angkatanCheck] = await pool.query(
           `SELECT DISTINCT angkatan FROM student_academic_history WHERE angkatan = ? LIMIT 1`,
-          [angkatan]
+          [angkatan],
         );
 
         if (angkatanCheck.length === 0) {
@@ -162,7 +162,7 @@ const studentRouterFactory = ({ pool, JWT_SECRET }) => {
                 AND s.is_active = 1
                 AND sah.is_current = 1
               ORDER BY c.name`,
-          [angkatan]
+          [angkatan],
         );
 
         return res.json(classes);
@@ -175,7 +175,7 @@ const studentRouterFactory = ({ pool, JWT_SECRET }) => {
              FROM classes
              WHERE name LIKE ?
              ORDER BY name`,
-          [`${level}-%`]
+          [`${level}-%`],
         );
 
         return res.json(classes);
@@ -269,7 +269,7 @@ const studentRouterFactory = ({ pool, JWT_SECRET }) => {
           itemsPerPage: parseInt(limit),
         },
       });
-    })
+    }),
   );
 
   /**
@@ -294,7 +294,7 @@ const studentRouterFactory = ({ pool, JWT_SECRET }) => {
        LEFT JOIN student_academic_history sah ON s.id = sah.student_id AND sah.is_current = 1
        LEFT JOIN classes c ON sah.class_id = c.id
        WHERE s.id = ? AND s.is_deleted = 0`,
-        [id]
+        [id],
       );
 
       if (student.length === 0) {
@@ -302,7 +302,7 @@ const studentRouterFactory = ({ pool, JWT_SECRET }) => {
       }
 
       res.json(student[0]);
-    })
+    }),
   );
 
   /**
@@ -335,7 +335,7 @@ const studentRouterFactory = ({ pool, JWT_SECRET }) => {
         console.error("Error fetching classes:", error);
         res.status(500).json({ error: "Failed to fetch classes" });
       }
-    })
+    }),
   );
 
   /**
@@ -361,7 +361,7 @@ const studentRouterFactory = ({ pool, JWT_SECRET }) => {
          FROM classes
          WHERE name LIKE ?
          ORDER BY name`,
-          [`${level}-%`]
+          [`${level}-%`],
         );
 
         res.json(classes);
@@ -369,7 +369,7 @@ const studentRouterFactory = ({ pool, JWT_SECRET }) => {
         console.error("Error fetching classes by level:", error);
         res.status(500).json({ error: "Failed to fetch classes" });
       }
-    })
+    }),
   );
 
   /**
@@ -388,11 +388,24 @@ const studentRouterFactory = ({ pool, JWT_SECRET }) => {
     "/",
     restrictTo(["guru_bk", "super_admin"]),
     asyncHandler(async (req, res) => {
-      const { nisn, name, class_id, academic_year = "2025/2026" } = req.body;
+      const {
+        nisn,
+        name,
+        jenis_kelamin,
+        class_id,
+        academic_year = "2025/2026",
+        nik,
+        birth_place,
+        birth_date,
+        address,
+        phone,
+        parent_name,
+        angkatan,
+      } = req.body;
 
       const [existingStudent] = await pool.query(
         "SELECT id FROM students WHERE nisn = ? AND is_deleted = 0",
-        [nisn]
+        [nisn],
       );
 
       if (existingStudent.length > 0) {
@@ -400,25 +413,48 @@ const studentRouterFactory = ({ pool, JWT_SECRET }) => {
       }
 
       const [result] = await pool.query(
-        "INSERT INTO students (nisn, name, academic_year, is_active, is_deleted) VALUES (?, ?, ?, 1, 0)",
-        [nisn, name, academic_year]
+        `INSERT INTO students 
+      (nisn, name, jenis_kelamin, academic_year, is_active, is_deleted, 
+       nik, birth_place, birth_date, address, phone, parent_name, angkatan) 
+      VALUES (?, ?, ?, ?, 1, 0, ?, ?, ?, ?, ?, ?, ?)`,
+        [
+          nisn,
+          name,
+          jenis_kelamin || null,
+          academic_year,
+          nik || null,
+          birth_place || null,
+          birth_date || null,
+          address || null,
+          phone || null,
+          parent_name || null,
+          angkatan || null,
+        ],
       );
 
       const studentId = result.insertId;
 
       await pool.query(
-        "INSERT INTO student_academic_history (student_id, class_id, academic_year, is_current) VALUES (?, ?, ?, 1)",
-        [studentId, class_id, academic_year]
+        "INSERT INTO student_academic_history (student_id, class_id, academic_year, is_current, angkatan) VALUES (?, ?, ?, 1, ?)",
+        [studentId, class_id, academic_year, angkatan || null],
       );
 
       res.status(201).json({
         id: studentId,
         nisn,
         name,
+        jenis_kelamin,
         academic_year,
         is_active: true,
+        nik,
+        birth_place,
+        birth_date,
+        address,
+        phone,
+        parent_name,
+        angkatan,
       });
-    })
+    }),
   );
 
   /**
@@ -439,69 +475,122 @@ const studentRouterFactory = ({ pool, JWT_SECRET }) => {
     restrictTo(["guru_bk", "super_admin"]),
     asyncHandler(async (req, res) => {
       const { id } = req.params;
-      const { nisn, name, class_id, academic_year } = req.body;
-
-      const [existingStudent] = await pool.query(
-        "SELECT * FROM students WHERE id = ? AND is_deleted = 0",
-        [id]
-      );
-
-      if (existingStudent.length === 0) {
-        return res.status(404).json({ error: "Siswa tidak ditemukan" });
-      }
-
-      if (nisn !== existingStudent[0].nisn) {
-        const [duplicateStudent] = await pool.query(
-          "SELECT id FROM students WHERE nisn = ? AND id != ? AND is_deleted = 0",
-          [nisn, id]
-        );
-        if (duplicateStudent.length > 0) {
-          return res.status(400).json({ error: "NISN sudah terdaftar" });
-        }
-      }
-
-      await pool.query(
-        "UPDATE students SET nisn = ?, name = ?, academic_year = ? WHERE id = ?",
-        [nisn, name, academicYear || existingStudent[0].academic_year, id]
-      );
-
-      if (class_id) {
-        const [currentHistory] = await pool.query(
-          `SELECT class_id, academic_year FROM student_academic_history 
-         WHERE student_id = ? AND is_current = 1`,
-          [id]
-        );
-
-        if (currentHistory.length > 0) {
-          const currentClassId = currentHistory[0].class_id;
-
-          if (currentClassId != class_id) {
-            await pool.query(
-              "UPDATE student_academic_history SET is_current = 0 WHERE student_id = ? AND is_current = 1",
-              [id]
-            );
-
-            await pool.query(
-              "INSERT INTO student_academic_history (student_id, class_id, academic_year, is_current) VALUES (?, ?, ?, 1)",
-              [id, class_id, academicYear || currentHistory[0].academic_year]
-            );
-          }
-        } else {
-          await pool.query(
-            "INSERT INTO student_academic_history (student_id, class_id, academic_year, is_current) VALUES (?, ?, ?, 1)",
-            [id, class_id, academicYear || "2025/2026"]
-          );
-        }
-      }
-
-      res.json({
-        id: parseInt(id),
+      const {
         nisn,
         name,
-        academic_year: academicYear || existingStudent[0].academic_year,
-        is_active: existingStudent[0].is_active,
-      });
-    })
+        jenis_kelamin,
+        class_id,
+        academic_year,
+        nik,
+        birth_place,
+        birth_date,
+        address,
+        phone,
+        parent_name,
+        angkatan,
+      } = req.body;
+
+      try {
+        const [existingStudent] = await pool.query(
+          "SELECT * FROM students WHERE id = ? AND is_deleted = 0",
+          [id],
+        );
+
+        if (existingStudent.length === 0) {
+          return res.status(404).json({ error: "Siswa tidak ditemukan" });
+        }
+
+        if (nisn !== existingStudent[0].nisn) {
+          const [duplicateStudent] = await pool.query(
+            "SELECT id FROM students WHERE nisn = ? AND id != ? AND is_deleted = 0",
+            [nisn, id],
+          );
+          if (duplicateStudent.length > 0) {
+            return res.status(400).json({ error: "NISN sudah terdaftar" });
+          }
+        }
+
+        const finalAcademicYear =
+          academic_year || existingStudent[0].academic_year;
+
+        await pool.query(
+          `UPDATE students SET 
+        nisn = ?, name = ?, jenis_kelamin = ?, academic_year = ?, 
+        nik = ?, birth_place = ?, birth_date = ?, address = ?, 
+        phone = ?, parent_name = ?, angkatan = ?
+        WHERE id = ?`,
+          [
+            nisn,
+            name,
+            jenis_kelamin || null,
+            finalAcademicYear,
+            nik || null,
+            birth_place || null,
+            birth_date || null,
+            address || null,
+            phone || null,
+            parent_name || null,
+            angkatan || existingStudent[0].angkatan,
+            id,
+          ],
+        );
+
+        if (class_id) {
+          const [currentHistory] = await pool.query(
+            `SELECT class_id, academic_year FROM student_academic_history 
+           WHERE student_id = ? AND is_current = 1`,
+            [id],
+          );
+
+          if (currentHistory.length > 0) {
+            const currentClassId = currentHistory[0].class_id;
+
+            if (currentClassId != class_id) {
+              await pool.query(
+                "UPDATE student_academic_history SET is_current = 0 WHERE student_id = ? AND is_current = 1",
+                [id],
+              );
+
+              await pool.query(
+                "INSERT INTO student_academic_history (student_id, class_id, academic_year, is_current, angkatan) VALUES (?, ?, ?, 1, ?)",
+                [
+                  id,
+                  class_id,
+                  finalAcademicYear,
+                  angkatan || existingStudent[0].angkatan,
+                ],
+              );
+            }
+          } else {
+            await pool.query(
+              "INSERT INTO student_academic_history (student_id, class_id, academic_year, is_current, angkatan) VALUES (?, ?, ?, 1, ?)",
+              [id, class_id, finalAcademicYear, angkatan || null],
+            );
+          }
+        }
+
+        res.json({
+          id: parseInt(id),
+          nisn,
+          name,
+          jenis_kelamin,
+          academic_year: finalAcademicYear,
+          is_active: existingStudent[0].is_active,
+          nik,
+          birth_place,
+          birth_date,
+          address,
+          phone,
+          parent_name,
+          angkatan: angkatan || existingStudent[0].angkatan,
+        });
+      } catch (error) {
+        console.error("Error updating student:", error);
+        res.status(500).json({
+          error: error.message || "Failed to update student",
+        });
+      }
+    }),
   );
 
   /**
@@ -521,7 +610,7 @@ const studentRouterFactory = ({ pool, JWT_SECRET }) => {
 
       const [result] = await pool.query(
         "UPDATE students SET is_deleted = 1, is_active = 0 WHERE id = ?",
-        [id]
+        [id],
       );
 
       if (result.affectedRows === 0) {
@@ -529,7 +618,7 @@ const studentRouterFactory = ({ pool, JWT_SECRET }) => {
       }
 
       res.json({ success: true, message: "Siswa berhasil dihapus" });
-    })
+    }),
   );
 
   /**
@@ -551,7 +640,7 @@ const studentRouterFactory = ({ pool, JWT_SECRET }) => {
 
       const [existingStudent] = await pool.query(
         "SELECT * FROM students WHERE id = ? AND is_deleted = 0",
-        [id]
+        [id],
       );
 
       if (existingStudent.length === 0) {
@@ -560,7 +649,7 @@ const studentRouterFactory = ({ pool, JWT_SECRET }) => {
 
       const [targetClass] = await pool.query(
         "SELECT * FROM classes WHERE id = ?",
-        [classId]
+        [classId],
       );
 
       if (targetClass.length === 0) {
@@ -570,7 +659,7 @@ const studentRouterFactory = ({ pool, JWT_SECRET }) => {
       const [existingHistory] = await pool.query(
         `SELECT * FROM student_academic_history 
        WHERE student_id = ? AND academic_year = ?`,
-        [id, targetClass[0].academic_year]
+        [id, targetClass[0].academic_year],
       );
 
       if (existingHistory.length > 0) {
@@ -582,29 +671,29 @@ const studentRouterFactory = ({ pool, JWT_SECRET }) => {
           `UPDATE student_academic_history 
          SET class_id = ?, is_current = 1 
          WHERE student_id = ? AND academic_year = ?`,
-          [classId, id, targetClass[0].academic_year]
+          [classId, id, targetClass[0].academic_year],
         );
 
         await pool.query(
           `UPDATE student_academic_history 
          SET is_current = 0 
          WHERE student_id = ? AND academic_year != ?`,
-          [id, targetClass[0].academic_year]
+          [id, targetClass[0].academic_year],
         );
       } else {
         await pool.query(
           "UPDATE student_academic_history SET is_current = 0 WHERE student_id = ?",
-          [id]
+          [id],
         );
 
         await pool.query(
           "INSERT INTO student_academic_history (student_id, class_id, academic_year, is_current) VALUES (?, ?, ?, 1)",
-          [id, classId, targetClass[0].academic_year]
+          [id, classId, targetClass[0].academic_year],
         );
       }
 
       res.json({ success: true, message: "Siswa berhasil dipindahkan kelas" });
-    })
+    }),
   );
 
   /**
@@ -630,7 +719,7 @@ const studentRouterFactory = ({ pool, JWT_SECRET }) => {
 
       try {
         const results = await importStudentService.processImportFile(
-          req.file.path
+          req.file.path,
         );
 
         res.json({
@@ -643,7 +732,7 @@ const studentRouterFactory = ({ pool, JWT_SECRET }) => {
           error: error.message || "Terjadi kesalahan saat import data siswa",
         });
       }
-    })
+    }),
   );
 
   /**
@@ -684,7 +773,7 @@ const studentRouterFactory = ({ pool, JWT_SECRET }) => {
 
       const [fromClass] = await pool.query(
         "SELECT * FROM classes WHERE id = ?",
-        [classIdFrom]
+        [classIdFrom],
       );
       const [toClass] = await pool.query("SELECT * FROM classes WHERE id = ?", [
         classIdTo,
@@ -704,7 +793,7 @@ const studentRouterFactory = ({ pool, JWT_SECRET }) => {
          AND sah.is_current = 1 
          AND s.is_active = 1
          AND s.angkatan = ?`,
-        [classIdFrom, angkatan]
+        [classIdFrom, angkatan],
       );
 
       if (studentsToMove.length === 0) {
@@ -719,14 +808,14 @@ const studentRouterFactory = ({ pool, JWT_SECRET }) => {
 
         await connection.query(
           "UPDATE student_academic_history SET is_current = 0 WHERE class_id = ? AND is_current = 1",
-          [classIdFrom]
+          [classIdFrom],
         );
 
         for (const student of studentsToMove) {
           const [existingHistory] = await connection.query(
             `SELECT * FROM student_academic_history 
            WHERE student_id = ? AND academic_year = ?`,
-            [student.id, academicYear]
+            [student.id, academicYear],
           );
 
           if (existingHistory.length > 0) {
@@ -734,14 +823,14 @@ const studentRouterFactory = ({ pool, JWT_SECRET }) => {
               `UPDATE student_academic_history 
              SET class_id = ?, is_current = 1, angkatan = ?
              WHERE student_id = ? AND academic_year = ?`,
-              [classIdTo, student.angkatan, student.id, academicYear]
+              [classIdTo, student.angkatan, student.id, academicYear],
             );
           } else {
             await connection.query(
               `INSERT INTO student_academic_history 
              (student_id, class_id, academic_year, is_current, angkatan) 
              VALUES (?, ?, ?, 1, ?)`,
-              [student.id, classIdTo, academicYear, student.angkatan]
+              [student.id, classIdTo, academicYear, student.angkatan],
             );
           }
         }
@@ -765,7 +854,7 @@ const studentRouterFactory = ({ pool, JWT_SECRET }) => {
       } finally {
         connection.release();
       }
-    })
+    }),
   );
 
   /**
@@ -805,7 +894,7 @@ const studentRouterFactory = ({ pool, JWT_SECRET }) => {
 
       const [fromClass] = await pool.query(
         "SELECT * FROM classes WHERE id = ?",
-        [classIdFrom]
+        [classIdFrom],
       );
       if (fromClass.length === 0) {
         return res.status(400).json({ error: "Kelas asal tidak ditemukan" });
@@ -819,7 +908,7 @@ const studentRouterFactory = ({ pool, JWT_SECRET }) => {
          AND sah.is_current = 1 
          AND s.is_active = 1
          AND s.angkatan = ?`,
-        [classIdFrom, angkatan]
+        [classIdFrom, angkatan],
       );
 
       if (students.length === 0) {
@@ -834,18 +923,18 @@ const studentRouterFactory = ({ pool, JWT_SECRET }) => {
 
         await connection.query(
           "UPDATE student_academic_history SET is_current = 0 WHERE class_id = ? AND is_current = 1",
-          [classIdFrom]
+          [classIdFrom],
         );
 
         await connection.query(
           `UPDATE students SET is_active = 0 WHERE id IN (?)`,
-          [students.map((s) => s.id)]
+          [students.map((s) => s.id)],
         );
 
         for (const student of students) {
           const [existingAlumni] = await connection.query(
             "SELECT * FROM alumni WHERE student_id = ?",
-            [student.id]
+            [student.id],
           );
 
           if (existingAlumni.length === 0) {
@@ -860,7 +949,7 @@ const studentRouterFactory = ({ pool, JWT_SECRET }) => {
                 classIdFrom,
                 fromClass[0].name,
                 academicYear,
-              ]
+              ],
             );
           }
         }
@@ -878,7 +967,7 @@ const studentRouterFactory = ({ pool, JWT_SECRET }) => {
       } finally {
         connection.release();
       }
-    })
+    }),
   );
 
   /**
@@ -901,14 +990,14 @@ const studentRouterFactory = ({ pool, JWT_SECRET }) => {
           AND s.angkatan IS NOT NULL
           AND s.angkatan != ''
         GROUP BY s.angkatan
-        ORDER BY s.angkatan DESC`
+        ORDER BY s.angkatan DESC`,
         );
         res.json(angkatans);
       } catch (error) {
         console.error("[Angkatans Route] Error:", error);
         res.status(500).json({ error: "Failed to fetch angkatans" });
       }
-    })
+    }),
   );
 
   router.use((err, req, res, next) => {
