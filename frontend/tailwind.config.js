@@ -32,6 +32,7 @@ export default {
         hover: "rgb(var(--color-hover))",
         secondarybutton: "rgb(var(--color-secondary-button))",
         secondaryhover: "rgb(var(--color-secondary-hover))",
+        errorhover: "rgb(var(--color-error-hover))",
       },
       spacing: {
         18: "4.5rem",

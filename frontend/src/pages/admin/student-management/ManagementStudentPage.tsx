@@ -45,7 +45,11 @@ const ManagementStudentPage: React.FC = () => {
   const [moveStudent, setMoveStudent] = useState<any>(null);
   const [showBulkMoveModal, setShowBulkMoveModal] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
-  const studentsPerPage = 30;
+  const studentsPerPage = 40;
+
+  // State for Delete Confirmation Modal
+  const [showDeleteConfirmation, setShowDeleteConfirmation] = useState(false);
+  const [studentToDelete, setStudentToDelete] = useState<number | null>(null);
 
   const {
     students,
@@ -139,23 +143,37 @@ const ManagementStudentPage: React.FC = () => {
   };
 
   /**
-   * Handles the deletion of a student after a confirmation prompt and displays a toast notification.
+   * Handles the click event for the delete button in the table.
+   * Opens the confirmation modal and sets the ID of the student to be deleted.
    * @param {number} id - The ID of the student to be deleted.
    */
-  const deleteStudent = async (id: number) => {
-    if (
-      !window.confirm(
-        "Apakah Anda yakin ingin menghapus siswa ini? Tindakan ini tidak dapat dibatalkan."
-      )
-    ) {
-      return;
-    }
+  const handleDeleteClick = (id: number) => {
+    setStudentToDelete(id);
+    setShowDeleteConfirmation(true);
+  };
+
+  /**
+   * Executes the deletion of the student after confirmation.
+   */
+  const confirmDelete = async () => {
+    if (studentToDelete === null) return;
     try {
-      await _deleteStudent(id);
+      await _deleteStudent(studentToDelete);
       showSuccessToast("Siswa berhasil dihapus!");
+      setShowDeleteConfirmation(false);
+      setStudentToDelete(null);
+      refetch(); // Refresh the list
     } catch (err: any) {
       showErrorToast(err.message || "Gagal menghapus siswa");
     }
+  };
+
+  /**
+   * Cancels the deletion operation and closes the modal.
+   */
+  const cancelDelete = () => {
+    setShowDeleteConfirmation(false);
+    setStudentToDelete(null);
   };
 
   /**
@@ -293,7 +311,7 @@ const ManagementStudentPage: React.FC = () => {
               <StudentTable
                 students={students}
                 onEdit={setEditStudent}
-                onDelete={deleteStudent}
+                onDelete={handleDeleteClick}
                 onMoveClass={setMoveStudent}
                 canEditClasses={canEditClasses}
                 loading={loading}
@@ -378,6 +396,29 @@ const ManagementStudentPage: React.FC = () => {
             classes={classes}
             angkatans={angkatans}
           />
+        )}
+
+        {/* Delete Confirmation Modal */}
+        {showDeleteConfirmation && (
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+            <div className="card p-6 max-w-md w-full">
+              <h3 className="text-xl font-bold mb-4 text-foreground">
+                Konfirmasi Hapus
+              </h3>
+              <p className="mb-6 text-secondary">
+                Apakah Anda yakin ingin menghapus siswa ini? Tindakan ini tidak
+                dapat dibatalkan.
+              </p>
+              <div className="flex justify-end space-x-4">
+                <button onClick={cancelDelete} className="btn btn-secondary">
+                  Batal
+                </button>
+                <button onClick={confirmDelete} className="btn btn-danger">
+                  Hapus
+                </button>
+              </div>
+            </div>
+          </div>
         )}
       </div>
     </AdminLayout>
