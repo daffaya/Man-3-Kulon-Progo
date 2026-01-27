@@ -125,6 +125,86 @@ export const studentService = {
   },
 
   /**
+   * Retrieves a single student by their NISN (National Student Identification Number).
+   * @param {string} nisn - The NISN of the student to retrieve.
+   * @param {string} token - Authentication token.
+   * @returns {Promise<Student>} Promise resolving to the student object.
+   */
+  getStudentByNISN: async (nisn: string, token: string): Promise<Student> => {
+    if (!token) {
+      throw new Error("Token is required");
+    }
+
+    const response = await fetch(`${backendUrl}/api/students/nisn/${nisn}`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
+    if (!response.ok) {
+      let errorMessage = "Failed to fetch student";
+      let textResponse = "";
+      let shouldLogout = false;
+
+      const contentType = response.headers.get("content-type");
+
+      if (contentType && contentType.includes("application/json")) {
+        try {
+          const errorData = await response.json();
+          errorMessage = errorData.error || errorData.message || errorMessage;
+
+          if (
+            errorMessage.includes("token") ||
+            errorMessage.includes("authenticated") ||
+            errorMessage.includes("Token telah kadaluarsa")
+          ) {
+            shouldLogout = true;
+          }
+        } catch (e) {
+          textResponse = await response.text();
+          errorMessage = "Server returned invalid JSON";
+        }
+      } else {
+        textResponse = await response.text();
+
+        if (textResponse.includes("<!DOCTYPE")) {
+          if (
+            textResponse.includes("token") ||
+            textResponse.includes("authenticated") ||
+            textResponse.includes("login")
+          ) {
+            shouldLogout = true;
+            errorMessage = "Authentication failed. Please login again.";
+          } else {
+            if (response.status === 404) {
+              errorMessage = "Student not found";
+            } else {
+              errorMessage =
+                "Server returned HTML page instead of JSON. Please check if you're authenticated.";
+            }
+          }
+        } else if (
+          textResponse.includes("token") ||
+          textResponse.includes("authenticated")
+        ) {
+          shouldLogout = true;
+          errorMessage = "Authentication failed. Please login again.";
+        } else if (response.status === 404) {
+          errorMessage = "Student not found";
+        }
+      }
+
+      if (shouldLogout) {
+        window.dispatchEvent(new CustomEvent("unauthorized"));
+      }
+
+      throw new Error(errorMessage);
+    }
+
+    return response.json();
+  },
+
+  /**
    * Creates a new student record.
    * @param {any} studentData - The student data to create.
    * @param {string} token - Authentication token.
@@ -167,7 +247,6 @@ export const studentService = {
    * @param {string} token - Authentication token.
    * @returns {Promise<Student>} Promise resolving to the updated student.
    */
-
   updateStudent: async (
     id: number,
     studentData: any,

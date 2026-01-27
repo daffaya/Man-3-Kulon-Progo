@@ -61,9 +61,35 @@ const alumniControllerFactory = ({ pool }) => {
     }
   };
 
+  /**
+   * Handles the request to get an alumnus's data by ID.
+   * @async
+   * @param {Object} req - Express request object.
+   * @param {Object} req.params - Route parameters.
+   * @param {string} req.params.id - The ID of the alumnus.
+   * @param {Object} res - Express response object.
+   * @returns {Promise<void>}
+   */
+  const handleGetAlumniById = async (req, res) => {
+    const { id } = req.params;
+
+    try {
+      const alumni = await alumniModel.getAlumniById(id);
+
+      if (!alumni) {
+        return res.status(404).json({ error: "Alumni tidak ditemukan" });
+      }
+
+      res.json(alumni);
+    } catch (error) {
+      res.status(500).json({ error: error.message });
+    }
+  };
+
   return {
     handleGetAlumni,
     handleUpdateAlumni,
+    handleGetAlumniById,
   };
 };
 

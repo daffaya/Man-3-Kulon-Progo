@@ -1,4 +1,4 @@
-import fs from "fs";
+// import fs from "fs"; // Unused import removed
 
 /**
  * Factory function to create a Student Controller with CRUD operations.
@@ -38,7 +38,7 @@ const studentControllerFactory = ({ pool, importStudentService }) => {
          ${academicYear ? "AND sah.academicYear = ?" : ""}
        ORDER BY s.name
        LIMIT ? OFFSET ?`,
-        [`%${search}%`, `%${search}%`, classId, academicYear, limit, offset]
+        [`%${search}%`, `%${search}%`, classId, academicYear, limit, offset],
       );
 
       const [countRes] = await pool.execute(
@@ -47,7 +47,7 @@ const studentControllerFactory = ({ pool, importStudentService }) => {
          WHERE s.name LIKE ? OR s.nisn LIKE ?
            ${classId ? "AND sah.classId = ?" : ""}
            ${academicYear ? "AND sah.academicYear = ?" : ""}`,
-        [`%${search}%`, `%${search}%`, classId, academicYear]
+        [`%${search}%`, `%${search}%`, classId, academicYear],
       );
 
       res.json({
@@ -94,7 +94,7 @@ const studentControllerFactory = ({ pool, importStudentService }) => {
 
       const [existing] = await pool.execute(
         "SELECT id FROM students WHERE nisn = ?",
-        [nisn]
+        [nisn],
       );
       if (existing.length > 0) {
         return res.status(400).json({ error: "NISN sudah terdaftar" });
@@ -102,7 +102,7 @@ const studentControllerFactory = ({ pool, importStudentService }) => {
 
       const [classCheck] = await pool.execute(
         "SELECT id FROM classes WHERE id = ?",
-        [classId]
+        [classId],
       );
       if (classCheck.length === 0) {
         return res.status(400).json({ error: "Kelas tidak ditemukan" });
@@ -122,14 +122,14 @@ const studentControllerFactory = ({ pool, importStudentService }) => {
           address,
           phone,
           parentName,
-        ]
+        ],
       );
 
       const studentId = result.insertId;
 
       await pool.execute(
         "INSERT INTO student_academic_history (studentId, classId, academicYear) VALUES (?, ?, ?)",
-        [studentId, classId, academicYear || "2025/2026"]
+        [studentId, classId, academicYear || "2025/2026"],
       );
 
       res.status(201).json({
@@ -159,11 +159,36 @@ const studentControllerFactory = ({ pool, importStudentService }) => {
          LEFT JOIN student_academic_history sah ON s.id = sah.studentId
          LEFT JOIN classes c ON sah.classId = c.id
          WHERE s.id = ?`,
-        [id]
+        [id],
       );
 
       if (students.length === 0) {
         return res.status(404).json({ error: "Siswa tidak ditemukan" });
+      }
+
+      res.json(students[0]);
+    } catch (error) {
+      res.status(500).json({ error: error.message });
+    }
+  };
+
+  /**
+   * Retrieves a specific student by their NISN.
+   * @param {Object} req - Express request object
+   * @param {Object} res - Express response object
+   * @returns {Promise<void>}
+   */
+  const getStudentByNISN = async (req, res) => {
+    try {
+      const { nisn } = req.params;
+
+      const [students] = await pool.execute(
+        "SELECT * FROM students WHERE nisn = ?",
+        [nisn],
+      );
+
+      if (students.length === 0) {
+        return res.status(404).json({ error: "Student not found" });
       }
 
       res.json(students[0]);
@@ -186,7 +211,7 @@ const studentControllerFactory = ({ pool, importStudentService }) => {
       if (updates.nisn) {
         const [existing] = await pool.execute(
           "SELECT id FROM students WHERE nisn = ? AND id != ?",
-          [updates.nisn, id]
+          [updates.nisn, id],
         );
         if (existing.length > 0) {
           return res
@@ -261,7 +286,7 @@ const studentControllerFactory = ({ pool, importStudentService }) => {
              WHERE studentId = ? 
              ORDER BY createdAt DESC LIMIT 1
            )`,
-          [updates.classId, id, id]
+          [updates.classId, id, id],
         );
       }
 
@@ -283,7 +308,7 @@ const studentControllerFactory = ({ pool, importStudentService }) => {
 
       const [student] = await pool.execute(
         "SELECT id FROM students WHERE id = ?",
-        [id]
+        [id],
       );
       if (student.length === 0) {
         return res.status(404).json({ error: "Siswa tidak ditemukan" });
@@ -291,7 +316,7 @@ const studentControllerFactory = ({ pool, importStudentService }) => {
 
       await pool.execute(
         'UPDATE students SET status = "Tidak Aktif" WHERE id = ?',
-        [id]
+        [id],
       );
 
       res.json({ message: "Siswa berhasil dihapus" });
@@ -309,7 +334,7 @@ const studentControllerFactory = ({ pool, importStudentService }) => {
   const getStudentStats = async (req, res) => {
     try {
       const [rows] = await pool.execute(
-        "SELECT COUNT(*) as total FROM students WHERE is_active = 1 AND is_deleted = 0"
+        "SELECT COUNT(*) as total FROM students WHERE is_active = 1 AND is_deleted = 0",
       );
 
       const totalStudents = rows[0].total;
@@ -336,7 +361,7 @@ const studentControllerFactory = ({ pool, importStudentService }) => {
       }
 
       const results = await importStudentService.processImportFile(
-        req.file.path
+        req.file.path,
       );
 
       const response = {
@@ -364,6 +389,7 @@ const studentControllerFactory = ({ pool, importStudentService }) => {
   return {
     getStudents,
     getStudentById,
+    getStudentByNISN,
     createStudent,
     updateStudent,
     deleteStudent,

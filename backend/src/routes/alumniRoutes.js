@@ -23,9 +23,8 @@ import rateLimiter from "../middleware/rateLimiter.js";
 const alumniRouterFactory = ({ pool, JWT_SECRET }) => {
   const router = express.Router();
 
-  const { handleGetAlumni, handleUpdateAlumni } = alumniControllerFactory({
-    pool,
-  });
+  const { handleGetAlumni, handleGetAlumniById, handleUpdateAlumni } =
+    alumniControllerFactory({ pool });
 
   const limiter = rateLimiter({
     windowMs: 15 * 60 * 1000,
@@ -33,14 +32,24 @@ const alumniRouterFactory = ({ pool, JWT_SECRET }) => {
     message: { error: "Terlalu banyak permintaan. Coba lagi nanti" },
   });
 
+  // Public: get alumni list
   router.get("/", limiter, handleGetAlumni);
 
+  // Protected: get alumni by ID
+  router.get(
+    "/:id",
+    limiter,
+    authenticateTokenFactory({ JWT_SECRET }),
+    handleGetAlumniById,
+  );
+
+  // Protected (admin): update alumni data
   router.put(
     "/admin/:id",
     limiter,
     authenticateTokenFactory({ JWT_SECRET }),
     restrictTo(["guru_bk", "super_admin"]),
-    handleUpdateAlumni
+    handleUpdateAlumni,
   );
 
   return router;

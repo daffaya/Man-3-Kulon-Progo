@@ -1,7 +1,8 @@
 /**
- * @fileoverview Page component for displaying and managing a list of alumni.
- * Provides search and filter functionality for all users and additional
- * management capabilities for authorized roles (admin, guru_bk).
+ * @fileoverview Page component for managing and viewing alumni information.
+ * This component handles the retrieval, searching, filtering, and display of alumni records.
+ * It includes role-based conditional rendering for administrative actions, pagination controls,
+ * and a modal interface for editing alumni details.
  */
 
 import React, { useState, useEffect } from "react";
@@ -21,19 +22,27 @@ import AdminLayout from "../../components/layout/AdminLayout";
 import { useNavigate, Link } from "react-router-dom";
 import Filters from "../../components/alumni/AlumniFilter";
 import AlumniTable from "../../components/tables/AlumniTable";
-import { alumniService } from "../../services/alumniService";
+import EditAlumniModal from "../../components/modals/EditAlumniModal";
+import { alumniApi } from "../../api/alumniApi";
 import { useToast } from "../../contexts/ToastContext";
 
 export const ALLOWED_ROLES = ["guru_bk", "super_admin"] as const;
 
+/**
+ * Represents an Alumni record.
+ */
 interface Alumni {
   id: number;
   nisn: string;
   name: string;
   graduation_year: string;
   last_class_name: string;
+  status?: string;
 }
 
+/**
+ * Structure for pagination metadata.
+ */
 interface PaginationInfo {
   currentPage: number;
   totalPages: number;
@@ -43,10 +52,10 @@ interface PaginationInfo {
 }
 
 /**
- * Checks if the logged-in user has the required role to manage alumni.
- * @param {boolean} isLoggedIn - The user's login status.
- * @param {string | undefined} role - The user's role.
- * @returns {boolean} True if the user has access, otherwise false.
+ * Determines if the current user has edit access based on login status and role.
+ * @param {boolean} isLoggedIn - Whether the user is logged in.
+ * @param {string} [role] - The user's role.
+ * @returns {boolean} True if the user has edit access, false otherwise.
  */
 const hasEditAccess = (isLoggedIn: boolean, role?: string): boolean =>
   isLoggedIn && role
@@ -54,9 +63,8 @@ const hasEditAccess = (isLoggedIn: boolean, role?: string): boolean =>
     : false;
 
 /**
- * Component for the alumni page.
- * It displays a searchable and filterable list of alumni. The layout and
- * available actions differ based on the user's authentication status and role.
+ * AlumniPage component that displays a list of alumni with search and filter capabilities.
+ * Supports role-based editing and pagination.
  */
 const AlumniPage: React.FC = () => {
   const { isLoggedIn, user, token } = useAuth();
@@ -69,6 +77,8 @@ const AlumniPage: React.FC = () => {
   const [showEmptyState, setShowEmptyState] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const [pagination, setPagination] = useState<PaginationInfo | null>(null);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [selectedAlumniId, setSelectedAlumniId] = useState<number | null>(null);
   const alumniPerPage = 20;
 
   const isAdminOrGuruBK = hasEditAccess(isLoggedIn, user?.role);
@@ -78,14 +88,14 @@ const AlumniPage: React.FC = () => {
       setLoading(true);
       setShowEmptyState(false);
       try {
-        const data = await alumniService.getAlumni(
+        const data = await alumniApi.getAlumni(
           {
             search: searchQuery,
             graduationYear,
             page: currentPage,
             limit: alumniPerPage,
           },
-          token
+          token,
         );
         setAlumni(data.data);
         setPagination(data.pagination);
@@ -103,9 +113,9 @@ const AlumniPage: React.FC = () => {
   }, [searchQuery, graduationYear, currentPage, token, showToast]);
 
   /**
-   * Handles the click event for the edit button.
-   * Navigates to the edit page if the user has the required permissions.
-   * @param {Alumni} alumni - The alumni object to be edited.
+   * Handles the edit button click event.
+   * Checks permissions and opens the edit modal if authorized.
+   * @param {Alumni} alumni - The alumni record to edit.
    */
   const handleEditClick = (alumni: Alumni) => {
     if (!isAdminOrGuruBK) {
@@ -115,12 +125,33 @@ const AlumniPage: React.FC = () => {
       }
       return;
     }
-    navigate(`/atmin/alumni/${alumni.id}/edit`, { state: { alumni } });
+    setSelectedAlumniId(alumni.id);
+    setIsEditModalOpen(true);
   };
 
   /**
-   * Updates the current page number and scrolls to the top of the page.
-   * @param {number} page - The page number to navigate to.
+   * Updates the alumni list state when a record is successfully edited.
+   * @param {Alumni} updatedAlumni - The updated alumni object.
+   */
+  const handleAlumniUpdate = (updatedAlumni: Alumni) => {
+    setAlumni((prevAlumni) =>
+      prevAlumni.map((alum) =>
+        alum.id === updatedAlumni.id ? updatedAlumni : alum,
+      ),
+    );
+  };
+
+  /**
+   * Closes the edit modal and resets the selected alumni ID.
+   */
+  const handleCloseModal = () => {
+    setIsEditModalOpen(false);
+    setSelectedAlumniId(null);
+  };
+
+  /**
+   * Handles changes to the current page number.
+   * @param {number} page - The new page number.
    */
   const handlePageChange = (page: number) => {
     setCurrentPage(page);
@@ -128,7 +159,7 @@ const AlumniPage: React.FC = () => {
   };
 
   /**
-   * Resets the current page to 1 when any filter is changed.
+   * Resets the current page to 1 when filters change.
    */
   const handleFilterChange = () => {
     setCurrentPage(1);
@@ -137,7 +168,7 @@ const AlumniPage: React.FC = () => {
   const SelectedLayout = isAdminOrGuruBK ? AdminLayout : Layout;
 
   const uniqueYears = [...new Set(alumni.map((a) => a.graduation_year))].sort(
-    (a, b) => parseInt(b) - parseInt(a)
+    (a, b) => parseInt(b) - parseInt(a),
   );
 
   return (
@@ -379,6 +410,13 @@ const AlumniPage: React.FC = () => {
             )}
           </div>
         )}
+
+        <EditAlumniModal
+          isOpen={isEditModalOpen}
+          onClose={handleCloseModal}
+          alumniId={selectedAlumniId}
+          onUpdate={handleAlumniUpdate}
+        />
       </div>
     </SelectedLayout>
   );

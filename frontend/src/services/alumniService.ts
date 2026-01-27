@@ -1,67 +1,33 @@
 /**
- * @fileoverview Service module for handling API requests related to alumni data.
- * This module provides functions to fetch a list of alumni with filtering and pagination,
- * and to update the information of a specific alumni record. It handles communication
- * with the backend API, including setting up query parameters and authentication headers.
+ * @fileoverview Service layer for managing alumni-related business logic.
+ * This module acts as an intermediary between the UI components and the alumni API,
+ * handling data transformation and API calls for alumni operations.
  */
 
-const backendUrl =
-  import.meta.env.VITE_BACKEND_URL || "https://backend.man3kulonprogo.sch.id";
+// frontend/src/services/alumniService.ts
+import { alumniApi } from "../api/alumniApi";
+import { Alumni, AlumniFilter, AlumniResponse } from "../types/alumniTypes";
 
 export const alumniService = {
   /**
-   * Fetches a list of alumni from the API with optional filtering and pagination.
-   * @param {object} params - The query parameters for the request.
-   * @param {string} [params.search] - A search term to filter alumni by name or other relevant fields.
-   * @param {string} [params.graduationYear] - The graduation year to filter alumni by.
-   * @param {number} [params.page] - The page number for pagination.
-   * @param {number} [params.limit] - The number of results to return per page.
-   * @param {string | null} [token] - The authorization token for authenticated requests.
-   * @returns {Promise<any>} A promise that resolves to the JSON response containing the alumni data.
-   * @throws {Error} Throws an error if the network request fails or the server returns an error.
+   * Fetches a list of alumni based on the provided filter criteria.
+   * @param params - The filter parameters for the query.
+   * @param token - Optional authentication token.
+   * @returns A promise resolving to the paginated alumni response.
    */
   getAlumni: async (
-    params: {
-      search?: string;
-      graduationYear?: string;
-      page?: number;
-      limit?: number;
-    },
-    token?: string | null
-  ) => {
-    const query = new URLSearchParams();
-    if (params.search) query.append("search", params.search);
-    if (params.graduationYear)
-      query.append("graduationYear", params.graduationYear);
-    if (params.page) query.append("page", params.page.toString());
-    if (params.limit) query.append("limit", params.limit.toString());
-
-    const response = await fetch(
-      `${backendUrl}/api/alumni?${query.toString()}`,
-      {
-        headers: token ? { Authorization: `Bearer ${token}` } : {},
-      }
-    );
-
-    if (!response.ok) {
-      const errorData = await response.json();
-      throw new Error(errorData.error || "Gagal memuat data alumni");
-    }
-
-    return response.json();
+    params: AlumniFilter,
+    token?: string | null,
+  ): Promise<AlumniResponse> => {
+    return alumniApi.getAlumni(params, token);
   },
 
   /**
-   * Updates the information of a specific alumni record by their ID.
-   * @param {number} id - The unique identifier of the alumni to update.
-   * @param {object} data - The data to update for the alumni.
-   * @param {string} [data.status] - The new status of the alumni.
-   * @param {string} [data.workplace] - The new workplace of the alumni.
-   * @param {string} [data.business] - The new business of the alumni.
-   * @param {string} [data.university] - The new university of the alumni.
-   * @param {string} token - The authorization token for the request.
-   * @returns {Promise<any>} A promise that resolves to the JSON response of the updated alumni data.
-   * @throws {Error} Throws an error if the token is missing, the network request fails, or the server returns an error.
+   * Updates the details of a specific alumni record.
+   * @param id - The ID of the alumni to update.
+   * @param data - The data fields to update.
+   * @param token - Authentication token.
+   * @returns A promise resolving to the update result.
    */
   updateAlumni: async (
     id: number,
@@ -71,24 +37,18 @@ export const alumniService = {
       business?: string;
       university?: string;
     },
-    token: string
-  ) => {
-    if (!token) throw new Error("Token is required");
+    token: string,
+  ): Promise<any> => {
+    return alumniApi.updateAlumni(id, data, token);
+  },
 
-    const response = await fetch(`${backendUrl}/api/alumni/${id}`, {
-      method: "PATCH",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-      },
-      body: JSON.stringify(data),
-    });
-
-    if (!response.ok) {
-      const errorData = await response.json();
-      throw new Error(errorData.error || "Gagal memperbarui data alumni");
-    }
-
-    return response.json();
+  /**
+   * Retrieves a specific alumni record by their ID.
+   * @param id - The ID of the alumni to retrieve.
+   * @param token - Authentication token.
+   * @returns A promise resolving to the alumni data.
+   */
+  getAlumniById: async (id: number, token: string): Promise<Alumni> => {
+    return alumniApi.getAlumniById(id, token);
   },
 };

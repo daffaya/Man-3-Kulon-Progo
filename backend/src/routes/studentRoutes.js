@@ -273,6 +273,32 @@ const studentRouterFactory = ({ pool, JWT_SECRET }) => {
   );
 
   /**
+   * GET /students/nisn/:nisn
+   * Retrieves a specific student by their NISN.
+   *
+   * @route GET /students/nisn/:nisn
+   * @param {string} req.params.nisn - The NISN of the student to retrieve.
+   * @returns {object} The requested student object or an error message.
+   */
+  router.get(
+    "/nisn/:nisn",
+    asyncHandler(async (req, res) => {
+      const { nisn } = req.params;
+
+      const [students] = await pool.query(
+        "SELECT * FROM students WHERE nisn = ?",
+        [nisn],
+      );
+
+      if (students.length === 0) {
+        return res.status(404).json({ error: "Student not found" });
+      }
+
+      res.json(students[0]);
+    }),
+  );
+
+  /**
    * GET /students/:id
    * Retrieves a single student by ID.
    *
