@@ -16,6 +16,9 @@ import {
   BookOpen,
   ChevronLeft,
   ChevronRight,
+  Store,
+  Briefcase,
+  GraduationCap,
 } from "lucide-react";
 import Layout from "../../components/layout/Layout";
 import AdminLayout from "../../components/layout/AdminLayout";
@@ -33,11 +36,14 @@ export const ALLOWED_ROLES = ["guru_bk", "super_admin"] as const;
  */
 interface Alumni {
   id: number;
-  nisn: string;
   name: string;
   graduation_year: string;
   last_class_name: string;
   status?: string;
+  workplace?: string;
+  business?: string;
+  university?: string;
+  keterangan?: string;
 }
 
 /**
@@ -80,6 +86,8 @@ const AlumniPage: React.FC = () => {
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [selectedAlumniId, setSelectedAlumniId] = useState<number | null>(null);
   const alumniPerPage = 20;
+  const [status, setStatus] = useState("");
+  const [statusOptions] = useState(["Bekerja", "Usaha", "Kuliah", "Lainnya"]);
 
   const isAdminOrGuruBK = hasEditAccess(isLoggedIn, user?.role);
 
@@ -87,16 +95,19 @@ const AlumniPage: React.FC = () => {
     const loadAlumni = async () => {
       setLoading(true);
       setShowEmptyState(false);
+
       try {
         const data = await alumniApi.getAlumni(
           {
             search: searchQuery,
             graduationYear,
+            status,
             page: currentPage,
             limit: alumniPerPage,
           },
           token,
         );
+
         setAlumni(data.data);
         setPagination(data.pagination);
 
@@ -110,7 +121,7 @@ const AlumniPage: React.FC = () => {
       }
     };
     loadAlumni();
-  }, [searchQuery, graduationYear, currentPage, token, showToast]);
+  }, [searchQuery, graduationYear, status, currentPage, token, showToast]);
 
   /**
    * Handles the edit button click event.
@@ -183,7 +194,6 @@ const AlumniPage: React.FC = () => {
             Kembali ke dashboard admin
           </Link>
         )}
-
         <div className="text-center mb-10">
           <h1 className="text-4xl md:text-5xl font-serif font-bold mb-3 text-foreground">
             Jejak Alumni
@@ -192,40 +202,71 @@ const AlumniPage: React.FC = () => {
             Temukan teman seangkatan dan kenang masa indah di MAN 3 Kulon Progo.
           </p>
         </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-10">
           <div className="card p-6 flex items-center">
-            <div className="p-3 rounded-full bg-accent/10 mr-4">
-              <Users className="h-6 w-6 text-accent" />
+            <div className="p-3 rounded-full bg-blue-100 mr-4">
+              <Briefcase className="h-6 w-6 text-blue-600" />
+            </div>
+            <div>
+              <p className="text-sm text-secondary">Bekerja</p>
+              <p className="text-2xl font-bold text-foreground">
+                {alumni.filter((a) => a.status === "Bekerja").length}
+              </p>
+              <p className="text-xs text-secondary">
+                {alumni.length > 0
+                  ? `${Math.round((alumni.filter((a) => a.status === "Bekerja").length / alumni.length) * 100)}% dari total`
+                  : "0% dari total"}
+              </p>
+            </div>
+          </div>
+
+          <div className="card p-6 flex items-center">
+            <div className="p-3 rounded-full bg-purple-100 mr-4">
+              <GraduationCap className="h-6 w-6 text-purple-600" />
+            </div>
+            <div>
+              <p className="text-sm text-secondary">Kuliah</p>
+              <p className="text-2xl font-bold text-foreground">
+                {alumni.filter((a) => a.status === "Kuliah").length}
+              </p>
+              <p className="text-xs text-secondary">
+                {alumni.length > 0
+                  ? `${Math.round((alumni.filter((a) => a.status === "Kuliah").length / alumni.length) * 100)}% dari total`
+                  : "0% dari total"}
+              </p>
+            </div>
+          </div>
+
+          <div className="card p-6 flex items-center">
+            <div className="p-3 rounded-full bg-green-100 mr-4">
+              <Store className="h-6 w-6 text-green-600" />
+            </div>
+            <div>
+              <p className="text-sm text-secondary">Usaha</p>
+              <p className="text-2xl font-bold text-foreground">
+                {alumni.filter((a) => a.status === "Usaha").length}
+              </p>
+              <p className="text-xs text-secondary">
+                {alumni.length > 0
+                  ? `${Math.round((alumni.filter((a) => a.status === "Usaha").length / alumni.length) * 100)}% dari total`
+                  : "0% dari total"}
+              </p>
+            </div>
+          </div>
+
+          <div className="card p-6 flex items-center">
+            <div className="p-3 rounded-full bg-gray-100 mr-4">
+              <Users className="h-6 w-6 text-gray-600" />
             </div>
             <div>
               <p className="text-sm text-secondary">Total Alumni</p>
               <p className="text-2xl font-bold text-foreground">
                 {pagination ? pagination.totalAlumni : alumni.length}
               </p>
-            </div>
-          </div>
-
-          <div className="card p-6 flex items-center">
-            <div className="p-3 rounded-full bg-accent/10 mr-4">
-              <Calendar className="h-6 w-6 text-accent" />
-            </div>
-            <div>
-              <p className="text-sm text-secondary">Angkatan Terbaru</p>
-              <p className="text-2xl font-bold text-foreground">
-                {uniqueYears.length > 0 ? uniqueYears[0] : "-"}
-              </p>
-            </div>
-          </div>
-
-          <div className="card p-6 flex items-center">
-            <div className="p-3 rounded-full bg-accent/10 mr-4">
-              <BookOpen className="h-6 w-6 text-accent" />
-            </div>
-            <div>
-              <p className="text-sm text-secondary">Total Angkatan</p>
-              <p className="text-2xl font-bold text-foreground">
-                {uniqueYears.length}
+              <p className="text-xs text-secondary">
+                {uniqueYears.length > 0
+                  ? `${uniqueYears.length} angkatan`
+                  : "Data sedang dikumpulkan"}
               </p>
             </div>
           </div>
@@ -244,11 +285,13 @@ const AlumniPage: React.FC = () => {
             setSearchQuery={setSearchQuery}
             graduationYear={graduationYear}
             setGraduationYear={setGraduationYear}
+            status={status}
+            setStatus={setStatus}
             years={uniqueYears}
+            statusOptions={statusOptions}
             onFilterChange={handleFilterChange}
           />
         </div>
-
         {showEmptyState && !loading && (
           <div className="card p-12 text-center">
             <div className="mx-auto w-24 h-24 bg-semibackground rounded-full flex items-center justify-center mb-5">
@@ -265,6 +308,7 @@ const AlumniPage: React.FC = () => {
               onClick={() => {
                 setSearchQuery("");
                 setGraduationYear("");
+                setStatus("");
                 setCurrentPage(1);
               }}
               className="btn btn-secondary"
@@ -273,7 +317,6 @@ const AlumniPage: React.FC = () => {
             </button>
           </div>
         )}
-
         {!showEmptyState && (
           <div className="card p-6">
             <AlumniTable
@@ -284,7 +327,6 @@ const AlumniPage: React.FC = () => {
             />
           </div>
         )}
-
         {pagination && pagination.totalPages > 1 && (
           <div className="flex justify-center items-center mt-12">
             <nav className="flex items-center space-x-2">
@@ -359,7 +401,6 @@ const AlumniPage: React.FC = () => {
             </nav>
           </div>
         )}
-
         {pagination && (
           <div className="text-center mt-4 text-sm text-secondary/70">
             Menampilkan {alumni.length} dari {pagination.totalAlumni} alumni
@@ -371,7 +412,6 @@ const AlumniPage: React.FC = () => {
             )}
           </div>
         )}
-
         {!isAdminOrGuruBK && (
           <div className="card p-8 text-center mt-10">
             <div className="mx-auto w-16 h-16 bg-accent/10 p-3 rounded-full flex items-center justify-center mb-5">
@@ -410,7 +450,6 @@ const AlumniPage: React.FC = () => {
             )}
           </div>
         )}
-
         <EditAlumniModal
           isOpen={isEditModalOpen}
           onClose={handleCloseModal}

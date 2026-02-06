@@ -64,7 +64,7 @@ const AttendanceInputPage: React.FC = () => {
   const [classes, setClasses] = useState<ClassData[]>([]);
   const [selectedClass, setSelectedClass] = useState<number>(0);
   const [selectedDate, setSelectedDate] = useState<string>(
-    format(new Date(), "yyyy-MM-dd")
+    format(new Date(), "yyyy-MM-dd"),
   );
   const [students, setStudents] = useState<Student[]>([]);
   const [attendances, setAttendances] = useState<Attendance[]>([]);
@@ -124,7 +124,7 @@ const AttendanceInputPage: React.FC = () => {
             headers: {
               Authorization: `Bearer ${token}`,
             },
-          }
+          },
         );
 
         if (response.ok) {
@@ -135,7 +135,7 @@ const AttendanceInputPage: React.FC = () => {
             (student: Student) => ({
               student_id: student.id,
               status: "hadir",
-            })
+            }),
           );
           setAttendances(initialAttendances);
         } else {
@@ -166,25 +166,23 @@ const AttendanceInputPage: React.FC = () => {
             headers: {
               Authorization: `Bearer ${token}`,
             },
-          }
+          },
         );
 
         if (response.ok) {
           const data = await response.json();
 
           if (data.length > 0) {
-            const updatedAttendances = attendances.map((att) => {
+            // Create a new array instead of mapping over the existing one
+            const updatedAttendances = students.map((student) => {
               const fetchedAtt = data.find(
-                (d: Attendance) => d.student_id === att.student_id
+                (d: Attendance) => d.student_id === student.id,
               );
-              if (fetchedAtt) {
-                return {
-                  ...att,
-                  status: fetchedAtt.status,
-                  notes: fetchedAtt.notes || "",
-                };
-              }
-              return att;
+              return {
+                student_id: student.id,
+                status: fetchedAtt ? fetchedAtt.status : "hadir",
+                notes: fetchedAtt ? fetchedAtt.notes || "" : "",
+              };
             });
             setAttendances(updatedAttendances);
           }
@@ -197,7 +195,7 @@ const AttendanceInputPage: React.FC = () => {
     if (isLoggedIn && selectedClass && selectedDate) {
       fetchAttendance();
     }
-  }, [isLoggedIn, selectedClass, selectedDate, token, attendances]);
+  }, [isLoggedIn, selectedClass, selectedDate, token, students]);
 
   /**
    * Handles status change for a student's attendance.
@@ -206,12 +204,12 @@ const AttendanceInputPage: React.FC = () => {
    */
   const handleStatusChange = (
     studentId: number,
-    status: "hadir" | "izin" | "sakit" | "alpa"
+    status: "hadir" | "izin" | "sakit" | "alpa",
   ) => {
     setAttendances((prev) =>
       prev.map((att) =>
-        att.student_id === studentId ? { ...att, status } : att
-      )
+        att.student_id === studentId ? { ...att, status } : att,
+      ),
     );
   };
 
@@ -223,8 +221,8 @@ const AttendanceInputPage: React.FC = () => {
   const handleNotesChange = (studentId: number, notes: string) => {
     setAttendances((prev) =>
       prev.map((att) =>
-        att.student_id === studentId ? { ...att, notes } : att
-      )
+        att.student_id === studentId ? { ...att, notes } : att,
+      ),
     );
   };
 
@@ -245,7 +243,7 @@ const AttendanceInputPage: React.FC = () => {
 
     if (attendances.length === 0) {
       showErrorToast(
-        "Data presensi belum siap. Silakan tunggu hingga data siswa dimuat."
+        "Data presensi belum siap. Silakan tunggu hingga data siswa dimuat.",
       );
       return;
     }
@@ -285,7 +283,7 @@ const AttendanceInputPage: React.FC = () => {
                 headers: {
                   Authorization: `Bearer ${token}`,
                 },
-              }
+              },
             );
 
             const verifyData = await verifyResponse.json();
@@ -319,7 +317,7 @@ const AttendanceInputPage: React.FC = () => {
           headers: {
             Authorization: `Bearer ${token}`,
           },
-        }
+        },
       );
 
       const data = await response.json();
@@ -327,12 +325,6 @@ const AttendanceInputPage: React.FC = () => {
       console.error("Error checking existing attendance:", err);
     }
   };
-
-  useEffect(() => {
-    if (selectedClass && selectedDate) {
-      checkExistingAttendance();
-    }
-  }, [selectedClass, selectedDate]);
 
   if (!isLoggedIn) {
     navigate("/login");
@@ -443,7 +435,7 @@ const AttendanceInputPage: React.FC = () => {
                       <tbody className="divide-y divide-[rgb(var(--color-secondary)/0.1)]">
                         {students.map((student, index) => {
                           const attendance = attendances.find(
-                            (a) => a.student_id === student.id
+                            (a) => a.student_id === student.id,
                           ) || { status: "hadir", notes: "" };
                           return (
                             <tr key={student.id}>
@@ -467,7 +459,7 @@ const AttendanceInputPage: React.FC = () => {
                                         | "hadir"
                                         | "izin"
                                         | "sakit"
-                                        | "alpa"
+                                        | "alpa",
                                     )
                                   }
                                   disabled={loading}
@@ -486,7 +478,7 @@ const AttendanceInputPage: React.FC = () => {
                                   onChange={(e) =>
                                     handleNotesChange(
                                       student.id,
-                                      e.target.value
+                                      e.target.value,
                                     )
                                   }
                                   placeholder="Keterangan"

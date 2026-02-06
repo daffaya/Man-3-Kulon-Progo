@@ -51,7 +51,7 @@ const __dirname = dirname(__filename);
           }
         },
         credentials: true,
-      })
+      }),
     );
     app.use(express.json());
 
@@ -67,7 +67,7 @@ const __dirname = dirname(__filename);
         res.setHeader("Cross-Origin-Resource-Policy", "cross-origin");
         next();
       },
-      express.static(uploadsPath)
+      express.static(uploadsPath),
     );
 
     // API Routes
@@ -90,10 +90,6 @@ const __dirname = dirname(__filename);
      */
     app.get(/.*/, (req, res) => {
       res.sendFile(path.join(buildPath, "index.html"));
-    });
-
-    app.listen(PORT, () => {
-      console.log(`Server berjalan di http://localhost:${PORT}`);
     });
   } catch (error) {
     console.error("❌ FATAL ERROR during application startup:", error);

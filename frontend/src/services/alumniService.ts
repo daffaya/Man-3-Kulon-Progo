@@ -4,7 +4,6 @@
  * handling data transformation and API calls for alumni operations.
  */
 
-// frontend/src/services/alumniService.ts
 import { alumniApi } from "../api/alumniApi";
 import { Alumni, AlumniFilter, AlumniResponse } from "../types/alumniTypes";
 

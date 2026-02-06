@@ -86,7 +86,6 @@ const StudentsTable: React.FC<StudentsTableProps> = ({
         student.id,
         token,
       );
-      console.log("Full student data fetched:", fullStudentData);
 
       // Call the onEdit callback with the complete data
       onEdit(fullStudentData);

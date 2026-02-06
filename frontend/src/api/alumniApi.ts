@@ -13,6 +13,7 @@ export const alumniApi = {
    * @param params - Query parameters for filtering and pagination.
    * @param params.search - Search term to filter alumni.
    * @param params.graduationYear - Filter by graduation year.
+   * @param params.status - Filter by status.
    * @param params.page - Page number for pagination.
    * @param params.limit - Number of items per page.
    * @param token - Optional authentication token.
@@ -22,6 +23,7 @@ export const alumniApi = {
     params: {
       search?: string;
       graduationYear?: string;
+      status?: string;
       page?: number;
       limit?: number;
     },
@@ -31,15 +33,17 @@ export const alumniApi = {
     if (params.search) query.append("search", params.search);
     if (params.graduationYear)
       query.append("graduationYear", params.graduationYear);
+    if (params.status) {
+      query.append("status", params.status);
+    }
     if (params.page) query.append("page", params.page.toString());
     if (params.limit) query.append("limit", params.limit.toString());
 
-    const response = await fetch(
-      `${backendUrl}/api/alumni?${query.toString()}`,
-      {
-        headers: token ? { Authorization: `Bearer ${token}` } : {},
-      },
-    );
+    const url = `${backendUrl}/api/alumni?${query.toString()}`;
+
+    const response = await fetch(url, {
+      headers: token ? { Authorization: `Bearer ${token}` } : {},
+    });
 
     if (!response.ok) {
       const errorData = await response.json();
@@ -57,6 +61,7 @@ export const alumniApi = {
    * @param data.workplace - New workplace information.
    * @param data.business - New business information.
    * @param data.university - New university information.
+   * @param data.keterangan - New keterangan information.
    * @param token - Authentication token.
    * @returns A promise resolving to the updated alumni data.
    */
@@ -67,6 +72,7 @@ export const alumniApi = {
       workplace?: string;
       business?: string;
       university?: string;
+      keterangan?: string;
     },
     token: string,
   ) => {

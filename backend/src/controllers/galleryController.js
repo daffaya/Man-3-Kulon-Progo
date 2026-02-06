@@ -149,12 +149,12 @@ const createGalleryController = ({ galleryModel }) => {
             const imagePath = path.join(
               __dirname,
               "../uploads",
-              photo.image_url
+              photo.image_url,
             );
             const thumbnailPath = path.join(
               __dirname,
               "../uploads",
-              photo.thumbnail_url
+              photo.thumbnail_url,
             );
 
             await fs.unlink(imagePath);
@@ -266,11 +266,6 @@ const createGalleryController = ({ galleryModel }) => {
         const { album_id } = req.body;
         const files = req.files;
 
-        console.log("Upload request received:", {
-          album_id,
-          filesCount: files?.length,
-        });
-
         if (!files || files.length === 0) {
           return res.status(400).json({ message: "No files uploaded" });
         }
@@ -282,7 +277,7 @@ const createGalleryController = ({ galleryModel }) => {
         // Process uploaded files using gallery service
         const processedFiles = await galleryService.processUploadedFiles(
           files,
-          album_id
+          album_id,
         );
 
         // Save processed files to database
@@ -345,8 +340,6 @@ const createGalleryController = ({ galleryModel }) => {
         // Ambil album_id dari params, bukan dari body
         const { album_id } = req.params;
         const { photo_id } = req.body;
-
-        console.log("Setting album cover:", { album_id, photo_id });
 
         // Validasi input
         if (!album_id || !photo_id) {
@@ -425,7 +418,7 @@ const createGalleryController = ({ galleryModel }) => {
           const thumbnailPath = path.join(
             __dirname,
             "../uploads",
-            photo.thumbnail_url
+            photo.thumbnail_url,
           );
 
           await fs.unlink(imagePath);

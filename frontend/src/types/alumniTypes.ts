@@ -22,6 +22,7 @@ export interface Alumni {
 export interface AlumniFilter {
   search?: string;
   graduationYear?: string;
+  status?: string;
   page?: number;
   limit?: number;
 }

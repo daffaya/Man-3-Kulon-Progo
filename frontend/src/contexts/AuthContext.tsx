@@ -28,7 +28,7 @@ interface AuthContextValue {
 }
 
 export const AuthContext = createContext<AuthContextValue | undefined>(
-  undefined
+  undefined,
 );
 
 interface AuthProviderProps {
@@ -100,7 +100,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       localStorage.setItem("token", authToken);
       localStorage.setItem("user", JSON.stringify(userWithFullUrl));
     },
-    [ensureFullAvatarUrl]
+    [ensureFullAvatarUrl],
   );
 
   /**
@@ -144,7 +144,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         throw error;
       }
     },
-    []
+    [],
   );
 
   /**
@@ -159,7 +159,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         localStorage.setItem("user", JSON.stringify(updatedUser));
       }
     },
-    [user]
+    [user],
   );
 
   // Effect to load authentication data from localStorage on app initialization
@@ -188,7 +188,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   // Effect to handle unauthorized events by logging out the user
   useEffect(() => {
     const handleUnauthorized = () => {
-      console.log("Unauthorized event received, logging out...");
       logout();
     };
 

@@ -1,8 +1,8 @@
 /**
  * @fileoverview React component for displaying a table of alumni.
- * This component handles the presentation of alumni data, including NISN, name,
- * graduation year, last class, and current status. It supports loading states,
- * role-based visibility for edit actions, and dynamic styling for status badges.
+ * This component handles the presentation of alumni data, including name,
+ * graduation year, last class, current status, and dynamic keterangan based on status.
+ * It supports loading states, role-based visibility for edit actions, and dynamic styling for status badges.
  */
 
 import React from "react";
@@ -22,11 +22,14 @@ interface AlumniTableProps {
  */
 interface Alumni {
   id: number;
-  nisn: string;
   name: string;
   graduation_year: string;
   last_class_name: string;
   status?: string;
+  workplace?: string; // Added this field
+  business?: string; // Added this field
+  university?: string; // Added this field
+  keterangan?: string;
 }
 
 /**
@@ -77,6 +80,24 @@ const AlumniTable: React.FC<AlumniTableProps> = ({
     return <span className={badgeClass}>{status}</span>;
   };
 
+  /**
+   * Returns the appropriate keterangan based on the alumni's status.
+   * @param {Alumni} alum - The alumni record.
+   * @returns {string} The keterangan value.
+   */
+  const getKeterangan = (alum: Alumni) => {
+    switch (alum.status) {
+      case "Bekerja":
+        return alum.workplace || "-";
+      case "Usaha":
+        return alum.business || "-";
+      case "Kuliah":
+        return alum.university || "-";
+      default:
+        return alum.keterangan || "-";
+    }
+  };
+
   return (
     <div className="overflow-x-auto rounded-lg border border-zinc-800">
       {loading ? (
@@ -92,9 +113,6 @@ const AlumniTable: React.FC<AlumniTableProps> = ({
                 No
               </th>
               <th className="text-left py-3 px-4 font-medium text-secondary">
-                NISN
-              </th>
-              <th className="text-left py-3 px-4 font-medium text-secondary">
                 Nama
               </th>
               <th className="text-left py-3 px-4 font-medium text-secondary">
@@ -105,6 +123,9 @@ const AlumniTable: React.FC<AlumniTableProps> = ({
               </th>
               <th className="text-left py-3 px-4 font-medium text-secondary">
                 Status
+              </th>
+              <th className="text-left py-3 px-4 font-medium text-secondary">
+                Keterangan
               </th>
               {isAdminOrGuruBK && (
                 <th className="text-left py-3 px-4 font-medium text-secondary">
@@ -120,7 +141,6 @@ const AlumniTable: React.FC<AlumniTableProps> = ({
                 className="hover:bg-semibackground transition-colors"
               >
                 <td className="py-3 px-4 text-foreground">{index + 1}</td>
-                <td className="py-3 px-4 text-foreground">{alum.nisn}</td>
                 <td className="py-3 px-4 text-foreground">{alum.name}</td>
                 <td className="py-3 px-4 text-foreground">
                   {alum.graduation_year}
@@ -130,6 +150,11 @@ const AlumniTable: React.FC<AlumniTableProps> = ({
                 </td>
                 <td className="py-3 px-4 text-foreground">
                   {getStatusBadge(alum.status)}
+                </td>
+                <td className="py-3 px-4 text-foreground max-w-xs">
+                  <div className="truncate" title={getKeterangan(alum)}>
+                    {getKeterangan(alum)}
+                  </div>
                 </td>
                 {isAdminOrGuruBK && (
                   <td className="py-3 px-4">

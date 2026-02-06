@@ -17,12 +17,13 @@ const alumniControllerFactory = ({ pool }) => {
    * @returns {Promise<void>}
    */
   const handleGetAlumni = async (req, res) => {
-    const { search, graduationYear, page, limit } = req.query;
+    const { search, graduationYear, status, page, limit } = req.query;
 
     try {
       const result = await alumniModel.getAlumni({
         search,
         graduationYear,
+        status,
         page: page ? parseInt(page) : 1,
         limit: limit ? parseInt(limit) : 35,
       });
@@ -41,7 +42,7 @@ const alumniControllerFactory = ({ pool }) => {
    */
   const handleUpdateAlumni = async (req, res) => {
     const { id } = req.params;
-    const { status, workplace, business, university } = req.body;
+    const { status, workplace, business, university, keterangan } = req.body;
 
     try {
       const updated = await alumniModel.updateAlumni(id, {
@@ -49,6 +50,7 @@ const alumniControllerFactory = ({ pool }) => {
         workplace,
         business,
         university,
+        keterangan,
       });
 
       if (!updated) {

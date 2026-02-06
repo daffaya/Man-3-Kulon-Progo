@@ -1,6 +1,6 @@
 /**
  * @fileoverview Alumni filter component for searching and filtering alumni data.
- * This component provides input fields for searching alumni by name or NISN and filtering by graduation year.
+ * This component provides input fields for searching alumni by name and filtering by graduation year and status.
  */
 
 import React from "react";
@@ -14,13 +14,16 @@ interface AlumniFilterProps {
   setSearchQuery: (query: string) => void;
   graduationYear: string;
   setGraduationYear: (year: string) => void;
+  status: string;
+  setStatus: (status: string) => void;
   years: string[];
+  statusOptions: string[];
   onFilterChange?: () => void;
 }
 
 /**
  * AlumniFilter component that provides UI elements for filtering alumni data.
- * Allows users to search by name/NISN and filter by graduation year.
+ * Allows users to search by name and filter by graduation year and status.
  *
  * @param {AlumniFilterProps} props - The component props
  * @returns {JSX.Element} The rendered filter component
@@ -30,7 +33,10 @@ const AlumniFilter: React.FC<AlumniFilterProps> = ({
   setSearchQuery,
   graduationYear,
   setGraduationYear,
+  status,
+  setStatus,
   years,
+  statusOptions,
   onFilterChange,
 }) => {
   /**
@@ -51,9 +57,18 @@ const AlumniFilter: React.FC<AlumniFilterProps> = ({
     if (onFilterChange) onFilterChange();
   };
 
+  /**
+   * Handler for status selection changes
+   * @param {React.ChangeEvent<HTMLSelectElement>} e - The select change event
+   */
+  const handleStatusChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    setStatus(e.target.value);
+    if (onFilterChange) onFilterChange();
+  };
+
   return (
     <div className="card p-6 mb-6">
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <div>
           <label
             htmlFor="searchInput"
@@ -66,7 +81,7 @@ const AlumniFilter: React.FC<AlumniFilterProps> = ({
             <input
               id="searchInput"
               type="text"
-              placeholder="Cari berdasarkan NISN atau nama..."
+              placeholder="Cari berdasarkan nama..."
               value={searchQuery}
               onChange={handleSearchChange}
               className="pl-10 form-input w-full"
@@ -90,6 +105,27 @@ const AlumniFilter: React.FC<AlumniFilterProps> = ({
             {years.map((year) => (
               <option key={year} value={year}>
                 {year}
+              </option>
+            ))}
+          </select>
+        </div>
+        <div>
+          <label
+            htmlFor="statusSelect"
+            className="block text-sm font-medium text-foreground mb-1"
+          >
+            Status
+          </label>
+          <select
+            id="statusSelect"
+            value={status}
+            onChange={handleStatusChange}
+            className="form-input w-full"
+          >
+            <option value="">Semua Status</option>
+            {statusOptions.map((statusOption) => (
+              <option key={statusOption} value={statusOption}>
+                {statusOption}
               </option>
             ))}
           </select>

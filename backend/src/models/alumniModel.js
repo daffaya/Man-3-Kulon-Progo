@@ -12,39 +12,42 @@
  */
 const alumniModelFactory = ({ pool }) => {
   /**
-   * Retrieves a paginated list of alumni, with optional filtering by name/NISN and graduation year.
+   * Retrieves a paginated list of alumni, with optional filtering by name, graduation year, and status.
    * @async
    * @param {object} [filters={}] - The filtering and pagination options.
-   * @param {string} [filters.search] - Search term to filter by NISN or name.
+   * @param {string} [filters.search] - Search term to filter by name.
    * @param {number} [filters.graduationYear] - Filter by graduation year.
+   * @param {string} [filters.status] - Filter by status.
    * @param {number} [filters.page=1] - The page number for pagination.
    * @param {number} [filters.limit=35] - The number of items per page.
    * @returns {Promise<object>} A promise that resolves to an object containing the alumni data and pagination metadata.
    */
   const getAlumni = async (filters = {}) => {
-    const { search, graduationYear, page = 1, limit = 35 } = filters;
+    const { search, graduationYear, status, page = 1, limit = 35 } = filters;
     const offset = (page - 1) * limit;
 
     let countQuery = `
-      SELECT COUNT(*) as total
-      FROM alumni a
-      WHERE 1=1`;
+    SELECT COUNT(*) as total
+    FROM alumni a
+    WHERE 1=1`;
 
     let query = `
-      SELECT 
-        a.id, a.student_id, a.nisn, a.name, a.graduation_year, 
-        a.last_class_id, a.last_class_name, a.last_academic_year,
-        a.status, a.workplace, a.business, a.university
-      FROM alumni a
-      WHERE 1=1`;
+    SELECT 
+      a.id, a.student_id, a.name, a.graduation_year, 
+      a.last_class_id, a.last_class_name, a.last_academic_year,
+      a.status, a.workplace, a.business, a.university
+    FROM alumni a
+    WHERE 1=1`;
 
     const queryParams = [];
+    const countParams = [];
 
     if (search) {
-      const searchCondition = ` AND (a.nisn LIKE ? OR a.name LIKE ?)`;
+      const searchCondition = ` AND a.name LIKE ?`;
       countQuery += searchCondition;
       query += searchCondition;
-      queryParams.push(`%${search}%`, `%${search}%`);
+      queryParams.push(`%${search}%`);
+      countParams.push(`%${search}%`);
     }
 
     if (graduationYear) {
@@ -52,15 +55,21 @@ const alumniModelFactory = ({ pool }) => {
       countQuery += yearCondition;
       query += yearCondition;
       queryParams.push(graduationYear);
+      countParams.push(graduationYear);
+    }
+
+    if (status) {
+      const statusCondition = ` AND a.status = ?`;
+      countQuery += statusCondition;
+      query += statusCondition;
+      queryParams.push(status);
+      countParams.push(status);
     }
 
     query += ` ORDER BY a.name LIMIT ? OFFSET ?`;
     queryParams.push(limit, offset);
 
-    const [countResult] = await pool.query(
-      countQuery,
-      queryParams.slice(0, -2)
-    );
+    const [countResult] = await pool.query(countQuery, countParams);
     const [alumni] = await pool.query(query, queryParams);
 
     const totalAlumni = countResult[0].total;
@@ -87,12 +96,12 @@ const alumniModelFactory = ({ pool }) => {
   const getAlumniById = async (id) => {
     const [alumni] = await pool.query(
       `SELECT 
-        a.id, a.student_id, a.nisn, a.name, a.graduation_year, 
+        a.id, a.student_id, a.name, a.graduation_year, 
         a.last_class_id, a.last_class_name, a.last_academic_year,
         a.status, a.workplace, a.business, a.university
       FROM alumni a
       WHERE a.id = ?`,
-      [id]
+      [id],
     );
 
     return alumni[0] || null;
@@ -122,7 +131,7 @@ const alumniModelFactory = ({ pool }) => {
         business || null,
         university || null,
         id,
-      ]
+      ],
     );
 
     return result.affectedRows > 0;
@@ -133,7 +142,6 @@ const alumniModelFactory = ({ pool }) => {
    * @async
    * @param {object} alumniData - The data for the new alumni record.
    * @param {number} alumniData.student_id - The student ID.
-   * @param {string} alumniData.nisn - The NISN.
    * @param {string} alumniData.name - The alumni's name.
    * @param {number} alumniData.graduation_year - The graduation year.
    * @param {number} alumniData.last_class_id - The ID of the last class.
@@ -144,7 +152,6 @@ const alumniModelFactory = ({ pool }) => {
   const createAlumni = async (alumniData) => {
     const {
       student_id,
-      nisn,
       name,
       graduation_year,
       last_class_id,
@@ -154,17 +161,16 @@ const alumniModelFactory = ({ pool }) => {
 
     const [result] = await pool.query(
       `INSERT INTO alumni 
-       (student_id, nisn, name, graduation_year, last_class_id, last_class_name, last_academic_year) 
-       VALUES (?, ?, ?, ?, ?, ?, ?)`,
+       (student_id, name, graduation_year, last_class_id, last_class_name, last_academic_year) 
+       VALUES (?, ?, ?, ?, ?, ?)`,
       [
         student_id,
-        nisn,
         name,
         graduation_year,
         last_class_id,
         last_class_name,
         last_academic_year,
-      ]
+      ],
     );
 
     return result.insertId;

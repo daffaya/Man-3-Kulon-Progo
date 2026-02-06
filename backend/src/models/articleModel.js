@@ -174,7 +174,7 @@ const createArticleModel = ({ pool }) => {
       const tagsToFilter = Array.isArray(tag) ? tag : tag ? [tag] : [];
       if (tagsToFilter.length > 0) {
         const tagConditions = tagsToFilter.map(
-          () => "JSON_CONTAINS(articles.tags, JSON_ARRAY(?), '$')"
+          () => "JSON_CONTAINS(articles.tags, JSON_ARRAY(?), '$')",
         );
         conditions.push(`(${tagConditions.join(" OR ")})`);
         queryParams.push(...tagsToFilter);
@@ -222,7 +222,7 @@ const createArticleModel = ({ pool }) => {
         LEFT JOIN categories ON articles.category_id = categories.id
         ${whereClause};
       `,
-        queryParams
+        queryParams,
       );
 
       const totalArticles = totalRows[0].total;
@@ -294,7 +294,7 @@ const createArticleModel = ({ pool }) => {
         LEFT JOIN categories ON articles.category_id = categories.id
         WHERE articles.id = ?;
       `,
-        [id]
+        [id],
       );
 
       if (rows.length === 0) return null;
@@ -359,7 +359,7 @@ const createArticleModel = ({ pool }) => {
         LEFT JOIN categories ON articles.category_id = categories.id
         WHERE articles.slug = ?;
       `,
-        [slug]
+        [slug],
       );
 
       if (rows.length === 0) return null;
@@ -465,7 +465,7 @@ const createArticleModel = ({ pool }) => {
     async delete(id) {
       const [result] = await pool.execute(
         "DELETE FROM articles WHERE id = ?;",
-        [id]
+        [id],
       );
       return result.affectedRows > 0;
     },
@@ -479,7 +479,7 @@ const createArticleModel = ({ pool }) => {
       try {
         const [featuredArticles] = await pool.execute(
           "SELECT id FROM articles WHERE featured = 1 AND id != ?",
-          [excludeId]
+          [excludeId],
         );
 
         if (featuredArticles.length === 0) {
@@ -493,9 +493,6 @@ const createArticleModel = ({ pool }) => {
     `;
         const [result] = await pool.execute(sql, [excludeId]);
 
-        console.log(
-          `[ArticleModel] Unfeatured ${result.affectedRows} articles`
-        );
         return result.affectedRows > 0;
       } catch (error) {
         console.error("[ArticleModel] Error unfeaturing articles:", error);

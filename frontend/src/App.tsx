@@ -11,7 +11,7 @@ import { AuthProvider } from "./contexts/AuthContext";
 import { ToastProvider } from "./contexts/ToastContext";
 import { GalleryProvider } from "./contexts/GalleryContext";
 import { StudentStatsProvider } from "./contexts/StudentStatsContext";
-import { StaffProvider } from "./contexts/staffContext";
+import { StaffProvider } from "./contexts/StaffContext";
 import { Outlet } from "react-router-dom";
 
 // Pages
@@ -47,7 +47,6 @@ import AttendanceRecapPage from "./pages/admin/attendance/AttendanceRecapPage";
 import AttendanceHolidaysPage from "./pages/admin/attendance/AttendanceHolidaysPage";
 import AttendanceArchivePage from "./pages/admin/attendance/AttendanceArchivePage";
 import ManajemenStudentPage from "./pages/admin/student-management/ManagementStudentPage";
-import EditAlumniPage from "./pages/alumni/EditAlumniPage";
 import AlumniPage from "./pages/alumni/AlumniPage";
 import UserProfilePage from "./pages/admin/user/UserProfile";
 import UserManagementPage from "./pages/admin/user/UserManagementPage";
@@ -241,11 +240,6 @@ function App() {
                         <Route
                           path="manajemen-siswa"
                           element={<ManajemenStudentPage />}
-                        />
-
-                        <Route
-                          path="alumni/:id/edit"
-                          element={<EditAlumniPage />}
                         />
 
                         <Route path="users" element={<UserManagementPage />} />
