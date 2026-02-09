@@ -42,7 +42,7 @@ const validateRequiredParams = (params, requiredParams) => {
 const validateEnumValue = (value, validValues, paramName) => {
   if (!validValues.includes(value)) {
     throw new Error(
-      `${paramName} tidak valid. Gunakan: ${validValues.join(", ")}`
+      `${paramName} tidak valid. Gunakan: ${validValues.join(", ")}`,
     );
   }
 };
@@ -82,7 +82,7 @@ const attendanceRouterFactory = ({ pool, JWT_SECRET }) => {
   router.post(
     "/",
     restrictTo(["guru_bk", "super_admin"]),
-    attendanceController.saveAttendance
+    attendanceController.saveAttendance,
   );
 
   /**
@@ -120,10 +120,10 @@ const attendanceRouterFactory = ({ pool, JWT_SECRET }) => {
 
       const existing = await attendanceModel.checkExistingAttendance(
         date,
-        classId
+        classId,
       );
       res.json({ existing });
-    })
+    }),
   );
 
   /**
@@ -141,14 +141,14 @@ const attendanceRouterFactory = ({ pool, JWT_SECRET }) => {
       const attendance = await attendanceModel.getAttendanceByDate(date);
 
       const filteredAttendance = attendance.filter(
-        (att) => att.class_id === parseInt(classId)
+        (att) => att.class_id === parseInt(classId),
       );
 
       res.json({
         count: filteredAttendance.length,
         data: filteredAttendance,
       });
-    })
+    }),
   );
 
   /**
@@ -161,7 +161,7 @@ const attendanceRouterFactory = ({ pool, JWT_SECRET }) => {
     asyncHandler(async (req, res) => {
       const classes = await attendanceModel.getClasses();
       res.json(classes);
-    })
+    }),
   );
 
   /**
@@ -185,11 +185,11 @@ const attendanceRouterFactory = ({ pool, JWT_SECRET }) => {
         await attendanceModel.getAttendanceByStudentAndDateRange(
           studentId,
           startDate,
-          endDate
+          endDate,
         );
 
       res.json(attendances);
-    })
+    }),
   );
 
   /**
@@ -206,7 +206,7 @@ const attendanceRouterFactory = ({ pool, JWT_SECRET }) => {
 
       const stats = await attendanceModel.getTodayAttendanceStats(date);
       res.json(stats);
-    })
+    }),
   );
 
   /**
@@ -227,10 +227,10 @@ const attendanceRouterFactory = ({ pool, JWT_SECRET }) => {
 
       const stats = await attendanceModel.getAttendanceStats(
         startDate,
-        endDate
+        endDate,
       );
       res.json(stats);
-    })
+    }),
   );
 
   /**
@@ -256,13 +256,30 @@ const attendanceRouterFactory = ({ pool, JWT_SECRET }) => {
         return res.status(400).json({ error: "Tanggal libur sudah ada" });
       }
 
-      await pool.query(
-        "INSERT INTO school_holidays (date, description, academic_year) VALUES (?, ?, ?)",
-        [date, description, academicYear]
-      );
+      try {
+        await pool.query(
+          "INSERT INTO school_holidays (date, description, academic_year) VALUES (?, ?, ?)",
+          [date, description, academicYear],
+        );
 
-      res.json({ success: true, message: "Hari libur berhasil ditambahkan" });
-    })
+        res.json({ success: true, message: "Hari libur berhasil ditambahkan" });
+      } catch (error) {
+        console.error("Error adding holiday:", error);
+
+        if (error.code === "ER_DUP_ENTRY") {
+          if (error.message.includes("PRIMARY")) {
+            return res.status(500).json({
+              error:
+                "Terjadi kesalahan dengan ID primary key. Silakan hubungi administrator.",
+            });
+          } else if (error.message.includes("date")) {
+            return res.status(400).json({ error: "Tanggal libur sudah ada" });
+          }
+        }
+
+        res.status(500).json({ error: "Gagal menambahkan hari libur" });
+      }
+    }),
   );
 
   /**
@@ -277,7 +294,7 @@ const attendanceRouterFactory = ({ pool, JWT_SECRET }) => {
 
       const holidays = await attendanceModel.getHolidays(academicYear);
       res.json(holidays);
-    })
+    }),
   );
 
   /**
@@ -293,7 +310,7 @@ const attendanceRouterFactory = ({ pool, JWT_SECRET }) => {
 
       const [result] = await pool.query(
         "DELETE FROM school_holidays WHERE id = ?",
-        [id]
+        [id],
       );
 
       if (result.affectedRows === 0) {
@@ -301,7 +318,7 @@ const attendanceRouterFactory = ({ pool, JWT_SECRET }) => {
       }
 
       res.json({ success: true, message: "Hari libur berhasil dihapus" });
-    })
+    }),
   );
 
   /**
@@ -326,12 +343,12 @@ const attendanceRouterFactory = ({ pool, JWT_SECRET }) => {
         classId,
         period,
         startDate,
-        endDate
+        endDate,
       );
 
       const [classInfo] = await pool.query(
         "SELECT name, academic_year, semester FROM classes WHERE id = ?",
-        [classId]
+        [classId],
       );
 
       const className = classInfo[0]?.name || "";
@@ -369,7 +386,7 @@ const attendanceRouterFactory = ({ pool, JWT_SECRET }) => {
       res.setHeader("Content-Type", result.mimetype);
       res.setHeader(
         "Content-Disposition",
-        `attachment; filename="${result.filename}"`
+        `attachment; filename="${result.filename}"`,
       );
 
       res.sendFile(result.filepath, (err) => {
@@ -382,7 +399,7 @@ const attendanceRouterFactory = ({ pool, JWT_SECRET }) => {
           });
         }
       });
-    })
+    }),
   );
 
   /**
@@ -403,11 +420,11 @@ const attendanceRouterFactory = ({ pool, JWT_SECRET }) => {
 
       const result = await attendanceModel.archiveAttendanceData(
         academicYear,
-        semester
+        semester,
       );
 
       res.json(result);
-    })
+    }),
   );
 
   /**
@@ -423,11 +440,11 @@ const attendanceRouterFactory = ({ pool, JWT_SECRET }) => {
       const archivedData = await attendanceModel.getArchivedAttendanceData(
         academicYear,
         semester,
-        classId
+        classId,
       );
 
       res.json(archivedData);
-    })
+    }),
   );
 
   /**
@@ -451,14 +468,14 @@ const attendanceRouterFactory = ({ pool, JWT_SECRET }) => {
       const archivedData = await attendanceModel.getArchivedAttendanceData(
         academicYear,
         semester,
-        classId
+        classId,
       );
 
       let className = "";
       if (classId) {
         const [classInfo] = await pool.query(
           "SELECT name FROM classes WHERE id = ?",
-          [classId]
+          [classId],
         );
         className = classInfo[0]?.name || "";
       }
@@ -490,7 +507,7 @@ const attendanceRouterFactory = ({ pool, JWT_SECRET }) => {
       res.setHeader("Content-Type", result.mimetype);
       res.setHeader(
         "Content-Disposition",
-        `attachment; filename="${result.filename}"`
+        `attachment; filename="${result.filename}"`,
       );
 
       res.sendFile(result.filepath, (err) => {
@@ -503,7 +520,7 @@ const attendanceRouterFactory = ({ pool, JWT_SECRET }) => {
           });
         }
       });
-    })
+    }),
   );
 
   /**

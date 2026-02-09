@@ -58,6 +58,23 @@ const AttendanceHolidaysPage: React.FC = () => {
 
   const isAdminOrGuruBK = hasEditAccess(isLoggedIn, user?.role);
 
+  /**
+   * Generates the current academic year in the format YYYY/YYYY+1
+   * @returns {string} The academic year string (e.g., "2024/2025")
+   */
+  const getCurrentAcademicYear = () => {
+    const currentYear = new Date().getFullYear();
+    const currentMonth = new Date().getMonth();
+
+    // If month is June or earlier, academic year is previous year/current year
+    // If month is July or later, academic year is current year/next year
+    if (currentMonth < 6) {
+      return `${currentYear - 1}/${currentYear}`;
+    } else {
+      return `${currentYear}/${currentYear + 1}`;
+    }
+  };
+
   useEffect(() => {
     const fetchHolidays = async () => {
       try {
@@ -105,7 +122,7 @@ const AttendanceHolidaysPage: React.FC = () => {
         body: JSON.stringify({
           date: newHoliday.date,
           description: newHoliday.description,
-          academicYear: format(new Date(), "yyyy/yyyy"),
+          academicYear: getCurrentAcademicYear(), // Fixed: Use proper academic year format
         }),
       });
 
@@ -121,7 +138,7 @@ const AttendanceHolidaysPage: React.FC = () => {
             headers: {
               Authorization: `Bearer ${token}`,
             },
-          }
+          },
         );
 
         if (holidaysResponse.ok) {
@@ -158,7 +175,7 @@ const AttendanceHolidaysPage: React.FC = () => {
           headers: {
             Authorization: `Bearer ${token}`,
           },
-        }
+        },
       );
 
       const data = await response.json();
@@ -172,7 +189,7 @@ const AttendanceHolidaysPage: React.FC = () => {
             headers: {
               Authorization: `Bearer ${token}`,
             },
-          }
+          },
         );
 
         if (holidaysResponse.ok) {
@@ -320,7 +337,7 @@ const AttendanceHolidaysPage: React.FC = () => {
                                   "dd MMMM yyyy",
                                   {
                                     locale: id,
-                                  }
+                                  },
                                 )}
                               </td>
                               <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-foreground">

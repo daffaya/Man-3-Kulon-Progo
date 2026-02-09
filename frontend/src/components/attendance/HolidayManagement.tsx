@@ -48,11 +48,33 @@ const HolidayManagement = () => {
   const [loading, setLoading] = useState(false);
   const [deleteLoading, setDeleteLoading] = useState<number | null>(null);
 
+  /**
+   * Generates the current academic year in the format YYYY/YYYY+1
+   * @returns {string} The academic year string (e.g., "2024/2025")
+   */
+  const getCurrentAcademicYear = () => {
+    const currentYear = new Date().getFullYear();
+    const currentMonth = new Date().getMonth();
+
+    // If month is June or earlier, academic year is previous year/current year
+    // If month is July or later, academic year is current year/next year
+    if (currentMonth < 6) {
+      return `${currentYear - 1}/${currentYear}`;
+    } else {
+      return `${currentYear}/${currentYear + 1}`;
+    }
+  };
+
   useEffect(() => {
     const loadHolidays = async () => {
       try {
         const data = await fetchHolidays(token || "");
-        setHolidays(data);
+        // Sort holidays by date in descending order (newest first)
+        const sortedHolidays = data.sort(
+          (a: Holiday, b: Holiday) =>
+            new Date(b.date).getTime() - new Date(a.date).getTime(),
+        );
+        setHolidays(sortedHolidays);
       } catch (error) {
         showErrorToast("Gagal memuat data hari libur");
       }
@@ -76,14 +98,19 @@ const HolidayManagement = () => {
       await addHoliday(
         {
           ...newHoliday,
-          academicYear: new Date().getFullYear().toString(),
+          academicYear: getCurrentAcademicYear(), // Fixed: Use proper academic year format
         },
-        token || ""
+        token || "",
       );
       setNewHoliday({ date: "", description: "" });
       showSuccessToast("Hari libur berhasil ditambahkan");
       const updatedHolidays = await fetchHolidays(token || "");
-      setHolidays(updatedHolidays);
+      // Sort holidays by date in descending order (newest first)
+      const sortedHolidays = updatedHolidays.sort(
+        (a: Holiday, b: Holiday) =>
+          new Date(b.date).getTime() - new Date(a.date).getTime(),
+      );
+      setHolidays(sortedHolidays);
     } catch (error) {
       showErrorToast("Gagal menambah hari libur");
     } finally {
@@ -105,7 +132,12 @@ const HolidayManagement = () => {
       await deleteHoliday(id, token || "");
       showSuccessToast("Hari libur berhasil dihapus");
       const updatedHolidays = await fetchHolidays(token || "");
-      setHolidays(updatedHolidays);
+      // Sort holidays by date in descending order (newest first)
+      const sortedHolidays = updatedHolidays.sort(
+        (a: Holiday, b: Holiday) =>
+          new Date(b.date).getTime() - new Date(a.date).getTime(),
+      );
+      setHolidays(sortedHolidays);
     } catch (error) {
       showErrorToast("Gagal menghapus hari libur");
     } finally {
