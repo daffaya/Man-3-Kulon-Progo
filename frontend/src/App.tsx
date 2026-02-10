@@ -156,6 +156,11 @@ function App() {
 
                       <Route path="/alumni" element={<AlumniPage />} />
 
+                      <Route
+                        path="/rekap-presensi"
+                        element={<AttendanceRecapPage />}
+                      />
+
                       <Route path="/atmin" element={<AdminLayout />}>
                         <Route index element={<AdminDashboard />} />
                         <Route
@@ -219,6 +224,7 @@ function App() {
                           path="presensi/input"
                           element={<AttendanceInputPage />}
                         />
+
                         <Route
                           path="presensi/recap"
                           element={<AttendanceRecapPage />}

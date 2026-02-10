@@ -11,6 +11,7 @@ import adminArticleRouterFactory from "./adminArticleRoutes.js";
 import publicCategoryRouterFactory from "./publicCategoryRoutes.js";
 import adminCategoryRouterFactory from "./adminCategoryRoutes.js";
 import attendanceRouterFactory from "./attendanceRoutes.js";
+import publicAttendanceRoutesFactory from "./publicAttendanceRoutes.js";
 import archiveRouterFactory from "./archiveRoutes.js";
 import studentRouterFactory from "./studentRoutes.js";
 import publicStudentStatsRouterFactory from "./publicStudentStatRoutes.js";
@@ -65,26 +66,27 @@ const apiRouterFactory = ({
       JWT_SECRET,
       JWT_EXPIRATION,
       FRONTEND_URL,
-    })
+    }),
   );
   apiRouter.use("/categories", publicCategoryRouterFactory({ pool }));
   apiRouter.use("/tags", tagRouterFactory({ pool }));
   apiRouter.use("/articles", publicArticleRouterFactory({ pool }));
   apiRouter.use("/gallery", publicGalleryRouterFactory({ pool }));
   apiRouter.use("/staff", publicStaffRouterFactory({ pool }));
+  apiRouter.use("/public-attendance", publicAttendanceRoutesFactory({ pool }));
 
   // Admin Routes - These routes are protected and intended for administrative users
   apiRouter.use(
     "/atmin/articles",
-    adminArticleRouterFactory({ pool, JWT_SECRET })
+    adminArticleRouterFactory({ pool, JWT_SECRET }),
   );
   apiRouter.use(
     "/atmin/categories",
-    adminCategoryRouterFactory({ pool, JWT_SECRET })
+    adminCategoryRouterFactory({ pool, JWT_SECRET }),
   );
   apiRouter.use(
     "/atmin/gallery",
-    adminGalleryRouterFactory({ pool, JWT_SECRET })
+    adminGalleryRouterFactory({ pool, JWT_SECRET }),
   );
   apiRouter.use("/atmin/staff", staffRouterFactory({ pool, JWT_SECRET }));
 

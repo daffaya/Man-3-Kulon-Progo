@@ -331,3 +331,86 @@ export const fetchMonthlyAbsenceTrends = async (
     },
   });
 };
+
+/**
+ * Verifies password for public access to attendance data.
+ * @param {string} password - The password to verify.
+ * @returns {Promise<any>} A promise that resolves to the JSON response.
+ * @throws {Error} If the verification fails.
+ */
+export const verifyPublicPassword = async (password: string) => {
+  const backendUrl =
+    import.meta.env.VITE_BACKEND_URL ||
+    "https://backend.man3kulonprogo.sch.id/api";
+
+  const response = await fetch(
+    `${backendUrl}/public-attendance/verify-password`,
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ password }),
+    },
+  );
+
+  if (!response.ok) {
+    const errorData = await response.json();
+    throw new Error(errorData.error || "Failed to verify password");
+  }
+
+  return response.json();
+};
+
+/**
+ * Fetches attendance recap data for public access with password.
+ * @param {{classId: number, period: "daily" | "monthly" | "semester", startDate: string, endDate?: string, password: string}} params - The parameters for the request.
+ * @returns {Promise<any>} A promise that resolves to the JSON response containing the attendance recap.
+ * @throws {Error} If the fetch request fails.
+ */
+export const fetchPublicAttendanceRecap = async (params: {
+  classId: number;
+  period: "daily" | "monthly" | "semester";
+  startDate: string;
+  endDate?: string;
+  password: string;
+}) => {
+  const backendUrl =
+    import.meta.env.VITE_BACKEND_URL ||
+    "https://backend.man3kulonprogo.sch.id/api";
+
+  let url = `${backendUrl}/public-attendance/recap?classId=${params.classId}&period=${params.period}&startDate=${params.startDate}&password=${params.password}`;
+
+  if (params.endDate) {
+    url += `&endDate=${params.endDate}`;
+  }
+
+  const response = await fetch(url);
+
+  if (!response.ok) {
+    const errorData = await response.json();
+    throw new Error(errorData.error || "Failed to fetch attendance recap");
+  }
+
+  return response.json();
+};
+
+/**
+ * Fetches a list of all available classes for public access.
+ * @returns {Promise<any>} A promise that resolves to the JSON response containing the list of classes.
+ * @throws {Error} If the fetch request fails.
+ */
+export const fetchPublicClasses = async () => {
+  const backendUrl =
+    import.meta.env.VITE_BACKEND_URL ||
+    "https://backend.man3kulonprogo.sch.id/api";
+
+  const response = await fetch(`${backendUrl}/public-attendance/classes`);
+
+  if (!response.ok) {
+    const errorData = await response.json();
+    throw new Error(errorData.error || "Failed to fetch classes");
+  }
+
+  return response.json();
+};

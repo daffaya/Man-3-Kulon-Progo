@@ -107,7 +107,7 @@ const AbsenceAnalysisTabs = () => {
         const data = await fetchClasses(token);
         setClasses(data);
       } catch (error) {
-        console.error("Error fetching classes:", error);
+        // Error fetching classes
       }
     };
     if (token) loadClasses();
@@ -130,11 +130,6 @@ const AbsenceAnalysisTabs = () => {
           );
           setDayOfWeekData(data.data);
         } else if (activeTab === "byDate") {
-          console.log("🔥 Fetching with params:", {
-            classId,
-            startDate,
-            endDate,
-          });
           const data = await fetchAbsenceByDate(
             {
               classId: classId === "all" ? undefined : Number(classId),
@@ -143,11 +138,7 @@ const AbsenceAnalysisTabs = () => {
             },
             token,
           );
-          console.log("🔥 RAW API Response:", data);
-          console.log("🔥 data.data length:", data.data?.length);
-          console.log("🔥 First 3 items:", data.data?.slice(0, 3));
           setDateData(data.data);
-          console.log("🔥 State will be set to:", data.data);
         } else if (activeTab === "monthly") {
           const data = await fetchMonthlyAbsenceTrends(
             {
@@ -158,7 +149,7 @@ const AbsenceAnalysisTabs = () => {
           setMonthlyTrends(data.data);
         }
       } catch (error) {
-        console.error("Error fetching data:", error);
+        // Error fetching data
       } finally {
         setLoading(false);
       }
@@ -192,7 +183,7 @@ const AbsenceAnalysisTabs = () => {
       setStudentData(data.data);
       setShowStudentModal(true);
     } catch (error) {
-      console.error("Error fetching student data:", error);
+      // Error fetching student data
     }
   };
 
@@ -233,21 +224,12 @@ const AbsenceAnalysisTabs = () => {
 
   // Generate calendar data for heat map
   const generateCalendarData = (): CalendarDay[] => {
-    console.log("📅 generateCalendarData called");
-    console.log("📅 startDate:", startDate);
-    console.log("📅 endDate:", endDate);
-    console.log("📅 dateData length:", dateData.length);
-    console.log("📅 dateData first 3:", dateData.slice(0, 3));
-
     if (!startDate || !endDate) {
-      console.log("❌ Missing start or end date");
       return [];
     }
 
     const start = new Date(startDate);
     const end = new Date(endDate);
-    console.log("📅 start Date object:", start);
-    console.log("📅 end Date object:", end);
 
     const calendar: CalendarDay[] = [];
 
