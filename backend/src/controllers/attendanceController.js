@@ -53,7 +53,7 @@ const attendanceControllerFactory = ({ pool }) => {
            notes = VALUES(notes), 
            recorded_by = VALUES(recorded_by),
            updated_at = CURRENT_TIMESTAMP`,
-        [values]
+        [values],
       );
 
       res.json({
@@ -82,7 +82,7 @@ const attendanceControllerFactory = ({ pool }) => {
     try {
       const attendance = await attendanceModel.getAttendanceByDateAndClass(
         date,
-        classId
+        classId,
       );
       res.json(attendance);
     } catch (error) {
@@ -130,7 +130,7 @@ const attendanceControllerFactory = ({ pool }) => {
         classId,
         period,
         startDate,
-        endDate
+        endDate,
       );
 
       res.json({
@@ -172,7 +172,7 @@ const attendanceControllerFactory = ({ pool }) => {
         await attendanceModel.getAttendanceByStudentAndDateRange(
           studentId,
           startDate,
-          endDate
+          endDate,
         );
 
       res.json(attendance);
@@ -203,7 +203,7 @@ const attendanceControllerFactory = ({ pool }) => {
 
       const stats = await attendanceModel.getAttendanceStats(
         startDate,
-        endDate
+        endDate,
       );
       res.json(stats);
     } catch (error) {
@@ -259,7 +259,7 @@ const attendanceControllerFactory = ({ pool }) => {
       const archivedData = await attendanceModel.getArchivedAttendanceData(
         academicYear,
         semester,
-        classId
+        classId,
       );
 
       res.json(archivedData);
@@ -290,7 +290,7 @@ const attendanceControllerFactory = ({ pool }) => {
 
       const existing = await attendanceModel.checkExistingAttendance(
         date,
-        classId
+        classId,
       );
       res.json({ existing });
     } catch (error) {
@@ -412,12 +412,147 @@ const attendanceControllerFactory = ({ pool }) => {
 
       const result = await attendanceModel.archiveAttendanceData(
         academicYear,
-        semester
+        semester,
       );
       res.json(result);
     } catch (error) {
       console.error("Error archiving attendance data:", error);
       res.status(500).json({ error: "Gagal mengarsipkan data presensi" });
+    }
+  };
+
+  /**
+   * Retrieves absence data grouped by day of the week for a specific class and date range.
+   * @param {Object} req - The Express request object.
+   * @param {Object} req.query - The query parameters.
+   * @param {string} req.query.classId - The ID of the class.
+   * @param {string} req.query.startDate - The start date (YYYY-MM-DD).
+   * @param {string} req.query.endDate - The end date (YYYY-MM-DD).
+   * @param {Object} res - The Express response object.
+   * @returns {Promise<void>}
+   */
+  const getAbsenceByDayOfWeek = async (req, res) => {
+    const { classId, startDate, endDate } = req.query;
+
+    try {
+      if (!startDate || !endDate) {
+        return res.status(400).json({
+          error: "Parameter startDate dan endDate wajib diisi",
+        });
+      }
+
+      const absenceData = await attendanceModel.getAbsenceByDayOfWeek(
+        classId,
+        startDate,
+        endDate,
+      );
+
+      res.json({
+        classId,
+        startDate,
+        endDate,
+        data: absenceData,
+      });
+    } catch (error) {
+      console.error("Error fetching absence by day of week:", error);
+      res.status(500).json({ error: "Gagal mengambil data analisis alpa" });
+    }
+  };
+
+  /**
+   * Retrieves absence data for each calendar date in a date range.
+   * @param {Object} req - The Express request object.
+   * @param {Object} req.query - The query parameters.
+   * @param {string} req.query.classId - The ID of the class.
+   * @param {string} req.query.startDate - The start date (YYYY-MM-DD).
+   * @param {string} req.query.endDate - The end date (YYYY-MM-DD).
+   * @param {Object} res - The Express response object.
+   * @returns {Promise<void>}
+   */
+  const getAbsenceByDate = async (req, res) => {
+    const { classId, startDate, endDate } = req.query;
+
+    try {
+      if (!startDate || !endDate) {
+        return res.status(400).json({
+          error: "Parameter startDate dan endDate wajib diisi",
+        });
+      }
+
+      const absenceData = await attendanceModel.getAbsenceByDate(
+        classId,
+        startDate,
+        endDate,
+      );
+
+      res.json({
+        classId,
+        startDate,
+        endDate,
+        data: absenceData,
+      });
+    } catch (error) {
+      console.error("Error fetching absence by date:", error);
+      res.status(500).json({ error: "Gagal mengambil data alpa per tanggal" });
+    }
+  };
+
+  /**
+   * Retrieves detailed student absence data for a specific date.
+   * @param {Object} req - The Express request object.
+   * @param {Object} req.query - The query parameters.
+   * @param {string} req.query.classId - The ID of the class.
+   * @param {string} req.query.date - The date (YYYY-MM-DD).
+   * @param {Object} res - The Express response object.
+   * @returns {Promise<void>}
+   */
+  const getStudentAbsencesByDate = async (req, res) => {
+    const { classId, date } = req.query;
+
+    try {
+      if (!date) {
+        return res.status(400).json({
+          error: "Parameter date wajib diisi",
+        });
+      }
+
+      const students = await attendanceModel.getStudentAbsencesByDate(
+        classId,
+        date,
+      );
+
+      res.json({
+        classId,
+        date,
+        data: students,
+      });
+    } catch (error) {
+      console.error("Error fetching student absences by date:", error);
+      res.status(500).json({ error: "Gagal mengambil data siswa yang alpa" });
+    }
+  };
+
+  /**
+   * Retrieves monthly absence trends for a specific class and academic year.
+   * @param {Object} req - The Express request object.
+   * @param {Object} req.query - The query parameters.
+   * @param {string} req.query.classId - The ID of the class.
+   * @param {string} req.query.academicYear - The academic year (e.g., '2023/2024').
+   * @param {Object} res - The Express response object.
+   * @returns {Promise<void>}
+   */
+  const getMonthlyAbsenceTrends = async (req, res) => {
+    const { classId } = req.query;
+
+    try {
+      const trends = await attendanceModel.getMonthlyAbsenceTrends(classId);
+      res.json({
+        classId,
+        data: trends,
+      });
+    } catch (error) {
+      console.error("Error fetching monthly absence trends:", error);
+      res.status(500).json({ error: "Gagal mengambil data tren alpa bulanan" });
     }
   };
 
@@ -436,6 +571,10 @@ const attendanceControllerFactory = ({ pool }) => {
     getHolidays,
     getHolidayByDate,
     archiveAttendanceData,
+    getAbsenceByDayOfWeek,
+    getAbsenceByDate,
+    getStudentAbsencesByDate,
+    getMonthlyAbsenceTrends,
   };
 };
 

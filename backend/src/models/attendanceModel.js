@@ -24,7 +24,7 @@ const attendanceModelFactory = ({ pool }) => {
        JOIN student_academic_history sah ON s.id = sah.student_id AND sah.is_current = 1
        WHERE sah.class_id = ? AND s.is_active = TRUE
        ORDER BY s.name`,
-      [classId]
+      [classId],
     );
 
     return students;
@@ -43,7 +43,7 @@ const attendanceModelFactory = ({ pool }) => {
        FROM attendances a
        JOIN student_academic_history sah ON a.student_id = sah.student_id AND sah.is_current = 1
        WHERE a.date = ? AND sah.class_id = ?`,
-      [date, classId]
+      [date, classId],
     );
 
     return attendance;
@@ -122,14 +122,14 @@ const attendanceModelFactory = ({ pool }) => {
   const getAttendanceByStudentAndDateRange = async (
     studentId,
     startDate,
-    endDate
+    endDate,
   ) => {
     const [attendance] = await pool.query(
       `SELECT date, status, notes, recorded_at
        FROM attendances
        WHERE student_id = ? AND date BETWEEN ? AND ?
        ORDER BY date DESC`,
-      [studentId, startDate, endDate]
+      [studentId, startDate, endDate],
     );
 
     return attendance;
@@ -150,7 +150,7 @@ const attendanceModelFactory = ({ pool }) => {
        FROM attendances
        WHERE date BETWEEN ? AND ?
        GROUP BY status`,
-      [startDate, endDate]
+      [startDate, endDate],
     );
 
     const result = {
@@ -182,7 +182,7 @@ const attendanceModelFactory = ({ pool }) => {
   const getTodayAttendanceStats = async (date) => {
     const [holidayCheck] = await pool.query(
       "SELECT COUNT(*) as count FROM school_holidays WHERE date = ?",
-      [date]
+      [date],
     );
 
     if (holidayCheck[0].count > 0) {
@@ -202,7 +202,7 @@ const attendanceModelFactory = ({ pool }) => {
        FROM attendances
        WHERE date = ?
        GROUP BY status`,
-      [date]
+      [date],
     );
 
     const result = {
@@ -281,7 +281,7 @@ const attendanceModelFactory = ({ pool }) => {
        FROM attendances a
        JOIN student_academic_history sah ON a.student_id = sah.student_id AND sah.is_current = 1
        WHERE a.date = ? AND sah.class_id = ?`,
-      [date, classId]
+      [date, classId],
     );
 
     return existing;
@@ -308,7 +308,7 @@ const attendanceModelFactory = ({ pool }) => {
        JOIN classes c ON sah.class_id = c.id
        WHERE a.date = ?
        ORDER BY c.name, s.name`,
-      [date]
+      [date],
     );
 
     return attendance;
@@ -331,7 +331,7 @@ const attendanceModelFactory = ({ pool }) => {
        LEFT JOIN student_academic_history sah ON c.id = sah.class_id AND sah.is_current = 1
        LEFT JOIN students s ON sah.student_id = s.id AND s.is_active = TRUE
        GROUP BY c.id
-       ORDER BY c.academic_year DESC, c.name`
+       ORDER BY c.academic_year DESC, c.name`,
     );
 
     return classes;
@@ -367,7 +367,7 @@ const attendanceModelFactory = ({ pool }) => {
   const getHolidayByDate = async (date) => {
     const [holiday] = await pool.query(
       "SELECT * FROM school_holidays WHERE date = ?",
-      [date]
+      [date],
     );
 
     return holiday[0] || null;
@@ -398,7 +398,7 @@ const attendanceModelFactory = ({ pool }) => {
        LEFT JOIN attendances a ON s.id = a.student_id
        WHERE s.academic_year = ? AND sah.is_current = 1
        GROUP BY s.id, sah.class_id`,
-      [semester, academicYear]
+      [semester, academicYear],
     );
 
     for (const student of students) {
@@ -430,11 +430,196 @@ const attendanceModelFactory = ({ pool }) => {
           student.total_alpa,
           student.total_libur,
           percentage,
-        ]
+        ],
       );
     }
 
     return { success: true, message: "Data presensi berhasil diarsipkan" };
+  };
+
+  /**
+   * Retrieves absence data grouped by day of the week for a specific class and date range.
+   * @async
+   * @param {number} classId - The ID of the class.
+   * @param {string} startDate - The start date in YYYY-MM-DD format.
+   * @param {string} endDate - The end date in YYYY-MM-DD format.
+   * @returns {Promise<Array<object>>} A promise that resolves to an array of objects with day name and absence count.
+   */
+  const getAbsenceByDayOfWeek = async (classId, startDate, endDate) => {
+    let query = `
+    SELECT 
+      DAYNAME(a.date) as day_name,
+      DAYOFWEEK(a.date) as day_number,
+      COUNT(*) as total_alpa,
+      COUNT(*) * 100.0 / (
+        SELECT COUNT(*) FROM attendances a2 
+        JOIN student_academic_history sah2 ON a2.student_id = sah2.student_id AND sah2.is_current = 1 
+        ${classId && classId !== "all" ? "WHERE sah2.class_id = ?" : ""}
+      ) as percentage
+     FROM attendances a
+     JOIN student_academic_history sah ON a.student_id = sah.student_id AND sah.is_current = 1
+     WHERE a.status = 'alpa' 
+       AND a.date BETWEEN ? AND ?
+       ${classId && classId !== "all" ? "AND sah.class_id = ?" : ""}
+     GROUP BY DAYNAME(a.date), DAYOFWEEK(a.date)
+     ORDER BY DAYOFWEEK(a.date)`;
+
+    let params = [];
+    if (classId && classId !== "all") {
+      params = [classId, startDate, endDate, classId];
+    } else {
+      params = [startDate, endDate];
+    }
+
+    const [absences] = await pool.query(query, params);
+
+    // Map day numbers to Indonesian day names
+    const dayNames = {
+      1: "Minggu",
+      2: "Senin",
+      3: "Selasa",
+      4: "Rabu",
+      5: "Kamis",
+      6: "Jumat",
+      7: "Sabtu",
+    };
+
+    return absences.map((absence) => ({
+      ...absence,
+      day_name: dayNames[absence.day_number] || absence.day_name,
+      percentage: parseFloat(Number(absence.percentage || 0).toFixed(2)),
+    }));
+  };
+
+  /**
+   * Retrieves absence data for each calendar date in a date range.
+   * BEST PRACTICE VERSION: Only returns dates that have attendance records.
+   * Frontend will handle generating all dates in the range and filling in zeros.
+   * @async
+   * @param {number} classId - The ID of the class.
+   * @param {string} startDate - The start date in YYYY-MM-DD format.
+   * @param {string} endDate - The end date in YYYY-MM-DD format.
+   * @returns {Promise<Array<object>>} A promise that resolves to an array of objects with date and absence count.
+   */
+  const getAbsenceByDate = async (classId, startDate, endDate) => {
+    let query = `
+      SELECT 
+        DATE_FORMAT(a.date, '%Y-%m-%d') as date,
+        COUNT(CASE WHEN a.status = 'alpa' THEN 1 END) as total_alpa,
+        COUNT(*) as total_attendance,
+        ROUND(COUNT(CASE WHEN a.status = 'alpa' THEN 1 END) * 100.0 / COUNT(*), 2) as percentage
+      FROM attendances a
+      JOIN student_academic_history sah ON a.student_id = sah.student_id AND sah.is_current = 1
+      WHERE a.date BETWEEN ? AND ?
+        ${classId && classId !== "all" ? "AND sah.class_id = ?" : ""}
+      GROUP BY a.date
+      ORDER BY a.date`;
+
+    let params = [];
+    if (classId && classId !== "all") {
+      params = [startDate, endDate, classId];
+    } else {
+      params = [startDate, endDate];
+    }
+
+    const [absences] = await pool.query(query, params);
+
+    return absences.map((absence) => ({
+      date: absence.date,
+      total_alpa: Number(absence.total_alpa) || 0,
+      total_attendance: Number(absence.total_attendance) || 0,
+      percentage: parseFloat(Number(absence.percentage || 0).toFixed(2)),
+    }));
+  };
+
+  /**
+   * Retrieves detailed student absence data for a specific date.
+   * @async
+   * @param {number} classId - The ID of the class.
+   * @param {string} date - The date in YYYY-MM-DD format.
+   * @returns {Promise<Array<object>>} A promise that resolves to an array of student objects with absence details.
+   */
+  const getStudentAbsencesByDate = async (classId, date) => {
+    let query = `
+    SELECT 
+      s.id,
+      s.nisn,
+      s.name,
+      a.notes,
+      a.updated_at,
+      c.name as class_name
+    FROM attendances a
+    JOIN students s ON a.student_id = s.id
+    JOIN student_academic_history sah ON s.id = sah.student_id AND sah.is_current = 1
+    JOIN classes c ON sah.class_id = c.id
+    WHERE a.status = 'alpa' 
+      AND a.date = ?
+      ${classId && classId !== "all" ? "AND sah.class_id = ?" : ""}
+    ORDER BY c.name, s.name`;
+
+    let params = [date];
+    if (classId && classId !== "all") {
+      params.push(classId);
+    }
+
+    const [students] = await pool.query(query, params);
+    return students;
+  };
+
+  /**
+   * Retrieves monthly absence trends for a specific class.
+   * FIXED VERSION - Properly formats month names without undefined field.
+   * @async
+   * @param {number} classId - The ID of the class.
+   * @returns {Promise<Array<object>>} A promise that resolves to an array of monthly absence data.
+   */
+  const getMonthlyAbsenceTrends = async (classId) => {
+    let query = `
+    SELECT 
+      MONTH(a.date) as month,
+      YEAR(a.date) as year,
+      COUNT(*) as total_alpa,
+      COUNT(*) * 100.0 / (
+        SELECT COUNT(*) FROM attendances a2 
+        JOIN student_academic_history sah2 ON a2.student_id = sah2.student_id AND sah2.is_current = 1 
+        WHERE MONTH(a2.date) = MONTH(a.date) AND YEAR(a2.date) = YEAR(a.date)
+        ${classId && classId !== "all" ? "AND sah2.class_id = ?" : ""}
+      ) as percentage
+     FROM attendances a
+     JOIN student_academic_history sah ON a.student_id = sah.student_id AND sah.is_current = 1
+     WHERE a.status = 'alpa' 
+       ${classId && classId !== "all" ? "AND sah.class_id = ?" : ""}
+     GROUP BY MONTH(a.date), YEAR(a.date)
+     ORDER BY YEAR(a.date), MONTH(a.date)`;
+
+    let params = [];
+    if (classId && classId !== "all") {
+      params = [classId, classId];
+    }
+
+    const [trends] = await pool.query(query, params);
+
+    // Map month numbers to Indonesian month names
+    const monthNames = [
+      "Januari",
+      "Februari",
+      "Maret",
+      "April",
+      "Mei",
+      "Juni",
+      "Juli",
+      "Agustus",
+      "September",
+      "Oktober",
+      "November",
+      "Desember",
+    ];
+
+    return trends.map((trend) => ({
+      ...trend,
+      month_name: `${monthNames[trend.month - 1]} ${trend.year}`,
+      percentage: parseFloat(Number(trend.percentage || 0).toFixed(2)),
+    }));
   };
 
   return {
@@ -451,6 +636,10 @@ const attendanceModelFactory = ({ pool }) => {
     getHolidays,
     getHolidayByDate,
     archiveAttendanceData,
+    getAbsenceByDayOfWeek,
+    getAbsenceByDate,
+    getStudentAbsencesByDate,
+    getMonthlyAbsenceTrends,
   };
 };
 

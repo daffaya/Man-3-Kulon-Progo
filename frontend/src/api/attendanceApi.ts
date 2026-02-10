@@ -33,7 +33,7 @@ export const fetchStudentsByClass = async (classId: number, token: string) => {
 export const fetchAttendanceByDateAndClass = async (
   classId: number,
   date: string,
-  token: string
+  token: string,
 ) => {
   return apiFetch(`/attendance?classId=${classId}&date=${date}`, {
     headers: {
@@ -59,7 +59,7 @@ export const saveAttendance = async (
       notes?: string;
     }[];
   },
-  token: string
+  token: string,
 ) => {
   return apiFetch(`/attendance`, {
     method: "POST",
@@ -84,7 +84,7 @@ export const fetchAttendanceRecap = async (
     startDate: string;
     endDate?: string;
   },
-  token: string
+  token: string,
 ) => {
   let url = `/attendance/recap?classId=${params.classId}&period=${params.period}&startDate=${params.startDate}`;
 
@@ -155,7 +155,7 @@ export const addHoliday = async (
     description: string;
     academicYear: string;
   },
-  token: string
+  token: string,
 ) => {
   return apiFetch(`/attendance/holidays`, {
     method: "POST",
@@ -197,7 +197,7 @@ export const exportAttendanceData = async (
     endDate?: string;
     format: "excel" | "pdf";
   },
-  token: string
+  token: string,
 ) => {
   const backendUrl =
     import.meta.env.VITE_BACKEND_URL ||
@@ -221,4 +221,113 @@ export const exportAttendanceData = async (
   }
 
   return response.blob();
+};
+
+/**
+ * Fetches absence data grouped by day of the week.
+ * @param {{classId?: number, startDate: string, endDate: string}} params - The parameters for the request.
+ * @param {string} token - The authentication bearer token.
+ * @returns {Promise<any>} A promise that resolves to the JSON response containing the absence analysis data.
+ * @throws {Error} If the fetch request fails.
+ */
+export const fetchAbsenceByDayOfWeek = async (
+  params: {
+    classId?: number; // Made optional
+    startDate: string;
+    endDate: string;
+  },
+  token: string,
+) => {
+  let url = `/attendance/absence-analysis/day-of-week?startDate=${params.startDate}&endDate=${params.endDate}`;
+
+  if (params.classId) {
+    url += `&classId=${params.classId}`;
+  }
+
+  return apiFetch(url, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
+};
+
+/**
+ * Fetches absence data for each calendar date in a date range.
+ * @param {{classId?: number, startDate: string, endDate: string}} params - The parameters for the request.
+ * @param {string} token - The authentication bearer token.
+ * @returns {Promise<any>} A promise that resolves to the JSON response containing the absence data by date.
+ * @throws {Error} If the fetch request fails.
+ */
+export const fetchAbsenceByDate = async (
+  params: {
+    classId?: number;
+    startDate: string;
+    endDate: string;
+  },
+  token: string,
+) => {
+  let url = `/attendance/absence-analysis/by-date?startDate=${params.startDate}&endDate=${params.endDate}`;
+
+  if (params.classId) {
+    url += `&classId=${params.classId}`;
+  }
+
+  return apiFetch(url, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
+};
+
+/**
+ * Fetches detailed student absence data for a specific date.
+ * @param {{classId?: number, date: string}} params - The parameters for the request.
+ * @param {string} token - The authentication bearer token.
+ * @returns {Promise<any>} A promise that resolves to the JSON response containing the student absence data.
+ * @throws {Error} If the fetch request fails.
+ */
+export const fetchStudentAbsencesByDate = async (
+  params: {
+    classId?: number;
+    date: string;
+  },
+  token: string,
+) => {
+  let url = `/attendance/absence-analysis/students-by-date?date=${params.date}`;
+
+  if (params.classId) {
+    url += `&classId=${params.classId}`;
+  }
+
+  return apiFetch(url, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
+};
+
+/**
+ * Fetches monthly absence trends for a specific class.
+ * @param {{classId?: number}} params - The parameters for the request.
+ * @param {string} token - The authentication bearer token.
+ * @returns {Promise<any>} A promise that resolves to the JSON response containing the monthly trends data.
+ * @throws {Error} If the fetch request fails.
+ */
+export const fetchMonthlyAbsenceTrends = async (
+  params: {
+    classId?: number; // Made optional
+  },
+  token: string,
+) => {
+  let url = `/attendance/absence-analysis/monthly-trends`;
+
+  if (params.classId) {
+    url += `?classId=${params.classId}`;
+  }
+
+  return apiFetch(url, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
 };

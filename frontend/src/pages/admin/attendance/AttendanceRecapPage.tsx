@@ -13,6 +13,7 @@ import { useToast } from "../../../contexts/ToastContext";
 import { format, parseISO } from "date-fns";
 import { id } from "date-fns/locale";
 import { ChevronLeft } from "lucide-react";
+import AbsenceAnalysisTabs from "../../../components/attendance/AbsenceAnalysisTabs";
 
 interface RecapData {
   id: number;
@@ -63,6 +64,8 @@ const AttendanceRecapPage: React.FC = () => {
   const location = useLocation();
   const { showToast } = useToast();
 
+  const [activeView, setActiveView] = useState<"recap" | "analysis">("recap");
+
   const [classes, setClasses] = useState<ClassData[]>([]);
   const [selectedClass, setSelectedClass] = useState<number>(0);
   const [recapData, setRecapData] = useState<RecapData[]>([]);
@@ -71,10 +74,10 @@ const AttendanceRecapPage: React.FC = () => {
     "daily" | "monthly" | "semester"
   >("daily");
   const [recapStartDate, setRecapStartDate] = useState<string>(
-    format(new Date(), "yyyy-MM-dd")
+    format(new Date(), "yyyy-MM-dd"),
   );
   const [recapEndDate, setRecapEndDate] = useState<string>(
-    format(new Date(), "yyyy-MM-dd")
+    format(new Date(), "yyyy-MM-dd"),
   );
 
   const isAdminOrGuruBK = hasEditAccess(isLoggedIn, user?.role);
@@ -138,7 +141,7 @@ const AttendanceRecapPage: React.FC = () => {
       } catch (err) {
         showToast(
           "Terjadi kesalahan saat mengambil data rekap presensi",
-          "error"
+          "error",
         );
       }
     };
@@ -207,19 +210,19 @@ const AttendanceRecapPage: React.FC = () => {
 
         showToast(
           `Data berhasil diekspor ke ${format.toUpperCase()}`,
-          "success"
+          "success",
         );
       } else {
         const data = await response.json();
         showToast(
           data.error || `Gagal mengekspor data ke ${format.toUpperCase()}`,
-          "error"
+          "error",
         );
       }
     } catch (err) {
       showToast(
         `Terjadi kesalahan saat mengekspor data ke ${format.toUpperCase()}`,
-        "error"
+        "error",
       );
     } finally {
       setLoading(false);
@@ -234,7 +237,7 @@ const AttendanceRecapPage: React.FC = () => {
       const endDate = new Date(
         startDate.getFullYear(),
         startDate.getMonth() + 1,
-        0
+        0,
       );
       setRecapEndDate(format(endDate, "yyyy-MM-dd"));
     } else if (recapPeriod === "semester") {
@@ -242,7 +245,7 @@ const AttendanceRecapPage: React.FC = () => {
       const endDate = new Date(
         startDate.getFullYear(),
         startDate.getMonth() + 6,
-        0
+        0,
       );
       setRecapEndDate(format(endDate, "yyyy-MM-dd"));
     }
@@ -271,273 +274,307 @@ const AttendanceRecapPage: React.FC = () => {
           </div>
         </div>
 
-        <div className="card p-6">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-            <div>
-              <label
-                htmlFor="class"
-                className="block text-sm font-medium text-foreground mb-1"
-              >
-                Kelas
-              </label>
-              <select
-                id="class"
-                className="form-input w-full"
-                value={selectedClass}
-                onChange={(e) => setSelectedClass(Number(e.target.value))}
-                disabled={loading}
-              >
-                <option value={0}>Pilih Kelas</option>
-                {classes.map((cls) => (
-                  <option key={cls.id} value={cls.id}>
-                    {cls.name} ({cls.academic_year} - {cls.semester})
-                  </option>
-                ))}
-              </select>
-            </div>
+        {/* View Toggle */}
+        <div className="card p-6 mb-6">
+          <div className="flex space-x-1 border-b border-zinc-800">
+            <button
+              className={`py-2 px-4 text-sm font-medium ${
+                activeView === "recap"
+                  ? "border-b-2 border-accent text-accent"
+                  : "text-secondary hover:text-foreground"
+              }`}
+              onClick={() => setActiveView("recap")}
+            >
+              Rekap Presensi
+            </button>
+            <button
+              className={`py-2 px-4 text-sm font-medium ${
+                activeView === "analysis"
+                  ? "border-b-2 border-accent text-accent"
+                  : "text-secondary hover:text-foreground"
+              }`}
+              onClick={() => setActiveView("analysis")}
+            >
+              Analisis Alpa
+            </button>
+          </div>
+        </div>
 
-            <div>
-              <label
-                htmlFor="period"
-                className="block text-sm font-medium text-foreground mb-1"
-              >
-                Periode
-              </label>
-              <select
-                id="period"
-                className="form-input w-full"
-                value={recapPeriod}
-                onChange={(e) =>
-                  setRecapPeriod(
-                    e.target.value as "daily" | "monthly" | "semester"
-                  )
-                }
-                disabled={loading}
-              >
-                <option value="daily">Harian</option>
-                <option value="monthly">Bulanan</option>
-                <option value="semester">Semesteran</option>
-              </select>
-            </div>
-
-            <div>
-              <label
-                htmlFor="startDate"
-                className="block text-sm font-medium text-foreground mb-1"
-              >
-                Tanggal Mulai
-              </label>
-              <input
-                type="date"
-                id="startDate"
-                className="form-input w-full"
-                value={recapStartDate}
-                onChange={(e) => setRecapStartDate(e.target.value)}
-                disabled={loading}
-              />
-            </div>
-
-            {recapPeriod !== "daily" && (
+        {/* Content based on active view */}
+        {activeView === "recap" ? (
+          <div className="card p-6">
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
               <div>
                 <label
-                  htmlFor="endDate"
+                  htmlFor="class"
                   className="block text-sm font-medium text-foreground mb-1"
                 >
-                  Tanggal Selesai
+                  Kelas
+                </label>
+                <select
+                  id="class"
+                  className="form-input w-full"
+                  value={selectedClass}
+                  onChange={(e) => setSelectedClass(Number(e.target.value))}
+                  disabled={loading}
+                >
+                  <option value={0}>Pilih Kelas</option>
+                  {classes.map((cls) => (
+                    <option key={cls.id} value={cls.id}>
+                      {cls.name} ({cls.academic_year} - {cls.semester})
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label
+                  htmlFor="period"
+                  className="block text-sm font-medium text-foreground mb-1"
+                >
+                  Periode
+                </label>
+                <select
+                  id="period"
+                  className="form-input w-full"
+                  value={recapPeriod}
+                  onChange={(e) =>
+                    setRecapPeriod(
+                      e.target.value as "daily" | "monthly" | "semester",
+                    )
+                  }
+                  disabled={loading}
+                >
+                  <option value="daily">Harian</option>
+                  <option value="monthly">Bulanan</option>
+                  <option value="semester">Semesteran</option>
+                </select>
+              </div>
+
+              <div>
+                <label
+                  htmlFor="startDate"
+                  className="block text-sm font-medium text-foreground mb-1"
+                >
+                  Tanggal Mulai
                 </label>
                 <input
                   type="date"
-                  id="endDate"
+                  id="startDate"
                   className="form-input w-full"
-                  value={recapEndDate}
-                  onChange={(e) => setRecapEndDate(e.target.value)}
+                  value={recapStartDate}
+                  onChange={(e) => setRecapStartDate(e.target.value)}
                   disabled={loading}
                 />
               </div>
-            )}
-          </div>
 
-          {isAdminOrGuruBK && (
-            <div className="flex justify-end mb-6">
-              <div className="flex space-x-2">
-                <button
-                  type="button"
-                  className="btn btn-secondary"
-                  onClick={() => exportData("excel")}
-                  disabled={loading || selectedClass === 0}
-                >
-                  Export Excel
-                </button>
-                <button
-                  type="button"
-                  className="btn btn-secondary"
-                  onClick={() => exportData("pdf")}
-                  disabled={loading || selectedClass === 0}
-                >
-                  Export PDF
-                </button>
-              </div>
+              {recapPeriod !== "daily" && (
+                <div>
+                  <label
+                    htmlFor="endDate"
+                    className="block text-sm font-medium text-foreground mb-1"
+                  >
+                    Tanggal Selesai
+                  </label>
+                  <input
+                    type="date"
+                    id="endDate"
+                    className="form-input w-full"
+                    value={recapEndDate}
+                    onChange={(e) => setRecapEndDate(e.target.value)}
+                    disabled={loading}
+                  />
+                </div>
+              )}
             </div>
-          )}
 
-          {selectedClass > 0 ? (
-            recapData.length > 0 ? (
-              <div className="overflow-x-auto">
-                <table className="min-w-full divide-y divide-[rgb(var(--color-secondary)/0.2)]">
-                  <thead className="bg-[rgb(var(--color-semi-background))]">
-                    <tr>
-                      <th
-                        scope="col"
-                        className="px-2 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider"
-                      >
-                        No
-                      </th>
-                      <th
-                        scope="col"
-                        className="px-6 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider"
-                      >
-                        NISN
-                      </th>
-                      <th
-                        scope="col"
-                        className="px-6 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider"
-                      >
-                        Nama
-                      </th>
-                      {recapPeriod !== "daily" && (
-                        <>
-                          <th
-                            scope="col"
-                            className="px-6 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider"
-                          >
-                            Total Hari
-                          </th>
-                          <th
-                            scope="col"
-                            className="px-6 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider"
-                          >
-                            Hadir
-                          </th>
-                          <th
-                            scope="col"
-                            className="px-6 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider"
-                          >
-                            Izin
-                          </th>
-                          <th
-                            scope="col"
-                            className="px-6 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider"
-                          >
-                            Sakit
-                          </th>
-                          <th
-                            scope="col"
-                            className="px-6 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider"
-                          >
-                            Alpa
-                          </th>
-                          <th
-                            scope="col"
-                            className="px-6 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider"
-                          >
-                            %
-                          </th>
-                        </>
-                      )}
-                      {recapPeriod === "daily" && (
-                        <>
-                          <th
-                            scope="col"
-                            className="px-6 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider"
-                          >
-                            Status
-                          </th>
-                          <th
-                            scope="col"
-                            className="px-6 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider"
-                          >
-                            Keterangan
-                          </th>
-                        </>
-                      )}
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-[rgb(var(--color-secondary)/0.1)]">
-                    {recapData.map((student, index) => (
-                      <tr key={student.id}>
-                        <td className="px-2 py-4 whitespace-nowrap text-sm text-secondary">
-                          {index + 1}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-secondary">
-                          {student.nisn}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-foreground">
-                          {student.name}
-                        </td>
+            {isAdminOrGuruBK && (
+              <div className="flex justify-end mb-6">
+                <div className="flex space-x-2">
+                  <button
+                    type="button"
+                    className="btn btn-secondary"
+                    onClick={() => exportData("excel")}
+                    disabled={loading || selectedClass === 0}
+                  >
+                    Export Excel
+                  </button>
+                  <button
+                    type="button"
+                    className="btn btn-secondary"
+                    onClick={() => exportData("pdf")}
+                    disabled={loading || selectedClass === 0}
+                  >
+                    Export PDF
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {selectedClass > 0 ? (
+              recapData.length > 0 ? (
+                <div className="overflow-x-auto">
+                  <table className="min-w-full divide-y divide-[rgb(var(--color-secondary)/0.2)]">
+                    <thead className="bg-[rgb(var(--color-semi-background))]">
+                      <tr>
+                        <th
+                          scope="col"
+                          className="px-2 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider"
+                        >
+                          No
+                        </th>
+                        <th
+                          scope="col"
+                          className="px-6 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider"
+                        >
+                          NISN
+                        </th>
+                        <th
+                          scope="col"
+                          className="px-6 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider"
+                        >
+                          Nama
+                        </th>
                         {recapPeriod !== "daily" && (
                           <>
-                            <td className="px-6 py-4 whitespace-nowrap text-sm text-secondary">
-                              {student.total_hari}
-                            </td>
-                            <td className="px-6 py-4 whitespace-nowrap text-sm text-secondary">
-                              {student.hadir}
-                            </td>
-                            <td className="px-6 py-4 whitespace-nowrap text-sm text-secondary">
-                              {student.izin}
-                            </td>
-                            <td className="px-6 py-4 whitespace-nowrap text-sm text-secondary">
-                              {student.sakit}
-                            </td>
-                            <td className="px-6 py-4 whitespace-nowrap text-sm text-secondary">
-                              {student.alpa}
-                            </td>
-                            <td className="px-6 py-4 whitespace-nowrap text-sm text-secondary">
-                              {student.persentase_kehadiran}%
-                            </td>
+                            <th
+                              scope="col"
+                              className="px-6 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider"
+                            >
+                              Total Hari
+                            </th>
+                            <th
+                              scope="col"
+                              className="px-6 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider"
+                            >
+                              Hadir
+                            </th>
+                            <th
+                              scope="col"
+                              className="px-6 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider"
+                            >
+                              Izin
+                            </th>
+                            <th
+                              scope="col"
+                              className="px-6 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider"
+                            >
+                              Sakit
+                            </th>
+                            <th
+                              scope="col"
+                              className="px-6 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider"
+                            >
+                              Alpa
+                            </th>
+                            <th
+                              scope="col"
+                              className="px-6 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider"
+                            >
+                              %
+                            </th>
                           </>
                         )}
                         {recapPeriod === "daily" && (
                           <>
-                            <td className="px-6 py-4 whitespace-nowrap text-sm">
-                              <span
-                                className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                                  student.status === "hadir"
-                                    ? "bg-success/10 text-success"
-                                    : student.status === "izin"
-                                    ? "bg-warning/10 text-warning"
-                                    : student.status === "sakit"
-                                    ? "bg-info/10 text-info"
-                                    : "bg-error/10 text-error"
-                                }`}
-                              >
-                                {student.status}
-                              </span>
-                            </td>
-                            <td className="px-6 py-4 whitespace-nowrap text-sm text-secondary">
-                              {student.notes || "-"}
-                            </td>
+                            <th
+                              scope="col"
+                              className="px-6 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider"
+                            >
+                              Status
+                            </th>
+                            <th
+                              scope="col"
+                              className="px-6 py-3 text-left text-xs font-medium text-secondary uppercase tracking-wider"
+                            >
+                              Keterangan
+                            </th>
                           </>
                         )}
                       </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
+                    </thead>
+                    <tbody className="divide-y divide-[rgb(var(--color-secondary)/0.1)]">
+                      {recapData.map((student, index) => (
+                        <tr key={student.id}>
+                          <td className="px-2 py-4 whitespace-nowrap text-sm text-secondary">
+                            {index + 1}
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-secondary">
+                            {student.nisn}
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-foreground">
+                            {student.name}
+                          </td>
+                          {recapPeriod !== "daily" && (
+                            <>
+                              <td className="px-6 py-4 whitespace-nowrap text-sm text-secondary">
+                                {student.total_hari}
+                              </td>
+                              <td className="px-6 py-4 whitespace-nowrap text-sm text-secondary">
+                                {student.hadir}
+                              </td>
+                              <td className="px-6 py-4 whitespace-nowrap text-sm text-secondary">
+                                {student.izin}
+                              </td>
+                              <td className="px-6 py-4 whitespace-nowrap text-sm text-secondary">
+                                {student.sakit}
+                              </td>
+                              <td className="px-6 py-4 whitespace-nowrap text-sm text-secondary">
+                                {student.alpa}
+                              </td>
+                              <td className="px-6 py-4 whitespace-nowrap text-sm text-secondary">
+                                {student.persentase_kehadiran}%
+                              </td>
+                            </>
+                          )}
+                          {recapPeriod === "daily" && (
+                            <>
+                              <td className="px-6 py-4 whitespace-nowrap text-sm">
+                                <span
+                                  className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
+                                    student.status === "hadir"
+                                      ? "bg-success/10 text-success"
+                                      : student.status === "izin"
+                                        ? "bg-warning/10 text-warning"
+                                        : student.status === "sakit"
+                                          ? "bg-info/10 text-info"
+                                          : "bg-error/10 text-error"
+                                  }`}
+                                >
+                                  {student.status}
+                                </span>
+                              </td>
+                              <td className="px-6 py-4 whitespace-nowrap text-sm text-secondary">
+                                {student.notes || "-"}
+                              </td>
+                            </>
+                          )}
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              ) : (
+                <div className="text-center py-8">
+                  <p className="text-secondary">
+                    Tidak ada data presensi untuk periode yang dipilih
+                  </p>
+                </div>
+              )
             ) : (
               <div className="text-center py-8">
                 <p className="text-secondary">
-                  Tidak ada data presensi untuk periode yang dipilih
+                  Silakan pilih kelas terlebih dahulu
                 </p>
               </div>
-            )
-          ) : (
-            <div className="text-center py-8">
-              <p className="text-secondary">
-                Silakan pilih kelas terlebih dahulu
-              </p>
-            </div>
-          )}
-        </div>
+            )}
+          </div>
+        ) : (
+          // Properly wrapped in a card container
+          <div className="card p-6">
+            <AbsenceAnalysisTabs />
+          </div>
+        )}
       </div>
     </AdminLayout>
   );

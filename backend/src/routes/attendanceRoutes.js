@@ -524,6 +524,100 @@ const attendanceRouterFactory = ({ pool, JWT_SECRET }) => {
   );
 
   /**
+   * @route   GET /absence-analysis/day-of-week
+   * @desc    Get absence data grouped by day of the week.
+   * @access  Private
+   */
+  router.get(
+    "/absence-analysis/day-of-week",
+    asyncHandler(async (req, res) => {
+      const { classId, startDate, endDate } = req.query;
+
+      validateRequiredParams({ startDate, endDate }, ["startDate", "endDate"]);
+
+      const absenceData = await attendanceModel.getAbsenceByDayOfWeek(
+        classId,
+        startDate,
+        endDate,
+      );
+      res.json({
+        classId,
+        startDate,
+        endDate,
+        data: absenceData,
+      });
+    }),
+  );
+
+  /**
+   * @route   GET /absence-analysis/by-date
+   * @desc    Get absence data for each calendar date in a date range.
+   * @access  Private
+   */
+  router.get(
+    "/absence-analysis/by-date",
+    asyncHandler(async (req, res) => {
+      const { classId, startDate, endDate } = req.query;
+
+      validateRequiredParams({ startDate, endDate }, ["startDate", "endDate"]);
+
+      const absenceData = await attendanceModel.getAbsenceByDate(
+        classId,
+        startDate,
+        endDate,
+      );
+      res.json({
+        classId,
+        startDate,
+        endDate,
+        data: absenceData,
+      });
+    }),
+  );
+
+  /**
+   * @route   GET /absence-analysis/students-by-date
+   * @desc    Get detailed student absence data for a specific date.
+   * @access  Private
+   */
+  router.get(
+    "/absence-analysis/students-by-date",
+    asyncHandler(async (req, res) => {
+      const { classId, date } = req.query;
+
+      validateRequiredParams({ date }, ["date"]);
+
+      const students = await attendanceModel.getStudentAbsencesByDate(
+        classId,
+        date,
+      );
+      res.json({
+        classId,
+        date,
+        data: students,
+      });
+    }),
+  );
+
+  /**
+   * @route   GET /absence-analysis/monthly-trends
+   * @desc    Get monthly absence trends for a specific class and academic year.
+   * @access  Private
+   */
+  router.get(
+    "/absence-analysis/monthly-trends",
+    asyncHandler(async (req, res) => {
+      const { classId } = req.query;
+
+      const trends = await attendanceModel.getMonthlyAbsenceTrends(classId);
+      res.json({
+        classId,
+        data: trends,
+      });
+    }),
+  );
+
+  /**
    * Global error handler for this router.
    * Catches any errors from the above routes and sends a JSON response.
    */
