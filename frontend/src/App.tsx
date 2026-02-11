@@ -66,6 +66,7 @@ import PtspPage from "./pages/layanan/PtspPage";
 import StaffManagementPage from "./pages/admin/staff/StaffManagementPage";
 import EditStaffPage from "./pages/admin/staff/EditStaffPage";
 import NewStaffPage from "./pages/admin/staff/NewStaffPage";
+import AttendanceCalendarPage from "./pages/admin/attendance/AttendanceCalendarPage";
 
 /**
  * Layout wrapper component for admin routes that requires authentication.
@@ -228,6 +229,10 @@ function App() {
                         <Route
                           path="presensi/recap"
                           element={<AttendanceRecapPage />}
+                        />
+                        <Route
+                          path="/atmin/presensi/calendar"
+                          element={<AttendanceCalendarPage />}
                         />
                         <Route
                           path="presensi/holidays"

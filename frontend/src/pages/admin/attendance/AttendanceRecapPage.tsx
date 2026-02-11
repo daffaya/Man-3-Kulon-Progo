@@ -18,6 +18,7 @@ import {
   fetchPublicAttendanceRecap,
   verifyPublicPassword,
 } from "../../../api/attendanceApi";
+import AttendanceCalendarTab from "../../../components/attendance/AttendanceCalendarTab";
 
 // Placeholder untuk gambar ilustrasi (bisa diganti dengan import file lokal seperti di LoginPage)
 const illustrationUrl = "/student_illustration.png";
@@ -255,7 +256,6 @@ const AttendanceRecapPage: React.FC = () => {
   };
 
   // If not authenticated and this is a public route, show password form
-  // UPDATED: Sesuai tema LoginPage (Split screen, modern UI)
   if (!isAuthenticated && isPublicRoute) {
     return (
       <div className="min-h-screen flex flex-col lg:flex-row bg-background text-foreground">

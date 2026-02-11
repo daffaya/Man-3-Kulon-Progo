@@ -168,6 +168,13 @@ const AttendanceStudentPage: React.FC = () => {
       to: "/atmin/presensi/recap",
     },
     {
+      id: "calendar",
+      title: "Kalender Presensi",
+      description: "Cek kelas yang belum diabsen",
+      icon: <Calendar className="w-6 h-6" />,
+      to: "/atmin/presensi/calendar",
+    },
+    {
       id: "holidays",
       title: "Hari Libur",
       description: "Kelola hari libur sekolah",
@@ -344,7 +351,7 @@ const AttendanceStudentPage: React.FC = () => {
                           <button
                             onClick={() =>
                               navigate(
-                                `/atmin/presensi/input?classId=${classItem.id}`
+                                `/atmin/presensi/input?classId=${classItem.id}`,
                               )
                             }
                             className="text-info hover:text-info/80 mr-3 transition-colors"
@@ -354,7 +361,7 @@ const AttendanceStudentPage: React.FC = () => {
                           <button
                             onClick={() =>
                               navigate(
-                                `/atmin/presensi/recap?classId=${classItem.id}`
+                                `/atmin/presensi/recap?classId=${classItem.id}`,
                               )
                             }
                             className="text-success hover:text-success/80 transition-colors"

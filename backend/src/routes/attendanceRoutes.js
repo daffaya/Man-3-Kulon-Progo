@@ -627,6 +627,17 @@ const attendanceRouterFactory = ({ pool, JWT_SECRET }) => {
       error: err.message || "Terjadi kesalahan pada server",
     });
   });
+  
+  /**
+   * @route   GET /missing
+   * @desc    Get dates with missing attendance and the classes that are missing.
+   * @access  Private (guru_bk, super_admin)
+   */
+  router.get(
+    "/missing",
+    restrictTo(["guru_bk", "super_admin"]),
+    attendanceController.getMissingAttendanceByDateRange,
+  );
 
   return router;
 };

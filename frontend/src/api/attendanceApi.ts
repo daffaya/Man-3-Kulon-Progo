@@ -414,3 +414,26 @@ export const fetchPublicClasses = async () => {
 
   return response.json();
 };
+
+/**
+ * Fetches dates with missing attendance and the classes that are missing.
+ * @param {{startDate: string, endDate: string}} params - The parameters for the request.
+ * @param {string} token - The authentication bearer token.
+ * @returns {Promise<any>} A promise that resolves to the JSON response containing the missing attendance data.
+ * @throws {Error} If the fetch request fails.
+ */
+export const fetchMissingAttendance = async (
+  params: {
+    startDate: string;
+    endDate: string;
+  },
+  token: string,
+) => {
+  const url = `/attendance/missing?startDate=${params.startDate}&endDate=${params.endDate}`;
+
+  return apiFetch(url, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
+};

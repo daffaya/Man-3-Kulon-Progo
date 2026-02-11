@@ -556,6 +556,40 @@ const attendanceControllerFactory = ({ pool }) => {
     }
   };
 
+  /**
+   * Retrieves classes with missing attendance for each date in a date range.
+   * Only checks weekdays (Monday-Friday) and excludes holidays.
+   * @param {Object} req - The Express request object.
+   * @param {Object} req.query - The query parameters.
+   * @param {string} req.query.startDate - The start date (YYYY-MM-DD).
+   * @param {string} req.query.endDate - The end date (YYYY-MM-DD).
+   * @param {Object} res - The Express response object.
+   * @returns {Promise<void>}
+   */
+  const getMissingAttendanceByDateRange = async (req, res) => {
+    const { startDate, endDate } = req.query;
+
+    try {
+      if (!startDate || !endDate) {
+        return res.status(400).json({
+          error: "Parameter startDate dan endDate wajib diisi",
+        });
+      }
+
+      const missingData = await attendanceModel.getMissingAttendanceByDateRange(
+        startDate,
+        endDate,
+      );
+
+      res.json(missingData);
+    } catch (error) {
+      console.error("Error fetching missing attendance:", error);
+      res
+        .status(500)
+        .json({ error: "Gagal mengambil data presensi yang hilang" });
+    }
+  };
+
   return {
     saveAttendance,
     getAttendanceByDateAndClass,
@@ -575,6 +609,7 @@ const attendanceControllerFactory = ({ pool }) => {
     getAbsenceByDate,
     getStudentAbsencesByDate,
     getMonthlyAbsenceTrends,
+    getMissingAttendanceByDateRange,
   };
 };
 

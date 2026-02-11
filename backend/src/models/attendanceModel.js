@@ -622,6 +622,70 @@ const attendanceModelFactory = ({ pool }) => {
     }));
   };
 
+  /**
+   * Retrieves classes with missing attendance for each date in a date range.
+   * Only checks weekdays (Monday-Friday) and excludes holidays.
+   * @async
+   * @param {string} startDate - The start date in YYYY-MM-DD format.
+   * @param {string} endDate - The end date in YYYY-MM-DD format.
+   * @returns {Promise<object>} A promise that resolves to an object with dates as keys and arrays of missing classes as values.
+   */
+  const getMissingAttendanceByDateRange = async (startDate, endDate) => {
+    // Get all holidays in the date range
+    const [holidays] = await pool.query(
+      "SELECT date FROM school_holidays WHERE date BETWEEN ? AND ?",
+      [startDate, endDate],
+    );
+    const holidayDates = new Set(
+      holidays.map((h) => h.date.toISOString().split("T")[0]),
+    );
+
+    // Get all classes
+    const classes = await getClasses();
+
+    // For each date in the range, check for missing attendance
+    const results = {};
+    let currentDate = new Date(startDate);
+
+    while (currentDate <= new Date(endDate)) {
+      const dateStr = currentDate.toISOString().split("T")[0];
+      const dayOfWeek = currentDate.getDay(); // 0 = Sunday, 6 = Saturday
+
+      // Skip weekends and holidays
+      if (dayOfWeek !== 0 && dayOfWeek !== 6 && !holidayDates.has(dateStr)) {
+        // Check which classes are missing attendance for this date
+        const missingClasses = [];
+
+        for (const classItem of classes) {
+          const [attendanceCheck] = await pool.query(
+            `SELECT COUNT(*) as count FROM attendances a
+           JOIN student_academic_history sah ON a.student_id = sah.student_id AND sah.is_current = 1
+           WHERE a.date = ? AND sah.class_id = ?`,
+            [dateStr, classItem.id],
+          );
+
+          // If no attendance records found for this class on this date
+          if (attendanceCheck[0].count === 0) {
+            missingClasses.push({
+              id: classItem.id,
+              name: classItem.name,
+            });
+          }
+        }
+
+        // Only add to results if there are missing classes
+        if (missingClasses.length > 0) {
+          results[dateStr] = missingClasses;
+        }
+      }
+
+      // Move to next day
+      currentDate.setDate(currentDate.getDate() + 1);
+    }
+
+    return results;
+  };
+
   return {
     getStudentsByClass,
     getAttendanceByDateAndClass,
@@ -640,6 +704,7 @@ const attendanceModelFactory = ({ pool }) => {
     getAbsenceByDate,
     getStudentAbsencesByDate,
     getMonthlyAbsenceTrends,
+    getMissingAttendanceByDateRange,
   };
 };
 
