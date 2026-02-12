@@ -627,7 +627,7 @@ const attendanceRouterFactory = ({ pool, JWT_SECRET }) => {
       error: err.message || "Terjadi kesalahan pada server",
     });
   });
-  
+
   /**
    * @route   GET /missing
    * @desc    Get dates with missing attendance and the classes that are missing.
@@ -637,6 +637,29 @@ const attendanceRouterFactory = ({ pool, JWT_SECRET }) => {
     "/missing",
     restrictTo(["guru_bk", "super_admin"]),
     attendanceController.getMissingAttendanceByDateRange,
+  );
+
+  router.get(
+    "/absence-analysis/students-by-day-of-week",
+    asyncHandler(async (req, res) => {
+      const { classId, startDate, endDate, dayOfWeek } = req.query;
+
+      validateRequiredParams({ startDate, endDate, dayOfWeek }, [
+        "startDate",
+        "endDate",
+        "dayOfWeek",
+      ]);
+
+      const students = await attendanceModel.getStudentAbsencesByDayOfWeek(
+        classId,
+        startDate,
+        endDate,
+        dayOfWeek,
+      );
+      res.json({
+        data: students,
+      });
+    }),
   );
 
   return router;

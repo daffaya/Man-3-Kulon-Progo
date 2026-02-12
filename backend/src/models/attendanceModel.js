@@ -686,6 +686,46 @@ const attendanceModelFactory = ({ pool }) => {
     return results;
   };
 
+  /**
+   * Retrieves a unique list of students who were absent on a specific day of the week within a date range.
+   * @async
+   * @param {number} classId - The ID of the class.
+   * @param {string} startDate - The start date in YYYY-MM-DD format.
+   * @param {string} endDate - The end date in YYYY-MM-DD format.
+   * @param {number} dayOfWeek - The day of the week (1=Sunday, 2=Monday, ..., 7=Saturday).
+   * @returns {Promise<Array<object>>} A promise that resolves to an array of student objects.
+   */
+  const getStudentAbsencesByDayOfWeek = async (
+    classId,
+    startDate,
+    endDate,
+    dayOfWeek,
+  ) => {
+    let query = `
+    SELECT DISTINCT
+      s.id,
+      s.nisn,
+      s.name,
+      c.name as class_name
+    FROM attendances a
+    JOIN students s ON a.student_id = s.id
+    JOIN student_academic_history sah ON s.id = sah.student_id AND sah.is_current = 1
+    JOIN classes c ON sah.class_id = c.id
+    WHERE a.status = 'alpa'
+      AND DAYOFWEEK(a.date) = ?
+      AND a.date BETWEEN ? AND ?
+      ${classId && classId !== "all" ? "AND sah.class_id = ?" : ""}
+    ORDER BY c.name, s.name`;
+
+    let params = [dayOfWeek, startDate, endDate];
+    if (classId && classId !== "all") {
+      params.push(classId);
+    }
+
+    const [students] = await pool.query(query, params);
+    return students;
+  };
+
   return {
     getStudentsByClass,
     getAttendanceByDateAndClass,
@@ -705,6 +745,7 @@ const attendanceModelFactory = ({ pool }) => {
     getStudentAbsencesByDate,
     getMonthlyAbsenceTrends,
     getMissingAttendanceByDateRange,
+    getStudentAbsencesByDayOfWeek,
   };
 };
 

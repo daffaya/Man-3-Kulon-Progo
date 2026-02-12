@@ -4,13 +4,14 @@
  * calendar heat map, and monthly trends with interactive visualizations.
  */
 import { useState, useEffect } from "react";
-import { createPortal } from "react-dom"; // ADDED: Import createPortal
+import { createPortal } from "react-dom";
 import {
   fetchClasses,
   fetchAbsenceByDayOfWeek,
   fetchAbsenceByDate,
   fetchStudentAbsencesByDate,
   fetchMonthlyAbsenceTrends,
+  fetchStudentAbsencesByDayOfWeek, // MODIFIED: Added new import
 } from "../../api/attendanceApi";
 import { useAuth } from "../../contexts/AuthContext";
 import {
@@ -27,6 +28,7 @@ import {
 } from "recharts";
 import { Calendar, BarChart3, TrendingUp, X } from "lucide-react";
 
+// --- Interfaces (no changes) ---
 interface AbsenceDayData {
   day_name: string;
   day_number: number;
@@ -96,9 +98,11 @@ const AbsenceAnalysisTabs = () => {
   const [studentData, setStudentData] = useState<StudentData[]>([]);
   const [monthlyTrends, setMonthlyTrends] = useState<MonthlyTrendData[]>([]);
 
-  // Modal state for student details
+  // MODIFIED & NEW: Added states for modal management
   const [showStudentModal, setShowStudentModal] = useState(false);
   const [selectedDate, setSelectedDate] = useState("");
+  const [modalTitle, setModalTitle] = useState(""); // NEW: For dynamic modal title
+  const [isModalLoading, setIsModalLoading] = useState(false); // NEW: For loading state inside modal
 
   useEffect(() => {
     const loadClasses = async () => {
@@ -165,14 +169,22 @@ const AbsenceAnalysisTabs = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [classId, startDate, endDate, activeTab]);
 
-  // Function to handle date click in the calendar view
+  // MODIFIED: Updated to set modal title
   const handleDateClick = async (date: string) => {
     if (!token) return;
-
     setSelectedDate(date);
+    setIsModalLoading(true);
+
+    // Set the title for the modal
+    const formattedDate = new Date(date).toLocaleDateString("id-ID", {
+      weekday: "long",
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+    });
+    setModalTitle(`Detail Siswa Alpa - ${formattedDate}`);
 
     try {
-      if (!token) return;
       const data = await fetchStudentAbsencesByDate(
         {
           classId: classId === "all" ? undefined : Number(classId),
@@ -184,17 +196,44 @@ const AbsenceAnalysisTabs = () => {
       setShowStudentModal(true);
     } catch (error) {
       // Error fetching student data
+    } finally {
+      setIsModalLoading(false);
     }
   };
 
-  // Prepare data for the day of week chart
+  // NEW: Handler for clicking a row in the "Analisis per Hari" table
+  const handleDayOfWeekClick = async (dayNumber: number, dayName: string) => {
+    if (!token) return;
+    setIsModalLoading(true);
+    setModalTitle(`Detail Siswa Alpa - Hari ${dayName}`);
+    setStudentData([]); // Clear previous data immediately
+
+    try {
+      const data = await fetchStudentAbsencesByDayOfWeek(
+        {
+          classId: classId === "all" ? undefined : Number(classId),
+          startDate,
+          endDate,
+          dayOfWeek: dayNumber,
+        },
+        token,
+      );
+      setStudentData(data.data);
+      setShowStudentModal(true);
+    } catch (error) {
+      // Error fetching student data
+    } finally {
+      setIsModalLoading(false);
+    }
+  };
+
+  // Prepare data for charts (no changes)
   const dayOfWeekChartData = dayOfWeekData.map((item) => ({
     day: item.day_name,
     alpa: item.total_alpa,
     percentage: item.percentage,
   }));
 
-  // Prepare data for the date chart
   const dateChartData = dateData.map((item) => ({
     date: new Date(item.date).toLocaleDateString("id-ID", {
       day: "numeric",
@@ -205,43 +244,33 @@ const AbsenceAnalysisTabs = () => {
     percentage: item.percentage,
   }));
 
-  // Prepare data for the monthly trends chart
   const monthlyChartData = monthlyTrends.map((item) => ({
     month: item.month_name,
     alpa: item.total_alpa,
     percentage: item.percentage,
   }));
 
-  // Color scale for heat map (higher absences = darker color)
+  // Color scale for heat map (no changes)
   const getHeatMapColor = (percentage: number) => {
-    if (percentage >= 20) return "rgba(220, 38, 38, 0.8)"; // red-600
-    if (percentage >= 15) return "rgba(249, 115, 22, 0.8)"; // orange-500
-    if (percentage >= 10) return "rgba(245, 158, 11, 0.8)"; // amber-500
-    if (percentage >= 5) return "rgba(234, 179, 8, 0.8)"; // yellow-500
-    if (percentage > 0) return "rgba(34, 197, 94, 0.8)"; // green-500
-    return "transparent"; // no color for 0 absences
+    if (percentage >= 20) return "rgba(220, 38, 38, 0.8)";
+    if (percentage >= 15) return "rgba(249, 115, 22, 0.8)";
+    if (percentage >= 10) return "rgba(245, 158, 11, 0.8)";
+    if (percentage >= 5) return "rgba(234, 179, 8, 0.8)";
+    if (percentage > 0) return "rgba(34, 197, 94, 0.8)";
+    return "transparent";
   };
 
-  // Generate calendar data for heat map
+  // Generate calendar data (no changes)
   const generateCalendarData = (): CalendarDay[] => {
     if (!startDate || !endDate) {
       return [];
     }
-
     const start = new Date(startDate);
     const end = new Date(endDate);
-
     const calendar: CalendarDay[] = [];
-
-    if (!startDate || !endDate) {
-      return [];
-    }
-
-    // Get the first day of the month to know which day of week it starts on
     const firstDayOfMonth = new Date(start.getFullYear(), start.getMonth(), 1);
-    const startDayOfWeek = firstDayOfMonth.getDay(); // 0 = Sunday, 1 = Monday, etc.
+    const startDayOfWeek = firstDayOfMonth.getDay();
 
-    // Add empty cells for days before the first day of the month
     for (let i = 0; i < startDayOfWeek; i++) {
       calendar.push({
         date: "",
@@ -255,7 +284,6 @@ const AbsenceAnalysisTabs = () => {
       });
     }
 
-    // Create a new Date object for each iteration to avoid mutation issues
     const currentDate = new Date(start);
     while (currentDate <= end) {
       const dateStr = currentDate.toISOString().split("T")[0];
@@ -271,13 +299,9 @@ const AbsenceAnalysisTabs = () => {
         isWeekend: currentDate.getDay() === 0 || currentDate.getDay() === 6,
         isEmpty: false,
       };
-
       calendar.push(calendarDay);
-
-      // Move to next day by creating a new Date object
       currentDate.setDate(currentDate.getDate() + 1);
     }
-
     return calendar;
   };
 
@@ -421,7 +445,10 @@ const AbsenceAnalysisTabs = () => {
                       {dayOfWeekData.map((day) => (
                         <tr
                           key={day.day_number}
-                          className="hover:bg-semibackground transition-colors"
+                          className="hover:bg-semibackground transition-colors cursor-pointer" // MODIFIED: Added cursor-pointer
+                          onClick={() =>
+                            handleDayOfWeekClick(day.day_number, day.day_name)
+                          } // MODIFIED: Added onClick
                         >
                           <td className="px-6 py-4 whitespace-nowrap text-sm text-foreground">
                             {day.day_name}
@@ -450,6 +477,7 @@ const AbsenceAnalysisTabs = () => {
                   Klik pada tanggal dengan warna untuk melihat detail siswa yang
                   alpa
                 </p>
+                {/* ... (rest of the calendar view is unchanged) ... */}
                 <div className="mb-6 flex items-center flex-wrap gap-4">
                   <div className="flex items-center">
                     <div
@@ -509,7 +537,6 @@ const AbsenceAnalysisTabs = () => {
                     ),
                   )}
                   {calendarData.map((day, index) => {
-                    // Handle empty cells
                     if (day.isEmpty) {
                       return (
                         <div
@@ -654,26 +681,21 @@ const AbsenceAnalysisTabs = () => {
         )}
       </div>
 
-      {/* Student Details Modal - Rendered via Portal */}
+      {/* MODIFIED: Student Details Modal with dynamic title and loading state */}
       {showStudentModal &&
         createPortal(
           <div
             className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
-            onClick={() => setShowStudentModal(false)} // klik di luar modal
+            onClick={() => setShowStudentModal(false)}
           >
             <div
               className="bg-background rounded-lg p-6 max-w-6xl w-full mx-4 max-h-[90vh] overflow-y-auto"
-              onClick={(e) => e.stopPropagation()} // cegah nutup saat klik isi modal
+              onClick={(e) => e.stopPropagation()}
             >
               <div className="flex justify-between items-center mb-4">
+                {/* MODIFIED: Use dynamic modal title */}
                 <h3 className="text-lg font-semibold text-foreground">
-                  Detail Siswa Alpa -{" "}
-                  {new Date(selectedDate).toLocaleDateString("id-ID", {
-                    weekday: "long",
-                    year: "numeric",
-                    month: "long",
-                    day: "numeric",
-                  })}
+                  {modalTitle}
                 </h3>
                 <button
                   onClick={() => setShowStudentModal(false)}
@@ -683,9 +705,13 @@ const AbsenceAnalysisTabs = () => {
                 </button>
               </div>
 
-              {studentData.length === 0 ? (
+              {isModalLoading ? ( // NEW: Show loading spinner inside modal
+                <div className="flex justify-center items-center py-12">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-accent"></div>
+                </div>
+              ) : studentData.length === 0 ? (
                 <p className="text-center text-secondary py-8">
-                  Tidak ada siswa yang alpa pada tanggal ini
+                  Tidak ada siswa yang alpa pada periode ini.
                 </p>
               ) : (
                 <div className="overflow-x-auto">

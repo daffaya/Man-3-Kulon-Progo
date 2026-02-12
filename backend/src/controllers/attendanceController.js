@@ -590,6 +590,45 @@ const attendanceControllerFactory = ({ pool }) => {
     }
   };
 
+  /**
+   * Retrieves a unique list of students who were absent on a specific day of the week.
+   * @param {Object} req - The Express request object.
+   * @param {Object} req.query - The query parameters.
+   * @param {string} req.query.classId - The ID of the class.
+   * @param {string} req.query.startDate - The start date (YYYY-MM-DD).
+   * @param {string} req.query.endDate - The end date (YYYY-MM-DD).
+   * @param {string} req.query.dayOfWeek - The day of the week (1-7).
+   * @param {Object} res - The Express response object.
+   * @returns {Promise<void>}
+   */
+  const getStudentAbsencesByDayOfWeek = async (req, res) => {
+    const { classId, startDate, endDate, dayOfWeek } = req.query;
+
+    try {
+      if (!startDate || !endDate || !dayOfWeek) {
+        return res.status(400).json({
+          error: "Parameter startDate, endDate, dan dayOfWeek wajib diisi",
+        });
+      }
+
+      const students = await attendanceModel.getStudentAbsencesByDayOfWeek(
+        classId,
+        startDate,
+        endDate,
+        dayOfWeek,
+      );
+
+      res.json({
+        data: students,
+      });
+    } catch (error) {
+      console.error("Error fetching student absences by day of week:", error);
+      res
+        .status(500)
+        .json({ error: "Gagal mengambil data siswa yang alpa per hari" });
+    }
+  };
+
   return {
     saveAttendance,
     getAttendanceByDateAndClass,
@@ -610,6 +649,7 @@ const attendanceControllerFactory = ({ pool }) => {
     getStudentAbsencesByDate,
     getMonthlyAbsenceTrends,
     getMissingAttendanceByDateRange,
+    getStudentAbsencesByDayOfWeek,
   };
 };
 

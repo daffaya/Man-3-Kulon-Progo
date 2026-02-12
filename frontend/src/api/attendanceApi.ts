@@ -437,3 +437,32 @@ export const fetchMissingAttendance = async (
     },
   });
 };
+
+/**
+ * Fetches a unique list of students who were absent on a specific day of the week within a date range.
+ * @param {{classId?: number, startDate: string, endDate: string, dayOfWeek: number}} params - The parameters for the request.
+ * @param {string} token - The authentication bearer token.
+ * @returns {Promise<any>} A promise that resolves to the JSON response containing the student data.
+ * @throws {Error} If the fetch request fails.
+ */
+export const fetchStudentAbsencesByDayOfWeek = async (
+  params: {
+    classId?: number;
+    startDate: string;
+    endDate: string;
+    dayOfWeek: number; // 1-7, where 1 is Sunday
+  },
+  token: string,
+) => {
+  let url = `/attendance/absence-analysis/students-by-day-of-week?startDate=${params.startDate}&endDate=${params.endDate}&dayOfWeek=${params.dayOfWeek}`;
+
+  if (params.classId) {
+    url += `&classId=${params.classId}`;
+  }
+
+  return apiFetch(url, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
+};
