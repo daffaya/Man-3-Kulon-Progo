@@ -19,7 +19,7 @@ import {
 } from "date-fns";
 import { id } from "date-fns/locale";
 import { useNavigate } from "react-router-dom";
-import { fetchMissingAttendance } from "../../api/attendanceApi";
+import { fetchMissingAttendance, fetchHolidays } from "../../api/attendanceApi";
 import { useAuth } from "../../contexts/AuthContext";
 import { useToast } from "../../contexts/ToastContext";
 import {
@@ -51,15 +51,32 @@ const AttendanceCalendarTab: React.FC = () => {
     Record<string, MissingAttendanceData>
   >({});
   const [focusedDate, setFocusedDate] = useState<Date | null>(null);
+  const [holidayDates, setHolidayDates] = useState<Set<string>>(new Set());
 
-  // Ref to prevent duplicate fetches
   const fetchingRef = useRef(false);
 
-  // Memoize the month key for caching
   const monthKey = useMemo(
     () => format(currentMonth, "yyyy-MM"),
     [currentMonth],
   );
+
+  // Fetch Holidays
+  useEffect(() => {
+    const loadHolidays = async () => {
+      if (!token) return;
+      try {
+        const data = await fetchHolidays(token);
+        const dates = new Set<string>(
+          data.map((h: any) => format(new Date(h.date), "yyyy-MM-dd")),
+        );
+        setHolidayDates(dates);
+      } catch (error) {
+        console.error("Failed to fetch holidays", error);
+      }
+    };
+
+    loadHolidays();
+  }, [token]);
 
   const fetchData = useCallback(async () => {
     if (!token || fetchingRef.current) return;
@@ -103,7 +120,6 @@ const AttendanceCalendarTab: React.FC = () => {
     fetchData();
   }, [monthKey, token]);
 
-  // Navigation handlers
   const handlePrevMonth = useCallback(() => {
     const prevMonth = subMonths(currentMonth, 1);
     setCurrentMonth(prevMonth);
@@ -114,16 +130,26 @@ const AttendanceCalendarTab: React.FC = () => {
     setCurrentMonth(nextMonth);
   }, [currentMonth]);
 
-  // Handle date click
+  /**
+   * Handle date click.
+   * UPDATED: Strictly prevent opening modal if the date is a Holiday.
+   */
   const handleDateClick = useCallback(
     (date: Date) => {
       const dateStr = format(date, "yyyy-MM-dd");
+
+      // 1. Check if it's a holiday first
+      if (holidayDates.has(dateStr)) {
+        return; // Do nothing
+      }
+
+      // 2. Check if there is missing data
       if (missingAttendance[dateStr]) {
         setSelectedDate(date);
         setShowModal(true);
       }
     },
-    [missingAttendance],
+    [missingAttendance, holidayDates], // Added holidayDates dependency
   );
 
   const handleDateKeyDown = useCallback(
@@ -138,7 +164,6 @@ const AttendanceCalendarTab: React.FC = () => {
         e.key === "ArrowDown"
       ) {
         e.preventDefault();
-        // Navigate to adjacent date
         const newDate = new Date(date);
         switch (e.key) {
           case "ArrowRight":
@@ -178,7 +203,6 @@ const AttendanceCalendarTab: React.FC = () => {
     fetchData();
   }, [monthKey, fetchData]);
 
-  // Render calendar with keyboard navigation
   const renderCalendar = useMemo(() => {
     const monthStart = startOfMonth(currentMonth);
     const monthEnd = endOfMonth(currentMonth);
@@ -194,7 +218,6 @@ const AttendanceCalendarTab: React.FC = () => {
 
     return (
       <div className="w-full h-full flex flex-col">
-        {/* Week header */}
         <div className="grid grid-cols-7 gap-x-1 gap-y-2 mb-2">
           {weekDays.map((day) => (
             <div
@@ -206,46 +229,53 @@ const AttendanceCalendarTab: React.FC = () => {
           ))}
         </div>
 
-        {/* Calendar body */}
         <div className="grid grid-cols-7 gap-2 flex-grow">
           {days.map((date) => {
             const dateStr = format(date, "yyyy-MM-dd");
             const isCurrentMonth = isSameMonth(date, currentMonth);
             const isToday = isSameDay(date, new Date());
             const isWeekend = getDay(date) === 0 || getDay(date) === 6;
+            const isHoliday = holidayDates.has(dateStr);
+
             const hasMissingAttendance =
-              missingAttendance[dateStr] && !isWeekend;
+              missingAttendance[dateStr] && !isWeekend && !isHoliday;
+
             const missingCount = missingAttendance[dateStr]?.length || 0;
             const isFocused = isSameDay(date, focusedDate || new Date());
 
-            // Base classes for calendar layout
             const baseClass =
               "relative aspect-square rounded-xl flex flex-col items-center justify-center border transition-all duration-200 ease-out select-none";
 
-            const interactionClass = isCurrentMonth
-              ? "cursor-pointer hover:scale-[1.05] active:scale-95"
-              : "opacity-30 pointer-events-none";
+            // If it's a holiday, we want it to look clickable=false visually,
+            // so we remove hover effects for holidays
+            const interactionClass = !isCurrentMonth
+              ? "opacity-30 pointer-events-none"
+              : isHoliday
+                ? "cursor-default" // No pointer cursor for holidays
+                : "cursor-pointer hover:scale-[1.05] active:scale-95";
 
-            // Variant colors (light & dark mode)
             let variantClass = "";
+
             if (!isCurrentMonth) {
               variantClass =
                 "bg-white border-white/5 dark:bg-gray-900 dark:border-gray-700";
-            } else if (isToday) {
-              variantClass =
-                "bg-background text-primary border-2 border-emerald-500 shadow-md z-10 dark:bg-background dark:text-primary dark:border-emerald-400";
             } else if (isWeekend) {
               variantClass =
                 "bg-gray-100 text-gray-400 border-transparent dark:bg-gray-800 dark:text-gray-500";
+            } else if (isHoliday) {
+              variantClass =
+                "bg-yellow-100 text-yellow-800 border border-yellow-300 dark:bg-yellow-900/40 dark:text-yellow-300 dark:border-yellow-600";
             } else if (hasMissingAttendance) {
               variantClass =
                 "bg-rose-100 text-rose-700 border border-rose-300 hover:bg-rose-200 dark:bg-rose-800/30 dark:text-rose-300 dark:border-rose-500 dark:hover:bg-rose-700/50";
+            } else if (isToday) {
+              variantClass =
+                "bg-background text-primary border-2 border-emerald-500 shadow-md z-10 dark:bg-background dark:text-primary dark:border-emerald-400";
             } else {
               variantClass =
                 "bg-emerald-100 text-emerald-800 border border-emerald-300 hover:bg-emerald-200 dark:bg-emerald-900/30 dark:text-emerald-400 dark:border-emerald-500 dark:hover:bg-emerald-800/50";
             }
 
-            // Focus ring for keyboard navigation
             const focusClass = isFocused
               ? "ring-2 ring-accent ring-offset-2 ring-offset-background"
               : "";
@@ -259,15 +289,20 @@ const AttendanceCalendarTab: React.FC = () => {
                 className={`${baseClass} ${variantClass} ${interactionClass} ${focusClass}`}
                 tabIndex={isCurrentMonth && !isWeekend ? 0 : -1}
                 role="button"
-                aria-label={`Tanggal ${format(date, "d MMMM yyyy", { locale: id })}${hasMissingAttendance ? `, ${missingCount} kelas belum absen` : ""}`}
+                aria-label={`Tanggal ${format(date, "d MMMM yyyy", { locale: id })}${hasMissingAttendance ? `, ${missingCount} kelas belum absen` : ""}${isHoliday ? ", Hari Libur" : ""}`}
                 aria-pressed={hasMissingAttendance}
               >
-                {/* Date number */}
                 <span className="text-xs font-semibold">
                   {format(date, "d")}
                 </span>
 
-                {/* Missing badge */}
+                {isHoliday && isCurrentMonth && (
+                  <span
+                    className="absolute top-2 right-2 h-1.5 w-1.5 rounded-full bg-yellow-600 dark:bg-yellow-400"
+                    aria-hidden="true"
+                  />
+                )}
+
                 {hasMissingAttendance && (
                   <div
                     className="absolute bottom-2 px-2 py-0.5 rounded-full text-[9px] font-bold
@@ -278,11 +313,11 @@ const AttendanceCalendarTab: React.FC = () => {
                   </div>
                 )}
 
-                {/* Complete dot */}
                 {!isWeekend &&
                   isCurrentMonth &&
                   !hasMissingAttendance &&
-                  !isToday && (
+                  !isToday &&
+                  !isHoliday && (
                     <span
                       className="absolute top-2 right-2 h-1.5 w-1.5 rounded-full bg-emerald-500 dark:bg-emerald-400"
                       aria-hidden="true"
@@ -297,6 +332,7 @@ const AttendanceCalendarTab: React.FC = () => {
   }, [
     currentMonth,
     missingAttendance,
+    holidayDates,
     focusedDate,
     handleDateClick,
     handleDateKeyDown,
@@ -304,7 +340,6 @@ const AttendanceCalendarTab: React.FC = () => {
 
   return (
     <div className="card h-full flex flex-col p-0 overflow-hidden">
-      {/* Header Section */}
       <div className="p-4 sm:p-6 border-b border-white/5 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 sm:gap-4 bg-secondary/20">
         <div className="flex items-center space-x-2 sm:space-x-3">
           <div className="flex h-8 w-8 sm:h-10 sm:w-10 items-center justify-center rounded-lg bg-accent/10 text-accent shadow-sm shrink-0">
@@ -354,7 +389,6 @@ const AttendanceCalendarTab: React.FC = () => {
         </div>
       </div>
 
-      {/* Legend Section */}
       <div className="px-4 sm:px-6 py-3 sm:py-4 flex flex-wrap items-center gap-3 sm:gap-6 text-xs sm:text-sm border-b border-white/5">
         <div className="flex items-center gap-1.5 sm:gap-2">
           <div className="relative flex h-2.5 w-2.5 sm:h-3 sm:w-3">
@@ -370,12 +404,15 @@ const AttendanceCalendarTab: React.FC = () => {
           <span className="text-secondary">Belum Lengkap</span>
         </div>
         <div className="flex items-center gap-1.5 sm:gap-2">
+          <div className="h-2.5 w-2.5 sm:h-3 sm:w-3 rounded-full bg-yellow-400 border border-yellow-500"></div>
+          <span className="text-secondary">Hari Libur</span>
+        </div>
+        <div className="flex items-center gap-1.5 sm:gap-2">
           <div className="h-2.5 w-2.5 sm:h-3 sm:w-3 rounded-full bg-secondary/30 border border-white/5"></div>
           <span className="text-secondary">Akhir Pekan</span>
         </div>
       </div>
 
-      {/* Calendar Content */}
       <div className="p-3 sm:p-6 flex-grow flex flex-col relative">
         {loading && !cachedData[monthKey] ? (
           <div className="absolute inset-0 flex items-center justify-center bg-background/80 z-10 backdrop-blur-sm">
@@ -402,7 +439,6 @@ const AttendanceCalendarTab: React.FC = () => {
               className="bg-semibackground border-t sm:border border-white/10 rounded-t-2xl sm:rounded-2xl shadow-2xl w-full sm:max-w-md h-[70vh] sm:max-h-[85vh] overflow-hidden flex flex-col animate-in slide-in-from-bottom-10 sm:zoom-in-95 sm:duration-200 ring-1 ring-white/10"
               onClick={(e) => e.stopPropagation()}
             >
-              {/* Modal Header */}
               <div className="p-4 sm:p-5 border-b border-white/5 flex justify-between items-center bg-secondary/20 shrink-0">
                 <div className="flex items-center gap-2 sm:gap-3">
                   <div className="p-1.5 sm:p-2 bg-rose-500/10 rounded-lg text-rose-500">
@@ -428,7 +464,6 @@ const AttendanceCalendarTab: React.FC = () => {
                 </button>
               </div>
 
-              {/* Modal Body */}
               <div className="p-2 sm:p-2 overflow-y-auto flex-grow custom-scrollbar">
                 <div className="space-y-1">
                   {missingAttendance[format(selectedDate, "yyyy-MM-dd")]?.map(
@@ -482,7 +517,6 @@ const AttendanceCalendarTab: React.FC = () => {
                 </div>
               </div>
 
-              {/* Modal Footer */}
               <div className="p-3 sm:p-4 border-t border-white/5 bg-secondary/20 flex justify-center shrink-0">
                 <button
                   onClick={() => setShowModal(false)}

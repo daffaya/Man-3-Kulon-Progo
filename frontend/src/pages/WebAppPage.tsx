@@ -118,30 +118,6 @@ const WebAppPage: React.FC = () => {
       ] as UserRole[],
       to: "/atmin/gallery",
     },
-    {
-      id: "digital-library",
-      title: "Perpus Digital",
-      description: "Akses perpustakaan digital sekolah secara online",
-      icon: <Book className="w-6 h-6" />,
-      requiredRole: [],
-      to: "https://perpustakaan.man3kulonprogo.sch.id/",
-    },
-    {
-      id: "persuratan",
-      title: "Persuratan",
-      description: "Kelola surat menyurat sekolah secara online",
-      icon: <Clipboard className="w-6 h-6" />,
-      requiredRole: [],
-      to: "http://persuratan.man3kulonprogo.sch.id/",
-    },
-    {
-      id: "rapor",
-      title: "Rapor Siswa",
-      description: "Akses informasi rapor dan nilai siswa",
-      icon: <BookOpen className="w-6 h-6" />,
-      requiredRole: [],
-      to: "http://raport.man3kulonprogo.sch.id/",
-    },
   ];
 
   /**
@@ -157,7 +133,7 @@ const WebAppPage: React.FC = () => {
         navigate(app.to);
       } else {
         showInfoToast(
-          "Silakan login terlebih dahulu untuk mengakses aplikasi ini."
+          "Silakan login terlebih dahulu untuk mengakses aplikasi ini.",
         );
         navigate("/login");
       }

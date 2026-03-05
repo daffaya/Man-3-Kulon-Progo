@@ -148,7 +148,7 @@ const PpdbPage: React.FC = () => {
   ];
 
   const registrationLink =
-    "https://docs.google.com/forms/d/e/1FAIpQLSe3EluqvWs_QulKZI6_cUJGhiKEhPTu5q_dZXVrQ69nrGIo0A/viewform";
+    "https://docs.google.com/forms/d/e/1FAIpQLSd0X3TY6AXjqBIdq4FgDF2YjJcvym1PbUrK0ZoFy0pd8tzAzw/viewform";
 
   return (
     <Layout>

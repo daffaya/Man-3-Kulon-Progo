@@ -75,8 +75,16 @@ const AttendanceInputPage: React.FC = () => {
   useEffect(() => {
     const params = new URLSearchParams(location.search);
     const classId = params.get("classId");
+    const dateParam = params.get("date");
+
     if (classId) {
       setSelectedClass(Number(classId));
+    }
+
+    if (dateParam) {
+      setSelectedDate(dateParam);
+    } else {
+      setSelectedDate(format(new Date(), "yyyy-MM-dd"));
     }
   }, [location.search]);
 
