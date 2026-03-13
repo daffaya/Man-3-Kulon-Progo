@@ -58,8 +58,13 @@ const Header: React.FC = () => {
   const layananDropdownItems: DropdownItem[] = [
     { to: "/layanan/zona-integritas", label: "Zona Integritas" },
     { to: "/layanan/ppdb", label: "PPDB" },
+    {
+      to: "https://sites.google.com/view/bkman3kpberkah/",
+      label: "Bimbingan Konseling",
+      openInNewTab: true,
+    },
     { to: "/layanan/sedum", label: "Sedum" },
-    { to: "/layanan/ptsp", label: "PTSP Online" }, // <-- PERUBAHAN 2: Tambahkan item PTSP
+    { to: "/layanan/ptsp", label: "PTSP Online" },
   ];
 
   useEffect(() => {

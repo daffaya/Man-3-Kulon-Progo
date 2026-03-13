@@ -18,6 +18,8 @@ export type DropdownItem = {
   to: string;
   /** The display text for the link. */
   label: string;
+  /**  Open in a new tab*/
+  openInNewTab?: boolean;
 };
 
 /**
@@ -81,6 +83,8 @@ export const Dropdown: React.FC<DropdownProps> = ({
               to={item.to}
               className={itemClasses}
               onClick={() => isMobile && toggle()}
+              target={item.openInNewTab ? "_blank" : undefined}
+              rel={item.openInNewTab ? "noopener noreferrer" : undefined}
             >
               {item.label}
             </Link>
