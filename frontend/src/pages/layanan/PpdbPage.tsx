@@ -1,8 +1,6 @@
 /**
  * @fileoverview PpdbPage component for displaying information about the new student admission process.
- * This component provides comprehensive information about PPDB (Penerimaan Peserta Didik Baru) for MAN 3 Kulon Progo,
- * including school information, advantages, requirements, schedule, registration flow, FAQ, and contact details.
- * It features a hero section with parallax scrolling effect, multiple information sections, and an FAQ accordion.
+ * UPDATED: Added single SOP section similar to ZonaIntegritasPage with ImageZoomModal.
  */
 
 import React, { useState, useEffect } from "react";
@@ -23,18 +21,18 @@ import {
   Sparkles,
   Mail,
   Bell,
+  ZoomIn, // Import ZoomIn
 } from "lucide-react";
 import Layout from "../../components/layout/Layout";
+import ImageZoomModal from "../../components/modals/ImageZoomModal"; // Import Modal
 
-/**
- * Component that renders the PPDB (New Student Admission) page for MAN 3 Kulon Progo.
- * This page provides comprehensive information about the admission process, school advantages,
- * requirements, schedule, registration flow, FAQ, and contact details.
- */
 const PpdbPage: React.FC = () => {
   const [openFaq, setOpenFaq] = useState<number | null>(null);
   const [scrollY, setScrollY] = useState(0);
   const [isLoaded, setIsLoaded] = useState(false);
+
+  // State untuk Modal Zoom
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   useEffect(() => {
     const handleScroll = () => setScrollY(window.scrollY);
@@ -77,74 +75,6 @@ const PpdbPage: React.FC = () => {
     "Fotokopi ijazah MTs/SMP yang telah dilegalisir (2 lembar).",
     "Surat Keterangan Hasil Ujian Nasional (SKHUN) atau Surat Tanda Lulus (STL).",
     "Pas foto ukuran 3×4 sebanyak 4 lembar dengan latar belakang berwarna biru.",
-  ];
-
-  const jadwalPendaftaran = {
-    gelombang: "Gelombang I",
-    tanggalMulai: "18 Maret 2025",
-    tanggalSelesai: "15 Mei 2025",
-    tempat: "MAN 3 Kulon Progo",
-    jam: "07.30 - 13.00 (07.30 - 11.00 untuk hari Jumat)",
-  };
-
-  const alurPendaftaran = [
-    {
-      nomor: 1,
-      judul: "Isi Formulir Online",
-      deskripsi:
-        "Lengkapi formulir pendaftaran PPDB MAN 3 Kulon Progo secara online melalui tautan resmi.",
-    },
-    {
-      nomor: 2,
-      judul: "Unggah Dokumen",
-      deskripsi:
-        "Upload seluruh dokumen persyaratan dengan format dan ukuran yang telah ditentukan.",
-    },
-    {
-      nomor: 3,
-      judul: "Verifikasi Data",
-      deskripsi:
-        "Tim panitia akan memverifikasi data dan dokumen calon peserta secara berkala.",
-    },
-    {
-      nomor: 4,
-      judul: "Pengumuman Hasil Seleksi",
-      deskripsi:
-        "Pantau hasil seleksi melalui website resmi MAN 3 Kulon Progo atau pemberitahuan melalui pesan singkat.",
-    },
-    {
-      nomor: 5,
-      judul: "Daftar Ulang",
-      deskripsi:
-        "Peserta yang diterima wajib melakukan daftar ulang dengan membawa dokumen asli ke madrasah.",
-    },
-  ];
-
-  const faqData = [
-    {
-      pertanyaan: "Apakah pendaftaran PPDB MAN 3 Kulon Progo dikenakan biaya?",
-      jawaban:
-        "Tidak. Pendaftaran peserta didik baru MAN 3 Kulon Progo Tahun Pelajaran 2025/2026 sepenuhnya gratis tanpa biaya apa pun.",
-    },
-    {
-      pertanyaan: "Bagaimana cara mengetahui hasil seleksi PPDB?",
-      jawaban:
-        "Hasil seleksi dapat dilihat melalui website resmi MAN 3 Kulon Progo dan akan diumumkan juga melalui pesan singkat (SMS).",
-    },
-    {
-      pertanyaan: "Apakah calon siswa dari luar Kulon Progo boleh mendaftar?",
-      jawaban:
-        "Tentu saja. PPDB MAN 3 Kulon Progo terbuka untuk calon peserta dari seluruh Indonesia, dengan kuota tertentu sesuai ketentuan.",
-    },
-    {
-      pertanyaan: "Apa saja program unggulan di MAN 3 Kulon Progo?",
-      jawaban:
-        "Program unggulan kami meliputi Tahfidz Al-Qur'an, Multimedia, dan Tata Busana, yang mendukung pengembangan potensi akademik dan keterampilan siswa.",
-    },
-  ];
-
-  const kontakInformasi = [
-    { nama: "Admin PPDB MAN 3 Kulon Progo", telepon: "0823-2229-8062" },
   ];
 
   const registrationLink =
@@ -320,6 +250,7 @@ const PpdbPage: React.FC = () => {
           </div>
         </div>
       </section>
+
       {/* Jadwal Pendaftaran */}
       <section className="py-12 bg-semibackground">
         <div className="container max-w-6xl mx-auto px-4 sm:px-6">
@@ -378,8 +309,50 @@ const PpdbPage: React.FC = () => {
         </div>
       </section>
 
-      {/* Alur Pendaftaran */}
+      {/* ======================================================= */}
+      {/* SECTION BARU: SOP (Sama seperti Zona Integritas)       */}
+      {/* ======================================================= */}
       <section className="py-12 bg-background">
+        <div className="container max-w-6xl mx-auto px-4 sm:px-6">
+          <h2 className="text-3xl font-serif font-bold text-center mb-8 text-foreground flex items-center justify-center gap-2">
+            <FileText className="text-accent" />
+            Dokumen Prosedur (SOP)
+          </h2>
+
+          <div className="max-w-4xl mx-auto">
+            <div className="bg-semibackground border border-border rounded-lg p-6 shadow-sm">
+              <p className="text-secondary mb-4 text-sm text-center">
+                Berikut adalah dokumen Standard Operating Procedure (SOP) PPDB
+                MAN 3 Kulon Progo.
+              </p>
+
+              <div
+                className="relative w-full overflow-hidden rounded-md border border-gray-200 cursor-zoom-in group"
+                onClick={() => setIsModalOpen(true)}
+              >
+                {/* GANTI SRC DENGAN GAMBAR SOP PPDB KAMU */}
+                <img
+                  src="/SOP_PPDB.png"
+                  alt="SOP PPDB MAN 3 Kulon Progo"
+                  className="w-full h-auto object-contain transition-transform duration-300 group-hover:scale-105"
+                />
+
+                <div className="absolute top-4 right-4 bg-black/50 text-white p-2 rounded-full opacity-0 group-hover:opacity-100 transition-opacity">
+                  <ZoomIn size={20} />
+                </div>
+              </div>
+
+              <p className="text-xs text-gray-500 mt-2 text-center">
+                *Klik gambar untuk memperbesar
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+      {/* AKHIR SECTION SOP */}
+
+      {/* Alur Pendaftaran (Background diubah jadi abu-abu) */}
+      <section className="py-12 bg-semibackground">
         <div className="container max-w-6xl mx-auto px-4 sm:px-6">
           <h2 className="text-3xl font-serif font-bold text-center mb-8 text-foreground">
             Alur Pendaftaran PPDB
@@ -446,8 +419,8 @@ const PpdbPage: React.FC = () => {
         </div>
       </section>
 
-      {/* Persyaratan Pendaftaran */}
-      <section className="py-12 bg-semibackground">
+      {/* Persyaratan Pendaftaran (Background diubah jadi putih) */}
+      <section className="py-12 bg-background">
         <div className="container max-w-6xl mx-auto px-4 sm:px-6">
           <h2 className="text-3xl font-serif font-bold text-center mb-8 text-foreground">
             Persyaratan Pendaftaran
@@ -481,8 +454,8 @@ const PpdbPage: React.FC = () => {
         </div>
       </section>
 
-      {/* FAQ - Accordion */}
-      <section className="py-12 bg-background">
+      {/* FAQ (Background diubah jadi abu-abu) */}
+      <section className="py-12 bg-semibackground">
         <div className="container max-w-6xl mx-auto px-4 sm:px-6">
           <h2 className="text-3xl font-serif font-bold text-center mb-8 text-foreground">
             FAQ – Pertanyaan Umum
@@ -547,8 +520,8 @@ const PpdbPage: React.FC = () => {
         </div>
       </section>
 
-      {/* Kontak */}
-      <section className="py-12 bg-semibackground">
+      {/* Kontak (Background diubah jadi putih) */}
+      <section className="py-12 bg-background">
         <div className="container max-w-6xl mx-auto px-4 sm:px-6">
           <h2 className="text-3xl font-serif font-bold text-center mb-8 text-foreground">
             Kontak Tim PPDB
@@ -566,7 +539,7 @@ const PpdbPage: React.FC = () => {
                   <div>
                     <p className="font-semibold text-foreground">Email</p>
                     <a
-                      href="mailto:ppdb@[namasekolah].edu"
+                      href="mailto:man3kulonprogo@gmail.com"
                       className="text-accent hover:underline transition-colors"
                     >
                       man3kulonprogo@gmail.com
@@ -620,6 +593,14 @@ const PpdbPage: React.FC = () => {
           </a>
         </div>
       </section>
+
+      {/* Modal Zoom */}
+      <ImageZoomModal
+        src="/SOP_PPDB.png" // Pastikan sama dengan src di atas
+        alt="SOP PPDB MAN 3 Kulon Progo"
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+      />
     </Layout>
   );
 };

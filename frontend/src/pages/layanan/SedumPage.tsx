@@ -2,6 +2,8 @@
  * @fileoverview SedumPage component for displaying the public complaint/suggestion service page.
  * This component provides information about the school's public complaint service, including
  * contact channels, FAQ section, and a form link for submitting complaints or suggestions.
+ *
+ * UPDATED: Added SOP section with ImageZoomModal.
  */
 
 import React, { useState } from "react";
@@ -20,8 +22,11 @@ import {
   ChevronDown,
   ChevronUp,
   HelpCircle,
+  FileText, // Tambah import
+  ZoomIn, // Tambah import
 } from "lucide-react";
 import Layout from "../../components/layout/Layout";
+import ImageZoomModal from "../../components/modals/ImageZoomModal"; // Import Modal
 
 /**
  * Component for displaying the public complaint/suggestion service page (Serapan Aduan Masyarakat).
@@ -29,6 +34,9 @@ import Layout from "../../components/layout/Layout";
  */
 const SedumPage: React.FC = () => {
   const [openFaq, setOpenFaq] = useState<number | null>(null);
+
+  // State untuk Modal Zoom
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   const faqItems = [
     {
@@ -243,6 +251,45 @@ const SedumPage: React.FC = () => {
             </div>
           </div>
 
+          {/* ======================================================= */}
+          {/* SECTION BARU: SOP (Serupa dengan Zona Integritas)      */}
+          {/* ======================================================= */}
+          <div className="mb-12">
+            <h2 className="text-2xl font-serif font-bold mb-6 text-foreground flex items-center">
+              <FileText className="mr-2 text-accent" size={24} />
+              Dokumen Prosedur (SOP)
+            </h2>
+
+            <div className="bg-semibackground border border-border rounded-lg p-6 shadow-sm">
+              <p className="text-secondary mb-4 text-sm text-center">
+                Berikut adalah dokumen Standard Operating Procedure (SOP)
+                Penanganan Pengaduan Masyarakat.
+              </p>
+
+              {/* Pembungkus gambar: tambahkan min-h agar ada ruang cadangan */}
+              <div
+                className="relative w-full overflow-hidden rounded-md border border-gray-200 cursor-zoom-in group min-h-[200px] bg-gray-100"
+                onClick={() => setIsModalOpen(true)}
+              >
+                <img
+                  src="/SOP_Pengaduan_Masyarakat.png"
+                  alt="SOP Penanganan Pengaduan"
+                  // Perbaikan: Hapus object-contain, tambahkan block
+                  className="w-full h-auto block transition-transform duration-300 group-hover:scale-105"
+                />
+
+                <div className="absolute top-4 right-4 bg-black/50 text-white p-2 rounded-full opacity-0 group-hover:opacity-100 transition-opacity">
+                  <ZoomIn size={20} />
+                </div>
+              </div>
+
+              <p className="text-xs text-gray-500 mt-2 text-center">
+                *Klik gambar untuk memperbesar
+              </p>
+            </div>
+          </div>
+          {/* AKHIR SECTION SOP */}
+
           {/* FAQ Section */}
           <div className="mb-12">
             <h2 className="text-2xl font-serif font-bold mb-6 text-foreground">
@@ -301,6 +348,14 @@ const SedumPage: React.FC = () => {
           </div>
         </div>
       </section>
+
+      {/* Modal Zoom */}
+      <ImageZoomModal
+        src="/SOP_Pengaduan_Masyarakat.png"
+        alt="SOP Penanganan Pengaduan"
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+      />
     </Layout>
   );
 };
