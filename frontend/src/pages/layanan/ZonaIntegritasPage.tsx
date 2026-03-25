@@ -17,6 +17,7 @@ import {
   HeartHandshake,
   ZoomIn,
   FileText,
+  ExternalLink,
 } from "lucide-react";
 import IntegrityAreaCard from "../../components/integrity/IntegrityAreaCard";
 import ImageZoomModal from "../../components/modals/ImageZoomModal";
@@ -190,6 +191,60 @@ const ZonaIntegritasPage: React.FC = () => {
                   onClick={() => handleAreaClick(area.id)}
                 />
               ))}
+            </div>
+          </section>
+
+          {/* Section LKJ */}
+          <section className="mb-16">
+            <h2 className="text-2xl md:text-3xl font-serif font-bold mb-8 text-foreground flex items-center">
+              <BarChart3 className="mr-2 text-accent" />
+              Laporan Kinerja
+            </h2>
+
+            <div className="bg-background border border-border rounded-lg p-6 shadow-sm flex flex-col md:flex-row gap-6 items-start">
+              <div className="flex-1">
+                <h3 className="text-xl font-semibold text-foreground mb-3">
+                  Laporan Kinerja MAN 3 Kulon Progo Tahun 2025
+                </h3>
+
+                <p className="text-secondary text-sm leading-relaxed mb-4">
+                  Laporan Kinerja ini disusun sebagai bentuk pertanggungjawaban
+                  akuntabilitas kinerja sesuai dengan{" "}
+                  <em>Peraturan Menteri Agama Nomor 19 Tahun 2019</em>. Dokumen
+                  ini menyoroti pencapaian 5 sasaran program strategis, meliputi
+                  peningkatan profesionalisme ASN, kematangan intern, kualitas
+                  pendidikan, pemberian bantuan pendidikan, serta pengelolaan
+                  sarana prasarana. Pencapaian diukur melalui 22 indikator
+                  kinerja yang telah ditetapkan dalam Perjanjian Kinerja.
+                </p>
+
+                <div className="flex flex-wrap gap-3">
+                  <a
+                    href="https://drive.google.com/file/d/1oVA6DgglaX1mwi-FZmO028sd6Qp7jz8D/view?usp=sharing"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-2 px-5 py-2.5 rounded btn-primary text-sm font-medium"
+                  >
+                    <ExternalLink size={18} />
+                    Buka Laporan (PDF)
+                  </a>
+                </div>
+              </div>
+
+              <div className="w-full md:w-1/3 flex-shrink-0">
+                <a
+                  href="https://drive.google.com/file/d/1oVA6DgglaX1mwi-FZmO028sd6Qp7jz8D/view?usp=sharing"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="block border border-border rounded overflow-hidden shadow-sm hover:opacity-90 transition"
+                >
+                  <img
+                    src="/cover-laporan-kinerja-zi-2025.jpg"
+                    alt="Cover Laporan Kinerja ZI 2025"
+                    className="w-full h-auto"
+                  />
+                </a>
+              </div>
             </div>
           </section>
 
