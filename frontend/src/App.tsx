@@ -57,7 +57,7 @@ import GalleryManagementPage from "./pages/admin/gallery/GalleryManagementPage";
 import NewAlbumPage from "./pages/admin/gallery/NewAlbumPage";
 import EditAlbumPage from "./pages/admin/gallery/EditAlbumPage";
 import AlbumPhotosPage from "./pages/admin/gallery/AlbumPhotosPage";
-import PpdbPage from "./pages/layanan/PpdbPage";
+import PMBMPage from "./pages/layanan/PMBMPage";
 import ZonaIntegritasPage from "./pages/layanan/ZonaIntegritasPage";
 import SedumPage from "./pages/layanan/SedumPage";
 import PtspPage from "./pages/layanan/PtspPage";
@@ -67,6 +67,9 @@ import StaffManagementPage from "./pages/admin/staff/StaffManagementPage";
 import EditStaffPage from "./pages/admin/staff/EditStaffPage";
 import NewStaffPage from "./pages/admin/staff/NewStaffPage";
 import AttendanceCalendarPage from "./pages/admin/attendance/AttendanceCalendarPage";
+import PmbmDaftarPage from "./pages/layanan/pmbm/PmbmDaftarPage";
+import PmbmSuksesPage from "./pages/layanan/pmbm/PmbmSuksesPage";
+import PmbmPage from "./pages/layanan/PMBMPage";
 
 /**
  * Layout wrapper component for admin routes that requires authentication.
@@ -107,7 +110,15 @@ function App() {
                       <Route path="/contact" element={<ContactPage />} />
                       <Route path="/webApp" element={<WebAppPage />} />
                       <Route path="/login" element={<LoginPage />} />
-                      <Route path="/layanan/ppdb" element={<PpdbPage />} />
+                      <Route path="/layanan/pmbm" element={<PmbmPage />} />
+                      <Route
+                        path="/layanan/pmbm-daftar"
+                        element={<PmbmDaftarPage />}
+                      />
+                      <Route
+                        path="/layanan/pmbm/sukses"
+                        element={<PmbmSuksesPage />}
+                      />
                       <Route
                         path="/layanan/zona-integritas"
                         element={<ZonaIntegritasPage />}

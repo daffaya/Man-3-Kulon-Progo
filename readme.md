@@ -19,7 +19,7 @@ Backend menyediakan RESTful API yang robust untuk mengelola data, sedangkan fron
 - **Photo Gallery (Galeri Foto)**: Upload dan kelola album serta koleksi foto.
 - **Digital Archive (Arsip Digital)**: Kelola dokumen penting dalam format digital.
 - **Profil Madrasah**: Halaman untuk visi-misi, sejarah, struktur organisasi, sarana-prasarana, dan staf pengajar.
-- **Public Services (Layanan Publik)**: Integrasi informasi layanan seperti PPDB, PTSP, dan Zona Integritas.
+- **Public Services (Layanan Publik)**: Integrasi informasi layanan seperti PMBM, PTSP, dan Zona Integritas.
 
 ## Installation
 

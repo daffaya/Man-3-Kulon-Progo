@@ -627,9 +627,9 @@ const HomePage: React.FC = () => {
             {[
               {
                 icon: <Users size={24} />,
-                title: "PPDB Online",
-                desc: "Pendaftaran peserta didik baru",
-                link: "/layanan/ppdb",
+                title: "PMBM Online",
+                desc: "Penerimaan Murid Baru Madrasah",
+                link: "/layanan/pmbm",
               },
               {
                 icon: <Shield size={24} />,
