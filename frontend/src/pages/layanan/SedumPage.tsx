@@ -208,14 +208,14 @@ const SedumPage: React.FC = () => {
                   </div>
                   <div>
                     <p className="font-medium mb-1 text-foreground">WhatsApp</p>
-                    <p className="text-secondary">0823-2229-8062</p>
+                    <p className="text-secondary">+62-878-5810-2393</p>
                   </div>
                 </div>
                 <p className="text-sm text-secondary mb-4">
                   Kirim pesan langsung melalui WhatsApp
                 </p>
                 <a
-                  href="https://wa.me/6282322298062"
+                  href="https://wa.me/6287858102393"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="text-accent hover:underline text-sm font-medium flex items-center"

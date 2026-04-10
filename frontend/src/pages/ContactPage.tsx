@@ -27,7 +27,7 @@ const CONTACT_INFO = [
     icon: Mail,
   },
   {
-    value: "0823-2229-8062",
+    value: "+62-878-5810-2393",
     icon: MessageCircle,
   },
 ];

@@ -304,7 +304,7 @@ const ZonaIntegritasPage: React.FC = () => {
                 </a>
 
                 <a
-                  href="https://wa.me/6282322298062"
+                  href="https://wa.me/6287858102393"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="flex items-center p-4 bg-accent/5 hover:bg-accent/10 rounded-lg"
@@ -312,7 +312,9 @@ const ZonaIntegritasPage: React.FC = () => {
                   <Phone className="text-accent mr-3" size={20} />
                   <div>
                     <div className="font-medium text-foreground">WhatsApp</div>
-                    <div className="text-sm text-secondary">0823-2229-8062</div>
+                    <div className="text-sm text-secondary">
+                      +62-878-5810-2393
+                    </div>
                   </div>
                 </a>
               </div>

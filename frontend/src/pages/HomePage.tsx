@@ -61,7 +61,7 @@ const HomePage: React.FC = () => {
       setAchievementLoading(true);
       try {
         const prestasiCategory = categories.find(
-          (cat: Category) => cat.name === "Prestasi"
+          (cat: Category) => cat.name === "Prestasi",
         );
 
         if (prestasiCategory) {
@@ -362,7 +362,7 @@ const HomePage: React.FC = () => {
                     <p className="text-secondary mb-2">{article.overview}</p>
                     <span className="text-sm text-secondary/70">
                       {new Date(
-                        article.publishedDate || article.lastModified
+                        article.publishedDate || article.lastModified,
                       ).toLocaleDateString("id-ID", {
                         year: "numeric",
                         month: "long",
@@ -498,11 +498,11 @@ const HomePage: React.FC = () => {
                 </h3>
                 <address className="not-italic space-y-4">
                   <a
-                    href="https://wa.me/6281234567890"
+                    href="https://wa.me/6287858102393"
                     target="_blank"
                     rel="noopener noreferrer"
                     className="flex items-start group hover:bg-accent/5 p-2 -m-2 rounded transition-colors"
-                    aria-label="Hubungi via WhatsApp ke 0812-3456-7890"
+                    aria-label="Hubungi via WhatsApp ke +62-878-5810-2393"
                   >
                     <div className="bg-accent/10 p-2 rounded-full mr-3 flex-shrink-0">
                       <MessageCircle
