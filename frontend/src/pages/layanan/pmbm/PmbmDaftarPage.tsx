@@ -113,7 +113,7 @@ const JALUR_OPTIONS = [
     value: "afirmasi" as JalurPendaftaran,
     label: "Afirmasi",
     icon: Heart,
-    desc: "Kuota khusus putra-putri warga Pangon Wetan.",
+    desc: "Kuota khusus putra-putri warga Pantog Wetan.",
   },
 ];
 
@@ -178,18 +178,6 @@ const validateStep = (
   if (step === 2) {
     if (!form.nama_ayah) errors.nama_ayah = "Nama ayah wajib diisi";
     if (!form.nama_ibu) errors.nama_ibu = "Nama ibu wajib diisi";
-    if (!form.pekerjaan_ayah)
-      errors.pekerjaan_ayah = "Pekerjaan ayah wajib diisi";
-    if (!form.pekerjaan_ibu) errors.pekerjaan_ibu = "Pekerjaan ibu wajib diisi";
-    if (!form.penghasilan_ayah)
-      errors.penghasilan_ayah = "Penghasilan ayah wajib dipilih";
-    if (!form.penghasilan_ibu)
-      errors.penghasilan_ibu = "Penghasilan ibu wajib dipilih";
-    if (!form.alamat_ortu) errors.alamat_ortu = "Alamat orang tua wajib diisi";
-    if (!form.alamat_domisili_ortu)
-      errors.alamat_domisili_ortu = "Alamat domisili orang tua wajib diisi";
-    if (!form.no_hp_ayah) errors.no_hp_ayah = "No. HP ayah wajib diisi";
-    if (!form.no_hp_ibu) errors.no_hp_ibu = "No. HP ibu wajib diisi";
   }
 
   if (step === 3) {
@@ -617,50 +605,36 @@ const Step3DataOrtu: React.FC<StepProps> = ({ form, setForm, errors }) => {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <FormField
-          label="Pekerjaan Ayah"
-          required
-          error={errors.pekerjaan_ayah}
-        >
+        <FormField label="Pekerjaan Ayah">
           <input
             type="text"
             name="pekerjaan_ayah"
             value={form.pekerjaan_ayah}
             onChange={handleChange}
             placeholder="Contoh: Petani"
-            className={`form-input ${
-              errors.pekerjaan_ayah ? "border-[rgb(var(--color-error))]" : ""
-            }`}
+            className="form-input"
           />
         </FormField>
 
-        <FormField label="Pekerjaan Ibu" required error={errors.pekerjaan_ibu}>
+        <FormField label="Pekerjaan Ibu">
           <input
             type="text"
             name="pekerjaan_ibu"
             value={form.pekerjaan_ibu}
             onChange={handleChange}
             placeholder="Contoh: Ibu Rumah Tangga"
-            className={`form-input ${
-              errors.pekerjaan_ibu ? "border-[rgb(var(--color-error))]" : ""
-            }`}
+            className="form-input"
           />
         </FormField>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <FormField
-          label="Penghasilan Ayah / Bulan"
-          required
-          error={errors.penghasilan_ayah}
-        >
+        <FormField label="Penghasilan Ayah / Bulan">
           <select
             name="penghasilan_ayah"
             value={form.penghasilan_ayah}
             onChange={handleChange}
-            className={`form-input ${
-              errors.penghasilan_ayah ? "border-[rgb(var(--color-error))]" : ""
-            }`}
+            className="form-input"
           >
             <option value="">Pilih Rentang Penghasilan</option>
             {PENGHASILAN_OPTIONS.map((o) => (
@@ -671,18 +645,12 @@ const Step3DataOrtu: React.FC<StepProps> = ({ form, setForm, errors }) => {
           </select>
         </FormField>
 
-        <FormField
-          label="Penghasilan Ibu / Bulan"
-          required
-          error={errors.penghasilan_ibu}
-        >
+        <FormField label="Penghasilan Ibu / Bulan">
           <select
             name="penghasilan_ibu"
             value={form.penghasilan_ibu}
             onChange={handleChange}
-            className={`form-input ${
-              errors.penghasilan_ibu ? "border-[rgb(var(--color-error))]" : ""
-            }`}
+            className="form-input"
           >
             <option value="">Pilih Rentang Penghasilan</option>
             {PENGHASILAN_OPTIONS.map((o) => (
@@ -696,8 +664,6 @@ const Step3DataOrtu: React.FC<StepProps> = ({ form, setForm, errors }) => {
 
       <FormField
         label="Alamat Orang Tua"
-        required
-        error={errors.alamat_ortu}
         hint="Sesuai Kartu Keluarga orang tua"
       >
         <textarea
@@ -706,16 +672,12 @@ const Step3DataOrtu: React.FC<StepProps> = ({ form, setForm, errors }) => {
           onChange={handleChange}
           rows={3}
           placeholder="Jalan, RT/RW, Desa, Kecamatan, Kabupaten"
-          className={`form-input ${
-            errors.alamat_ortu ? "border-[rgb(var(--color-error))]" : ""
-          }`}
+          className="form-input"
         />
       </FormField>
 
       <FormField
         label="Alamat Domisili Orang Tua"
-        required
-        error={errors.alamat_domisili_ortu}
         hint="Isi sama dengan alamat di atas jika tidak berbeda"
       >
         <textarea
@@ -724,46 +686,30 @@ const Step3DataOrtu: React.FC<StepProps> = ({ form, setForm, errors }) => {
           onChange={handleChange}
           rows={3}
           placeholder="Alamat tinggal saat ini"
-          className={`form-input ${
-            errors.alamat_domisili_ortu
-              ? "border-[rgb(var(--color-error))]"
-              : ""
-          }`}
+          className="form-input"
         />
       </FormField>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <FormField
-          label="No. HP Ayah / WhatsApp"
-          required
-          error={errors.no_hp_ayah}
-        >
+        <FormField label="No. HP Ayah / WhatsApp">
           <input
             type="tel"
             name="no_hp_ayah"
             value={form.no_hp_ayah}
             onChange={handleChange}
             placeholder="08xxxxxxxxxx"
-            className={`form-input ${
-              errors.no_hp_ayah ? "border-[rgb(var(--color-error))]" : ""
-            }`}
+            className="form-input"
           />
         </FormField>
 
-        <FormField
-          label="No. HP Ibu / WhatsApp"
-          required
-          error={errors.no_hp_ibu}
-        >
+        <FormField label="No. HP Ibu / WhatsApp">
           <input
             type="tel"
             name="no_hp_ibu"
             value={form.no_hp_ibu}
             onChange={handleChange}
             placeholder="08xxxxxxxxxx"
-            className={`form-input ${
-              errors.no_hp_ibu ? "border-[rgb(var(--color-error))]" : ""
-            }`}
+            className="form-input"
           />
         </FormField>
       </div>

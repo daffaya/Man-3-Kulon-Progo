@@ -126,6 +126,7 @@ export interface PmbmRegistrationSummary {
   id: number;
   nomor_pendaftaran: string;
   jalur: JalurPendaftaran;
+  gelombang: number;
   pilihan_keterampilan: PilihanKeterampilan | null;
   nama_lengkap: string;
   nisn: string;

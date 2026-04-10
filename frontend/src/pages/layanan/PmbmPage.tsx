@@ -82,8 +82,8 @@ const PmbmPage: React.FC = () => {
     {
       nama: "Afirmasi",
       icon: Heart,
-      deskripsi: "Kuota khusus bagi putra-putri warga Pangon Wetan.",
-      syarat: ["Warga Pangon Wetan"],
+      deskripsi: "Kuota khusus bagi putra-putri warga Pantog Wetan.",
+      syarat: ["Warga Pantog Wetan"],
     },
   ];
 
@@ -197,7 +197,7 @@ const PmbmPage: React.FC = () => {
     {
       pertanyaan: "Siapa yang bisa mendaftar jalur Afirmasi?",
       jawaban:
-        "Jalur Afirmasi dikhususkan bagi putra-putri warga Pangon Wetan.",
+        "Jalur Afirmasi dikhususkan bagi putra-putri warga Pantog Wetan.",
     },
     {
       pertanyaan: "Apakah boleh mendaftar di sekolah lain secara bersamaan?",

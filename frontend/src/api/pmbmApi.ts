@@ -65,6 +65,7 @@ const pmbmApi = {
    * @returns {Promise<{ data: PmbmRegistrationSummary[]; total: number; page: number; limit: number }>}
    */
   getAll: async (params?: {
+    gelombang?: number;
     jalur?: string;
     status?: string;
     search?: string;

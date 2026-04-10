@@ -12,41 +12,37 @@ import { authenticateTokenFactory } from "../middleware/authMiddleware.js";
  * Factory function to create an Express router for PMBM routes.
  * @param {Object} dependencies - The dependencies for the router.
  * @param {mysql.Pool} dependencies.pool - The database connection pool.
+ * @param {string} dependencies.JWT_SECRET - The JWT secret for token verification.
  * @returns {Router} The configured Express router for PMBM endpoints.
  */
 const pmbmRouterFactory = ({ pool, JWT_SECRET }) => {
   const pmbmRouter = Router();
-  const verifyToken = authenticateTokenFactory({ JWT_SECRET });
-  const { handleRegister, handleGetAll, handleGetById, handleUpdateStatus } =
-    pmbmControllerFactory({ pool });
+  const authenticateToken = authenticateTokenFactory({ JWT_SECRET });
 
-  /**
-   * @route POST /register
-   * @description Submit a new PMBM registration. Public — no authentication required.
-   */
+  const {
+    handleRegister,
+    handleGetAll,
+    handleGetById,
+    handleUpdateStatus,
+    handleExport,
+  } = pmbmControllerFactory({ pool });
+
+  // Public
   pmbmRouter.post("/register", handleRegister);
 
-  /**
-   * @route GET /registrations
-   * @description Retrieve a paginated list of registrations. Requires authentication.
-   */
-  pmbmRouter.get("/registrations", verifyToken, handleGetAll);
+  // Protected
+  pmbmRouter.use(authenticateToken);
+  pmbmRouter.get("/registrations", handleGetAll);
+  pmbmRouter.get("/registrations/export", handleExport);
+  pmbmRouter.get("/registrations/:id", handleGetById);
+  pmbmRouter.patch("/registrations/:id/status", handleUpdateStatus);
 
-  /**
-   * @route GET /registrations/:id
-   * @description Retrieve full details of a single registration. Requires authentication.
-   */
-  pmbmRouter.get("/registrations/:id", verifyToken, handleGetById);
-
-  /**
-   * @route PATCH /registrations/:id/status
-   * @description Update the status of a registration. Requires authentication.
-   */
-  pmbmRouter.patch(
-    "/registrations/:id/status",
-    verifyToken,
-    handleUpdateStatus,
-  );
+  pmbmRouter.get("/debug-secret", (req, res) => {
+    res.json({
+      hasSecret: !!JWT_SECRET,
+      secretLength: JWT_SECRET?.length ?? 0,
+    });
+  });
 
   return pmbmRouter;
 };

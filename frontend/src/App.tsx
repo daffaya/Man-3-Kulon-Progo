@@ -57,19 +57,17 @@ import GalleryManagementPage from "./pages/admin/gallery/GalleryManagementPage";
 import NewAlbumPage from "./pages/admin/gallery/NewAlbumPage";
 import EditAlbumPage from "./pages/admin/gallery/EditAlbumPage";
 import AlbumPhotosPage from "./pages/admin/gallery/AlbumPhotosPage";
-import PMBMPage from "./pages/layanan/PMBMPage";
 import ZonaIntegritasPage from "./pages/layanan/ZonaIntegritasPage";
 import SedumPage from "./pages/layanan/SedumPage";
 import PtspPage from "./pages/layanan/PtspPage";
-
-// Tambahkan halaman staff management
 import StaffManagementPage from "./pages/admin/staff/StaffManagementPage";
 import EditStaffPage from "./pages/admin/staff/EditStaffPage";
 import NewStaffPage from "./pages/admin/staff/NewStaffPage";
 import AttendanceCalendarPage from "./pages/admin/attendance/AttendanceCalendarPage";
 import PmbmDaftarPage from "./pages/layanan/pmbm/PmbmDaftarPage";
 import PmbmSuksesPage from "./pages/layanan/pmbm/PmbmSuksesPage";
-import PmbmPage from "./pages/layanan/PMBMPage";
+import PmbmPage from "./pages/layanan/PmbmPage";
+import PmbmManagementPage from "./pages/admin/pmbm/PmbmManagementPage";
 
 /**
  * Layout wrapper component for admin routes that requires authentication.
@@ -213,6 +211,9 @@ function App() {
                           element={<AlbumPhotosPage />}
                         />
 
+                        {/* PMBM */}
+                        <Route path="pmbm" element={<PmbmManagementPage />} />
+
                         {/* Staff Management */}
                         <Route path="staff" element={<StaffManagementPage />} />
                         <Route path="staff/new" element={<NewStaffPage />} />
@@ -270,7 +271,6 @@ function App() {
                       <Route path="*" element={<NotFoundPage />} />
                     </Routes>
                   </StaffProvider>{" "}
-                  {/* Tambahkan StaffProvider */}
                 </StudentStatsProvider>
               </GalleryProvider>
             </ArticleProvider>

@@ -5,6 +5,8 @@
  */
 
 import createPmbmModel from "../models/pmbmModel.js";
+import { exportPmbmToExcel } from "../services/pmbmExportService.js";
+// Hapus import fs karena tidak diperlukan lagi
 
 const JALUR_VALID_G1 = [
   "tahfidz",
@@ -38,14 +40,6 @@ const REQUIRED_FIELDS = [
   "no_hp_siswa",
   "nama_ayah",
   "nama_ibu",
-  "pekerjaan_ayah",
-  "pekerjaan_ibu",
-  "penghasilan_ayah",
-  "penghasilan_ibu",
-  "alamat_ortu",
-  "alamat_domisili_ortu",
-  "no_hp_ayah",
-  "no_hp_ibu",
 ];
 
 /**
@@ -60,8 +54,6 @@ const pmbmControllerFactory = ({ pool }) => {
   /**
    * Handles a new registration submission from a prospective student.
    * Validates required fields, gelombang value, and track-specific conditional fields before saving.
-   * Gelombang 1 accepts jalur: tahfidz, kko, keterampilan, akademik, non_akademik, afirmasi.
-   * Gelombang 2 accepts jalur: tes only.
    * @async
    * @param {Object} req - Express request object.
    * @param {Object} req.body - The registration form data.
@@ -93,7 +85,6 @@ const pmbmControllerFactory = ({ pool }) => {
       return res.status(400).json({ error: "Jalur pendaftaran tidak valid" });
     }
 
-    // Validasi jalur sesuai gelombang
     if (gelombang === 1 && !JALUR_VALID_G1.includes(body.jalur)) {
       return res.status(400).json({
         error: "Jalur tidak tersedia untuk Gelombang I",
@@ -105,7 +96,6 @@ const pmbmControllerFactory = ({ pool }) => {
       });
     }
 
-    // Validasi kondisional jalur G1
     if (
       body.jalur === "keterampilan" &&
       !KETERAMPILAN_VALID.includes(body.pilihan_keterampilan)
@@ -250,11 +240,50 @@ const pmbmControllerFactory = ({ pool }) => {
     }
   };
 
+  /**
+   * Handles the request to export registration data to an Excel file.
+   * Streams the file directly to the client.
+   * @async
+   * @param {Object} req - Express request object.
+   * @param {Object} req.query - Query parameters for filtering.
+   * @param {string} [req.query.gelombang] - Filter by registration wave.
+   * @param {string} [req.query.jalur] - Filter by registration track.
+   * @param {string} [req.query.status] - Filter by registration status.
+   * @param {Object} res - Express response object.
+   * @returns {Promise<void>}
+   */
+  const handleExport = async (req, res) => {
+    const { gelombang, jalur, status } = req.query;
+
+    try {
+      const { data } = await pmbmModel.findAll({
+        gelombang: gelombang ? parseInt(gelombang) : undefined,
+        jalur,
+        status,
+        page: 1,
+        limit: 99999,
+      });
+
+      // Panggil service dengan passing 'res'
+      await exportPmbmToExcel(res, data, {
+        gelombang: gelombang ? parseInt(gelombang) : undefined,
+        jalur,
+        status,
+      });
+    } catch (error) {
+      // Jika error terjadi di model atau sebelum headers terkirim
+      if (!res.headersSent) {
+        res.status(500).json({ error: error.message });
+      }
+    }
+  };
+
   return {
     handleRegister,
     handleGetAll,
     handleGetById,
     handleUpdateStatus,
+    handleExport,
   };
 };
 

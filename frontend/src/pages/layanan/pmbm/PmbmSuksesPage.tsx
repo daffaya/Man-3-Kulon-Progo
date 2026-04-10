@@ -173,7 +173,6 @@ const PmbmSuksesPage: React.FC = () => {
             </h3>
             <ol className="space-y-3">
               {NEXT_STEPS.map((step, i) => {
-                const Icon = step.icon;
                 return (
                   <li key={i} className="flex items-start gap-3">
                     <div className="flex-shrink-0 w-6 h-6 rounded-full bg-accent text-white flex items-center justify-center text-xs font-bold mt-0.5">

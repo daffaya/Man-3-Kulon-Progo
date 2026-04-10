@@ -47,7 +47,7 @@ const API_BASE =
  */
 export const apiFetch = async <T = any>(
   endpoint: string,
-  options: RequestInit = {}
+  options: RequestInit = {},
 ): Promise<T> => {
   const cleanEndpoint = endpoint.startsWith("/") ? endpoint : `/${endpoint}`;
   const url = `${API_BASE}${cleanEndpoint}`;
@@ -85,15 +85,17 @@ export const apiFetch = async <T = any>(
 
       // Friendly message for the user
       const friendly =
-        {
-          400: "The data sent is invalid",
-          401: "Your session has expired — please log in again",
-          403: "Access denied",
-          404: "Data not found",
-          500: "The server is having problems, please try again later",
-          502: "The server is under maintenance",
-          503: "The server is busy",
-        }[response.status] || message;
+        data?.error || data?.message
+          ? message
+          : {
+              400: "The data sent is invalid",
+              401: "Your session has expired — please log in again",
+              403: "Access denied",
+              404: "Data not found",
+              500: "The server is having problems, please try again later",
+              502: "The server is under maintenance",
+              503: "The server is busy",
+            }[response.status] || message;
 
       const error = new Error(friendly) as any;
       error.status = response.status;

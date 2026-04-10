@@ -199,7 +199,7 @@ const createPmbmModel = ({ pool }) => {
            status, created_at
          FROM pmbm_registrations
          ${where}
-         ORDER BY created_at DESC
+         ORDER BY created_at ASC
          LIMIT ? OFFSET ?`,
         [...params, limit, offset],
       );
