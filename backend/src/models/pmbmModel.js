@@ -147,6 +147,61 @@ const createPmbmModel = ({ pool }) => {
     },
 
     /**
+     * Retrieves a paginated list of public registrations with limited fields and optional filters.
+     * This endpoint is intended for public access, so sensitive data (e.g., NISN/NIK) is excluded.
+     *
+     * @param {Object} [options] - Filter and pagination options.
+     * @param {string} [options.search] - Search by full name or registration number.
+     * @param {string} [options.jalur] - Filter by registration track.
+     * @param {number} [options.page=1] - Page number (1-based).
+     * @param {number} [options.limit=20] - Number of records per page.
+     *
+     * @returns {Promise<Object>} Promise resolving to an object containing:
+     * @returns {Array<Object>} returns.data - Array of registration records (public fields only).
+     * @returns {number} returns.total - Total number of records matching the filter.
+     * @returns {number} returns.page - Current page number.
+     * @returns {number} returns.limit - Number of records per page.
+     */
+    findAllPublic: async ({ search, jalur, page = 1, limit = 20 } = {}) => {
+      const conditions = [];
+      const params = [];
+
+      if (jalur) {
+        conditions.push("jalur = ?");
+        params.push(jalur);
+      }
+      if (search) {
+        conditions.push("(nama_lengkap LIKE ? OR nomor_pendaftaran LIKE ?)");
+        // Sengaja TIDAK pakai NISN/NIK di pencarian publik
+        params.push(`%${search}%`, `%${search}%`);
+      }
+
+      const where = conditions.length
+        ? `WHERE ${conditions.join(" AND ")}`
+        : "";
+      const offset = (page - 1) * limit;
+
+      const [rows] = await pool.execute(
+        `SELECT
+       nomor_pendaftaran, jalur, gelombang,
+       nama_lengkap, asal_sekolah,
+       status
+     FROM pmbm_registrations
+     ${where}
+     ORDER BY created_at ASC
+     LIMIT ? OFFSET ?`,
+        [...params, limit, offset],
+      );
+
+      const [[{ total }]] = await pool.execute(
+        `SELECT COUNT(*) AS total FROM pmbm_registrations ${where}`,
+        params,
+      );
+
+      return { data: rows, total, page, limit };
+    },
+
+    /**
      * Retrieves a paginated list of registrations with optional filters.
      * @param {Object} [options] - Filter and pagination options.
      * @param {number} [options.gelombang] - Filter by registration wave (1 or 2).

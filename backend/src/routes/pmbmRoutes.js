@@ -21,6 +21,7 @@ const pmbmRouterFactory = ({ pool, JWT_SECRET }) => {
 
   const {
     handleRegister,
+    handleGetPublic,
     handleGetAll,
     handleGetById,
     handleUpdateStatus,
@@ -29,6 +30,7 @@ const pmbmRouterFactory = ({ pool, JWT_SECRET }) => {
 
   // Public
   pmbmRouter.post("/register", handleRegister);
+  pmbmRouter.get("/public", handleGetPublic);
 
   // Protected
   pmbmRouter.use(authenticateToken);

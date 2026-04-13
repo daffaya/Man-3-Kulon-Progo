@@ -143,6 +143,34 @@ const pmbmControllerFactory = ({ pool }) => {
   };
 
   /**
+   * Retrieves public registration data with optional filtering and pagination.
+   * Supports search by keyword, filtering by jalur, and paginated results.
+   * @async
+   * @param {Object} req - Express request object.
+   * @param {Object} req.query - Query parameters for filtering and pagination.
+   * @param {string} [req.query.search] - Keyword to search registrations (e.g., name or other fields).
+   * @param {string} [req.query.jalur] - Filter results by registration track (jalur).
+   * @param {number|string} [req.query.page=1] - Page number for pagination (will be parsed to integer).
+   * @param {number|string} [req.query.limit=20] - Number of items per page (will be parsed to integer).
+   * @param {Object} res - Express response object.
+   * @returns {Promise<void>}
+   */
+  const handleGetPublic = async (req, res) => {
+    const { search, jalur, page, limit } = req.query;
+    try {
+      const result = await pmbmModel.findAllPublic({
+        search,
+        jalur,
+        page: page ? parseInt(page) : 1,
+        limit: limit ? parseInt(limit) : 20,
+      });
+      res.json(result);
+    } catch (error) {
+      res.status(500).json({ error: error.message });
+    }
+  };
+
+  /**
    * Handles the request to get a paginated list of registrations.
    * Supports filtering by gelombang, jalur, status, and search keyword.
    * @async
@@ -280,6 +308,7 @@ const pmbmControllerFactory = ({ pool }) => {
 
   return {
     handleRegister,
+    handleGetPublic,
     handleGetAll,
     handleGetById,
     handleUpdateStatus,

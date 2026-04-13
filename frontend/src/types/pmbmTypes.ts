@@ -36,72 +36,40 @@ export type StatusPendaftaran =
  * Represents the complete form data payload submitted to the backend.
  */
 export interface PmbmFormData {
-  /** Registration track chosen by the student. */
   jalur: JalurPendaftaran | "";
-  /** Skills program choice — only required when jalur is 'keterampilan'. */
   pilihan_keterampilan: PilihanKeterampilan | "";
 
-  /** Student's full name as per birth certificate. */
   nama_lengkap: string;
-  /** Student's 10-digit NISN number. */
   nisn: string;
-  /** Student's 16-digit NIK number. */
   nik: string;
-  /** City or regency of birth. */
   tempat_lahir: string;
-  /** Date of birth in YYYY-MM-DD format. */
   tanggal_lahir: string;
-  /** Student's gender (L = male, P = female). */
   jenis_kelamin: "L" | "P" | "";
-  /** Name of origin school (SMP/MTs). */
   asal_sekolah: string;
-  /** 16-digit family card number. */
   no_kk: string;
-  /** Student's full address as per KK. */
   alamat_lengkap: string;
-  /** Student's current domicile address. */
   alamat_domisili: string;
-  /** Student's WhatsApp number. */
   no_hp_siswa: string;
 
-  /** Father's full name. */
   nama_ayah: string;
-  /** Mother's full name. */
   nama_ibu: string;
-  /** Father's occupation. */
   pekerjaan_ayah: string;
-  /** Mother's occupation. */
   pekerjaan_ibu: string;
-  /** Father's monthly income range. */
   penghasilan_ayah: string;
-  /** Mother's monthly income range. */
   penghasilan_ibu: string;
-  /** Parent's full address. */
   alamat_ortu: string;
-  /** Parent's current domicile address. */
   alamat_domisili_ortu: string;
-  /** Father's WhatsApp number. */
   no_hp_ayah: string;
-  /** Mother's WhatsApp number. */
   no_hp_ibu: string;
 
-  /** Number of memorized juz — only for tahfidz track. */
   jumlah_hafalan_juz: number | "";
-  /** Sports or martial arts branch — only for KKO track. */
   cabang_olahraga: string;
-  /** Average report card score (semester 1–5) — only for akademik track. */
   rata_rata_rapor: number | "";
-  /** Type of competition (academic, sports, arts, tahfidz, etc.). */
   jenis_kejuaraan: string;
-  /** Level of the competition. */
   tingkat_kejuaraan: TingkatKejuaraan | "";
-  /** Official name or title of the competition. */
   nama_kejuaraan: string;
-  /** Year the competition took place. */
   tahun_kejuaraan: number | "";
-  /** Optional Google Drive link containing scanned supporting documents. */
   link_dokumen: string;
-  /** Student's commitment to enroll at MAN 3 Kulon Progo if accepted. */
   komitmen: boolean;
 }
 
@@ -132,6 +100,26 @@ export interface PmbmRegistrationSummary {
   nisn: string;
   asal_sekolah: string;
   no_hp_siswa: string;
+  status: StatusPendaftaran;
+  created_at: string;
+}
+
+/**
+ * Represents a single registration record exposed in the public listing.
+ * This interface only includes non-sensitive fields that are safe to display publicly.
+ *
+ * Differences from {@link PmbmRegistrationSummary}:
+ * - Does NOT include personal identifiers such as NISN or phone number.
+ * * - Does NOT include internal ID or selected skill details.
+ *
+ * Typically used in public-facing endpoints (e.g., registration status lookup or announcement pages).
+ */
+export interface PmbmPublicEntry {
+  nomor_pendaftaran: string;
+  jalur: JalurPendaftaran;
+  gelombang: number;
+  nama_lengkap: string;
+  asal_sekolah: string;
   status: StatusPendaftaran;
   created_at: string;
 }

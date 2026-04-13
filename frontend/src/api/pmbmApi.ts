@@ -7,6 +7,7 @@
 import { apiFetch } from "../lib/api";
 import type {
   PmbmFormData,
+  PmbmPublicEntry,
   PmbmRegisterResponse,
   PmbmRegistrationSummary,
 } from "../types/pmbmTypes";
@@ -52,6 +53,42 @@ const pmbmApi = {
       method: "POST",
       body: JSON.stringify(payload),
     });
+  },
+
+  /**
+   * Retrieves a paginated list of public PMBM registration entries.
+   * This endpoint is publicly accessible and only returns non-sensitive data.
+   *
+   * @param {Object} [params] - Optional query parameters for filtering and pagination.
+   * @param {string} [params.search] - Search keyword to match against full name or registration number.
+   * @param {string} [params.jalur] - Filter results by registration track.
+   * @param {number} [params.page=1] - Page number (1-based).
+   * @param {number} [params.limit=20] - Number of records per page.
+   *
+   * @returns {Promise<Object>} A promise resolving to a paginated result:
+   * @returns {PmbmPublicEntry[]} returns.data - Array of public registration entries.
+   * @returns {number} returns.total - Total number of records matching the query.
+   * @returns {number} returns.page - Current page number.
+   * @returns {number} returns.limit - Number of records per page.
+   */
+  getPublic: async (params?: {
+    search?: string;
+    jalur?: string;
+    page?: number;
+    limit?: number;
+  }): Promise<{
+    data: PmbmPublicEntry[];
+    total: number;
+    page: number;
+    limit: number;
+  }> => {
+    const query = new URLSearchParams(
+      Object.entries(params ?? {})
+        .filter(([, v]) => v !== undefined && v !== "")
+        .map(([k, v]) => [k, String(v)]),
+    ).toString();
+
+    return await apiFetch(`/pmbm/public${query ? `?${query}` : ""}`);
   },
 
   /**

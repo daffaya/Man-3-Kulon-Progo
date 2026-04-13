@@ -68,6 +68,7 @@ import PmbmDaftarPage from "./pages/layanan/pmbm/PmbmDaftarPage";
 import PmbmSuksesPage from "./pages/layanan/pmbm/PmbmSuksesPage";
 import PmbmPage from "./pages/layanan/PmbmPage";
 import PmbmManagementPage from "./pages/admin/pmbm/PmbmManagementPage";
+import PmbmStatusPage from "./pages/layanan/pmbm/PmbmStatusPage";
 
 /**
  * Layout wrapper component for admin routes that requires authentication.
@@ -109,6 +110,10 @@ function App() {
                       <Route path="/webApp" element={<WebAppPage />} />
                       <Route path="/login" element={<LoginPage />} />
                       <Route path="/layanan/pmbm" element={<PmbmPage />} />
+                      <Route
+                        path="/layanan/pmbm/status"
+                        element={<PmbmStatusPage />}
+                      />
                       <Route
                         path="/layanan/pmbm-daftar"
                         element={<PmbmDaftarPage />}

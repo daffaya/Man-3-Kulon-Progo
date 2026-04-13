@@ -313,6 +313,13 @@ const PmbmPage: React.FC = () => {
                 className="group-hover:translate-x-1 transition-transform"
               />
             </a>
+            <a
+              href="/layanan/pmbm/status"
+              className="inline-flex items-center gap-3 btn-secondary font-semibold text-lg px-10 py-5 rounded-full transition-all duration-300"
+            >
+              <ClipboardList size={22} />
+              Cek Status Pendaftaran
+            </a>
           </div>
         </div>
 
