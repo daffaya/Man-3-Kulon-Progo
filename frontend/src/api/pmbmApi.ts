@@ -159,4 +159,46 @@ const pmbmApi = {
   },
 };
 
+/**
+ * Exports PMBM registration data to an Excel file.
+ */
+export const exportPmbmData = async (
+  params?: {
+    gelombang?: number;
+    jalur?: string;
+    status?: string;
+  },
+  token?: string | null,
+): Promise<Blob> => {
+  const backendUrl =
+    import.meta.env.VITE_BACKEND_URL ||
+    "https://backend.man3kulonprogo.sch.id/api";
+
+  const query = new URLSearchParams(
+    Object.entries(params ?? {})
+      .filter(([, v]) => v !== undefined && v !== "")
+      .map(([k, v]) => [k, String(v)]),
+  ).toString();
+
+  const url = `${backendUrl}/pmbm/export${query ? `?${query}` : ""}`;
+
+  const response = await fetch(url, {
+    headers: {
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    },
+  });
+
+  if (!response.ok) {
+    const errorText = await response.text();
+    try {
+      const errorJson = JSON.parse(errorText);
+      throw new Error(errorJson.error || "Gagal mengekspor data");
+    } catch (e) {
+      throw new Error("Gagal mengekspor data: " + response.statusText);
+    }
+  }
+
+  return response.blob();
+};
+
 export default pmbmApi;

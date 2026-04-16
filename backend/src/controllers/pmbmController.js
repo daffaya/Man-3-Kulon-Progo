@@ -284,22 +284,18 @@ const pmbmControllerFactory = ({ pool }) => {
     const { gelombang, jalur, status } = req.query;
 
     try {
-      const { data } = await pmbmModel.findAll({
+      const data = await pmbmModel.findAllForExport({
         gelombang: gelombang ? parseInt(gelombang) : undefined,
         jalur,
         status,
-        page: 1,
-        limit: 99999,
       });
 
-      // Panggil service dengan passing 'res'
       await exportPmbmToExcel(res, data, {
         gelombang: gelombang ? parseInt(gelombang) : undefined,
         jalur,
         status,
       });
     } catch (error) {
-      // Jika error terjadi di model atau sebelum headers terkirim
       if (!res.headersSent) {
         res.status(500).json({ error: error.message });
       }

@@ -183,13 +183,13 @@ const createPmbmModel = ({ pool }) => {
 
       const [rows] = await pool.execute(
         `SELECT
-       nomor_pendaftaran, jalur, gelombang,
-       nama_lengkap, asal_sekolah,
-       status
-     FROM pmbm_registrations
-     ${where}
-     ORDER BY created_at ASC
-     LIMIT ? OFFSET ?`,
+          nomor_pendaftaran, jalur, gelombang,
+          nama_lengkap, asal_sekolah,
+          status
+        FROM pmbm_registrations
+        ${where}
+        ORDER BY id ASC
+        LIMIT ? OFFSET ?`,
         [...params, limit, offset],
       );
 
@@ -254,7 +254,7 @@ const createPmbmModel = ({ pool }) => {
            status, created_at
          FROM pmbm_registrations
          ${where}
-         ORDER BY created_at ASC
+         ORDER BY id ASC
          LIMIT ? OFFSET ?`,
         [...params, limit, offset],
       );
@@ -278,6 +278,40 @@ const createPmbmModel = ({ pool }) => {
         [id],
       );
       return rows[0] || null;
+    },
+
+    /**
+     * Retrieves ALL registration records for export purposes with filters.
+     * Uses SELECT * to get complete data (NIK, address, parents, etc).
+     */
+    findAllForExport: async ({ gelombang, jalur, status } = {}) => {
+      const conditions = [];
+      const params = [];
+
+      if (gelombang) {
+        conditions.push("gelombang = ?");
+        params.push(gelombang);
+      }
+      if (jalur) {
+        conditions.push("jalur = ?");
+        params.push(jalur);
+      }
+      if (status) {
+        conditions.push("status = ?");
+        params.push(status);
+      }
+
+      const where = conditions.length
+        ? `WHERE ${conditions.join(" AND ")}`
+        : "";
+
+      // SELECT * untuk ambil semua kolom
+      const [rows] = await pool.execute(
+        `SELECT * FROM pmbm_registrations ${where} ORDER BY id ASC`,
+        params,
+      );
+
+      return rows;
     },
 
     /**

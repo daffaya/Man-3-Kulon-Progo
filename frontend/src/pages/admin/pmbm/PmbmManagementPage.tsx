@@ -25,16 +25,21 @@ import { JALUR_LABEL, STATUS_LABEL } from "../../../types/pmbmTypes";
 const ITEMS_PER_PAGE = 20;
 
 /**
+ * Helper function to parse filename from Content-Disposition header.
+ */
+const getFilenameFromHeader = (header: string | null): string => {
+  if (!header) return "pendaftar_pmbm.xlsx";
+  const filenameMatch = header.match(/filename="?([^"]+)"?/);
+  return filenameMatch ? filenameMatch[1] : "pendaftar_pmbm.xlsx";
+};
+
+/**
  * Admin page component for managing PMBM (Penerimaan Murid Baru Madrasah) registrations.
- * Supports filtering by gelombang, jalur, and status, viewing full detail in a modal,
- * updating registration status, and exporting filtered data to Excel.
- *
- * @returns {JSX.Element} The rendered admin management page.
  */
 const PmbmManagementPage: React.FC = () => {
   const navigate = useNavigate();
   const { isLoggedIn, isLoadingAuth } = useAuth();
-  const { showErrorToast } = useToastMessage();
+  const { showErrorToast, showSuccessToast } = useToastMessage();
 
   const [registrations, setRegistrations] = useState<PmbmRegistrationSummary[]>(
     [],
@@ -56,9 +61,6 @@ const PmbmManagementPage: React.FC = () => {
 
   const totalPages = Math.ceil(total / ITEMS_PER_PAGE);
 
-  /**
-   * Fetches the list of registrations from the API based on the current filters and page.
-   */
   const fetchRegistrations = useCallback(async () => {
     setLoading(true);
     try {
@@ -76,62 +78,78 @@ const PmbmManagementPage: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  }, [filterGelombang, filterJalur, filterStatus, currentPage]);
+  }, [filterGelombang, filterJalur, filterStatus, currentPage, showErrorToast]);
 
   useEffect(() => {
     if (isLoggedIn) fetchRegistrations();
   }, [isLoggedIn, fetchRegistrations]);
 
-  // Reset to page 1 when filters change
   useEffect(() => {
     setCurrentPage(1);
   }, [filterGelombang, filterJalur, filterStatus]);
 
   /**
-   * Handles the Excel export action using the currently active filters.
+   * Handles the Excel export action.
+   * FIXED: Changed URL from /pmbm/export to /pmbm/registrations/export
    */
   const handleExport = async () => {
     setIsExporting(true);
     try {
+      const backendUrl =
+        import.meta.env.VITE_BACKEND_URL ||
+        "https://backend.man3kulonprogo.sch.id/api";
+
       const params = new URLSearchParams();
       if (filterGelombang) params.append("gelombang", filterGelombang);
       if (filterJalur) params.append("jalur", filterJalur);
       if (filterStatus) params.append("status", filterStatus);
 
       const token = localStorage.getItem("token");
-      const response = await fetch(
-        `${import.meta.env.VITE_API_URL}/pmbm/registrations/export?${params.toString()}`,
-        {
-          headers: token ? { Authorization: `Bearer ${token}` } : {},
-        },
-      );
 
-      if (!response.ok) throw new Error("Gagal mengekspor data");
+      // PERBAIKAN URL DI SINI: Tambahan /registrations
+      const url = `${backendUrl}/pmbm/registrations/export?${params.toString()}`;
+
+      const response = await fetch(url, {
+        method: "GET",
+        headers: {
+          Authorization: token ? `Bearer ${token}` : "",
+        },
+      });
+
+      if (!response.ok) {
+        const text = await response.text();
+        try {
+          const jsonError = JSON.parse(text);
+          throw new Error(jsonError.error || "Gagal mengekspor data");
+        } catch (e) {
+          throw new Error(`Server Error: ${response.status}`);
+        }
+      }
 
       const blob = await response.blob();
-      const url = window.URL.createObjectURL(blob);
+      const downloadUrl = window.URL.createObjectURL(blob);
       const a = document.createElement("a");
-      a.href = url;
-      a.download =
-        response.headers
-          .get("Content-Disposition")
-          ?.split("filename=")[1]
-          ?.replace(/"/g, "") ?? "pendaftar_pmbm.xlsx";
+      a.href = downloadUrl;
+
+      const contentDisposition = response.headers.get("Content-Disposition");
+      const filename = getFilenameFromHeader(contentDisposition);
+
+      a.download = filename;
       document.body.appendChild(a);
       a.click();
+
       a.remove();
-      window.URL.revokeObjectURL(url);
+      window.URL.revokeObjectURL(downloadUrl);
+
+      showSuccessToast("Data berhasil diekspor ke Excel");
     } catch (error: any) {
+      console.error("Export error:", error);
       showErrorToast(error.message || "Gagal mengekspor data");
     } finally {
       setIsExporting(false);
     }
   };
 
-  /**
-   * Opens the detail modal for the given registration record.
-   * @param {PmbmRegistrationSummary} registration - The registration to view.
-   */
   const handleDetail = (registration: PmbmRegistrationSummary) => {
     setSelectedRegistration(registration);
     setShowDetailModal(true);

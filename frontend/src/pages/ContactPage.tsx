@@ -15,7 +15,7 @@ import { MapPin, Phone, Mail, MessageCircle } from "lucide-react";
 const CONTACT_INFO = [
   {
     value:
-      "Pantog Wetan, Banjaroyo, Kalibawang, Kulon Progo, Daerah Istimewa Yogyakarta 55672",
+      "Jl. Sentolo-Muntilan No.Km. 28, Pantok Wetan, Banjaroyo, Kec. Kalibawang, Kabupaten Kulon Progo, Daerah Istimewa Yogyakarta 55672",
     icon: MapPin,
   },
   {

@@ -294,32 +294,39 @@ const PmbmPage: React.FC = () => {
               <br />
               <span className="text-accent">TA 2026/2027</span>
             </h1>
+
             <p className="text-lg sm:text-xl text-white/90 mb-4 max-w-xl mx-auto md:mx-0">
               Penerimaan Murid Baru Madrasah secara online — jalur khusus di
               Gelombang I telah dibuka.
             </p>
+
             <p className="text-sm text-white/60 mb-8">
               Gelombang I: 1 – 17 April 2026
             </p>
-            <a
-              href={registrationLink}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center gap-2 btn-primary font-semibold text-lg px-8 py-4 rounded-full transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-1 group"
-            >
-              Daftar Sekarang
-              <ArrowRight
-                size={20}
-                className="group-hover:translate-x-1 transition-transform"
-              />
-            </a>
-            <a
-              href="/layanan/pmbm/status"
-              className="inline-flex items-center gap-3 btn-secondary font-semibold text-lg px-10 py-5 rounded-full transition-all duration-300"
-            >
-              <ClipboardList size={22} />
-              Cek Status Pendaftaran
-            </a>
+
+            {/* BUTTON WRAPPER */}
+            <div className="flex flex-col sm:flex-row items-center md:items-start gap-4">
+              <a
+                href={registrationLink}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center justify-center gap-2 btn-primary font-semibold text-lg px-8 py-4 rounded-full transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-1 group w-full sm:w-auto"
+              >
+                Daftar Sekarang
+                <ArrowRight
+                  size={20}
+                  className="group-hover:translate-x-1 transition-transform"
+                />
+              </a>
+
+              <a
+                href="/layanan/pmbm/status"
+                className="inline-flex items-center justify-center gap-2 btn-secondary font-semibold text-lg px-8 py-4 rounded-full transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-1 group w-full sm:w-auto"
+              >
+                <ClipboardList size={22} />
+                Cek Status Pendaftaran
+              </a>
+            </div>
           </div>
         </div>
 
