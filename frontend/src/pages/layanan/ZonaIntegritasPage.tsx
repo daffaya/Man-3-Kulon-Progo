@@ -1,5 +1,6 @@
 /**
  * @fileoverview ZonaIntegritasPage component for displaying integrity zone information.
+ * Modified: Added initial popup banner for Zona Integritas.
  */
 
 import React, { useState, useEffect } from "react";
@@ -18,6 +19,7 @@ import {
   ZoomIn,
   FileText,
   ExternalLink,
+  X, // Import ikon X untuk tombol tutup
 } from "lucide-react";
 import IntegrityAreaCard from "../../components/integrity/IntegrityAreaCard";
 import ImageZoomModal from "../../components/modals/ImageZoomModal";
@@ -147,6 +149,21 @@ const ZonaIntegritasPage: React.FC = () => {
   const [selectedArea, setSelectedArea] = useState<Area | null>(null);
   const [isImageModalOpen, setIsImageModalOpen] = useState(false);
 
+  // State untuk Banner Popup
+  const [showBanner, setShowBanner] = useState(true);
+
+  // Effect untuk auto-close banner setelah 5 detik
+  useEffect(() => {
+    if (showBanner) {
+      const timer = setTimeout(() => {
+        setShowBanner(false);
+      }, 5000);
+
+      // Cleanup timer jika komponen unmount atau banner ditutup manual sebelum 5 detik
+      return () => clearTimeout(timer);
+    }
+  }, [showBanner]);
+
   const handleAreaClick = (id: number) => {
     const area = integrityAreas.find((a) => a.id === id);
     if (area) setSelectedArea(area);
@@ -154,8 +171,48 @@ const ZonaIntegritasPage: React.FC = () => {
 
   const closeModal = () => setSelectedArea(null);
 
+  // Handler untuk menutup banner
+  const closeBanner = () => setShowBanner(false);
+
+  // Handler klik backdrop banner
+  const handleBannerBackdropClick = (e: React.MouseEvent<HTMLDivElement>) => {
+    // Hanya tutup jika yang diklik adalah backdrop-nya (area gelap), bukan gambar
+    if (e.target === e.currentTarget) {
+      closeBanner();
+    }
+  };
+
   return (
     <Layout>
+      {/* --- BANNER POPUP SECTION --- */}
+      {showBanner && (
+        <div
+          className="fixed inset-0 z-[100] flex items-center justify-center bg-black/70 p-4 cursor-pointer"
+          onClick={handleBannerBackdropClick}
+        >
+          <div className="relative max-w-3xl w-full cursor-default">
+            {/* Tombol X di ujung gambar */}
+            <button
+              onClick={closeBanner}
+              className="absolute -top-2 -right-2 md:top-2 md:right-2 bg-white text-gray-800 rounded-full p-1 shadow-lg hover:bg-gray-100 transition-colors z-[101]"
+              aria-label="Tutup Banner"
+            >
+              <X size={24} />
+            </button>
+
+            {/* Gambar Banner */}
+            <img
+              src="/banner_zi.png"
+              alt="Banner Zona Integritas"
+              className="w-full h-auto rounded-lg shadow-2xl object-contain max-h-[85vh]"
+              // Mencegah klik pada gambar menutup banner (karena klik gambar bukan klik backdrop)
+              onClick={(e) => e.stopPropagation()}
+            />
+          </div>
+        </div>
+      )}
+      {/* --- END BANNER POPUP SECTION --- */}
+
       <div className="min-h-screen bg-semibackground py-12">
         <div className="container max-w-6xl mx-auto px-4 sm:px-6">
           {/* Header */}

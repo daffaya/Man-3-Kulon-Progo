@@ -18,7 +18,6 @@ import {
   AppWindow,
   Image,
   Layers,
-  FileCheck, // <-- PERUBAHAN 1: Tambahkan import ikon FileCheck
 } from "lucide-react";
 import ThemeToggle from "../ui/ThemeToggle";
 import { NavLink } from "../ui/NavLink";
@@ -54,6 +53,7 @@ const Header: React.FC = () => {
 
   /**
    * Navigation items for the Services dropdown menu
+   * Updated: Added "Maklumat Pelayanan"
    */
   const layananDropdownItems: DropdownItem[] = [
     { to: "/layanan/zona-integritas", label: "Zona Integritas" },
@@ -65,6 +65,7 @@ const Header: React.FC = () => {
     },
     { to: "/layanan/sedum", label: "Sedum" },
     { to: "/layanan/ptsp", label: "PTSP Online" },
+    { to: "/layanan/maklumat-pelayanan", label: "Maklumat Pelayanan" }, // Item baru ditambahkan di sini
   ];
 
   useEffect(() => {
