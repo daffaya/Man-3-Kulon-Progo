@@ -277,7 +277,7 @@ const ZonaIntegritasPage: React.FC = () => {
 
                 <div className="flex flex-wrap gap-3">
                   <a
-                    href="https://drive.google.com/file/d/1oVA6DgglaX1mwi-FZmO028sd6Qp7jz8D/view?usp=sharing"
+                    href="https://drive.google.com/file/d/19BbbTEvYiKXJTsYTMO2EWsT2pC6sP6rK/view?usp=drive_link"
                     target="_blank"
                     rel="noopener noreferrer"
                     className="inline-flex items-center gap-2 px-5 py-2.5 rounded btn-primary text-sm font-medium"
@@ -290,7 +290,7 @@ const ZonaIntegritasPage: React.FC = () => {
 
               <div className="w-full md:w-1/3 flex-shrink-0">
                 <a
-                  href="https://drive.google.com/file/d/1oVA6DgglaX1mwi-FZmO028sd6Qp7jz8D/view?usp=sharing"
+                  href="https://drive.google.com/file/d/19BbbTEvYiKXJTsYTMO2EWsT2pC6sP6rK/view?usp=drive_link"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="block border border-border rounded overflow-hidden shadow-sm hover:opacity-90 transition"
