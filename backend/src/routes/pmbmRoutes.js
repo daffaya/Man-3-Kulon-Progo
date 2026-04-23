@@ -26,6 +26,7 @@ const pmbmRouterFactory = ({ pool, JWT_SECRET }) => {
     handleGetById,
     handleUpdateStatus,
     handleExport,
+    handleUpdate,
   } = pmbmControllerFactory({ pool });
 
   // Public
@@ -38,6 +39,7 @@ const pmbmRouterFactory = ({ pool, JWT_SECRET }) => {
   pmbmRouter.get("/registrations/export", handleExport);
   pmbmRouter.get("/registrations/:id", handleGetById);
   pmbmRouter.patch("/registrations/:id/status", handleUpdateStatus);
+  pmbmRouter.put("/registrations/:id", handleUpdate);
 
   pmbmRouter.get("/debug-secret", (req, res) => {
     res.json({

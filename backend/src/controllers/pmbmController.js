@@ -231,6 +231,63 @@ const pmbmControllerFactory = ({ pool }) => {
   };
 
   /**
+   * Handles the request to update a registration record.
+   * Validates required fields, jalur, and keterampilan before updating data.
+   *
+   * @async
+   * @param {Object} req - Express request object.
+   * @param {Object} req.params - Route parameters.
+   * @param {string} req.params.id - The ID of the registration to update.
+   * @param {Object} req.body - The request body containing registration data.
+   * @param {string} req.body.jalur - The registration path (jalur pendaftaran).
+   * @param {string} [req.body.pilihan_keterampilan] - Selected skill (required if jalur is "keterampilan").
+   * @param {Object} res - Express response object.
+   * @returns {Promise<void>}
+   */
+  const handleUpdate = async (req, res) => {
+    const { id } = req.params;
+    const body = req.body;
+
+    const missing = REQUIRED_FIELDS.filter(
+      (f) => !body[f] || String(body[f]).trim() === "",
+    );
+    if (missing.length > 0) {
+      return res
+        .status(400)
+        .json({ error: "Field wajib belum diisi", missing });
+    }
+
+    if (!JALUR_VALID_ALL.includes(body.jalur)) {
+      return res.status(400).json({ error: "Jalur pendaftaran tidak valid" });
+    }
+
+    if (
+      body.jalur === "keterampilan" &&
+      !KETERAMPILAN_VALID.includes(body.pilihan_keterampilan)
+    ) {
+      return res
+        .status(400)
+        .json({ error: "Pilihan keterampilan tidak valid" });
+    }
+
+    try {
+      const updated = await pmbmModel.update(id, body);
+      if (!updated) {
+        return res
+          .status(404)
+          .json({ error: "Data pendaftaran tidak ditemukan" });
+      }
+
+      res.json({
+        success: true,
+        message: "Data pendaftaran berhasil diperbarui",
+      });
+    } catch (error) {
+      res.status(500).json({ error: error.message });
+    }
+  };
+
+  /**
    * Handles the request to update the status of a registration record.
    * @async
    * @param {Object} req - Express request object.
@@ -309,6 +366,7 @@ const pmbmControllerFactory = ({ pool }) => {
     handleGetById,
     handleUpdateStatus,
     handleExport,
+    handleUpdate,
   };
 };
 

@@ -139,6 +139,24 @@ const pmbmApi = {
   },
 
   /**
+   * Updates the data of a registration record.
+   * @param {number} id - The ID of the registration to update.
+   * @param {Partial<PmbmFormData>} data - The partial form data to be updated.
+   * @returns {Promise<{ success: boolean; message: string }>}
+   */
+  updateData: async (
+    id: number,
+    data: Partial<PmbmFormData>,
+  ): Promise<{ success: boolean; message: string }> => {
+    const token = getAuthToken();
+    return await apiFetch(`/pmbm/registrations/${id}`, {
+      method: "PUT",
+      headers: token ? { Authorization: `Bearer ${token}` } : {},
+      body: JSON.stringify(data),
+    });
+  },
+
+  /**
    * Updates the status of a registration record.
    * @param {number} id - The ID of the registration to update.
    * @param {string} status - The new status value (pending/verified/accepted/rejected).

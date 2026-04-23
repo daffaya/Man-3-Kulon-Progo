@@ -7,7 +7,8 @@ export type JalurPendaftaran =
   | "keterampilan"
   | "akademik"
   | "non_akademik"
-  | "afirmasi";
+  | "afirmasi"
+  | "tes";
 
 /**
  * Defines the available skills program options for the keterampilan track.
@@ -134,6 +135,7 @@ export const JALUR_LABEL: Record<JalurPendaftaran, string> = {
   akademik: "Akademik",
   non_akademik: "Non-Akademik",
   afirmasi: "Afirmasi",
+  tes: "Tes",
 };
 
 /**

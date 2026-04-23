@@ -7,7 +7,7 @@
  * Gelombang yang sedang aktif.
  * 1 = Gelombang I, 2 = Gelombang II, null = semua ditutup
  */
-export const GELOMBANG_AKTIF: 1 | 2 | null = null;
+export const GELOMBANG_AKTIF: 1 | 2 | null = 1;
 
 /**
  * Tanggal penutupan per gelombang — untuk ditampilkan di notice.

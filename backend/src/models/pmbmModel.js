@@ -281,8 +281,14 @@ const createPmbmModel = ({ pool }) => {
     },
 
     /**
-     * Retrieves ALL registration records for export purposes with filters.
-     * Uses SELECT * to get complete data (NIK, address, parents, etc).
+     * Retrieves all registration records for export with optional filters.
+     *
+     * @async
+     * @param {Object} [filters] - Optional filter parameters.
+     * @param {string} [filters.gelombang] - Filter by gelombang (batch).
+     * @param {string} [filters.jalur] - Filter by jalur (registration path).
+     * @param {string} [filters.status] - Filter by registration status.
+     * @returns {Promise<Object[]>} List of registration records.
      */
     findAllForExport: async ({ gelombang, jalur, status } = {}) => {
       const conditions = [];
@@ -305,13 +311,109 @@ const createPmbmModel = ({ pool }) => {
         ? `WHERE ${conditions.join(" AND ")}`
         : "";
 
-      // SELECT * untuk ambil semua kolom
       const [rows] = await pool.execute(
         `SELECT * FROM pmbm_registrations ${where} ORDER BY id ASC`,
         params,
       );
 
       return rows;
+    },
+
+    /**
+     * Updates a registration record in the database.
+     *
+     * @async
+     * @param {number|string} id - The ID of the registration to update.
+     * @param {Object} data - The registration data to update.
+     * @param {string} data.jalur - The registration path.
+     * @param {string} [data.pilihan_keterampilan] - Selected skill option.
+     * @param {string} data.nama_lengkap - Full name of the applicant.
+     * @param {string} data.nisn - Student NISN.
+     * @param {string} data.nik - National ID number.
+     * @param {string} data.tempat_lahir - Place of birth.
+     * @param {string} data.tanggal_lahir - Date of birth.
+     * @param {string} data.jenis_kelamin - Gender.
+     * @param {string} data.asal_sekolah - Origin school.
+     * @param {string} data.no_kk - Family card number.
+     * @param {string} data.alamat_lengkap - Full address.
+     * @param {string} data.alamat_domisili - Current domicile address.
+     * @param {string} data.no_hp_siswa - Student phone number.
+     * @param {string} data.nama_ayah - Father's name.
+     * @param {string} data.nama_ibu - Mother's name.
+     * @param {string} [data.pekerjaan_ayah] - Father's occupation.
+     * @param {string} [data.pekerjaan_ibu] - Mother's occupation.
+     * @param {number|string} [data.penghasilan_ayah] - Father's income.
+     * @param {number|string} [data.penghasilan_ibu] - Mother's income.
+     * @param {string} [data.alamat_ortu] - Parent's address.
+     * @param {string} [data.alamat_domisili_ortu] - Parent's domicile address.
+     * @param {string} [data.no_hp_ayah] - Father's phone number.
+     * @param {string} [data.no_hp_ibu] - Mother's phone number.
+     * @param {number} [data.jumlah_hafalan_juz] - Number of memorized juz.
+     * @param {string} [data.cabang_olahraga] - სპორტ category (sports field).
+     * @param {number} [data.rata_rata_rapor] - Average report score.
+     * @param {string} [data.jenis_kejuaraan] - Competition type.
+     * @param {string} [data.tingkat_kejuaraan] - Competition level.
+     * @param {string} [data.nama_kejuaraan] - Competition name.
+     * @param {string|number} [data.tahun_kejuaraan] - Competition year.
+     * @param {string} [data.link_dokumen] - Document link.
+     * @param {boolean} data.komitmen - Commitment agreement.
+     * @returns {Promise<boolean>} Returns true if update was successful.
+     */
+    update: async (id, data) => {
+      const [result] = await pool.execute(
+        `UPDATE pmbm_registrations SET
+     jalur = ?, pilihan_keterampilan = ?,
+     nama_lengkap = ?, nisn = ?, nik = ?,
+     tempat_lahir = ?, tanggal_lahir = ?, jenis_kelamin = ?,
+     asal_sekolah = ?, no_kk = ?,
+     alamat_lengkap = ?, alamat_domisili = ?, no_hp_siswa = ?,
+     nama_ayah = ?, nama_ibu = ?,
+     pekerjaan_ayah = ?, pekerjaan_ibu = ?,
+     penghasilan_ayah = ?, penghasilan_ibu = ?,
+     alamat_ortu = ?, alamat_domisili_ortu = ?,
+     no_hp_ayah = ?, no_hp_ibu = ?,
+     jumlah_hafalan_juz = ?, cabang_olahraga = ?, rata_rata_rapor = ?,
+     jenis_kejuaraan = ?, tingkat_kejuaraan = ?,
+     nama_kejuaraan = ?, tahun_kejuaraan = ?,
+     link_dokumen = ?, komitmen = ?
+   WHERE id = ?`,
+        [
+          data.jalur,
+          data.pilihan_keterampilan ?? null,
+          data.nama_lengkap,
+          data.nisn,
+          data.nik,
+          data.tempat_lahir,
+          data.tanggal_lahir,
+          data.jenis_kelamin,
+          data.asal_sekolah,
+          data.no_kk,
+          data.alamat_lengkap,
+          data.alamat_domisili,
+          data.no_hp_siswa,
+          data.nama_ayah,
+          data.nama_ibu,
+          data.pekerjaan_ayah ?? null,
+          data.pekerjaan_ibu ?? null,
+          data.penghasilan_ayah ?? null,
+          data.penghasilan_ibu ?? null,
+          data.alamat_ortu ?? null,
+          data.alamat_domisili_ortu ?? null,
+          data.no_hp_ayah ?? null,
+          data.no_hp_ibu ?? null,
+          data.jumlah_hafalan_juz ?? null,
+          data.cabang_olahraga ?? null,
+          data.rata_rata_rapor ?? null,
+          data.jenis_kejuaraan ?? null,
+          data.tingkat_kejuaraan ?? null,
+          data.nama_kejuaraan ?? null,
+          data.tahun_kejuaraan ?? null,
+          data.link_dokumen ?? null,
+          data.komitmen ? 1 : 0,
+          id,
+        ],
+      );
+      return result.affectedRows > 0;
     },
 
     /**
