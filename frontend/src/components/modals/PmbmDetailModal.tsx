@@ -26,28 +26,22 @@ type ModalMode = "view" | "edit";
 type EditTab = "jalur" | "siswa" | "ortu" | "tambahan";
 
 /* ─── Constants ──────────────────────────────────── */
-const STATUS_OPTIONS: { value: StatusPendaftaran; label: string }[] = [
-  { value: "pending", label: "Menunggu Verifikasi" },
-  { value: "verified", label: "Terverifikasi" },
-  { value: "accepted", label: "Diterima" },
-  { value: "rejected", label: "Ditolak" },
-];
+const STATUS_OPTIONS = Object.entries(STATUS_LABEL).map(([value, label]) => ({
+  value: value as StatusPendaftaran,
+  label,
+}));
 
-const JALUR_OPTIONS: { value: JalurPendaftaran; label: string }[] = [
-  { value: "tahfidz", label: "Tahfidz" },
-  { value: "kko", label: "KKO" },
-  { value: "keterampilan", label: "Keterampilan" },
-  { value: "akademik", label: "Akademik" },
-  { value: "non_akademik", label: "Non-Akademik" },
-  { value: "afirmasi", label: "Afirmasi" },
-  { value: "tes", label: "Tes" },
-];
+const JALUR_OPTIONS = Object.entries(JALUR_LABEL).map(([value, label]) => ({
+  value: value as JalurPendaftaran,
+  label,
+}));
 
-const KETERAMPILAN_OPTIONS: { value: PilihanKeterampilan; label: string }[] = [
-  { value: "titl", label: "TITL" },
-  { value: "tata_busana", label: "Tata Busana" },
-  { value: "multimedia", label: "Multimedia" },
-];
+const KETERAMPILAN_OPTIONS = Object.entries(KETERAMPILAN_LABEL).map(
+  ([value, label]) => ({
+    value: value as PilihanKeterampilan,
+    label,
+  }),
+);
 
 const PENGHASILAN_OPTIONS = [
   "< Rp 500.000",

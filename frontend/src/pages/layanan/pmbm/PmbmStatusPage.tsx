@@ -14,6 +14,7 @@ const STATUS_COLOR: Record<string, string> = {
     "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300",
   rejected:
     "bg-red-100   text-red-800   dark:bg-red-900/30   dark:text-red-300",
+  withdrawn: "bg-gray-100 text-gray-600 dark:bg-gray-800/50 dark:text-gray-400",
 };
 
 const JALUR_OPTIONS = [

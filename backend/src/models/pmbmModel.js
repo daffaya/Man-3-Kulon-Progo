@@ -163,7 +163,7 @@ const createPmbmModel = ({ pool }) => {
      * @returns {number} returns.limit - Number of records per page.
      */
     findAllPublic: async ({ search, jalur, page = 1, limit = 20 } = {}) => {
-      const conditions = [];
+      const conditions = ["status != 'withdrawn'"];
       const params = [];
 
       if (jalur) {
@@ -172,7 +172,6 @@ const createPmbmModel = ({ pool }) => {
       }
       if (search) {
         conditions.push("(nama_lengkap LIKE ? OR nomor_pendaftaran LIKE ?)");
-        // Sengaja TIDAK pakai NISN/NIK di pencarian publik
         params.push(`%${search}%`, `%${search}%`);
       }
 

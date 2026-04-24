@@ -31,7 +31,8 @@ export type StatusPendaftaran =
   | "pending"
   | "verified"
   | "accepted"
-  | "rejected";
+  | "rejected"
+  | "withdrawn";
 
 /**
  * Represents the complete form data payload submitted to the backend.
@@ -155,4 +156,5 @@ export const STATUS_LABEL: Record<StatusPendaftaran, string> = {
   verified: "Terverifikasi",
   accepted: "Diterima",
   rejected: "Ditolak",
+  withdrawn: "Mengundurkan Diri",
 };

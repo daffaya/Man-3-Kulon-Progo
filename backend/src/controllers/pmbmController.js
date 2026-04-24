@@ -23,7 +23,7 @@ const JALUR_VALID_ALL = [...JALUR_VALID_G1, ...JALUR_VALID_G2];
 
 const KETERAMPILAN_VALID = ["titl", "tata_busana", "multimedia"];
 
-const STATUS_VALID = ["pending", "verified", "accepted", "rejected"];
+const STATUS_VALID = ["pending", "verified", "accepted", "rejected", "withdrawn"];
 
 const REQUIRED_FIELDS = [
   "jalur",
