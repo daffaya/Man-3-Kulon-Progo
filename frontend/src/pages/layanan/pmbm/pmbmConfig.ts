@@ -1,23 +1,30 @@
-// =====================================================
-// KONTROL PENDAFTARAN PMBM
-// Cukup edit file ini untuk buka/tutup pendaftaran
-// =====================================================
-
-/**
- * Gelombang yang sedang aktif.
- * 1 = Gelombang I, 2 = Gelombang II, null = semua ditutup
- */
 export const GELOMBANG_AKTIF: 1 | 2 | null = 1;
 
 /**
- * Tanggal penutupan per gelombang — untuk ditampilkan di notice.
+ * Batas akhir pendaftaran per gelombang (inclusive — tutup di akhir hari itu).
+ * Format: YYYY-MM-DD
  */
-export const JADWAL_PENUTUPAN: Record<number, string> = {
-  1: "17 April 2026",
-  2: "-", // isi nanti kalau G2 dibuka
+export const BATAS_PENDAFTARAN: Record<number, string> = {
+  1: "2026-04-27",
+  2: "", //Isi dengan batas pendaftaran gelombang 2 jika ada, atau biarkan kosong jika tidak ada gelombang 2
 };
 
 /**
- * Derived — jangan diubah manual.
+ * Cek apakah pendaftaran gelombang aktif sudah melewati batas tanggal.
  */
-export const PENDAFTARAN_DITUTUP = GELOMBANG_AKTIF === null;
+const isMelewatiBatas = (): boolean => {
+  if (!GELOMBANG_AKTIF) return true;
+  const batas = BATAS_PENDAFTARAN[GELOMBANG_AKTIF];
+  if (!batas) return false;
+
+  const now = new Date();
+  const batasDate = new Date(batas);
+
+  // Inclusive — tutup setelah akhir hari (23:59:59) tanggal batas
+  batasDate.setHours(23, 59, 59, 999);
+
+  return now > batasDate;
+};
+
+export const PENDAFTARAN_DITUTUP =
+  GELOMBANG_AKTIF === null || isMelewatiBatas();

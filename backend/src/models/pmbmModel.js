@@ -163,7 +163,7 @@ const createPmbmModel = ({ pool }) => {
      * @returns {number} returns.limit - Number of records per page.
      */
     findAllPublic: async ({ search, jalur, page = 1, limit = 20 } = {}) => {
-      const conditions = ["status != 'withdrawn'"];
+      const conditions = ["status NOT IN ('withdrawn', 'rejected')"];
       const params = [];
 
       if (jalur) {
