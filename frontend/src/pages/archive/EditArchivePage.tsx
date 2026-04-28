@@ -86,7 +86,7 @@ const EditArchivePage: React.FC = () => {
         ? categories
             .find((cat) => cat.name === archive.category_name)
             ?.id.toString() || ""
-        : ""
+        : "",
     );
     setEditDocumentNumber(archive.document_number || "");
     setEditDocumentDate(initialDate);
@@ -108,7 +108,7 @@ const EditArchivePage: React.FC = () => {
       ];
       if (!allowedTypes.includes(selectedFile.type)) {
         showErrorToast(
-          "Hanya file PDF atau Word (.doc, .docx) yang diperbolehkan"
+          "Hanya file PDF atau Word (.doc, .docx) yang diperbolehkan",
         );
         setEditFile(null);
         e.target.value = "";

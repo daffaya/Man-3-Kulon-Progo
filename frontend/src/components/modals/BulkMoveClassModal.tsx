@@ -109,7 +109,7 @@ const BulkMoveClassModal: React.FC<BulkMoveClassModalProps> = ({
       try {
         const classesForAngkatan = await studentService.getClassesByAngkatan(
           token,
-          formData.angkatan
+          formData.angkatan,
         );
         setFilteredClasses((prev) => ({ ...prev, from: classesForAngkatan }));
 
@@ -117,7 +117,7 @@ const BulkMoveClassModal: React.FC<BulkMoveClassModalProps> = ({
         setFormData((prev) => ({ ...prev, classIdFrom: "", classIdTo: "" }));
       } catch (error) {
         showErrorToast(
-          error instanceof Error ? error.message : "Gagal memuat kelas"
+          error instanceof Error ? error.message : "Gagal memuat kelas",
         );
       } finally {
         setLoadingClasses(false);
@@ -153,7 +153,7 @@ const BulkMoveClassModal: React.FC<BulkMoveClassModalProps> = ({
       setLoadingClasses(true);
       try {
         const fromClass = filteredClasses.from.find(
-          (cls) => cls.id === Number(formData.classIdFrom)
+          (cls) => cls.id === Number(formData.classIdFrom),
         );
         if (!fromClass) {
           setFilteredClasses((prev) => ({ ...prev, to: [] }));
@@ -174,7 +174,7 @@ const BulkMoveClassModal: React.FC<BulkMoveClassModalProps> = ({
 
         const toClasses = await studentService.getClassesByLevel(
           token,
-          toLevel
+          toLevel,
         );
         setFilteredClasses((prev) => ({ ...prev, to: toClasses }));
 
@@ -182,7 +182,7 @@ const BulkMoveClassModal: React.FC<BulkMoveClassModalProps> = ({
         setFormData((prev) => ({ ...prev, classIdTo: "" }));
       } catch (error) {
         showErrorToast(
-          error instanceof Error ? error.message : "Gagal memuat kelas tujuan"
+          error instanceof Error ? error.message : "Gagal memuat kelas tujuan",
         );
       } finally {
         setLoadingClasses(false);
@@ -217,7 +217,7 @@ const BulkMoveClassModal: React.FC<BulkMoveClassModalProps> = ({
   useEffect(() => {
     if (formData.classIdFrom && filteredClasses.from.length > 0) {
       const fromClass = filteredClasses.from.find(
-        (cls) => cls.id === Number(formData.classIdFrom)
+        (cls) => cls.id === Number(formData.classIdFrom),
       );
       if (fromClass) {
         const level = getClassLevel(fromClass.name);
@@ -286,7 +286,7 @@ const BulkMoveClassModal: React.FC<BulkMoveClassModalProps> = ({
         !formData.angkatan
       ) {
         showErrorToast(
-          "Kelas asal, tujuan, tahun ajaran, dan angkatan wajib diisi"
+          "Kelas asal, tujuan, tahun ajaran, dan angkatan wajib diisi",
         );
         return;
       }
@@ -328,7 +328,7 @@ const BulkMoveClassModal: React.FC<BulkMoveClassModalProps> = ({
             academicYear: formDataRef.current.academicYear,
             angkatan: formDataRef.current.angkatan,
           },
-          token
+          token,
         );
         actionText = "dipindahkan";
         count = result.studentsMoved;
@@ -339,7 +339,7 @@ const BulkMoveClassModal: React.FC<BulkMoveClassModalProps> = ({
             academicYear: formDataRef.current.academicYear,
             angkatan: formDataRef.current.angkatan,
           },
-          token
+          token,
         );
         actionText = "ditandai lulus";
         count = result.count;
@@ -348,7 +348,7 @@ const BulkMoveClassModal: React.FC<BulkMoveClassModalProps> = ({
       }
 
       showSuccessToast(
-        `${result.message}. ${count} siswa berhasil ${actionText}`
+        `${result.message}. ${count} siswa berhasil ${actionText}`,
       );
 
       onSuccess();
@@ -371,13 +371,13 @@ const BulkMoveClassModal: React.FC<BulkMoveClassModalProps> = ({
   if (!isOpen || !token) return null;
 
   const fromClass = filteredClasses.from.find(
-    (cls) => cls.id === Number(formData.classIdFrom)
+    (cls) => cls.id === Number(formData.classIdFrom),
   );
   const toClass = filteredClasses.to.find(
-    (cls) => cls.id === Number(formData.classIdTo)
+    (cls) => cls.id === Number(formData.classIdTo),
   );
   const selectedAngkatan = angkatans.find(
-    (a) => String(a.angkatan) === String(formData.angkatan)
+    (a) => String(a.angkatan) === String(formData.angkatan),
   );
 
   return (

@@ -76,7 +76,7 @@ export const useImportStudent = (): UseImportStudentReturn => {
 
     if (!validTypes.includes(file.type)) {
       setError(
-        "Format file tidak valid. Hanya .xlsx dan .xls yang diperbolehkan"
+        "Format file tidak valid. Hanya .xlsx dan .xls yang diperbolehkan",
       );
       return;
     }

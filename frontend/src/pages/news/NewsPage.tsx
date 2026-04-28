@@ -91,7 +91,7 @@ const NewsPage: React.FC = () => {
         replace: true,
       });
     },
-    [navigate, location.pathname]
+    [navigate, location.pathname],
   );
 
   /**
@@ -117,8 +117,8 @@ const NewsPage: React.FC = () => {
     const message = tagsLoading
       ? "Memuat tag..."
       : categoriesLoading
-      ? "Memuat kategori..."
-      : "Memuat artikel...";
+        ? "Memuat kategori..."
+        : "Memuat artikel...";
     return (
       <Layout>
         <div className="container mx-auto px-4 py-12 text-center">

@@ -71,14 +71,14 @@ export const ImportForm: React.FC<ImportFormProps> = ({ onSuccess }) => {
           showErrorToast("Ukuran file terlalu besar. Maksimal 5MB");
         } else if (error.code === "file-invalid-type") {
           showErrorToast(
-            "Tipe file tidak valid. Hanya .xlsx dan .xls yang diperbolehkan"
+            "Tipe file tidak valid. Hanya .xlsx dan .xls yang diperbolehkan",
           );
         } else {
           showErrorToast("Error: " + error.message);
         }
       }
     },
-    [showErrorToast]
+    [showErrorToast],
   );
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
@@ -506,7 +506,7 @@ export const ImportForm: React.FC<ImportFormProps> = ({ onSuccess }) => {
                             </div>
                           </div>
                         </div>
-                      )
+                      ),
                     )}
                   </div>
                 </div>

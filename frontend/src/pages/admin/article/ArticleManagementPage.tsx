@@ -138,8 +138,8 @@ const ArticleManagementPage: React.FC = () => {
         publishedStatus === "all" || publishedStatus === "featured"
           ? undefined
           : publishedStatus === "published"
-          ? true
-          : false,
+            ? true
+            : false,
       featured: publishedStatus === "featured" ? true : undefined,
       tag: selectedTags.length > 0 ? selectedTags : undefined,
       category:
@@ -163,7 +163,7 @@ const ArticleManagementPage: React.FC = () => {
   };
 
   const handleKeywordInputKeyPress = (
-    e: React.KeyboardEvent<HTMLInputElement>
+    e: React.KeyboardEvent<HTMLInputElement>,
   ) => {
     if (e.key === "Enter") {
       e.preventDefault();
@@ -172,7 +172,7 @@ const ArticleManagementPage: React.FC = () => {
   };
 
   const handlePublishedStatusChange = (
-    e: React.ChangeEvent<HTMLSelectElement>
+    e: React.ChangeEvent<HTMLSelectElement>,
   ) => {
     const newStatus = e.target.value as
       | "all"

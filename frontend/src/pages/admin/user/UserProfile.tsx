@@ -59,7 +59,7 @@ const UserProfilePage: React.FC = () => {
         setIsSaving(false);
       }
     },
-    [fullName, updateUserProfile, showSuccessToast, showErrorToast]
+    [fullName, updateUserProfile, showSuccessToast, showErrorToast],
   );
 
   /**
@@ -72,7 +72,7 @@ const UserProfilePage: React.FC = () => {
         updateUserAvatar(avatar);
       }
     },
-    [user, updateUserAvatar]
+    [user, updateUserAvatar],
   );
 
   /**
@@ -138,7 +138,7 @@ const UserProfilePage: React.FC = () => {
                       .replace(/_/g, " ")
                       .split(" ")
                       .map(
-                        (word) => word.charAt(0).toUpperCase() + word.slice(1)
+                        (word) => word.charAt(0).toUpperCase() + word.slice(1),
                       )
                       .join(" ")}
                   </span>

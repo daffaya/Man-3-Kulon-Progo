@@ -44,13 +44,13 @@ const AttendanceRecap = () => {
   const navigate = useNavigate();
   const [classId, setClassId] = useState("");
   const [period, setPeriod] = useState<"daily" | "monthly" | "semester">(
-    "daily"
+    "daily",
   );
   const [startDate, setStartDate] = useState(
-    new Date().toISOString().split("T")[0]
+    new Date().toISOString().split("T")[0],
   );
   const [endDate, setEndDate] = useState(
-    new Date().toISOString().split("T")[0]
+    new Date().toISOString().split("T")[0],
   );
   const [recapData, setRecapData] = useState<RecapData[]>([]);
   const [classes, setClasses] = useState<any[]>([]);
@@ -90,7 +90,7 @@ const AttendanceRecap = () => {
             startDate,
             endDate,
           },
-          token
+          token,
         );
         setRecapData(data.data);
       } catch (error) {
@@ -123,7 +123,7 @@ const AttendanceRecap = () => {
           endDate,
           format,
         },
-        token
+        token,
       );
     } catch (error) {
       console.error("Error exporting data:", error);

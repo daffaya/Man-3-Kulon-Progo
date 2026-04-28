@@ -48,11 +48,11 @@ const NewsDetailPage: React.FC = () => {
             (a) =>
               a.id !== target.id &&
               Array.isArray(a.tags) &&
-              a.tags.some((tag) => targetTags.includes(tag))
+              a.tags.some((tag) => targetTags.includes(tag)),
           )
           .slice(0, 3);
       },
-    [state.articles]
+    [state.articles],
   );
 
   useEffect(() => {
@@ -155,7 +155,7 @@ const NewsDetailPage: React.FC = () => {
               Category:{" "}
               <Link
                 to={`/berita?category=${encodeURIComponent(
-                  article.category.slug
+                  article.category.slug,
                 )}`}
                 className="text-accent hover:underline"
               >

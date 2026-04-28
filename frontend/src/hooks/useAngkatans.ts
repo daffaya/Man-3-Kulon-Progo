@@ -57,7 +57,7 @@ export const useAngkatans = () => {
           headers: {
             Authorization: `Bearer ${token}`,
           },
-        }
+        },
       );
 
       if (!response.ok) {

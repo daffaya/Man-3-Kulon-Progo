@@ -143,7 +143,7 @@ const StaffManagementPage: React.FC = () => {
   };
 
   const handleKeywordInputKeyPress = (
-    e: React.KeyboardEvent<HTMLInputElement>
+    e: React.KeyboardEvent<HTMLInputElement>,
   ) => {
     if (e.key === "Enter") {
       e.preventDefault();
@@ -406,7 +406,7 @@ const StaffManagementPage: React.FC = () => {
                 <div className="flex items-center space-x-1">
                   {Array.from(
                     { length: state.pagination.totalPages },
-                    (_, i) => i + 1
+                    (_, i) => i + 1,
                   )
                     .filter((page) => {
                       return (

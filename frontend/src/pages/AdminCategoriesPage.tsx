@@ -61,7 +61,7 @@ const AdminCategoriesPage: React.FC = () => {
 
   const [editingCategory, setEditingCategory] = useState<Category | null>(null);
   const [categoryToDelete, setCategoryToDelete] = useState<Category | null>(
-    null
+    null,
   );
 
   const [errorMessage, setErrorMessage] = useState<string | null>(null);

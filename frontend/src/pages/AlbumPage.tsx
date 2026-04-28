@@ -79,7 +79,7 @@ const AlbumPage: React.FC = () => {
    */
   const handleNext = () => {
     setCurrentPhotoIndex((prev) =>
-      Math.min(currentPhotos.length - 1, prev + 1)
+      Math.min(currentPhotos.length - 1, prev + 1),
     );
   };
 
@@ -109,7 +109,7 @@ const AlbumPage: React.FC = () => {
   const handleLike = () => {
     setIsLiked(!isLiked);
     showSuccessToast(
-      isLiked ? "Anda telah membatalkan suka" : "Anda menyukai album ini"
+      isLiked ? "Anda telah membatalkan suka" : "Anda menyukai album ini",
     );
   };
 

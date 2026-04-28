@@ -53,7 +53,7 @@ const GalleryPage: React.FC = () => {
       setCurrentPage(page);
       window.scrollTo({ top: 0, behavior: "smooth" });
     },
-    [publicPagination.totalPages]
+    [publicPagination.totalPages],
   );
 
   if (loading && albums.length === 0) {
@@ -151,7 +151,7 @@ const GalleryPage: React.FC = () => {
               <div className="flex items-center space-x-1">
                 {Array.from(
                   { length: publicPagination.totalPages },
-                  (_, i) => i + 1
+                  (_, i) => i + 1,
                 )
                   .filter((page) => {
                     return (

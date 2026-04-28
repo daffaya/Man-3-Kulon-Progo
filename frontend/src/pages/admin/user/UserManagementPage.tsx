@@ -49,7 +49,7 @@ const UserManagementPage: React.FC = () => {
     if (user?.role !== "super_admin") {
       showToast(
         "Akses ditolak. Hanya Super Admin yang dapat mengelola user.",
-        "error"
+        "error",
       );
       navigate("/atmin");
       return;
@@ -82,7 +82,7 @@ const UserManagementPage: React.FC = () => {
         filtered = filtered.filter(
           (u: User) =>
             u.username.toLowerCase().includes(term) ||
-            (u.full_name && u.full_name.toLowerCase().includes(term))
+            (u.full_name && u.full_name.toLowerCase().includes(term)),
         );
       }
 

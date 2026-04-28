@@ -134,7 +134,7 @@ const ArchiveManagementPage: React.FC = () => {
     try {
       await deleteArchive(archiveToDelete, token);
       setArchives((prev) =>
-        prev.filter((archive) => archive.id !== archiveToDelete)
+        prev.filter((archive) => archive.id !== archiveToDelete),
       );
       showToast("Arsip berhasil dihapus", "success");
     } catch (err) {

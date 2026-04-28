@@ -306,7 +306,7 @@ const AlbumPhotosPage: React.FC = () => {
         onPrevious={() => setCurrentPhotoIndex((prev) => Math.max(0, prev - 1))}
         onNext={() =>
           setCurrentPhotoIndex((prev) =>
-            Math.min(currentPhotos.length - 1, prev + 1)
+            Math.min(currentPhotos.length - 1, prev + 1),
           )
         }
       />

@@ -68,7 +68,7 @@ const AttendanceArchivePage: React.FC = () => {
   const [archiveRecords, setArchiveRecords] = useState<ArchiveData[]>([]);
   const [loading, setLoading] = useState(false);
   const [selectedYear, setSelectedYear] = useState<string>(
-    format(new Date(), "yyyy")
+    format(new Date(), "yyyy"),
   );
   const [selectedSemester, setSelectedSemester] = useState<string>("ganjil");
   const [selectedClass, setSelectedClass] = useState<number>(0);
@@ -174,7 +174,7 @@ const AttendanceArchivePage: React.FC = () => {
             headers: {
               Authorization: `Bearer ${token}`,
             },
-          }
+          },
         );
 
         if (archiveResponse.ok) {

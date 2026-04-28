@@ -39,7 +39,7 @@ const NewAlbumPage: React.FC = () => {
       showSuccessToast("Album berhasil dibuat!");
       setTimeout(
         () => navigate(`/atmin/gallery/${albumId}/photos`, { replace: true }),
-        1500
+        1500,
       );
     } catch (err) {
       const message =

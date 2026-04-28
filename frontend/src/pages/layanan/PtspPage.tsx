@@ -21,17 +21,20 @@ const PtspPage: React.FC = () => {
    * @returns {Record<string, PtspService[]>} An object where keys are category names and values are arrays of services.
    */
   const groupServicesByCategory = (
-    services: PtspService[]
+    services: PtspService[],
   ): Record<string, PtspService[]> => {
-    return services.reduce((acc, service) => {
-      // If the category is not yet a key in the accumulator, create it with an empty array.
-      if (!acc[service.category]) {
-        acc[service.category] = [];
-      }
-      // Push the current service into the correct category array.
-      acc[service.category].push(service);
-      return acc;
-    }, {} as Record<string, PtspService[]>);
+    return services.reduce(
+      (acc, service) => {
+        // If the category is not yet a key in the accumulator, create it with an empty array.
+        if (!acc[service.category]) {
+          acc[service.category] = [];
+        }
+        // Push the current service into the correct category array.
+        acc[service.category].push(service);
+        return acc;
+      },
+      {} as Record<string, PtspService[]>,
+    );
   };
 
   const groupedServices = groupServicesByCategory(ptspServices);

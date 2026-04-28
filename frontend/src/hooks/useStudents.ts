@@ -97,7 +97,7 @@ export const useStudents = (filters?: StudentFilters) => {
           headers: {
             Authorization: `Bearer ${currentToken}`,
           },
-        }
+        },
       );
 
       if (!response.ok) {
@@ -171,10 +171,10 @@ export const useStudents = (filters?: StudentFilters) => {
       const updatedStudent = await studentService.updateStudent(
         id,
         data,
-        currentToken
+        currentToken,
       );
       setStudents((prev) =>
-        prev.map((student) => (student.id === id ? updatedStudent : student))
+        prev.map((student) => (student.id === id ? updatedStudent : student)),
       );
       return updatedStudent;
     } catch (err) {

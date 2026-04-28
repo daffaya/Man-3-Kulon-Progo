@@ -6,7 +6,7 @@
 
 import React, { useState, useEffect } from "react";
 import Layout from "../../components/layout/Layout";
-import { useStaff } from "../../contexts/staffContext";
+import { useStaff } from "../../contexts/StaffContext";
 import { StaffRecap, Tendik } from "../../types/staffTypes";
 
 /**

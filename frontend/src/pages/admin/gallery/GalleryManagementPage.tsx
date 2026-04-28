@@ -58,7 +58,7 @@ const GalleryManagementPage: React.FC = () => {
 
   const [keyword, setKeyword] = useState("");
   const [appliedFilters, setAppliedFilters] = useState<{ keyword?: string }>(
-    {}
+    {},
   );
   const [currentPage, setCurrentPage] = useState(1);
   const albumsPerPage = 10;
@@ -146,7 +146,7 @@ const GalleryManagementPage: React.FC = () => {
    * @param {React.KeyboardEvent<HTMLInputElement>} e - The keyboard event.
    */
   const handleKeywordInputKeyPress = (
-    e: React.KeyboardEvent<HTMLInputElement>
+    e: React.KeyboardEvent<HTMLInputElement>,
   ) => {
     if (e.key === "Enter") {
       e.preventDefault();

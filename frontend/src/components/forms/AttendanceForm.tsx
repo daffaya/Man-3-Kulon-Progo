@@ -53,7 +53,7 @@ const AttendanceForm = () => {
     useToastMessage();
   const [selectedClass, setSelectedClass] = useState("");
   const [selectedDate, setSelectedDate] = useState(
-    new Date().toISOString().split("T")[0]
+    new Date().toISOString().split("T")[0],
   );
   const [students, setStudents] = useState<Student[]>([]);
   const [attendances, setAttendances] = useState<Attendance[]>([]);
@@ -87,7 +87,7 @@ const AttendanceForm = () => {
               studentId: s.id,
               status: "hadir",
               notes: "",
-            }))
+            })),
           );
         })
         .catch((error) => {
@@ -130,7 +130,7 @@ const AttendanceForm = () => {
     } catch (error) {
       showErrorToast(
         "Terjadi kesalahan: " +
-          (error instanceof Error ? error.message : "Unknown error")
+          (error instanceof Error ? error.message : "Unknown error"),
       );
     } finally {
       setIsLoading(false);

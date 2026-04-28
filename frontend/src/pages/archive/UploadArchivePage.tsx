@@ -76,7 +76,7 @@ const UploadArchivePage: React.FC = () => {
       if (!allowedTypes.includes(selectedFile.type)) {
         showToast(
           "Hanya file PDF atau Word (.doc, .docx) yang diperbolehkan",
-          "error"
+          "error",
         );
         setFile(null);
         e.target.value = "";

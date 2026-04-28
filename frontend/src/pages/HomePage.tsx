@@ -515,7 +515,7 @@ const HomePage: React.FC = () => {
                       <span className="font-medium text-foreground">
                         WhatsApp
                       </span>
-                      <p className="text-sm text-secondary">0812-3456-7890</p>
+                      <p className="text-sm text-secondary">0878-5810-2393</p>
                     </div>
                   </a>
                   <a

@@ -29,7 +29,7 @@ export const useToastMessage = () => {
     (message: string, duration?: number) => {
       showToast(message, "success", duration);
     },
-    [showToast]
+    [showToast],
   );
 
   /**
@@ -41,7 +41,7 @@ export const useToastMessage = () => {
     (message: string, duration?: number) => {
       showToast(message, "error", duration);
     },
-    [showToast]
+    [showToast],
   );
 
   /**
@@ -53,7 +53,7 @@ export const useToastMessage = () => {
     (message: string, duration?: number) => {
       showToast(message, "warning", duration);
     },
-    [showToast]
+    [showToast],
   );
 
   /**
@@ -65,7 +65,7 @@ export const useToastMessage = () => {
     (message: string, duration?: number) => {
       showToast(message, "info", duration);
     },
-    [showToast]
+    [showToast],
   );
 
   return {
