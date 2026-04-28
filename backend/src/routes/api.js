@@ -4,6 +4,8 @@
  */
 
 import { Router } from "express";
+import cmsRouterFactory from "./cmsRoutes.js";
+import adminCmsRouterFactory from "./adminCmsRoutes.js";
 import authRouterFactory from "./authRoutes.js";
 import tagRouterFactory from "./tagRoutes.js";
 import publicArticleRouterFactory from "./publicArticleRoutes.js";
@@ -69,6 +71,8 @@ const apiRouterFactory = ({
       FRONTEND_URL,
     }),
   );
+  apiRouter.use("/cms", cmsRouterFactory({ pool }));
+
   apiRouter.use("/categories", publicCategoryRouterFactory({ pool }));
   apiRouter.use("/tags", tagRouterFactory({ pool }));
   apiRouter.use("/articles", publicArticleRouterFactory({ pool }));
@@ -79,6 +83,8 @@ const apiRouterFactory = ({
   apiRouter.use("/pmbm", pmbmRouterFactory({ pool, JWT_SECRET }));
 
   // Admin Routes - These routes are protected and intended for administrative users
+  apiRouter.use("/atmin/cms", adminCmsRouterFactory({ pool, JWT_SECRET }));
+
   apiRouter.use(
     "/atmin/articles",
     adminArticleRouterFactory({ pool, JWT_SECRET }),
