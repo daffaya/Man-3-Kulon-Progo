@@ -1,4 +1,10 @@
-import React, { useEffect, useState } from "react";
+/**
+ * @fileoverview Modal detail dan edit pendaftaran PMBM.
+ * Menyediakan tampilan detail pendaftar, fungsionalitas edit data tabbed,
+ * serta pembaruan status pendaftaran oleh admin.
+ */
+
+import React, { useEffect, useState, useCallback } from "react";
 import { X, ExternalLink, Loader2, Pencil } from "lucide-react";
 import type {
   PmbmRegistrationSummary,
@@ -26,16 +32,26 @@ type ModalMode = "view" | "edit";
 type EditTab = "jalur" | "siswa" | "ortu" | "tambahan";
 
 /* ─── Constants ──────────────────────────────────── */
+
+/**
+ * Available status options derived from labels.
+ */
 const STATUS_OPTIONS = Object.entries(STATUS_LABEL).map(([value, label]) => ({
   value: value as StatusPendaftaran,
   label,
 }));
 
+/**
+ * Available jalur options derived from labels.
+ */
 const JALUR_OPTIONS = Object.entries(JALUR_LABEL).map(([value, label]) => ({
   value: value as JalurPendaftaran,
   label,
 }));
 
+/**
+ * Available keterampilan options derived from labels.
+ */
 const KETERAMPILAN_OPTIONS = Object.entries(KETERAMPILAN_LABEL).map(
   ([value, label]) => ({
     value: value as PilihanKeterampilan,
@@ -43,6 +59,9 @@ const KETERAMPILAN_OPTIONS = Object.entries(KETERAMPILAN_LABEL).map(
   }),
 );
 
+/**
+ * Income range options for parent data.
+ */
 const PENGHASILAN_OPTIONS = [
   "< Rp 500.000",
   "Rp 500.000 – Rp 1.000.000",
@@ -52,6 +71,9 @@ const PENGHASILAN_OPTIONS = [
   "> Rp 5.000.000",
 ];
 
+/**
+ * Tab configuration for edit mode.
+ */
 const EDIT_TABS: { key: EditTab; label: string }[] = [
   { key: "jalur", label: "Jalur" },
   { key: "siswa", label: "Data Siswa" },
@@ -64,6 +86,10 @@ const inp = "form-input w-full text-sm";
 const inp_err = "form-input w-full text-sm border-[rgb(var(--color-error))]";
 
 /* ─── Sub-components ─────────────────────────────── */
+
+/**
+ * Simple row to display label and value in view mode.
+ */
 const DetailRow: React.FC<{ label: string; value: React.ReactNode }> = ({
   label,
   value,
@@ -78,6 +104,9 @@ const DetailRow: React.FC<{ label: string; value: React.ReactNode }> = ({
   </div>
 );
 
+/**
+ * Section heading separator.
+ */
 const SectionHeading: React.FC<{ title: string }> = ({ title }) => (
   <h4 className="text-xs font-semibold uppercase tracking-wide text-accent mt-5 mb-2 first:mt-0">
     {title}
@@ -85,6 +114,10 @@ const SectionHeading: React.FC<{ title: string }> = ({ title }) => (
 );
 
 /* ─── Main Component ─────────────────────────────── */
+
+/**
+ * Modal component for viewing and editing PMBM registration details.
+ */
 const PmbmDetailModal: React.FC<PmbmDetailModalProps> = ({
   registration,
   isOpen,
@@ -115,30 +148,39 @@ const PmbmDetailModal: React.FC<PmbmDetailModalProps> = ({
     useState<StatusPendaftaran>("pending");
   const [catatanAdmin, setCatatanAdmin] = useState("");
 
-  /* ── Fetch detail on open ── */
-  useEffect(() => {
-    if (!isOpen || !registration) return;
-    const fetchDetail = async () => {
-      setLoadingDetail(true);
-      setDetail(null);
-      setMode("view");
-      setShowExitConfirm(false);
-      try {
-        const data = await pmbmApi.getById(registration.id);
-        setDetail(data);
-        setSelectedStatus(data.status);
-        setCatatanAdmin(data.catatan_admin ?? "");
-      } catch (error: any) {
-        showErrorToast(error.message || "Gagal memuat detail pendaftar");
-        onClose();
-      } finally {
-        setLoadingDetail(false);
-      }
-    };
-    fetchDetail();
-  }, [isOpen, registration]);
+  /**
+   * Fetch detail data when modal opens.
+   */
+  const fetchDetail = useCallback(async () => {
+    if (!registration) return;
 
-  /* ── Enter edit mode ── */
+    setLoadingDetail(true);
+    setDetail(null);
+    setMode("view");
+    setShowExitConfirm(false);
+
+    try {
+      const data = await pmbmApi.getById(registration.id);
+      setDetail(data);
+      setSelectedStatus(data.status);
+      setCatatanAdmin(data.catatan_admin ?? "");
+    } catch (error: any) {
+      showErrorToast(error.message || "Gagal memuat detail pendaftar");
+      onClose();
+    } finally {
+      setLoadingDetail(false);
+    }
+  }, [registration, showErrorToast, onClose]);
+
+  useEffect(() => {
+    if (isOpen) {
+      fetchDetail();
+    }
+  }, [isOpen, fetchDetail]);
+
+  /**
+   * Enter edit mode with current detail data.
+   */
   const handleEnterEdit = () => {
     setEditForm({ ...detail });
     setEditErrors({});
@@ -147,7 +189,9 @@ const PmbmDetailModal: React.FC<PmbmDetailModalProps> = ({
     setMode("edit");
   };
 
-  /* ── Attempt close — show confirm if in edit mode ── */
+  /**
+   * Handle close attempt with confirmation if in edit mode.
+   */
   const handleAttemptClose = () => {
     if (mode === "edit") {
       setShowExitConfirm(true);
@@ -156,7 +200,9 @@ const PmbmDetailModal: React.FC<PmbmDetailModalProps> = ({
     }
   };
 
-  /* ── Confirm exit from edit mode ── */
+  /**
+   * Confirm exit from edit mode without saving.
+   */
   const handleConfirmExit = () => {
     setShowExitConfirm(false);
     setEditForm(null);
@@ -164,7 +210,9 @@ const PmbmDetailModal: React.FC<PmbmDetailModalProps> = ({
     setMode("view");
   };
 
-  /* ── Generic field change ── */
+  /**
+   * Handle generic field change in edit form.
+   */
   const handleEditChange = (
     e: React.ChangeEvent<
       HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement
@@ -186,7 +234,9 @@ const PmbmDetailModal: React.FC<PmbmDetailModalProps> = ({
     }
   };
 
-  /* ── Validate per tab ── */
+  /**
+   * Validate fields for a specific tab.
+   */
   const validateTab = (tab: EditTab): Record<string, string> => {
     const errs: Record<string, string> = {};
 
@@ -229,7 +279,9 @@ const PmbmDetailModal: React.FC<PmbmDetailModalProps> = ({
     return errs;
   };
 
-  /* ── Validate all tabs before save ── */
+  /**
+   * Validate all tabs before saving.
+   */
   const validateAll = (): boolean => {
     const allErrs = {
       ...validateTab("jalur"),
@@ -253,7 +305,9 @@ const PmbmDetailModal: React.FC<PmbmDetailModalProps> = ({
     return true;
   };
 
-  /* ── Save edited data ── */
+  /**
+   * Save edited registration data.
+   */
   const handleSaveData = async () => {
     if (!validateAll()) return;
     setIsSavingData(true);
@@ -273,7 +327,9 @@ const PmbmDetailModal: React.FC<PmbmDetailModalProps> = ({
     }
   };
 
-  /* ── Save status ── */
+  /**
+   * Update registration status.
+   */
   const handleUpdateStatus = async () => {
     if (!detail) return;
     setIsUpdating(true);
@@ -289,7 +345,9 @@ const PmbmDetailModal: React.FC<PmbmDetailModalProps> = ({
     }
   };
 
-  /* ── Tab error indicator ── */
+  /**
+   * Check if a specific tab has validation errors.
+   */
   const tabHasError = (tab: EditTab): boolean => {
     if (!editErrors || Object.keys(editErrors).length === 0) return false;
     return Object.keys(validateTab(tab)).some((key) => editErrors[key]);
@@ -565,6 +623,20 @@ const PmbmDetailModal: React.FC<PmbmDetailModalProps> = ({
                       value={`${detail.nama_kejuaraan} (${detail.tingkat_kejuaraan}, ${detail.tahun_kejuaraan})`}
                     />
                   )}
+                  {detail.nilai_tka_literasi !== null &&
+                    detail.nilai_tka_literasi !== undefined && (
+                      <DetailRow
+                        label="Nilai TKA Literasi"
+                        value={detail.nilai_tka_literasi}
+                      />
+                    )}
+                  {detail.nilai_tka_numerasi !== null &&
+                    detail.nilai_tka_numerasi !== undefined && (
+                      <DetailRow
+                        label="Nilai TKA Numerasi"
+                        value={detail.nilai_tka_numerasi}
+                      />
+                    )}
                 </>
               )}
 
@@ -997,6 +1069,40 @@ const PmbmDetailModal: React.FC<PmbmDetailModalProps> = ({
                       </EditField>
                     </div>
                   </div>
+
+                  <EditField
+                    label="Nilai TKA Literasi"
+                    field="nilai_tka_literasi"
+                  >
+                    <input
+                      type="number"
+                      name="nilai_tka_literasi"
+                      value={editForm.nilai_tka_literasi ?? ""}
+                      onChange={handleEditChange}
+                      min={0}
+                      max={100}
+                      step={0.01}
+                      placeholder="Contoh: 78.50"
+                      className={inp}
+                    />
+                  </EditField>
+
+                  <EditField
+                    label="Nilai TKA Numerasi"
+                    field="nilai_tka_numerasi"
+                  >
+                    <input
+                      type="number"
+                      name="nilai_tka_numerasi"
+                      value={editForm.nilai_tka_numerasi ?? ""}
+                      onChange={handleEditChange}
+                      min={0}
+                      max={100}
+                      step={0.01}
+                      placeholder="Contoh: 82.00"
+                      className={inp}
+                    />
+                  </EditField>
 
                   <div className="border-t border-secondary/10 pt-4 space-y-3">
                     <p className="text-xs text-secondary font-medium uppercase tracking-wide">

@@ -1,22 +1,38 @@
+/**
+ * @fileoverview Public PMBM registration status page.
+ * Displays paginated registration data with search, filtering,
+ * and sorting based on selected gelombang.
+ */
+
 import React, { useState, useEffect, useCallback } from "react";
-import { Search, RefreshCw, ChevronLeft, ChevronRight } from "lucide-react";
+import {
+  Search,
+  RefreshCw,
+  ChevronLeft,
+  ChevronRight,
+  Filter,
+} from "lucide-react";
 import Layout from "../../../components/layout/Layout";
 import pmbmApi from "../../../api/pmbmApi";
 import type { PmbmPublicEntry } from "../../../types/pmbmTypes";
 import { JALUR_LABEL, STATUS_LABEL } from "../../../types/pmbmTypes";
+import { GELOMBANG_AKTIF } from "./pmbmConfig";
 
+/**
+ * Status badge color mapping.
+ */
 const STATUS_COLOR: Record<string, string> = {
   pending:
     "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300",
-  verified:
-    "bg-blue-100  text-blue-800  dark:bg-blue-900/30  dark:text-blue-300",
+  verified: "bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300",
   accepted:
     "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300",
-  rejected:
-    "bg-red-100   text-red-800   dark:bg-red-900/30   dark:text-red-300",
-  withdrawn: "bg-gray-100 text-gray-600 dark:bg-gray-800/50 dark:text-gray-400",
+  rejected: "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300",
 };
 
+/**
+ * Available jalur filter options.
+ */
 const JALUR_OPTIONS = [
   { value: "", label: "Semua Jalur" },
   { value: "tahfidz", label: "Tahfidz" },
@@ -25,8 +41,14 @@ const JALUR_OPTIONS = [
   { value: "akademik", label: "Akademik" },
   { value: "non_akademik", label: "Non-Akademik" },
   { value: "afirmasi", label: "Afirmasi" },
+  { value: "tes", label: "Tes" },
 ];
 
+const LIMIT = 20;
+
+/**
+ * Public status page component.
+ */
 const PmbmStatusPage: React.FC = () => {
   const [data, setData] = useState<PmbmPublicEntry[]>([]);
   const [total, setTotal] = useState(0);
@@ -34,20 +56,32 @@ const PmbmStatusPage: React.FC = () => {
   const [search, setSearch] = useState("");
   const [searchInput, setSearchInput] = useState("");
   const [jalurFilter, setJalurFilter] = useState("");
+  const [sortBy, setSortBy] = useState("created_at");
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
-  const LIMIT = 20;
 
+  // Default ke gelombang aktif (fallback: 1)
+  const [gelombangFilter, setGelombangFilter] = useState<string>(
+    String(GELOMBANG_AKTIF ?? 1),
+  );
+
+  /**
+   * Fetch public registration data.
+   */
   const fetchData = useCallback(async () => {
     setIsLoading(true);
     setError("");
+
     try {
       const result = await pmbmApi.getPublic({
         search: search || undefined,
         jalur: jalurFilter || undefined,
+        gelombang: gelombangFilter ? parseInt(gelombangFilter) : undefined,
+        sortBy,
         page,
         limit: LIMIT,
       });
+
       setData(result.data);
       setTotal(result.total);
     } catch {
@@ -55,11 +89,18 @@ const PmbmStatusPage: React.FC = () => {
     } finally {
       setIsLoading(false);
     }
-  }, [search, jalurFilter, page]);
+  }, [search, jalurFilter, gelombangFilter, sortBy, page]);
 
   useEffect(() => {
     fetchData();
   }, [fetchData]);
+
+  /**
+   * Reset page when filters change.
+   */
+  useEffect(() => {
+    setPage(1);
+  }, [search, jalurFilter, gelombangFilter]);
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
@@ -68,6 +109,16 @@ const PmbmStatusPage: React.FC = () => {
   };
 
   const totalPages = Math.ceil(total / LIMIT);
+
+  /**
+   * Filter jalur options based on selected gelombang.
+   */
+  const filteredJalurOptions = JALUR_OPTIONS.filter((o) => {
+    if (!o.value) return true;
+    if (gelombangFilter === "1") return o.value !== "tes";
+    if (gelombangFilter === "2") return o.value === "tes";
+    return true;
+  });
 
   return (
     <Layout>
@@ -79,8 +130,34 @@ const PmbmStatusPage: React.FC = () => {
               Status Pendaftaran PMBM
             </h1>
             <p className="text-secondary mt-1 text-sm">
-              MAN 3 Kulon Progo — TA 2026/2027 · Gelombang I
+              MAN 3 Kulon Progo — TA 2026/2027
             </p>
+          </div>
+
+          {/* Gelombang Tabs */}
+          <div className="flex rounded-xl overflow-hidden border border-secondary/20 mb-6 max-w-xs mx-auto">
+            {[
+              { value: "1", label: "Gelombang I" },
+              { value: "2", label: "Gelombang II" },
+            ].map((tab) => (
+              <button
+                key={tab.value}
+                onClick={() => {
+                  setGelombangFilter(tab.value);
+                  setJalurFilter("");
+                  setSearch("");
+                  setSearchInput("");
+                }}
+                className={`flex-1 py-2.5 text-sm font-medium transition-colors
+                  ${
+                    gelombangFilter === tab.value
+                      ? "bg-accent text-white"
+                      : "text-secondary hover:text-foreground hover:bg-accent/5"
+                  }`}
+              >
+                {tab.label}
+              </button>
+            ))}
           </div>
 
           {/* Filter Bar */}
@@ -104,26 +181,50 @@ const PmbmStatusPage: React.FC = () => {
               </button>
             </form>
 
-            <select
-              value={jalurFilter}
-              onChange={(e) => {
-                setJalurFilter(e.target.value);
-                setPage(1);
-              }}
-              className="form-input sm:w-48"
-            >
-              {JALUR_OPTIONS.map((o) => (
-                <option key={o.value} value={o.value}>
-                  {o.label}
+            {gelombangFilter === "1" && (
+              <div className="relative sm:w-48">
+                <Filter
+                  size={14}
+                  className="absolute left-3 top-1/2 -translate-y-1/2 text-secondary"
+                />
+                <select
+                  value={jalurFilter}
+                  onChange={(e) => {
+                    setJalurFilter(e.target.value);
+                    setPage(1);
+                  }}
+                  className="form-input pl-8 w-full"
+                >
+                  {filteredJalurOptions.map((o) => (
+                    <option key={o.value} value={o.value}>
+                      {o.label}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            )}
+
+            {gelombangFilter === "2" && (
+              <select
+                value={sortBy}
+                onChange={(e) => {
+                  setSortBy(e.target.value);
+                  setPage(1);
+                }}
+                className="form-input sm:w-52"
+              >
+                <option value="created_at">Urut: Tgl Daftar</option>
+                <option value="nilai_tka_literasi">
+                  Urut: Nilai Literasi ↓
                 </option>
-              ))}
-            </select>
+                <option value="nilai_tka_numerasi">
+                  Urut: Nilai Numerasi ↓
+                </option>
+              </select>
+            )}
 
             <button
-              onClick={() => {
-                setPage(1);
-                fetchData();
-              }}
+              onClick={fetchData}
               className="btn btn-secondary flex items-center gap-2 px-4"
               title="Refresh"
             >
@@ -150,7 +251,7 @@ const PmbmStatusPage: React.FC = () => {
               </div>
             ) : data.length === 0 && !error ? (
               <div className="p-12 text-center text-secondary">
-                Tidak ada data pendaftar ditemukan.
+                Tidak ada data ditemukan.
               </div>
             ) : (
               <table className="w-full text-sm">
@@ -164,45 +265,64 @@ const PmbmStatusPage: React.FC = () => {
                     <th className="px-4 py-3 text-left hidden md:table-cell">
                       Asal Sekolah
                     </th>
-                    <th className="px-4 py-3 text-left">Jalur</th>
+                    {gelombangFilter === "1" && (
+                      <th className="px-4 py-3 text-left">Jalur</th>
+                    )}
+                    {gelombangFilter === "2" && (
+                      <>
+                        <th className="px-4 py-3 text-left hidden md:table-cell">
+                          Literasi
+                        </th>
+                        <th className="px-4 py-3 text-left hidden md:table-cell">
+                          Numerasi
+                        </th>
+                      </>
+                    )}
                     <th className="px-4 py-3 text-left hidden md:table-cell">
-                      Gelombang
+                      Tanggal
                     </th>
-                    <th className="px-4 py-3 text-center">Status</th>
+                    <th className="px-4 py-3 text-left">Status</th>
                   </tr>
                 </thead>
+
                 <tbody className="divide-y divide-secondary/10">
                   {data.map((row, i) => (
-                    <tr
-                      key={row.nomor_pendaftaran}
-                      className="hover:bg-accent/5 transition-colors"
-                    >
-                      <td className="px-4 py-3 text-secondary hidden sm:table-cell">
+                    <tr key={row.nomor_pendaftaran}>
+                      <td className="px-4 py-3 hidden sm:table-cell">
                         {(page - 1) * LIMIT + i + 1}
                       </td>
-                      <td className="px-4 py-3 font-mono text-xs text-foreground">
+                      <td className="px-4 py-3 font-mono text-xs">
                         {row.nomor_pendaftaran}
                       </td>
-                      <td className="px-4 py-3 font-medium text-foreground">
-                        {row.nama_lengkap}
-                      </td>
-                      <td className="px-4 py-3 text-secondary hidden md:table-cell">
+                      <td className="px-4 py-3">{row.nama_lengkap}</td>
+                      <td className="px-4 py-3 hidden md:table-cell">
                         {row.asal_sekolah}
                       </td>
-                      <td className="px-4 py-3 text-secondary">
-                        {JALUR_LABEL[row.jalur] ?? row.jalur}
-                      </td>
-                      <td className="px-4 py-3 text-center text-secondary hidden md:table-cell">
-                        {row.gelombang}
+                      {gelombangFilter === "1" && (
+                        <td className="px-4 py-3">
+                          {JALUR_LABEL[row.jalur] ?? row.jalur}
+                        </td>
+                      )}
+                      {gelombangFilter === "2" && (
+                        <>
+                          <td className="px-4 py-3 hidden md:table-cell">
+                            {row.nilai_tka_literasi ?? "—"}
+                          </td>
+                          <td className="px-4 py-3 hidden md:table-cell">
+                            {row.nilai_tka_numerasi ?? "—"}
+                          </td>
+                        </>
+                      )}
+                      <td className="px-4 py-3 hidden md:table-cell">
+                        {new Date(row.created_at).toLocaleDateString("id-ID")}
                       </td>
                       <td className="px-4 py-3">
                         <span
-                          className={`px-2 py-1 rounded-full text-xs font-semibold whitespace-nowrap ${
-                            STATUS_COLOR[row.status] ??
-                            "bg-gray-100 text-gray-600"
+                          className={`px-2 py-1 rounded-full text-xs ${
+                            STATUS_COLOR[row.status]
                           }`}
                         >
-                          {STATUS_LABEL[row.status] ?? row.status}
+                          {STATUS_LABEL[row.status]}
                         </span>
                       </td>
                     </tr>
@@ -214,32 +334,26 @@ const PmbmStatusPage: React.FC = () => {
 
           {/* Pagination */}
           {totalPages > 1 && (
-            <div className="flex items-center justify-center gap-3 mt-6">
+            <div className="flex justify-center gap-3 mt-6">
               <button
                 onClick={() => setPage((p) => Math.max(1, p - 1))}
                 disabled={page === 1}
-                className="btn btn-secondary flex items-center gap-1 px-3 disabled:opacity-40"
+                className="btn btn-secondary"
               >
-                <ChevronLeft size={16} /> Prev
+                <ChevronLeft size={16} />
               </button>
-              <span className="text-sm text-secondary">
-                Halaman <strong className="text-foreground">{page}</strong> /{" "}
-                {totalPages}
+              <span className="text-sm">
+                {page} / {totalPages}
               </span>
               <button
                 onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
                 disabled={page === totalPages}
-                className="btn btn-secondary flex items-center gap-1 px-3 disabled:opacity-40"
+                className="btn btn-secondary"
               >
-                Next <ChevronRight size={16} />
+                <ChevronRight size={16} />
               </button>
             </div>
           )}
-
-          <p className="text-center text-xs text-secondary mt-6">
-            Data ditampilkan secara publik. Informasi sensitif tidak
-            ditampilkan.
-          </p>
         </div>
       </div>
     </Layout>

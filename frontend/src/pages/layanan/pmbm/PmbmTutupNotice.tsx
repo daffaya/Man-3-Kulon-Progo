@@ -1,12 +1,16 @@
 import React from "react";
 import { CalendarX, ArrowLeft, ClipboardList } from "lucide-react";
 import Layout from "../../../components/layout/Layout";
-import { GELOMBANG_AKTIF, JADWAL_PENUTUPAN } from "./pmbmConfig";
+import { GELOMBANG_AKTIF, BATAS_PENDAFTARAN } from "./pmbmConfig";
 
 const PmbmTutupNotice: React.FC = () => {
-  // Tentukan pesan berdasarkan gelombang terakhir yang aktif
-  const gelombangTerakhir = 1;
-  const tanggalTutup = JADWAL_PENUTUPAN[gelombangTerakhir];
+  const gelombangTerakhir = Math.max(
+    ...Object.entries(BATAS_PENDAFTARAN)
+      .filter(([, tanggal]) => tanggal)
+      .map(([g]) => Number(g)),
+    1,
+  );
+  const tanggalTutup = BATAS_PENDAFTARAN[gelombangTerakhir];
 
   return (
     <Layout>

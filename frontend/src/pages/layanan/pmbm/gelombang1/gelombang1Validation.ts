@@ -1,10 +1,10 @@
-import type { PmbmFormData } from "../pmbmTypes";
+import type { G1FormData } from "./gelombang1Types";
 
 export const validateG1Step = (
   step: number,
-  form: PmbmFormData,
-): Partial<Record<keyof PmbmFormData, string>> => {
-  const errors: Partial<Record<keyof PmbmFormData, string>> = {};
+  form: G1FormData,
+): Partial<Record<keyof G1FormData, string>> => {
+  const errors: Partial<Record<keyof G1FormData, string>> = {};
 
   if (step === 0) {
     if (!form.jalur) errors.jalur = "Pilih jalur pendaftaran terlebih dahulu";

@@ -1,4 +1,4 @@
-export const GELOMBANG_AKTIF: 1 | 2 | null = 1;
+export const GELOMBANG_AKTIF: 1 | 2 | null = 2;
 
 /**
  * Batas akhir pendaftaran per gelombang (inclusive — tutup di akhir hari itu).

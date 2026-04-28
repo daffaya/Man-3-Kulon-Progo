@@ -74,6 +74,8 @@ const pmbmApi = {
   getPublic: async (params?: {
     search?: string;
     jalur?: string;
+    gelombang?: number;
+    sortBy?: string;
     page?: number;
     limit?: number;
   }): Promise<{

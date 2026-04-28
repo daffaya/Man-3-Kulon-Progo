@@ -86,6 +86,7 @@ const createPmbmModel = ({ pool }) => {
       await pool.execute(
         `INSERT INTO pmbm_registrations (
            nomor_pendaftaran, jalur, gelombang, pilihan_keterampilan,
+           nilai_tka_literasi, nilai_tka_numerasi,
            nama_lengkap, nisn, nik, tempat_lahir, tanggal_lahir, jenis_kelamin,
            asal_sekolah, no_kk, alamat_lengkap, alamat_domisili, no_hp_siswa,
            nama_ayah, nama_ibu, pekerjaan_ayah, pekerjaan_ibu,
@@ -96,6 +97,7 @@ const createPmbmModel = ({ pool }) => {
            link_dokumen, komitmen
          ) VALUES (
            ?, ?, ?, ?,
+           ?, ?,
            ?, ?, ?, ?, ?, ?,
            ?, ?, ?, ?, ?,
            ?, ?, ?, ?,
@@ -110,6 +112,8 @@ const createPmbmModel = ({ pool }) => {
           data.jalur,
           gelombang,
           data.pilihan_keterampilan ?? null,
+          data.nilai_tka_literasi ?? null,
+          data.nilai_tka_numerasi ?? null,
           data.nama_lengkap,
           data.nisn,
           data.nik,
@@ -162,10 +166,21 @@ const createPmbmModel = ({ pool }) => {
      * @returns {number} returns.page - Current page number.
      * @returns {number} returns.limit - Number of records per page.
      */
-    findAllPublic: async ({ search, jalur, page = 1, limit = 20 } = {}) => {
+    findAllPublic: async ({
+      search,
+      jalur,
+      gelombang,
+      sortBy = "created_at",
+      page = 1,
+      limit = 20,
+    } = {}) => {
       const conditions = ["status NOT IN ('withdrawn', 'rejected')"];
       const params = [];
 
+      if (gelombang) {
+        conditions.push("gelombang = ?");
+        params.push(gelombang);
+      }
       if (jalur) {
         conditions.push("jalur = ?");
         params.push(jalur);
@@ -175,19 +190,26 @@ const createPmbmModel = ({ pool }) => {
         params.push(`%${search}%`, `%${search}%`);
       }
 
-      const where = conditions.length
-        ? `WHERE ${conditions.join(" AND ")}`
-        : "";
+      const where = `WHERE ${conditions.join(" AND ")}`;
       const offset = (page - 1) * limit;
+
+      const SORT_WHITELIST = [
+        "created_at",
+        "nilai_tka_literasi",
+        "nilai_tka_numerasi",
+      ];
+      const orderBy = SORT_WHITELIST.includes(sortBy) ? sortBy : "created_at";
+      const orderDir = sortBy.startsWith("nilai") ? "DESC" : "ASC";
 
       const [rows] = await pool.execute(
         `SELECT
           nomor_pendaftaran, jalur, gelombang,
           nama_lengkap, asal_sekolah,
-          status
+          nilai_tka_literasi, nilai_tka_numerasi,
+          status, created_at
         FROM pmbm_registrations
         ${where}
-        ORDER BY id ASC
+        ORDER BY ${orderBy} ${orderDir}
         LIMIT ? OFFSET ?`,
         [...params, limit, offset],
       );
@@ -361,24 +383,27 @@ const createPmbmModel = ({ pool }) => {
     update: async (id, data) => {
       const [result] = await pool.execute(
         `UPDATE pmbm_registrations SET
-     jalur = ?, pilihan_keterampilan = ?,
-     nama_lengkap = ?, nisn = ?, nik = ?,
-     tempat_lahir = ?, tanggal_lahir = ?, jenis_kelamin = ?,
-     asal_sekolah = ?, no_kk = ?,
-     alamat_lengkap = ?, alamat_domisili = ?, no_hp_siswa = ?,
-     nama_ayah = ?, nama_ibu = ?,
-     pekerjaan_ayah = ?, pekerjaan_ibu = ?,
-     penghasilan_ayah = ?, penghasilan_ibu = ?,
-     alamat_ortu = ?, alamat_domisili_ortu = ?,
-     no_hp_ayah = ?, no_hp_ibu = ?,
-     jumlah_hafalan_juz = ?, cabang_olahraga = ?, rata_rata_rapor = ?,
-     jenis_kejuaraan = ?, tingkat_kejuaraan = ?,
-     nama_kejuaraan = ?, tahun_kejuaraan = ?,
-     link_dokumen = ?, komitmen = ?
-   WHERE id = ?`,
+          jalur = ?, pilihan_keterampilan = ?,
+          nilai_tka_literasi = ?, nilai_tka_numerasi = ?,
+          nama_lengkap = ?, nisn = ?, nik = ?,
+          tempat_lahir = ?, tanggal_lahir = ?, jenis_kelamin = ?,
+          asal_sekolah = ?, no_kk = ?,
+          alamat_lengkap = ?, alamat_domisili = ?, no_hp_siswa = ?,
+          nama_ayah = ?, nama_ibu = ?,
+          pekerjaan_ayah = ?, pekerjaan_ibu = ?,
+          penghasilan_ayah = ?, penghasilan_ibu = ?,
+          alamat_ortu = ?, alamat_domisili_ortu = ?,
+          no_hp_ayah = ?, no_hp_ibu = ?,
+          jumlah_hafalan_juz = ?, cabang_olahraga = ?, rata_rata_rapor = ?,
+          jenis_kejuaraan = ?, tingkat_kejuaraan = ?,
+          nama_kejuaraan = ?, tahun_kejuaraan = ?,
+          link_dokumen = ?, komitmen = ?
+        WHERE id = ?`,
         [
           data.jalur,
           data.pilihan_keterampilan ?? null,
+          data.nilai_tka_literasi ?? null,
+          data.nilai_tka_numerasi ?? null,
           data.nama_lengkap,
           data.nisn,
           data.nik,

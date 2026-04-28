@@ -1,38 +1,24 @@
+/**
+ * @fileoverview Step 4 (Review) component for G2 registration form.
+ * Displays a summary of all user input before final submission.
+ */
+
 import React from "react";
 import PmbmReviewRow from "../../components/PmbmReviewRow";
-import type { G1FormData } from "../gelombang1Types";
-import {
-  JALUR_LABEL,
-  KETERAMPILAN_LABEL,
-} from "../../../../../types/pmbmTypes";
+import type { G2FormData } from "../gelombang2Types";
+import { KETERAMPILAN_LABEL } from "../../../../../types/pmbmTypes";
+import type { PilihanKeterampilan } from "../../../../../types/pmbmTypes";
 
-const G1Step5Review: React.FC<{ form: G1FormData }> = ({ form }) => (
+/**
+ * Step 4 review section.
+ */
+const G2Step4Review: React.FC<{ form: G2FormData }> = ({ form }) => (
   <div className="space-y-6">
     <p className="text-sm text-secondary">
-      Periksa kembali data yang kamu isi. Pastikan semua informasi sudah benar
-      sebelum submit.
+      Periksa kembali data sebelum submit.
     </p>
 
-    <div className="card p-5">
-      <h4 className="text-xs font-semibold uppercase tracking-wide text-accent mb-3">
-        Jalur
-      </h4>
-      <PmbmReviewRow
-        label="Jalur Pendaftaran"
-        value={JALUR_LABEL[form.jalur as keyof typeof JALUR_LABEL]}
-      />
-      {form.jalur === "keterampilan" && (
-        <PmbmReviewRow
-          label="Program Keterampilan"
-          value={
-            KETERAMPILAN_LABEL[
-              form.pilihan_keterampilan as keyof typeof KETERAMPILAN_LABEL
-            ]
-          }
-        />
-      )}
-    </div>
-
+    {/* Data Siswa */}
     <div className="card p-5">
       <h4 className="text-xs font-semibold uppercase tracking-wide text-accent mb-3">
         Data Siswa
@@ -44,7 +30,13 @@ const G1Step5Review: React.FC<{ form: G1FormData }> = ({ form }) => (
       <PmbmReviewRow label="Tanggal Lahir" value={form.tanggal_lahir} />
       <PmbmReviewRow
         label="Jenis Kelamin"
-        value={form.jenis_kelamin === "L" ? "Laki-laki" : "Perempuan"}
+        value={
+          form.jenis_kelamin === "L"
+            ? "Laki-laki"
+            : form.jenis_kelamin === "P"
+              ? "Perempuan"
+              : "-"
+        }
       />
       <PmbmReviewRow label="Asal Sekolah" value={form.asal_sekolah} />
       <PmbmReviewRow label="No. KK" value={form.no_kk} />
@@ -53,6 +45,7 @@ const G1Step5Review: React.FC<{ form: G1FormData }> = ({ form }) => (
       <PmbmReviewRow label="No. HP Siswa" value={form.no_hp_siswa} />
     </div>
 
+    {/* Data Ortu */}
     <div className="card p-5">
       <h4 className="text-xs font-semibold uppercase tracking-wide text-accent mb-3">
         Data Orang Tua
@@ -72,43 +65,38 @@ const G1Step5Review: React.FC<{ form: G1FormData }> = ({ form }) => (
       <PmbmReviewRow label="No. HP Ibu" value={form.no_hp_ibu} />
     </div>
 
+    {/* Dokumen & Minat */}
     <div className="card p-5">
       <h4 className="text-xs font-semibold uppercase tracking-wide text-accent mb-3">
-        Dokumen & Tambahan
+        Dokumen & Minat
       </h4>
-      {form.jalur === "tahfidz" && (
-        <PmbmReviewRow
-          label="Hafalan"
-          value={
-            form.jumlah_hafalan_juz ? `${form.jumlah_hafalan_juz} Juz` : ""
-          }
-        />
-      )}
-      {form.jalur === "kko" && (
-        <PmbmReviewRow label="Cabang Olahraga" value={form.cabang_olahraga} />
-      )}
-      {form.jalur === "akademik" && (
-        <PmbmReviewRow
-          label="Rata-rata Rapor"
-          value={form.rata_rata_rapor ? String(form.rata_rata_rapor) : ""}
-        />
-      )}
-      {form.nama_kejuaraan && (
-        <PmbmReviewRow
-          label="Kejuaraan"
-          value={`${form.nama_kejuaraan} (${form.tingkat_kejuaraan}, ${form.tahun_kejuaraan})`}
-        />
-      )}
+
       <PmbmReviewRow
-        label="Link Dokumen"
-        value={form.link_dokumen || "Tidak dilampirkan"}
+        label="Nilai TKA Literasi"
+        value={form.nilai_tka_literasi ? `${form.nilai_tka_literasi}` : "—"}
       />
       <PmbmReviewRow
+        label="Nilai TKA Numerasi"
+        value={form.nilai_tka_numerasi ? `${form.nilai_tka_numerasi}` : "—"}
+      />
+
+      <PmbmReviewRow
+        label="Minat Keterampilan"
+        value={
+          form.pilihan_keterampilan
+            ? KETERAMPILAN_LABEL[
+                form.pilihan_keterampilan as PilihanKeterampilan
+              ]
+            : "-"
+        }
+      />
+      <PmbmReviewRow label="Link Dokumen" value={form.link_dokumen || "-"} />
+      <PmbmReviewRow
         label="Komitmen"
-        value={form.komitmen ? "✅ Bersedia" : "❌ Belum dicentang"}
+        value={form.komitmen ? "Bersedia" : "Belum dicentang"}
       />
     </div>
   </div>
 );
 
-export default G1Step5Review;
+export default G2Step4Review;

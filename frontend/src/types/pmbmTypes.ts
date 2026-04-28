@@ -1,5 +1,12 @@
 /**
- * Defines the available registration tracks for PMBM.
+ * @fileoverview Type definitions for PMBM registration system.
+ * This file defines TypeScript types and interfaces used for registration flow,
+ * including form payloads, API responses, and data representations for admin
+ * and public views.
+ */
+
+/**
+ * Available registration tracks.
  */
 export type JalurPendaftaran =
   | "tahfidz"
@@ -11,12 +18,12 @@ export type JalurPendaftaran =
   | "tes";
 
 /**
- * Defines the available skills program options for the keterampilan track.
+ * Available skill program options (keterampilan track).
  */
 export type PilihanKeterampilan = "titl" | "tata_busana" | "multimedia";
 
 /**
- * Defines the competition level options for award certificates.
+ * Competition levels for achievements.
  */
 export type TingkatKejuaraan =
   | "kecamatan"
@@ -25,7 +32,7 @@ export type TingkatKejuaraan =
   | "nasional";
 
 /**
- * Defines the possible statuses of a registration record.
+ * Registration status values.
  */
 export type StatusPendaftaran =
   | "pending"
@@ -35,11 +42,14 @@ export type StatusPendaftaran =
   | "withdrawn";
 
 /**
- * Represents the complete form data payload submitted to the backend.
+ * Form payload for PMBM registration submission.
  */
 export interface PmbmFormData {
   jalur: JalurPendaftaran | "";
   pilihan_keterampilan: PilihanKeterampilan | "";
+
+  nilai_tka_literasi: number | "";
+  nilai_tka_numerasi: number | "";
 
   nama_lengkap: string;
   nisn: string;
@@ -76,13 +86,13 @@ export interface PmbmFormData {
 }
 
 /**
- * Represents the response returned by the backend after a successful registration.
+ * Response returned after successful registration.
  */
 export interface PmbmRegisterResponse {
   success: boolean;
   message: string;
   data: {
-    /** Auto-generated registration number in format PMBM-YYYY-XXXX. */
+    /** Format: PMBM-YYYY-XXXX */
     nomor_pendaftaran: string;
     nama_lengkap: string;
     jalur: JalurPendaftaran;
@@ -90,7 +100,7 @@ export interface PmbmRegisterResponse {
 }
 
 /**
- * Represents a single registration record as returned in the admin list view.
+ * Registration data used in admin listing.
  */
 export interface PmbmRegistrationSummary {
   id: number;
@@ -107,14 +117,7 @@ export interface PmbmRegistrationSummary {
 }
 
 /**
- * Represents a single registration record exposed in the public listing.
- * This interface only includes non-sensitive fields that are safe to display publicly.
- *
- * Differences from {@link PmbmRegistrationSummary}:
- * - Does NOT include personal identifiers such as NISN or phone number.
- * * - Does NOT include internal ID or selected skill details.
- *
- * Typically used in public-facing endpoints (e.g., registration status lookup or announcement pages).
+ * Public-safe registration data (excludes sensitive fields).
  */
 export interface PmbmPublicEntry {
   nomor_pendaftaran: string;
@@ -122,12 +125,14 @@ export interface PmbmPublicEntry {
   gelombang: number;
   nama_lengkap: string;
   asal_sekolah: string;
+  nilai_tka_literasi: number | null;
+  nilai_tka_numerasi: number | null;
   status: StatusPendaftaran;
   created_at: string;
 }
 
 /**
- * Human-readable labels for each registration track.
+ * Human-readable labels for registration tracks.
  */
 export const JALUR_LABEL: Record<JalurPendaftaran, string> = {
   tahfidz: "Tahfidz",
@@ -140,7 +145,7 @@ export const JALUR_LABEL: Record<JalurPendaftaran, string> = {
 };
 
 /**
- * Human-readable labels for each skills program option.
+ * Human-readable labels for skill program options.
  */
 export const KETERAMPILAN_LABEL: Record<PilihanKeterampilan, string> = {
   titl: "TITL (Teknik Instalasi Tenaga Listrik)",
@@ -149,7 +154,7 @@ export const KETERAMPILAN_LABEL: Record<PilihanKeterampilan, string> = {
 };
 
 /**
- * Human-readable labels for each registration status.
+ * Human-readable labels for registration status.
  */
 export const STATUS_LABEL: Record<StatusPendaftaran, string> = {
   pending: "Menunggu Verifikasi",

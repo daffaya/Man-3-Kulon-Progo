@@ -1,8 +1,8 @@
 import type {
-  PmbmFormData,
   JalurPendaftaran,
   PilihanKeterampilan,
-} from "../pmbmTypes";
+  TingkatKejuaraan,
+} from "../../../../types/pmbmTypes";
 import {
   ClipboardList,
   User,
@@ -15,6 +15,41 @@ import {
   Star,
   Heart,
 } from "lucide-react";
+
+export interface G1FormData {
+  jalur: JalurPendaftaran | "";
+  pilihan_keterampilan: PilihanKeterampilan | "";
+  nama_lengkap: string;
+  nisn: string;
+  nik: string;
+  tempat_lahir: string;
+  tanggal_lahir: string;
+  jenis_kelamin: "L" | "P" | "";
+  asal_sekolah: string;
+  no_kk: string;
+  alamat_lengkap: string;
+  alamat_domisili: string;
+  no_hp_siswa: string;
+  nama_ayah: string;
+  nama_ibu: string;
+  pekerjaan_ayah: string;
+  pekerjaan_ibu: string;
+  penghasilan_ayah: string;
+  penghasilan_ibu: string;
+  alamat_ortu: string;
+  alamat_domisili_ortu: string;
+  no_hp_ayah: string;
+  no_hp_ibu: string;
+  jumlah_hafalan_juz: number | "";
+  cabang_olahraga: string;
+  rata_rata_rapor: number | "";
+  jenis_kejuaraan: string;
+  tingkat_kejuaraan: TingkatKejuaraan | "";
+  nama_kejuaraan: string;
+  tahun_kejuaraan: number | "";
+  link_dokumen: string;
+  komitmen: boolean;
+}
 
 // ─── Steps ───────────────────────────────────────────
 export const G1_STEPS = [
@@ -86,7 +121,7 @@ export const G1_PENGHASILAN_OPTIONS = [
 ];
 
 // ─── Initial Form ─────────────────────────────────────
-export const G1_INITIAL_FORM: PmbmFormData = {
+export const G1_INITIAL_FORM: G1FormData = {
   jalur: "",
   pilihan_keterampilan: "",
   nama_lengkap: "",
@@ -123,7 +158,7 @@ export const G1_INITIAL_FORM: PmbmFormData = {
 
 // ─── Shared Step Props ────────────────────────────────
 export interface G1StepProps {
-  form: PmbmFormData;
-  setForm: React.Dispatch<React.SetStateAction<PmbmFormData>>;
-  errors: Partial<Record<keyof PmbmFormData, string>>;
+  form: G1FormData;
+  setForm: React.Dispatch<React.SetStateAction<G1FormData>>;
+  errors: Partial<Record<keyof G1FormData, string>>;
 }

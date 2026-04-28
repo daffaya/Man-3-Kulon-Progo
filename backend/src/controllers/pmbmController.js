@@ -23,7 +23,13 @@ const JALUR_VALID_ALL = [...JALUR_VALID_G1, ...JALUR_VALID_G2];
 
 const KETERAMPILAN_VALID = ["titl", "tata_busana", "multimedia"];
 
-const STATUS_VALID = ["pending", "verified", "accepted", "rejected", "withdrawn"];
+const STATUS_VALID = [
+  "pending",
+  "verified",
+  "accepted",
+  "rejected",
+  "withdrawn",
+];
 
 const REQUIRED_FIELDS = [
   "jalur",
@@ -156,11 +162,13 @@ const pmbmControllerFactory = ({ pool }) => {
    * @returns {Promise<void>}
    */
   const handleGetPublic = async (req, res) => {
-    const { search, jalur, page, limit } = req.query;
+    const { search, jalur, gelombang, sortBy, page, limit } = req.query;
     try {
       const result = await pmbmModel.findAllPublic({
         search,
         jalur,
+        gelombang: gelombang ? parseInt(gelombang) : undefined,
+        sortBy,
         page: page ? parseInt(page) : 1,
         limit: limit ? parseInt(limit) : 20,
       });
