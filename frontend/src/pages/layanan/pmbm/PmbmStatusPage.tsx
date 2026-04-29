@@ -16,7 +16,7 @@ import Layout from "../../../components/layout/Layout";
 import pmbmApi from "../../../api/pmbmApi";
 import type { PmbmPublicEntry } from "../../../types/pmbmTypes";
 import { JALUR_LABEL, STATUS_LABEL } from "../../../types/pmbmTypes";
-import { GELOMBANG_AKTIF } from "./pmbmConfig";
+import { GELOMBANG_AKTIF, GELOMBANG_TAMPIL } from "./pmbmConfig";
 
 /**
  * Status badge color mapping.
@@ -30,9 +30,6 @@ const STATUS_COLOR: Record<string, string> = {
   rejected: "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300",
 };
 
-/**
- * Available jalur filter options.
- */
 const JALUR_OPTIONS = [
   { value: "", label: "Semua Jalur" },
   { value: "tahfidz", label: "Tahfidz" },
@@ -46,9 +43,6 @@ const JALUR_OPTIONS = [
 
 const LIMIT = 20;
 
-/**
- * Public status page component.
- */
 const PmbmStatusPage: React.FC = () => {
   const [data, setData] = useState<PmbmPublicEntry[]>([]);
   const [total, setTotal] = useState(0);
@@ -60,15 +54,22 @@ const PmbmStatusPage: React.FC = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
 
-  // Default ke gelombang aktif (fallback: 1)
   const [gelombangFilter, setGelombangFilter] = useState<string>(
-    String(GELOMBANG_AKTIF ?? 1),
+    String(GELOMBANG_TAMPIL ?? 1),
   );
 
+  const isGelombangTerkunci = Number(gelombangFilter) > GELOMBANG_TAMPIL;
+
   /**
-   * Fetch public registration data.
+   * Fetch data
    */
   const fetchData = useCallback(async () => {
+    if (isGelombangTerkunci) {
+      setData([]);
+      setTotal(0);
+      return;
+    }
+
     setIsLoading(true);
     setError("");
 
@@ -89,15 +90,12 @@ const PmbmStatusPage: React.FC = () => {
     } finally {
       setIsLoading(false);
     }
-  }, [search, jalurFilter, gelombangFilter, sortBy, page]);
+  }, [search, jalurFilter, gelombangFilter, sortBy, page, isGelombangTerkunci]);
 
   useEffect(() => {
     fetchData();
   }, [fetchData]);
 
-  /**
-   * Reset page when filters change.
-   */
   useEffect(() => {
     setPage(1);
   }, [search, jalurFilter, gelombangFilter]);
@@ -110,9 +108,6 @@ const PmbmStatusPage: React.FC = () => {
 
   const totalPages = Math.ceil(total / LIMIT);
 
-  /**
-   * Filter jalur options based on selected gelombang.
-   */
   const filteredJalurOptions = JALUR_OPTIONS.filter((o) => {
     if (!o.value) return true;
     if (gelombangFilter === "1") return o.value !== "tes";
@@ -134,33 +129,42 @@ const PmbmStatusPage: React.FC = () => {
             </p>
           </div>
 
-          {/* Gelombang Tabs */}
+          {/* Tabs */}
           <div className="flex rounded-xl overflow-hidden border border-secondary/20 mb-6 max-w-xs mx-auto">
             {[
               { value: "1", label: "Gelombang I" },
               { value: "2", label: "Gelombang II" },
-            ].map((tab) => (
-              <button
-                key={tab.value}
-                onClick={() => {
-                  setGelombangFilter(tab.value);
-                  setJalurFilter("");
-                  setSearch("");
-                  setSearchInput("");
-                }}
-                className={`flex-1 py-2.5 text-sm font-medium transition-colors
+            ].map((tab) => {
+              const isLocked = Number(tab.value) > GELOMBANG_TAMPIL;
+
+              return (
+                <button
+                  key={tab.value}
+                  onClick={() => {
+                    setGelombangFilter(tab.value);
+                    setJalurFilter("");
+                    setSearch("");
+                    setSearchInput("");
+                  }}
+                  className={`flex-1 flex flex-col items-center justify-center py-2.5 text-sm font-medium transition-colors
                   ${
                     gelombangFilter === tab.value
                       ? "bg-accent text-white"
                       : "text-secondary hover:text-foreground hover:bg-accent/5"
                   }`}
-              >
-                {tab.label}
-              </button>
-            ))}
+                >
+                  <span>{tab.label}</span>
+                  {isLocked && (
+                    <span className="text-xs text-yellow-500 leading-tight">
+                      (Belum dibuka)
+                    </span>
+                  )}
+                </button>
+              );
+            })}
           </div>
 
-          {/* Filter Bar */}
+          {/* Filter */}
           <div className="card p-4 mb-6 flex flex-col sm:flex-row gap-3">
             <form onSubmit={handleSearch} className="flex gap-2 flex-1">
               <div className="relative flex-1">
@@ -181,7 +185,7 @@ const PmbmStatusPage: React.FC = () => {
               </button>
             </form>
 
-            {gelombangFilter === "1" && (
+            {gelombangFilter === "1" && !isGelombangTerkunci && (
               <div className="relative sm:w-48">
                 <Filter
                   size={14}
@@ -204,7 +208,7 @@ const PmbmStatusPage: React.FC = () => {
               </div>
             )}
 
-            {gelombangFilter === "2" && (
+            {gelombangFilter === "2" && !isGelombangTerkunci && (
               <select
                 value={sortBy}
                 onChange={(e) => {
@@ -226,37 +230,46 @@ const PmbmStatusPage: React.FC = () => {
             <button
               onClick={fetchData}
               className="btn btn-secondary flex items-center gap-2 px-4"
-              title="Refresh"
             >
               <RefreshCw size={16} />
             </button>
           </div>
 
           {/* Info */}
-          <p className="text-sm text-secondary mb-3">
-            Menampilkan{" "}
-            <strong className="text-foreground">{data.length}</strong> dari{" "}
-            <strong className="text-foreground">{total}</strong> pendaftar
-          </p>
+          {!isGelombangTerkunci && (
+            <p className="text-sm text-secondary mb-3">
+              Menampilkan{" "}
+              <strong className="text-foreground">{data.length}</strong> dari{" "}
+              <strong className="text-foreground">{total}</strong> pendaftar
+            </p>
+          )}
 
           {/* Table */}
           <div className="card overflow-x-auto shadow">
-            {error && (
+            {isGelombangTerkunci ? (
+              <div className="p-12 text-center text-secondary">
+                <p className="text-lg font-medium mb-2">
+                  Gelombang II belum dibuka
+                </p>
+                <p className="text-sm">
+                  Tunggu Informasi Selanjutnya atau kontak panitia untuk
+                  informasi lebih lanjut.
+                </p>
+              </div>
+            ) : error ? (
               <div className="p-6 text-center text-red-500">{error}</div>
-            )}
-
-            {isLoading ? (
+            ) : isLoading ? (
               <div className="p-12 text-center text-secondary animate-pulse">
                 Memuat data...
               </div>
-            ) : data.length === 0 && !error ? (
+            ) : data.length === 0 ? (
               <div className="p-12 text-center text-secondary">
                 Tidak ada data ditemukan.
               </div>
             ) : (
               <table className="w-full text-sm">
                 <thead>
-                  <tr className="bg-semibackground text-secondary text-xs uppercase tracking-wide">
+                  <tr className="bg-semibackground text-secondary text-xs uppercase">
                     <th className="px-4 py-3 text-left hidden sm:table-cell">
                       No
                     </th>
@@ -285,7 +298,7 @@ const PmbmStatusPage: React.FC = () => {
                   </tr>
                 </thead>
 
-                <tbody className="divide-y divide-secondary/10">
+                <tbody>
                   {data.map((row, i) => (
                     <tr key={row.nomor_pendaftaran}>
                       <td className="px-4 py-3 hidden sm:table-cell">
@@ -298,11 +311,13 @@ const PmbmStatusPage: React.FC = () => {
                       <td className="px-4 py-3 hidden md:table-cell">
                         {row.asal_sekolah}
                       </td>
+
                       {gelombangFilter === "1" && (
                         <td className="px-4 py-3">
                           {JALUR_LABEL[row.jalur] ?? row.jalur}
                         </td>
                       )}
+
                       {gelombangFilter === "2" && (
                         <>
                           <td className="px-4 py-3 hidden md:table-cell">
@@ -313,9 +328,11 @@ const PmbmStatusPage: React.FC = () => {
                           </td>
                         </>
                       )}
+
                       <td className="px-4 py-3 hidden md:table-cell">
                         {new Date(row.created_at).toLocaleDateString("id-ID")}
                       </td>
+
                       <td className="px-4 py-3">
                         <span
                           className={`px-2 py-1 rounded-full text-xs ${
@@ -333,7 +350,7 @@ const PmbmStatusPage: React.FC = () => {
           </div>
 
           {/* Pagination */}
-          {totalPages > 1 && (
+          {!isGelombangTerkunci && totalPages > 1 && (
             <div className="flex justify-center gap-3 mt-6">
               <button
                 onClick={() => setPage((p) => Math.max(1, p - 1))}

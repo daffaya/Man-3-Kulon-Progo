@@ -1,143 +1,123 @@
 /**
- * @fileoverview MitraPage component for displaying a list of MAN 3 Kulon Progo's partners.
- * This component renders a table showing partner institutions, their types, and cooperation forms.
+ * @fileoverview MitraPage — migrated to CMS.
+ * Fetches content from site_contents (page: mitra, section: content).
  */
 
 import React from "react";
 import Layout from "../../components/layout/Layout";
+import { useCmsSection } from "../../hooks/useCmsPage";
 
-/**
- * Interface defining the structure for partner data.
- * @interface
- */
-interface PartnerData {
-  no: number;
+interface PartnerItem {
   name: string;
   institution: string;
   cooperation: string;
 }
 
-/**
- * Constant array containing partner data with their details.
- */
-const PARTNER_LIST: PartnerData[] = [
-  {
-    no: 1,
-    name: "Puskesmas Kalibawang",
-    institution: "Instansi Pemerintah",
-    cooperation: "Pelayanan Kesehatan",
-  },
-  {
-    no: 2,
-    name: "Polsek Kalibawang",
-    institution: "Instansi Pemerintah",
-    cooperation: "Pembinaan Mental",
-  },
-  {
-    no: 3,
-    name: "Koramil Kalibawang",
-    institution: "Instansi Pemerintah",
-    cooperation: "Bela Negara Baik",
-  },
-  {
-    no: 4,
-    name: "Kalyanamitra, lembaga peduli anak",
-    institution: "Lembaga Swadaya Masyarakat",
-    cooperation: "Sosial dan Pendidikan",
-  },
-  {
-    no: 5,
-    name: "Kebun binatang Gembiraloka",
-    institution: "Dunia Usaha",
-    cooperation: "Edukasi dan Rekreasi",
-  },
-  {
-    no: 6,
-    name: "KPPN Wates Kulon Progo",
-    institution: "Instansi Pemerintah",
-    cooperation: "Penyalur/pembayar dana DIPA",
-  },
-  {
-    no: 7,
-    name: "BRI Kantor Cabang Kulon Progo",
-    institution: "Dunia Usaha (BUMN)",
-    cooperation: "Keuangan",
-  },
-  {
-    no: 8,
-    name: "KPP Pratama",
-    institution: "Instansi Pemerintah",
-    cooperation: "Pajak",
-  },
-  {
-    no: 9,
-    name: "Dinas Tenaga Kerja Sosial dan Transmigrasi",
-    institution: "Instansi Pemerintah",
-    cooperation:
-      "Pembinaan, informasi dan Penempatan kerja bagi alumni Madrasah",
-  },
-  {
-    no: 10,
-    name: "PT. Sukses Mandiri Utama",
-    institution: "Dunia Usaha (Perusahaan Jasa)",
-    cooperation: "Informasi dan penempatan kerja",
-  },
-  {
-    no: 11,
-    name: "PT. Sumbiri",
-    institution: "Dunia Usaha (Perusahaan Manufaktur)",
-    cooperation: "Informasi dan penempatan kerja",
-  },
-  {
-    no: 12,
-    name: "PT. Telkom Indonesia",
-    institution: "Dunia Usaha (Perusahaan BUMN)",
-    cooperation: "Layanan telpon dan internet",
-  },
-  {
-    no: 13,
-    name: "CV. Jogja Medianet",
-    institution: "Dunia Usaha",
-    cooperation: "Layanan internet",
-  },
-  {
-    no: 14,
-    name: "PAY Sulton Salim",
-    institution: "Yayasan",
-    cooperation: "Pendidikan",
-  },
-  {
-    no: 15,
-    name: "PP. Nurul Huda",
-    institution: "Lembaga Pendidikan",
-    cooperation: "Pendidikan Pesantren",
-  },
-  {
-    no: 16,
-    name: "Bambu Asri",
-    institution: "Dunia Usaha",
-    cooperation: "Pelatihan keterampilan",
-  },
-  {
-    no: 17,
-    name: "PP An Najwa Ngluar Magelang",
-    institution: "Lembaga Pendidikan",
-    cooperation: "Pendidikan Pesantren",
-  },
-  {
-    no: 18,
-    name: "BLK Ansor KP",
-    institution: "Organisasi Masyarakat",
-    cooperation: "Pelatihan Keterampilan",
-  },
-];
+interface MitraContent {
+  partners: PartnerItem[];
+}
 
-/**
- * Component that displays a table of MAN 3 Kulon Progo's partners.
- * Renders a responsive table with partner details including name, institution type,
- * and form of cooperation.
- */
+const FALLBACK: MitraContent = {
+  partners: [
+    {
+      name: "Puskesmas Kalibawang",
+      institution: "Instansi Pemerintah",
+      cooperation: "Pelayanan Kesehatan",
+    },
+    {
+      name: "Polsek Kalibawang",
+      institution: "Instansi Pemerintah",
+      cooperation: "Pembinaan Mental",
+    },
+    {
+      name: "Koramil Kalibawang",
+      institution: "Instansi Pemerintah",
+      cooperation: "Bela Negara Baik",
+    },
+    {
+      name: "Kalyanamitra, lembaga peduli anak",
+      institution: "Lembaga Swadaya Masyarakat",
+      cooperation: "Sosial dan Pendidikan",
+    },
+    {
+      name: "Kebun binatang Gembiraloka",
+      institution: "Dunia Usaha",
+      cooperation: "Edukasi dan Rekreasi",
+    },
+    {
+      name: "KPPN Wates Kulon Progo",
+      institution: "Instansi Pemerintah",
+      cooperation: "Penyalur/pembayar dana DIPA",
+    },
+    {
+      name: "BRI Kantor Cabang Kulon Progo",
+      institution: "Dunia Usaha (BUMN)",
+      cooperation: "Keuangan",
+    },
+    {
+      name: "KPP Pratama",
+      institution: "Instansi Pemerintah",
+      cooperation: "Pajak",
+    },
+    {
+      name: "Dinas Tenaga Kerja Sosial dan Transmigrasi",
+      institution: "Instansi Pemerintah",
+      cooperation:
+        "Pembinaan, informasi dan Penempatan kerja bagi alumni Madrasah",
+    },
+    {
+      name: "PT. Sukses Mandiri Utama",
+      institution: "Dunia Usaha (Perusahaan Jasa)",
+      cooperation: "Informasi dan penempatan kerja",
+    },
+    {
+      name: "PT. Sumbiri",
+      institution: "Dunia Usaha (Perusahaan Manufaktur)",
+      cooperation: "Informasi dan penempatan kerja",
+    },
+    {
+      name: "PT. Telkom Indonesia",
+      institution: "Dunia Usaha (Perusahaan BUMN)",
+      cooperation: "Layanan telpon dan internet",
+    },
+    {
+      name: "CV. Jogja Medianet",
+      institution: "Dunia Usaha",
+      cooperation: "Layanan internet",
+    },
+    {
+      name: "PAY Sulton Salim",
+      institution: "Yayasan",
+      cooperation: "Pendidikan",
+    },
+    {
+      name: "PP. Nurul Huda",
+      institution: "Lembaga Pendidikan",
+      cooperation: "Pendidikan Pesantren",
+    },
+    {
+      name: "Bambu Asri",
+      institution: "Dunia Usaha",
+      cooperation: "Pelatihan keterampilan",
+    },
+    {
+      name: "PP An Najwa Ngluar Magelang",
+      institution: "Lembaga Pendidikan",
+      cooperation: "Pendidikan Pesantren",
+    },
+    {
+      name: "BLK Ansor KP",
+      institution: "Organisasi Masyarakat",
+      cooperation: "Pelatihan Keterampilan",
+    },
+  ],
+};
+
 const MitraPage: React.FC = () => {
+  const { data, loading } = useCmsSection<MitraContent>("mitra", "content");
+
+  const partners: PartnerItem[] = data?.partners ?? FALLBACK.partners;
+
   return (
     <Layout>
       <div className="container mx-auto px-4 sm:px-6 py-12 max-w-5xl fade-in">
@@ -149,56 +129,57 @@ const MitraPage: React.FC = () => {
             <table className="min-w-full border-collapse border border-gray-300 dark:border-gray-600">
               <thead>
                 <tr className="bg-gray-100 dark:bg-gray-700">
-                  <th
-                    className="border border-gray-300 dark:border-gray-600 px-4 py-2 text-center text-gray-800 dark:text-gray-200"
-                    scope="col"
-                  >
+                  <th className="border border-gray-300 dark:border-gray-600 px-4 py-2 text-center text-gray-800 dark:text-gray-200">
                     No
                   </th>
-                  <th
-                    className="border border-gray-300 dark:border-gray-600 px-4 py-2 text-center text-gray-800 dark:text-gray-200"
-                    scope="col"
-                  >
+                  <th className="border border-gray-300 dark:border-gray-600 px-4 py-2 text-center text-gray-800 dark:text-gray-200">
                     Nama Mitra
                   </th>
-                  <th
-                    className="border border-gray-300 dark:border-gray-600 px-4 py-2 text-center text-gray-800 dark:text-gray-200"
-                    scope="col"
-                  >
+                  <th className="border border-gray-300 dark:border-gray-600 px-4 py-2 text-center text-gray-800 dark:text-gray-200">
                     Instansi/Lembaga/Dunia Usaha
                   </th>
-                  <th
-                    className="border border-gray-300 dark:border-gray-600 px-4 py-2 text-center text-gray-800 dark:text-gray-200"
-                    scope="col"
-                  >
+                  <th className="border border-gray-300 dark:border-gray-600 px-4 py-2 text-center text-gray-800 dark:text-gray-200">
                     Bentuk Kerja Sama
                   </th>
                 </tr>
               </thead>
               <tbody>
-                {PARTNER_LIST.map((partner, index) => (
-                  <tr
-                    key={`partner-${index}`}
-                    className={
-                      index % 2 === 0
-                        ? "bg-white dark:bg-gray-800"
-                        : "bg-gray-50 dark:bg-gray-900"
-                    }
-                  >
-                    <td className="border border-gray-300 dark:border-gray-600 px-4 py-2 text-center">
-                      {partner.no}
-                    </td>
-                    <td className="border border-gray-300 dark:border-gray-600 px-4 py-2">
-                      {partner.name}
-                    </td>
-                    <td className="border border-gray-300 dark:border-gray-600 px-4 py-2">
-                      {partner.institution}
-                    </td>
-                    <td className="border border-gray-300 dark:border-gray-600 px-4 py-2">
-                      {partner.cooperation}
-                    </td>
-                  </tr>
-                ))}
+                {loading
+                  ? [...Array(8)].map((_, i) => (
+                      <tr key={i}>
+                        {[...Array(4)].map((_, j) => (
+                          <td
+                            key={j}
+                            className="border border-gray-300 dark:border-gray-600 px-4 py-2"
+                          >
+                            <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded animate-pulse" />
+                          </td>
+                        ))}
+                      </tr>
+                    ))
+                  : partners.map((partner, index) => (
+                      <tr
+                        key={index}
+                        className={
+                          index % 2 === 0
+                            ? "bg-white dark:bg-gray-800"
+                            : "bg-gray-50 dark:bg-gray-900"
+                        }
+                      >
+                        <td className="border border-gray-300 dark:border-gray-600 px-4 py-2 text-center">
+                          {index + 1}
+                        </td>
+                        <td className="border border-gray-300 dark:border-gray-600 px-4 py-2">
+                          {partner.name}
+                        </td>
+                        <td className="border border-gray-300 dark:border-gray-600 px-4 py-2">
+                          {partner.institution}
+                        </td>
+                        <td className="border border-gray-300 dark:border-gray-600 px-4 py-2">
+                          {partner.cooperation}
+                        </td>
+                      </tr>
+                    ))}
               </tbody>
             </table>
           </div>

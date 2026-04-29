@@ -1,12 +1,17 @@
 export const GELOMBANG_AKTIF: 1 | 2 | null = 2;
 
 /**
+ * Gelombang yang boleh ditampilkan ke publik
+ */
+export const GELOMBANG_TAMPIL: 1 | 2 = 1;
+
+/**
  * Batas akhir pendaftaran per gelombang (inclusive — tutup di akhir hari itu).
  * Format: YYYY-MM-DD
  */
 export const BATAS_PENDAFTARAN: Record<number, string> = {
   1: "2026-04-27",
-  2: "", //Isi dengan batas pendaftaran gelombang 2 jika ada, atau biarkan kosong jika tidak ada gelombang 2
+  2: "", //TODO Isi dengan batas pendaftaran gelombang 2 jika ada, atau biarkan kosong jika tidak ada gelombang 2
 };
 
 /**

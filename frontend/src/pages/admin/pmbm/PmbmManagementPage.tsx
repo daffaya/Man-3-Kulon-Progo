@@ -12,6 +12,8 @@ import {
   Download,
   ArrowLeft,
   ClipboardList,
+  ChevronLeft,
+  ChevronRight,
 } from "lucide-react";
 import AdminLayout from "../../../components/layout/AdminLayout";
 import PmbmTable from "../../../components/tables/PmbmTable";
@@ -22,7 +24,7 @@ import pmbmApi from "../../../api/pmbmApi";
 import type { PmbmRegistrationSummary } from "../../../types/pmbmTypes";
 import { JALUR_LABEL, STATUS_LABEL } from "../../../types/pmbmTypes";
 
-const ITEMS_PER_PAGE = 20;
+const ITEMS_PER_PAGE = 10;
 
 /**
  * Helper function to parse filename from Content-Disposition header.
@@ -50,7 +52,7 @@ const PmbmManagementPage: React.FC = () => {
   const [isExporting, setIsExporting] = useState(false);
 
   // Filters
-  const [filterGelombang, setFilterGelombang] = useState<string>("");
+  const [filterGelombang, setFilterGelombang] = useState<string>("1");
   const [filterJalur, setFilterJalur] = useState<string>("");
   const [filterStatus, setFilterStatus] = useState<string>("");
 
@@ -60,6 +62,11 @@ const PmbmManagementPage: React.FC = () => {
   const [showDetailModal, setShowDetailModal] = useState(false);
 
   const totalPages = Math.ceil(total / ITEMS_PER_PAGE);
+
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
+    window.scrollTo(0, 0);
+  };
 
   const fetchRegistrations = useCallback(async () => {
     setLoading(true);
@@ -174,18 +181,20 @@ const PmbmManagementPage: React.FC = () => {
   return (
     <AdminLayout>
       <div className="container mx-auto px-4 sm:px-6 py-8 fade-in">
+        {/* Tombol kembali */}
+        <button
+          onClick={() => navigate("/atmin")}
+          className="text-sm text-secondary hover:text-accent flex items-center mb-4 transition-colors"
+        >
+          <ArrowLeft className="h-4 w-4 mr-1" />
+          Kembali
+        </button>
+
         {/* Page Header */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
-          <div className="flex items-center gap-4">
-            <button
-              onClick={() => navigate("/atmin")}
-              className="text-sm text-secondary hover:text-accent flex items-center transition-colors"
-            >
-              <ArrowLeft className="h-4 w-4 mr-1" />
-              Kembali
-            </button>
-            <div className="flex items-center gap-2">
-              <ClipboardList className="h-7 w-7 text-accent" />
+          <div className="flex items-center gap-2">
+            <ClipboardList className="h-7 w-7 text-accent" />
+            <div>
               <h1 className="text-3xl font-serif font-bold text-foreground">
                 Manajemen PMBM
               </h1>
@@ -219,21 +228,31 @@ const PmbmManagementPage: React.FC = () => {
         </div>
 
         {/* Filters */}
-        <div className="card p-5 mb-6">
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-            <div className="relative">
-              <Filter className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-secondary" />
-              <select
-                value={filterGelombang}
-                onChange={(e) => setFilterGelombang(e.target.value)}
-                className="form-input w-full pl-10 appearance-none"
-              >
-                <option value="">Semua Gelombang</option>
-                <option value="1">Gelombang I</option>
-                <option value="2">Gelombang II</option>
-              </select>
-            </div>
+        <div className="flex rounded-xl overflow-hidden border border-secondary/20 mb-4 mt-16 max-w-xs mx-auto">
+          {[
+            { value: "1", label: "Gelombang I" },
+            { value: "2", label: "Gelombang II" },
+          ].map((tab) => (
+            <button
+              key={tab.value}
+              onClick={() => {
+                setFilterGelombang(tab.value);
+                setCurrentPage(1);
+              }}
+              className={`flex-1 py-2.5 text-sm font-medium transition-colors
+        ${
+          filterGelombang === tab.value
+            ? "bg-accent text-white"
+            : "text-secondary hover:text-foreground hover:bg-accent/5"
+        }`}
+            >
+              {tab.label}
+            </button>
+          ))}
+        </div>
 
+        <div className="card p-5 mb-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="relative">
               <Filter className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-secondary" />
               <select
@@ -284,28 +303,79 @@ const PmbmManagementPage: React.FC = () => {
           />
 
           {totalPages > 1 && (
-            <div className="flex items-center justify-center gap-3 mt-8">
-              <button
-                onClick={() => setCurrentPage((p) => Math.max(p - 1, 1))}
-                disabled={currentPage === 1}
-                className="btn btn-secondary text-sm"
-              >
-                Sebelumnya
-              </button>
-              <span className="text-sm text-secondary">
-                Halaman{" "}
-                <strong className="text-foreground">{currentPage}</strong> dari{" "}
-                <strong className="text-foreground">{totalPages}</strong>
-              </span>
-              <button
-                onClick={() =>
-                  setCurrentPage((p) => Math.min(p + 1, totalPages))
-                }
-                disabled={currentPage === totalPages}
-                className="btn btn-secondary text-sm"
-              >
-                Berikutnya
-              </button>
+            <div className="flex justify-center items-center mt-8">
+              <nav className="flex items-center space-x-2">
+                {/* Prev */}
+                <button
+                  onClick={() => handlePageChange(currentPage - 1)}
+                  disabled={currentPage === 1}
+                  className={`btn btn-secondary px-3 py-2 flex items-center ${
+                    currentPage === 1 ? "opacity-50 cursor-not-allowed" : ""
+                  }`}
+                >
+                  <ChevronLeft size={18} />
+                  <span className="ml-1">Sebelumnya</span>
+                </button>
+
+                {/* Numbered pages */}
+                <div className="flex items-center space-x-1">
+                  {Array.from({ length: totalPages }, (_, i) => i + 1)
+                    .filter((page) => {
+                      return (
+                        page === 1 ||
+                        page === totalPages ||
+                        Math.abs(page - currentPage) <= 1
+                      );
+                    })
+                    .map((page, index, array) => {
+                      if (index > 0 && page - array[index - 1] > 1) {
+                        return (
+                          <React.Fragment key={`ellipsis-${page}`}>
+                            <span className="px-2 text-secondary/60">...</span>
+                            <button
+                              onClick={() => handlePageChange(page)}
+                              className={`px-3 py-2 rounded-lg ${
+                                currentPage === page
+                                  ? "btn btn-primary"
+                                  : "btn btn-secondary"
+                              }`}
+                            >
+                              {page}
+                            </button>
+                          </React.Fragment>
+                        );
+                      }
+
+                      return (
+                        <button
+                          key={page}
+                          onClick={() => handlePageChange(page)}
+                          className={`px-3 py-2 rounded-lg ${
+                            currentPage === page
+                              ? "btn btn-primary"
+                              : "btn btn-secondary"
+                          }`}
+                        >
+                          {page}
+                        </button>
+                      );
+                    })}
+                </div>
+
+                {/* Next */}
+                <button
+                  onClick={() => handlePageChange(currentPage + 1)}
+                  disabled={currentPage === totalPages}
+                  className={`btn btn-secondary px-3 py-2 flex items-center ${
+                    currentPage === totalPages
+                      ? "opacity-50 cursor-not-allowed"
+                      : ""
+                  }`}
+                >
+                  <ChevronRight size={18} />
+                  <span className="ml-1">Berikutnya</span>
+                </button>
+              </nav>
             </div>
           )}
         </div>

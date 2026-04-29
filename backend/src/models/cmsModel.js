@@ -4,6 +4,23 @@
  */
 
 /**
+ * Helper — mysql2 kadang mengembalikan kolom JSON sebagai string.
+ * Fungsi ini memastikan data selalu berupa object/array.
+ * @param {any} raw
+ * @returns {object}
+ */
+const parseJson = (raw) => {
+  if (typeof raw === "string") {
+    try {
+      return JSON.parse(raw);
+    } catch {
+      return {};
+    }
+  }
+  return raw ?? {};
+};
+
+/**
  * Factory function that creates a CMS model.
  * @param {object} options
  * @param {import('mysql2/promise').Pool} options.pool - MySQL connection pool.
@@ -32,7 +49,7 @@ const createCmsModel = ({ pool }) => {
 
       return rows.reduce((acc, row) => {
         acc[row.section] = {
-          ...row.data,
+          ...parseJson(row.data),
           _updated_at: row.updated_at,
         };
         return acc;
@@ -54,7 +71,11 @@ const createCmsModel = ({ pool }) => {
       );
 
       if (rows.length === 0) return null;
-      return { ...rows[0].data, _updated_at: rows[0].updated_at };
+
+      return {
+        ...parseJson(rows[0].data),
+        _updated_at: rows[0].updated_at,
+      };
     },
 
     /**
@@ -97,7 +118,7 @@ const createCmsModel = ({ pool }) => {
 
       return rows.map((row) => ({
         id: row.id,
-        ...row.data,
+        ...parseJson(row.data),
         sort_order: row.sort_order,
         is_active: row.is_active === 1,
         _updated_at: row.updated_at,
@@ -120,7 +141,7 @@ const createCmsModel = ({ pool }) => {
 
       return rows.map((row) => ({
         id: row.id,
-        ...row.data,
+        ...parseJson(row.data),
         sort_order: row.sort_order,
         is_active: row.is_active === 1,
         _updated_at: row.updated_at,
