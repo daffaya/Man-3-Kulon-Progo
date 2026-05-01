@@ -1,14 +1,16 @@
+// src/pages/HomePage.tsx
+
 /**
- * @fileoverview HomePage component for displaying the main landing page of the MAN 3 Kulon Progo website.
- * This component renders various sections including carousel, hero, statistics, school information,
- * integrity zone, survey results, featured articles, achievements, photo gallery, public complaint service, and quick actions.
+ * @fileoverview HomePage — migrated to CMS.
+ * All hardcoded content now fetched from site_contents (page: home)
+ * and site_collections (type: quick_actions).
+ * Dynamic content (articles, gallery, student stats) unchanged.
  */
 
 import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import {
   ChevronRight,
-  Calendar,
   Award,
   Users,
   Image,
@@ -34,11 +36,104 @@ import { Article, Category } from "../types/articleTypes";
 import { useStudentStats } from "../contexts/StudentStatsContext";
 import articleApi from "../api/articleApi";
 import SurveySlider from "../components/ui/SurveySlider";
+import { useCmsPage, useCmsCollection } from "../hooks/useCmsPage";
 
-/**
- * Main home page component that displays various sections of the school website.
- * Fetches and displays articles, albums, and student statistics.
- */
+// ─────────────────────────────────────────────
+// Types
+// ─────────────────────────────────────────────
+
+interface QuickAction {
+  title: string;
+  desc: string;
+  link: string;
+  icon: string;
+}
+
+interface HomeData {
+  stats: { guru: string; ekskul: string; prestasi: string };
+  about: { title: string; description: string; youtube_url: string };
+  zona_integritas: {
+    title: string;
+    description: string;
+    description2: string;
+    areas: string[];
+    budaya_title: string;
+    budaya_description: string;
+  };
+  sedum: {
+    title: string;
+    description: string;
+    description2: string;
+    form_url: string;
+    wa: string;
+    wa_display: string;
+    email: string;
+    hotline: string;
+  };
+}
+
+// ─────────────────────────────────────────────
+// Fallback
+// ─────────────────────────────────────────────
+
+const FALLBACK: HomeData = {
+  stats: { guru: "50", ekskul: "10+", prestasi: "50+" },
+  about: {
+    title: "Tentang MAN 3 Kulon Progo",
+    description:
+      "MAN 3 Kulon Progo adalah institusi pendidikan yang berkomitmen untuk mencetak generasi muslim yang unggul, berakhlak mulia, dan siap menghadapi tantangan global.",
+    youtube_url: "https://www.youtube.com/embed/Tpn9sT-VDCY",
+  },
+  zona_integritas: {
+    title: "Mewujudkan WBK dan WBBM di MAN 3 Kulon Progo",
+    description:
+      "Zona Integritas merupakan predikat yang diberikan kepada instansi pemerintah yang pimpinan dan jajarannya mempunyai komitmen untuk mewujudkan WBK dan WBBM melalui reformasi birokrasi.",
+    description2:
+      "MAN 3 Kulon Progo berkomitmen membangun budaya antikorupsi dan meningkatkan kualitas pelayanan publik melalui 6 area pembangunan Zona Integritas sesuai PermenPAN RB No 10 Tahun 2019.",
+    areas: [
+      "Manajemen Perubahan",
+      "Penataan Tatalaksana",
+      "Penataan Sistem Manajemen SDM",
+      "Penguatan Akuntabilitas",
+      "Penguatan Pengawasan",
+      "Peningkatan Kualitas Pelayanan Publik",
+    ],
+    budaya_title: "Budaya Antikorupsi",
+    budaya_description:
+      "Kami membangun nilai-nilai budaya kerja yang Smart, Akuntabel, Integritas dan Loyalitas.",
+  },
+  sedum: {
+    title: "Layanan Pengaduan Masyarakat",
+    description:
+      "MAN 3 Kulon Progo membuka ruang seluas-luasnya bagi masyarakat untuk menyampaikan aduan, saran, atau masukan konstruktif.",
+    description2:
+      "Setiap masukan akan ditindaklanjuti secara profesional dan kerahasiaan identitas pelapor akan kami jaga.",
+    form_url: "https://forms.gle/HmxhgcbJvt8XB5P2A",
+    wa: "6287858102393",
+    wa_display: "+62-878-5810-2393",
+    email: "man3kulonprogo@gmail.com",
+    hotline: "0274-2821138",
+  },
+};
+
+// ─────────────────────────────────────────────
+// Icon map for quick actions
+// ─────────────────────────────────────────────
+
+const QUICK_ACTION_ICONS: Record<string, React.ReactNode> = {
+  Users: <Users size={24} />,
+  Shield: <Shield size={24} />,
+  MessageSquare: <MessageSquare size={24} />,
+  Book: <Book size={24} />,
+  Bell: <Bell size={24} />,
+};
+
+const DEFAULT_QA_ICON = <Bell size={24} />;
+
+// ─────────────────────────────────────────────
+// Page
+// ─────────────────────────────────────────────
+
 const HomePage: React.FC = () => {
   const { state, fetchArticles, fetchCategories } = useArticles();
   const { articles, loading, categories } = state;
@@ -47,6 +142,16 @@ const HomePage: React.FC = () => {
   const { state: studentStatsState } = useStudentStats();
   const [achievementArticles, setAchievementArticles] = useState<Article[]>([]);
   const [achievementLoading, setAchievementLoading] = useState(true);
+
+  // CMS data
+  const { data: homeData } = useCmsPage<HomeData>("home");
+  const { data: quickActions } = useCmsCollection<QuickAction>("quick_actions");
+
+  const stats = homeData?.stats ?? FALLBACK.stats;
+  const about = homeData?.about ?? FALLBACK.about;
+  const zi = homeData?.zona_integritas ?? FALLBACK.zona_integritas;
+  const sedum = homeData?.sedum ?? FALLBACK.sedum;
+  const qaItems = quickActions ?? [];
 
   useEffect(() => {
     fetchArticles({ limit: 10 });
@@ -63,7 +168,6 @@ const HomePage: React.FC = () => {
         const prestasiCategory = categories.find(
           (cat: Category) => cat.name === "Prestasi",
         );
-
         if (prestasiCategory) {
           const data = await articleApi.getPublicArticles({
             category: prestasiCategory.slug,
@@ -94,21 +198,15 @@ const HomePage: React.FC = () => {
   const featuredArticles = articles.filter((article) => article.featured);
   const recentArticles = articles.slice(0, 6);
 
-  /**
-   * Helper function to get the student statistics value.
-   * @returns {string|JSX.Element} The formatted student count or loading spinner.
-   */
   const getStudentStatValue = () => {
     if (studentStatsState.loading) {
       return (
         <div className="flex justify-center">
-          <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-accent"></div>
+          <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-accent" />
         </div>
       );
     }
-    if (studentStatsState.error) {
-      return "N/A";
-    }
+    if (studentStatsState.error) return "N/A";
     return studentStatsState.totalStudents?.toLocaleString("id-ID") || "0";
   };
 
@@ -122,13 +220,10 @@ const HomePage: React.FC = () => {
         <div className="container max-w-6xl mx-auto px-4 sm:px-6">
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
             {[
-              {
-                label: "Siswa",
-                value: getStudentStatValue(),
-              },
-              { label: "Guru & Staf", value: "50" },
-              { label: "Ekstrakurikuler", value: "10+" },
-              { label: "Prestasi", value: "50+" },
+              { label: "Siswa", value: getStudentStatValue() },
+              { label: "Guru & Staf", value: stats.guru },
+              { label: "Ekstrakurikuler", value: stats.ekskul },
+              { label: "Prestasi", value: stats.prestasi },
             ].map((item) => (
               <div key={item.label} className="card p-6 text-center">
                 <div className="text-3xl font-bold text-accent mb-2">
@@ -141,46 +236,39 @@ const HomePage: React.FC = () => {
         </div>
       </section>
 
-      {/* About School Preview */}
+      {/* About */}
       <section className="py-12 bg-semibackground">
         <div className="container max-w-6xl mx-auto px-4 sm:px-6">
           <div className="flex flex-col md:flex-row items-center gap-8">
             <div className="md:w-1/2">
               <h2 className="text-3xl font-serif font-bold mb-4 text-foreground">
-                Tentang MAN 3 Kulon Progo
+                {about.title}
               </h2>
-              <p className="text-secondary mb-6">
-                MAN 3 Kulon Progo adalah institusi pendidikan yang berkomitmen
-                untuk mencetak generasi muslim yang unggul, berakhlak mulia, dan
-                siap menghadapi tantangan global. Dengan kurikulum yang
-                seimbang, kami siap membentuk siswa yang memiliki karakter kuat
-                dan kompetensi tinggi.
-              </p>
+              <p className="text-secondary mb-6">{about.description}</p>
               <Link to="/profile/sejarah" className="btn btn-primary">
                 Selengkapnya
               </Link>
             </div>
             <div className="md:w-1/2">
-              {/* Mengganti gambar dengan video YouTube */}
               <div
                 className="relative w-full"
                 style={{ paddingBottom: "56.25%" }}
               >
                 <iframe
                   className="absolute top-0 left-0 w-full h-full rounded-lg shadow-lg"
-                  src="https://www.youtube.com/embed/Tpn9sT-VDCY"
+                  src={about.youtube_url}
                   title="Video Profile MAN 3 Kulon Progo"
                   frameBorder="0"
                   allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                   allowFullScreen
-                ></iframe>
+                />
               </div>
             </div>
           </div>
         </div>
       </section>
 
-      {/* Zona Integritas Section */}
+      {/* Zona Integritas */}
       <section className="py-12 bg-semibackground">
         <div className="container max-w-6xl mx-auto px-4 sm:px-6">
           <div className="flex justify-between items-center mb-8 flex-wrap gap-4">
@@ -192,32 +280,18 @@ const HomePage: React.FC = () => {
               to="/layanan/zona-integritas"
               className="flex items-center text-accent hover:underline font-medium"
             >
-              Lihat Detail
-              <ChevronRight size={18} />
+              Lihat Detail <ChevronRight size={18} />
             </Link>
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            {/* Left Column - Description */}
             <div className="lg:col-span-2">
               <div className="bg-background p-6 rounded-lg shadow-sm">
                 <h3 className="text-xl font-bold mb-4 text-foreground">
-                  Mewujudkan WBK dan WBBM di MAN 3 Kulon Progo
+                  {zi.title}
                 </h3>
-                <p className="text-secondary mb-4">
-                  Zona Integritas merupakan predikat yang diberikan kepada
-                  instansi pemerintah yang pimpinan dan jajarannya mempunyai
-                  komitmen untuk mewujudkan Wilayah Bebas dari Korupsi (WBK) dan
-                  Wilayah Birokrasi Bersih dan Melayani (WBBM) melalui reformasi
-                  birokrasi.
-                </p>
-                <p className="text-secondary mb-6">
-                  MAN 3 Kulon Progo berkomitmen membangun budaya antikorupsi dan
-                  meningkatkan kualitas pelayanan publik melalui 6 area
-                  pembangunan Zona Integritas sesuai PermenPAN RB No 10 Tahun
-                  2019.
-                </p>
-
+                <p className="text-secondary mb-4">{zi.description}</p>
+                <p className="text-secondary mb-6">{zi.description2}</p>
                 <div className="flex flex-wrap gap-3">
                   <Link
                     to="/layanan/zona-integritas"
@@ -234,22 +308,13 @@ const HomePage: React.FC = () => {
                 </div>
               </div>
             </div>
-
-            {/* Right Column - 6 Areas */}
             <div>
               <div className="bg-background p-6 rounded-lg shadow-sm h-full">
                 <h3 className="text-xl font-bold mb-4 text-foreground">
                   6 Area Pembangunan ZI
                 </h3>
                 <ul className="space-y-3">
-                  {[
-                    "Manajemen Perubahan",
-                    "Penataan Tatalaksana",
-                    "Penataan Sistem Manajemen SDM",
-                    "Penguatan Akuntabilitas",
-                    "Penguatan Pengawasan",
-                    "Peningkatan Kualitas Pelayanan Publik",
-                  ].map((item, index) => (
+                  {(zi.areas ?? []).map((item, index) => (
                     <li key={index} className="flex items-start">
                       <div className="bg-accent/10 p-1 rounded-full mr-3 mt-1">
                         <CheckCircle size={16} className="text-accent" />
@@ -258,14 +323,12 @@ const HomePage: React.FC = () => {
                     </li>
                   ))}
                 </ul>
-
                 <div className="mt-6 pt-4 border-t border-border">
                   <h4 className="font-bold mb-2 text-foreground">
-                    Budaya Antikorupsi
+                    {zi.budaya_title}
                   </h4>
                   <p className="text-sm text-secondary">
-                    Kami membangun nilai-nilai budaya kerja yang Smart,
-                    Akuntabel, Integritas dan Loyalitas.
+                    {zi.budaya_description}
                   </p>
                 </div>
               </div>
@@ -274,7 +337,7 @@ const HomePage: React.FC = () => {
         </div>
       </section>
 
-      {/* Survey Results Section*/}
+      {/* Survey */}
       <SurveySlider />
 
       {/* Featured Articles */}
@@ -286,12 +349,9 @@ const HomePage: React.FC = () => {
             </h1>
             <p className="text-lg text-secondary max-w-3xl mx-auto">
               Lihat sekilas cerita seru, prestasi keren, dan momen berharga di
-              MAN 3 Kulon Progo. Dari kegiatan sekolah sampai kabar terbaru,
-              semua bisa kamu nikmati di sini! <br />
-              Jangan sampai ketinggalan, ya!
+              MAN 3 Kulon Progo.
             </p>
           </div>
-
           {featuredArticles.length > 0 && (
             <div className="mb-16 slide-up">
               <ArticleCard article={featuredArticles[0]} featured />
@@ -311,8 +371,7 @@ const HomePage: React.FC = () => {
               to="/berita"
               className="flex items-center text-accent hover:underline font-medium"
             >
-              Lihat Semua
-              <ChevronRight size={18} />
+              Lihat Semua <ChevronRight size={18} />
             </Link>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-4">
@@ -328,21 +387,18 @@ const HomePage: React.FC = () => {
         <div className="container max-w-6xl mx-auto px-4 sm:px-6">
           <div className="flex justify-between items-center mb-8 flex-wrap gap-4">
             <h2 className="text-2xl md:text-3xl font-serif font-bold flex items-center text-foreground">
-              <Award size={24} className="mr-2 text-accent" />
-              Prestasi Terkini
+              <Award size={24} className="mr-2 text-accent" /> Prestasi Terkini
             </h2>
             <Link
               to="/berita?category=prestasi"
               className="flex items-center text-accent hover:underline font-medium"
             >
-              Lihat Semua
-              <ChevronRight size={18} />
+              Lihat Semua <ChevronRight size={18} />
             </Link>
           </div>
-
           {achievementLoading ? (
             <div className="text-center py-8">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-accent mx-auto"></div>
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-accent mx-auto" />
               <p className="mt-2 text-secondary">Memuat prestasi...</p>
             </div>
           ) : achievementArticles.length > 0 ? (
@@ -387,25 +443,23 @@ const HomePage: React.FC = () => {
         </div>
       </section>
 
-      {/* Photo Gallery */}
+      {/* Gallery */}
       <section className="py-12 bg-semibackground">
         <div className="container max-w-6xl mx-auto px-4 sm:px-6">
           <div className="flex justify-between items-center mb-8 flex-wrap gap-4">
             <h2 className="text-2xl md:text-3xl font-serif font-bold flex items-center text-foreground">
-              <Image size={24} className="mr-2 text-accent" />
-              Galeri Foto
+              <Image size={24} className="mr-2 text-accent" /> Galeri Foto
             </h2>
             <Link
               to="/galeri"
               className="flex items-center text-accent hover:underline font-medium"
             >
-              Lihat Semua
-              <ChevronRight size={18} />
+              Lihat Semua <ChevronRight size={18} />
             </Link>
           </div>
           {galleryLoading ? (
             <div className="text-center py-8">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-accent mx-auto"></div>
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-accent mx-auto" />
               <p className="mt-2 text-secondary">Memuat galeri...</p>
             </div>
           ) : galleryAlbums.length > 0 ? (
@@ -432,48 +486,36 @@ const HomePage: React.FC = () => {
         </div>
       </section>
 
-      {/* Serapan Aduan Masyarakat (SEDUM) Section */}
+      {/* SEDUM */}
       <section className="py-12 bg-background">
         <div className="container max-w-6xl mx-auto px-4 sm:px-6">
           <div className="flex justify-between items-center mb-8 flex-wrap gap-4">
             <h2 className="text-2xl md:text-3xl font-serif font-bold flex items-center text-foreground">
-              <MessageSquare size={24} className="mr-2 text-accent" />
-              Serapan Aduan Masyarakat
+              <MessageSquare size={24} className="mr-2 text-accent" /> Serapan
+              Aduan Masyarakat
             </h2>
             <Link
               to="/layanan/sedum"
               className="flex items-center text-accent hover:underline font-medium"
             >
-              Lihat Detail
-              <ChevronRight size={18} />
+              Lihat Detail <ChevronRight size={18} />
             </Link>
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            {/* Left Column - Description */}
             <div className="lg:col-span-2">
               <div className="bg-semibackground p-6 rounded-lg shadow-sm">
                 <h3 className="text-xl font-bold mb-4 text-foreground">
-                  Layanan Pengaduan Masyarakat
+                  {sedum.title}
                 </h3>
-                <p className="text-secondary mb-4">
-                  MAN 3 Kulon Progo membuka ruang seluas-luasnya bagi masyarakat
-                  (orang tua/wali, siswa, alumni, maupun publik) untuk
-                  menyampaikan aduan, saran, atau masukan konstruktif demi
-                  peningkatan kualitas layanan pendidikan.
-                </p>
-                <p className="text-secondary mb-6">
-                  Setiap masukan akan ditindaklanjuti secara profesional dan
-                  kerahasiaan identitas pelapor akan kami jaga. Aduan akan
-                  diproses maksimal 3x24 jam kerja.
-                </p>
-
+                <p className="text-secondary mb-4">{sedum.description}</p>
+                <p className="text-secondary mb-6">{sedum.description2}</p>
                 <div className="flex flex-wrap gap-3">
                   <Link to="/layanan/sedum" className="btn btn-primary">
                     Ajukan Aduan/Saran
                   </Link>
                   <a
-                    href="https://forms.gle/HmxhgcbJvt8XB5P2A"
+                    href={sedum.form_url}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="btn btn-secondary"
@@ -484,10 +526,8 @@ const HomePage: React.FC = () => {
               </div>
             </div>
 
-            {/* Right Column - Contact Options */}
             <div className="space-y-6">
-              {/* --- Card 1: Primary Channels --- */}
-              <div className="bg-semibackground p-6 rounded-lg shadow-sm border border-border/50 hover:shadow-md transition-shadow">
+              <div className="bg-semibackground p-6 rounded-lg shadow-sm border border-border/50">
                 <h3 className="text-lg font-bold mb-4 text-foreground flex items-center">
                   <Zap
                     size={20}
@@ -498,68 +538,52 @@ const HomePage: React.FC = () => {
                 </h3>
                 <address className="not-italic space-y-4">
                   <a
-                    href="https://wa.me/6287858102393"
+                    href={`https://wa.me/${sedum.wa}`}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="flex items-start group hover:bg-accent/5 p-2 -m-2 rounded transition-colors"
-                    aria-label="Hubungi via WhatsApp ke +62-878-5810-2393"
                   >
                     <div className="bg-accent/10 p-2 rounded-full mr-3 flex-shrink-0">
-                      <MessageCircle
-                        className="text-accent"
-                        size={18}
-                        aria-hidden="true"
-                      />
+                      <MessageCircle className="text-accent" size={18} />
                     </div>
                     <div>
                       <span className="font-medium text-foreground">
                         WhatsApp
                       </span>
-                      <p className="text-sm text-secondary">0878-5810-2393</p>
-                    </div>
-                  </a>
-                  <a
-                    href="mailto:man3kulonprogo@gmail.com"
-                    className="flex items-start group hover:bg-accent/5 p-2 -m-2 rounded transition-colors"
-                    aria-label="Kirim email ke man3kulonprogo@gmail.com"
-                  >
-                    <div className="bg-accent/10 p-2 rounded-full mr-3 flex-shrink-0">
-                      <Mail
-                        className="text-accent"
-                        size={18}
-                        aria-hidden="true"
-                      />
-                    </div>
-                    <div>
-                      <span className="font-medium text-foreground">Email</span>
                       <p className="text-sm text-secondary">
-                        man3kulonprogo@gmail.com
+                        {sedum.wa_display}
                       </p>
                     </div>
                   </a>
                   <a
-                    href="tel:02742821138"
+                    href={`mailto:${sedum.email}`}
                     className="flex items-start group hover:bg-accent/5 p-2 -m-2 rounded transition-colors"
-                    aria-label="Telepon ke 0274-2821138"
                   >
                     <div className="bg-accent/10 p-2 rounded-full mr-3 flex-shrink-0">
-                      <Phone
-                        className="text-accent"
-                        size={18}
-                        aria-hidden="true"
-                      />
+                      <Mail className="text-accent" size={18} />
+                    </div>
+                    <div>
+                      <span className="font-medium text-foreground">Email</span>
+                      <p className="text-sm text-secondary">{sedum.email}</p>
+                    </div>
+                  </a>
+                  <a
+                    href={`tel:${sedum.hotline}`}
+                    className="flex items-start group hover:bg-accent/5 p-2 -m-2 rounded transition-colors"
+                  >
+                    <div className="bg-accent/10 p-2 rounded-full mr-3 flex-shrink-0">
+                      <Phone className="text-accent" size={18} />
                     </div>
                     <div>
                       <span className="font-medium text-foreground">
                         Hotline
                       </span>
-                      <p className="text-sm text-secondary">0274-2821138</p>
+                      <p className="text-sm text-secondary">{sedum.hotline}</p>
                     </div>
                   </a>
                 </address>
               </div>
 
-              {/* --- Card 2: Other Channels --- */}
               <div className="bg-semibackground p-6 rounded-lg shadow-sm border border-border/50">
                 <h3 className="text-lg font-bold mb-4 text-foreground">
                   Saluran Lainnya
@@ -589,7 +613,7 @@ const HomePage: React.FC = () => {
                             size={14}
                             className="mr-1"
                             aria-hidden="true"
-                          />
+                          />{" "}
                           SIPPN
                         </a>
                       </li>
@@ -604,7 +628,7 @@ const HomePage: React.FC = () => {
                             size={14}
                             className="mr-1"
                             aria-hidden="true"
-                          />
+                          />{" "}
                           SP4N Lapor
                         </a>
                       </li>
@@ -624,44 +648,59 @@ const HomePage: React.FC = () => {
             Layanan Cepat
           </h2>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            {[
-              {
-                icon: <Users size={24} />,
-                title: "PMBM Online",
-                desc: "Penerimaan Murid Baru Madrasah",
-                link: "/layanan/pmbm",
-              },
-              {
-                icon: <Shield size={24} />,
-                title: "Zona Integritas",
-                desc: "Layanan pengaduan",
-                link: "/layanan/zona-integritas",
-              },
-              {
-                icon: <MessageSquare size={24} />,
-                title: "Sedum",
-                desc: "Serapan Aduan Masyarakat",
-                link: "/layanan/sedum",
-              },
-              {
-                icon: <Book size={24} />,
-                title: "Perpustakaan",
-                desc: "Perpustakaan Digital Online",
-                link: "https://perpustakaan.man3kulonprogo.sch.id/",
-              },
-            ].map((item) => (
-              <Link to={item.link} key={item.title} className="block">
-                <div className="card p-6 text-center">
-                  <div className="flex justify-center mb-4 text-accent">
-                    {item.icon}
-                  </div>
-                  <div className="font-bold mb-1 text-foreground">
-                    {item.title}
-                  </div>
-                  <div className="text-sm text-secondary">{item.desc}</div>
-                </div>
-              </Link>
-            ))}
+            {qaItems.length > 0
+              ? qaItems.map((item) => (
+                  <Link to={item.link} key={item.title} className="block">
+                    <div className="card p-6 text-center">
+                      <div className="flex justify-center mb-4 text-accent">
+                        {QUICK_ACTION_ICONS[item.icon] ?? DEFAULT_QA_ICON}
+                      </div>
+                      <div className="font-bold mb-1 text-foreground">
+                        {item.title}
+                      </div>
+                      <div className="text-sm text-secondary">{item.desc}</div>
+                    </div>
+                  </Link>
+                ))
+              : // Fallback quick actions
+                [
+                  {
+                    icon: <Users size={24} />,
+                    title: "PMBM Online",
+                    desc: "Penerimaan Murid Baru Madrasah",
+                    link: "/layanan/pmbm",
+                  },
+                  {
+                    icon: <Shield size={24} />,
+                    title: "Zona Integritas",
+                    desc: "Layanan pengaduan",
+                    link: "/layanan/zona-integritas",
+                  },
+                  {
+                    icon: <MessageSquare size={24} />,
+                    title: "Sedum",
+                    desc: "Serapan Aduan Masyarakat",
+                    link: "/layanan/sedum",
+                  },
+                  {
+                    icon: <Book size={24} />,
+                    title: "Perpustakaan",
+                    desc: "Perpustakaan Digital Online",
+                    link: "https://perpustakaan.man3kulonprogo.sch.id/",
+                  },
+                ].map((item) => (
+                  <Link to={item.link} key={item.title} className="block">
+                    <div className="card p-6 text-center">
+                      <div className="flex justify-center mb-4 text-accent">
+                        {item.icon}
+                      </div>
+                      <div className="font-bold mb-1 text-foreground">
+                        {item.title}
+                      </div>
+                      <div className="text-sm text-secondary">{item.desc}</div>
+                    </div>
+                  </Link>
+                ))}
           </div>
         </div>
       </section>

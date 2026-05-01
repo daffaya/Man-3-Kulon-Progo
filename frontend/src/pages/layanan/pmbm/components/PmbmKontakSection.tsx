@@ -1,8 +1,51 @@
+// src/pages/layanan/pmbm/components/PmbmKontakSection.tsx
+
 import React from "react";
 import { Mail, Phone } from "lucide-react";
 import Section from "../../../../components/ui/Section";
 
-const PmbmKontakSection: React.FC = () => {
+// ─────────────────────────────────────────────
+// Types
+// ─────────────────────────────────────────────
+
+export interface KontakPerson {
+  nama: string;
+  wa: string;
+  display: string;
+}
+
+interface PmbmKontakSectionProps {
+  email: string;
+  contacts: KontakPerson[];
+}
+
+// ─────────────────────────────────────────────
+// Fallback
+// ─────────────────────────────────────────────
+
+const FALLBACK = {
+  email: "man3kulonprogo@gmail.com",
+  contacts: [
+    {
+      nama: "Isti Wulandari",
+      wa: "6285743881574",
+      display: "+62 857-4388-1574",
+    },
+    { nama: "Wijiardani", wa: "6283189810114", display: "+62 831-8981-0114" },
+  ],
+};
+
+// ─────────────────────────────────────────────
+// Component
+// ─────────────────────────────────────────────
+
+const PmbmKontakSection: React.FC<PmbmKontakSectionProps> = ({
+  email,
+  contacts,
+}) => {
+  const resolvedEmail = email || FALLBACK.email;
+  const resolvedContacts = contacts.length > 0 ? contacts : FALLBACK.contacts;
+
   return (
     <Section id="kontak" title="Kontak Tim PMBM">
       <div className="max-w-4xl mx-auto">
@@ -19,10 +62,10 @@ const PmbmKontakSection: React.FC = () => {
               <div>
                 <p className="font-semibold text-foreground">Email</p>
                 <a
-                  href="mailto:man3kulonprogo@gmail.com"
+                  href={`mailto:${resolvedEmail}`}
                   className="text-accent hover:underline transition-colors"
                 >
-                  man3kulonprogo@gmail.com
+                  {resolvedEmail}
                 </a>
               </div>
             </div>
@@ -35,25 +78,22 @@ const PmbmKontakSection: React.FC = () => {
               <div>
                 <p className="font-semibold text-foreground">WhatsApp</p>
                 <div className="flex flex-wrap items-center gap-x-2 text-sm">
-                  <a
-                    href="https://wa.me/6285743881574"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-accent hover:underline transition-colors"
-                  >
-                    +62 857-4388-1574
-                  </a>
-                  <span className="text-secondary">(Isti Wulandari)</span>
-                  <span className="text-secondary">/</span>
-                  <a
-                    href="https://wa.me/6283189810114"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-accent hover:underline transition-colors"
-                  >
-                    +62 831-8981-0114
-                  </a>
-                  <span className="text-secondary">(Wijiardani)</span>
+                  {resolvedContacts.map((person, index) => (
+                    <React.Fragment key={person.wa}>
+                      <a
+                        href={`https://wa.me/${person.wa}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-accent hover:underline transition-colors"
+                      >
+                        {person.display}
+                      </a>
+                      <span className="text-secondary">({person.nama})</span>
+                      {index < resolvedContacts.length - 1 && (
+                        <span className="text-secondary">/</span>
+                      )}
+                    </React.Fragment>
+                  ))}
                 </div>
               </div>
             </div>

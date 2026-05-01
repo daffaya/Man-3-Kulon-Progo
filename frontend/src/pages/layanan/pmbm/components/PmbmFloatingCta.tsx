@@ -1,9 +1,16 @@
+// src/pages/layanan/pmbm/components/PmbmFloatingCta.tsx
+
 import React from "react";
 import { ArrowRight } from "lucide-react";
-import { PENDAFTARAN_DITUTUP } from "../pmbmConfig";
-import { REGISTRATION_LINK } from "../pmbmData";
+import type { PmbmConfig } from "../usePmbmConfig";
 
-const PmbmFloatingCta: React.FC = () => {
+interface PmbmFloatingCtaProps {
+  config: PmbmConfig;
+}
+
+const PmbmFloatingCta: React.FC<PmbmFloatingCtaProps> = ({ config }) => {
+  const { PENDAFTARAN_DITUTUP, REGISTRATION_LINK } = config;
+
   return (
     <a
       href={REGISTRATION_LINK}

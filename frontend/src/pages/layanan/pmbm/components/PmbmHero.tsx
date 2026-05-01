@@ -1,15 +1,20 @@
+// src/pages/layanan/pmbm/components/PmbmHero.tsx
+
 import React, { useEffect, useRef, useState } from "react";
 import { ArrowRight, ClipboardList, Info } from "lucide-react";
-import { PENDAFTARAN_DITUTUP, GELOMBANG_AKTIF } from "../pmbmConfig";
+import type { PmbmConfig } from "../usePmbmConfig";
 
-const REGISTRATION_LINK = "/layanan/pmbm-daftar";
+interface PmbmHeroProps {
+  config: PmbmConfig;
+}
 
-const PmbmHero: React.FC = () => {
+const PmbmHero: React.FC<PmbmHeroProps> = ({ config }) => {
+  const { PENDAFTARAN_DITUTUP, GELOMBANG_AKTIF, REGISTRATION_LINK } = config;
+
   const parallaxRef = useRef<HTMLDivElement>(null);
   const [isLoaded, setIsLoaded] = useState(false);
 
   useEffect(() => {
-    // Menggunakan ref langsung ke DOM, TIDAK memicu re-render React saat scroll
     const handleScroll = () => {
       if (parallaxRef.current) {
         parallaxRef.current.style.transform = `translateY(${window.scrollY * 0.5}px)`;

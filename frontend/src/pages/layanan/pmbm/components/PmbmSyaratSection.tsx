@@ -1,3 +1,5 @@
+// src/pages/layanan/pmbm/components/PmbmSyaratSection.tsx
+
 import React from "react";
 import {
   CheckCircle,
@@ -7,14 +9,75 @@ import {
   Award,
 } from "lucide-react";
 import Section from "../../../../components/ui/Section";
-import {
-  SYARAT_UMUM,
-  DATA_SISWA,
-  DATA_ORTU,
-  DOKUMEN_PRESTASI,
-} from "../pmbmData";
 
-const PmbmSyaratSection: React.FC = () => {
+// ─────────────────────────────────────────────
+// Types
+// ─────────────────────────────────────────────
+
+interface PmbmSyaratSectionProps {
+  syaratUmum: string[];
+  dataSiswa: string[];
+  dataOrtu: string[];
+  dokumenPrestasi: string[];
+}
+
+// ─────────────────────────────────────────────
+// Fallback
+// ─────────────────────────────────────────────
+
+const FALLBACK = {
+  syaratUmum: [
+    "Surat Keterangan Aktif dari sekolah asal",
+    "Scan Kartu Keluarga (KK)",
+    "Scan Akta Kelahiran",
+    "Ijazah SMP/MTs",
+  ],
+  dataSiswa: [
+    "Nama lengkap",
+    "NISN",
+    "NIK",
+    "Tempat & Tanggal Lahir",
+    "Asal sekolah",
+    "No. KK",
+    "Alamat lengkap",
+    "Alamat domisili",
+    "No. HP siswa",
+  ],
+  dataOrtu: [
+    "Nama Ayah",
+    "Nama Ibu",
+    "Pekerjaan Ayah",
+    "Pekerjaan Ibu",
+    "Penghasilan Ayah",
+    "Penghasilan Ibu",
+    "Alamat lengkap orang tua",
+    "Alamat domisili orang tua",
+    "No. HP Ayah",
+    "No. HP Ibu",
+  ],
+  dokumenPrestasi: [
+    "Scan sertifikat kejuaraan",
+    "Jenis kejuaraan: Akademik, Kesenian, OR, Tahfidz, atau lainnya",
+    "Tingkat kejuaraan: Kota, Provinsi, atau Kabupaten/Kecamatan (tingkat SMP/sederajat)",
+  ],
+};
+
+// ─────────────────────────────────────────────
+// Component
+// ─────────────────────────────────────────────
+
+const PmbmSyaratSection: React.FC<PmbmSyaratSectionProps> = ({
+  syaratUmum,
+  dataSiswa,
+  dataOrtu,
+  dokumenPrestasi,
+}) => {
+  const s = syaratUmum.length > 0 ? syaratUmum : FALLBACK.syaratUmum;
+  const ds = dataSiswa.length > 0 ? dataSiswa : FALLBACK.dataSiswa;
+  const do_ = dataOrtu.length > 0 ? dataOrtu : FALLBACK.dataOrtu;
+  const dp =
+    dokumenPrestasi.length > 0 ? dokumenPrestasi : FALLBACK.dokumenPrestasi;
+
   return (
     <Section id="syarat" title="Syarat & Data Pendaftaran">
       <div className="max-w-4xl mx-auto space-y-6">
@@ -25,7 +88,7 @@ const PmbmSyaratSection: React.FC = () => {
             Syarat Umum
           </h3>
           <ul className="space-y-3">
-            {SYARAT_UMUM.map((item) => (
+            {s.map((item) => (
               <li key={item} className="flex items-start gap-3">
                 <CheckCircle
                   className="text-accent mt-0.5 flex-shrink-0"
@@ -44,7 +107,7 @@ const PmbmSyaratSection: React.FC = () => {
             Data Siswa yang Perlu Disiapkan
           </h3>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            {DATA_SISWA.map((item) => (
+            {ds.map((item) => (
               <div key={item} className="flex items-center gap-2">
                 <div className="w-1.5 h-1.5 bg-accent rounded-full flex-shrink-0" />
                 <span className="text-secondary text-sm">{item}</span>
@@ -60,7 +123,7 @@ const PmbmSyaratSection: React.FC = () => {
             Data Orang Tua
           </h3>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            {DATA_ORTU.map((item) => (
+            {do_.map((item) => (
               <div key={item} className="flex items-center gap-2">
                 <div className="w-1.5 h-1.5 bg-accent rounded-full flex-shrink-0" />
                 <span className="text-secondary text-sm">{item}</span>
@@ -82,7 +145,7 @@ const PmbmSyaratSection: React.FC = () => {
             Dokumen ini hanya diperlukan untuk pendaftaran Gelombang I.
           </p>
           <ul className="space-y-3">
-            {DOKUMEN_PRESTASI.map((item) => (
+            {dp.map((item) => (
               <li key={item} className="flex items-start gap-3">
                 <CheckCircle
                   className="text-secondary mt-0.5 flex-shrink-0"

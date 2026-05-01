@@ -1,12 +1,18 @@
+// src/pages/layanan/pmbm/components/PmbmSopSection.tsx
+
 import React from "react";
 import { FileText, ZoomIn } from "lucide-react";
 import Section from "../../../../components/ui/Section";
 
 interface PmbmSopSectionProps {
+  imageUrl: string;
   onOpenModal: () => void;
 }
 
-const PmbmSopSection: React.FC<PmbmSopSectionProps> = ({ onOpenModal }) => {
+const PmbmSopSection: React.FC<PmbmSopSectionProps> = ({
+  imageUrl,
+  onOpenModal,
+}) => {
   return (
     <Section
       id="sop"
@@ -34,7 +40,7 @@ const PmbmSopSection: React.FC<PmbmSopSectionProps> = ({ onOpenModal }) => {
             aria-label="Klik untuk memperbesar gambar SOP PMBM"
           >
             <img
-              src="/SOP_PMBM.png"
+              src={imageUrl}
               alt="SOP PMBM MAN 3 Kulon Progo"
               className="w-full h-auto object-contain transition-transform duration-300 group-hover:scale-105"
               loading="lazy"

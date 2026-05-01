@@ -1,7 +1,8 @@
+// src/pages/layanan/pmbm/PmbmStatusPage.tsx
+
 /**
- * @fileoverview Public PMBM registration status page.
- * Displays paginated registration data with search, filtering,
- * and sorting based on selected gelombang.
+ * @fileoverview PmbmStatusPage — migrated to CMS.
+ * GELOMBANG_AKTIF and GELOMBANG_TAMPIL now come from usePmbmConfig hook.
  */
 
 import React, { useState, useEffect, useCallback } from "react";
@@ -16,11 +17,12 @@ import Layout from "../../../components/layout/Layout";
 import pmbmApi from "../../../api/pmbmApi";
 import type { PmbmPublicEntry } from "../../../types/pmbmTypes";
 import { JALUR_LABEL, STATUS_LABEL } from "../../../types/pmbmTypes";
-import { GELOMBANG_AKTIF, GELOMBANG_TAMPIL } from "./pmbmConfig";
+import { usePmbmConfig } from "./usePmbmConfig";
 
-/**
- * Status badge color mapping.
- */
+// ─────────────────────────────────────────────
+// Constants
+// ─────────────────────────────────────────────
+
 const STATUS_COLOR: Record<string, string> = {
   pending:
     "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300",
@@ -43,7 +45,14 @@ const JALUR_OPTIONS = [
 
 const LIMIT = 20;
 
+// ─────────────────────────────────────────────
+// Component
+// ─────────────────────────────────────────────
+
 const PmbmStatusPage: React.FC = () => {
+  const { config, loading: configLoading } = usePmbmConfig();
+  const { GELOMBANG_TAMPIL } = config;
+
   const [data, setData] = useState<PmbmPublicEntry[]>([]);
   const [total, setTotal] = useState(0);
   const [page, setPage] = useState(1);
@@ -53,16 +62,10 @@ const PmbmStatusPage: React.FC = () => {
   const [sortBy, setSortBy] = useState("created_at");
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
-
-  const [gelombangFilter, setGelombangFilter] = useState<string>(
-    String(GELOMBANG_TAMPIL ?? 1),
-  );
+  const [gelombangFilter, setGelombangFilter] = useState<string>("1");
 
   const isGelombangTerkunci = Number(gelombangFilter) > GELOMBANG_TAMPIL;
 
-  /**
-   * Fetch data
-   */
   const fetchData = useCallback(async () => {
     if (isGelombangTerkunci) {
       setData([]);
@@ -93,8 +96,9 @@ const PmbmStatusPage: React.FC = () => {
   }, [search, jalurFilter, gelombangFilter, sortBy, page, isGelombangTerkunci]);
 
   useEffect(() => {
-    fetchData();
-  }, [fetchData]);
+    // Tunggu config selesai load sebelum fetch data
+    if (!configLoading) fetchData();
+  }, [fetchData, configLoading]);
 
   useEffect(() => {
     setPage(1);
@@ -114,6 +118,17 @@ const PmbmStatusPage: React.FC = () => {
     if (gelombangFilter === "2") return o.value === "tes";
     return true;
   });
+
+  // Tampilkan loading saat config belum siap
+  if (configLoading) {
+    return (
+      <Layout>
+        <div className="min-h-screen bg-semibackground py-10 px-4 flex items-center justify-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-accent" />
+        </div>
+      </Layout>
+    );
+  }
 
   return (
     <Layout>
@@ -136,7 +151,6 @@ const PmbmStatusPage: React.FC = () => {
               { value: "2", label: "Gelombang II" },
             ].map((tab) => {
               const isLocked = Number(tab.value) > GELOMBANG_TAMPIL;
-
               return (
                 <button
                   key={tab.value}
@@ -146,8 +160,7 @@ const PmbmStatusPage: React.FC = () => {
                     setSearch("");
                     setSearchInput("");
                   }}
-                  className={`flex-1 flex flex-col items-center justify-center py-2.5 text-sm font-medium transition-colors
-                  ${
+                  className={`flex-1 flex flex-col items-center justify-center py-2.5 text-sm font-medium transition-colors ${
                     gelombangFilter === tab.value
                       ? "bg-accent text-white"
                       : "text-secondary hover:text-foreground hover:bg-accent/5"
@@ -252,7 +265,7 @@ const PmbmStatusPage: React.FC = () => {
                   Gelombang II belum dibuka
                 </p>
                 <p className="text-sm">
-                  Tunggu Informasi Selanjutnya atau kontak panitia untuk
+                  Tunggu informasi selanjutnya atau kontak panitia untuk
                   informasi lebih lanjut.
                 </p>
               </div>
@@ -297,7 +310,6 @@ const PmbmStatusPage: React.FC = () => {
                     <th className="px-4 py-3 text-left">Status</th>
                   </tr>
                 </thead>
-
                 <tbody>
                   {data.map((row, i) => (
                     <tr key={row.nomor_pendaftaran}>
@@ -311,13 +323,11 @@ const PmbmStatusPage: React.FC = () => {
                       <td className="px-4 py-3 hidden md:table-cell">
                         {row.asal_sekolah}
                       </td>
-
                       {gelombangFilter === "1" && (
                         <td className="px-4 py-3">
                           {JALUR_LABEL[row.jalur] ?? row.jalur}
                         </td>
                       )}
-
                       {gelombangFilter === "2" && (
                         <>
                           <td className="px-4 py-3 hidden md:table-cell">
@@ -328,16 +338,12 @@ const PmbmStatusPage: React.FC = () => {
                           </td>
                         </>
                       )}
-
                       <td className="px-4 py-3 hidden md:table-cell">
                         {new Date(row.created_at).toLocaleDateString("id-ID")}
                       </td>
-
                       <td className="px-4 py-3">
                         <span
-                          className={`px-2 py-1 rounded-full text-xs ${
-                            STATUS_COLOR[row.status]
-                          }`}
+                          className={`px-2 py-1 rounded-full text-xs ${STATUS_COLOR[row.status]}`}
                         >
                           {STATUS_LABEL[row.status]}
                         </span>

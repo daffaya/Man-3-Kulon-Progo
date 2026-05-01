@@ -1,10 +1,74 @@
-import React from "react";
-import { Lock, Bell } from "lucide-react";
-import Section from "../../../../components/ui/Section";
-import { PENDAFTARAN_DITUTUP } from "../pmbmConfig";
-import { JADWAL_G1, JADWAL_G2 } from "../pmbmData";
+// src/pages/layanan/pmbm/components/PmbmJadwalSection.tsx
 
-const PmbmJadwalSection: React.FC = () => {
+import React from "react";
+import {
+  Lock,
+  Bell,
+  Calendar,
+  ClipboardList,
+  ClipboardCheck,
+  FileText,
+} from "lucide-react";
+import Section from "../../../../components/ui/Section";
+import type { PmbmConfig } from "../usePmbmConfig";
+
+// ─────────────────────────────────────────────
+// Types
+// ─────────────────────────────────────────────
+
+export interface JadwalItem {
+  label: string;
+  value: string;
+}
+
+interface PmbmJadwalSectionProps {
+  config: PmbmConfig;
+  jadwalG1: JadwalItem[];
+  jadwalG2: JadwalItem[];
+}
+
+// ─────────────────────────────────────────────
+// Icon map — index → icon (urutan: daftar, tes/seleksi, pengumuman, lapor diri)
+// ─────────────────────────────────────────────
+
+const JADWAL_ICONS_G1 = [Calendar, ClipboardList, Bell, FileText];
+const JADWAL_ICONS_G2 = [Calendar, ClipboardCheck, Bell, FileText];
+
+// ─────────────────────────────────────────────
+// Fallback
+// ─────────────────────────────────────────────
+
+const FALLBACK_G1: JadwalItem[] = [
+  {
+    label: "Pendaftaran Online (Gelombang I)",
+    value: "1 April – 17 April 2026",
+  },
+  { label: "Seleksi", value: "20 April – 22 April 2026" },
+  { label: "Pengumuman Hasil Seleksi", value: "23 April 2026" },
+  { label: "Lapor Diri", value: "24 April 2026" },
+];
+
+const FALLBACK_G2: JadwalItem[] = [
+  { label: "Pendaftaran Online (Gelombang II)", value: "Segera diumumkan" },
+  { label: "Pelaksanaan Tes", value: "Segera diumumkan" },
+  { label: "Pengumuman Hasil Tes", value: "Segera diumumkan" },
+  { label: "Lapor Diri", value: "Segera diumumkan" },
+];
+
+// ─────────────────────────────────────────────
+// Component
+// ─────────────────────────────────────────────
+
+const PmbmJadwalSection: React.FC<PmbmJadwalSectionProps> = ({
+  config,
+  jadwalG1,
+  jadwalG2,
+}) => {
+  const { PENDAFTARAN_DITUTUP } = config;
+
+  const g1Items = jadwalG1.length > 0 ? jadwalG1 : FALLBACK_G1;
+  const g2Items = jadwalG2.length > 0 ? jadwalG2 : FALLBACK_G2;
+
   return (
     <Section id="jadwal" title="Jadwal PMBM" bg="semi">
       <div className="max-w-4xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -20,8 +84,8 @@ const PmbmJadwalSection: React.FC = () => {
             </h3>
           </div>
           <div className="grid grid-cols-1 gap-4">
-            {JADWAL_G1.map((item) => {
-              const Icon = item.icon;
+            {g1Items.map((item, index) => {
+              const Icon = JADWAL_ICONS_G1[index] ?? Calendar;
               return (
                 <div key={item.label} className="flex items-start gap-3">
                   <Icon
@@ -54,8 +118,8 @@ const PmbmJadwalSection: React.FC = () => {
             </h3>
           </div>
           <div className="grid grid-cols-1 gap-4">
-            {JADWAL_G2.map((item) => {
-              const Icon = item.icon;
+            {g2Items.map((item, index) => {
+              const Icon = JADWAL_ICONS_G2[index] ?? Calendar;
               return (
                 <div key={item.label} className="flex items-start gap-3">
                   <Icon className="text-accent mt-1 flex-shrink-0" size={18} />
