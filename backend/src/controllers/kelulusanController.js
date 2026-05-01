@@ -13,28 +13,43 @@ const kelulusanControllerFactory = ({ pool }) => {
   const kelulusanModel = createKelulusanModel({ pool });
 
   /**
+   * Helper — ambil tahun ajaran aktif dari tabel classes.
+   * Fallback ke tahun sekarang kalau tabel kosong.
+   */
+  const getTahunAjaranAktif = async () => {
+    const [rows] = await pool.execute(
+      `SELECT academic_year 
+       FROM classes 
+       ORDER BY academic_year DESC 
+       LIMIT 1`,
+    );
+    if (rows.length > 0) return rows[0].academic_year;
+
+    // Fallback: generate dari tahun sekarang
+    const now = new Date();
+    const year = now.getFullYear();
+    const month = now.getMonth() + 1;
+    // Tahun ajaran baru mulai Juli
+    return month >= 7 ? `${year}/${year + 1}` : `${year - 1}/${year}`;
+  };
+
+  /**
    * Publik — cek kelulusan berdasarkan NISN.
    */
   const handleCekKelulusan = async (req, res) => {
     const { nisn } = req.params;
-
     if (!nisn || nisn.trim() === "") {
       return res.status(400).json({ error: "NISN wajib diisi" });
     }
-
     try {
-      const result = await kelulusanModel.findByNisn(
-        nisn.trim(),
-        TAHUN_AJARAN_AKTIF,
-      );
-
+      const tahunAktif = await getTahunAjaranAktif();
+      const result = await kelulusanModel.findByNisn(nisn.trim(), tahunAktif);
       if (!result) {
         return res.status(404).json({
           error: "NISN tidak ditemukan",
           message: "Pastikan NISN yang kamu masukkan sudah benar.",
         });
       }
-
       res.json({ success: true, data: result });
     } catch (error) {
       res.status(500).json({ error: error.message });
@@ -47,8 +62,9 @@ const kelulusanControllerFactory = ({ pool }) => {
   const handleGetAll = async (req, res) => {
     const { tahun_ajaran, search, page, limit } = req.query;
     try {
+      const tahunAktif = await getTahunAjaranAktif();
       const result = await kelulusanModel.findAll({
-        tahun_ajaran: tahun_ajaran || TAHUN_AJARAN_AKTIF,
+        tahun_ajaran: tahun_ajaran || tahunAktif,
         search,
         page: page ? parseInt(page) : 1,
         limit: limit ? parseInt(limit) : 20,
@@ -64,8 +80,9 @@ const kelulusanControllerFactory = ({ pool }) => {
    */
   const handleGetTahunAjaran = async (req, res) => {
     try {
+      const tahunAktif = await getTahunAjaranAktif();
       const data = await kelulusanModel.getTahunAjaran();
-      res.json({ data, aktif: TAHUN_AJARAN_AKTIF });
+      res.json({ data, aktif: tahunAktif });
     } catch (error) {
       res.status(500).json({ error: error.message });
     }
