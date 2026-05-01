@@ -7,7 +7,7 @@ import ExcelJS from "exceljs";
 
 // Tahun ajaran aktif — ganti tiap tahun di sini
 // TODO: integrasikan dengan tabel tahun_ajaran kalau sudah siap
-const TAHUN_AJARAN_AKTIF = "2025/2026";
+// const TAHUN_AJARAN_AKTIF = "2025/2026";
 
 const kelulusanControllerFactory = ({ pool }) => {
   const kelulusanModel = createKelulusanModel({ pool });
@@ -19,17 +19,15 @@ const kelulusanControllerFactory = ({ pool }) => {
   const getTahunAjaranAktif = async () => {
     const [rows] = await pool.execute(
       `SELECT academic_year 
-       FROM classes 
-       ORDER BY academic_year DESC 
-       LIMIT 1`,
+     FROM classes 
+     ORDER BY academic_year DESC 
+     LIMIT 1`,
     );
     if (rows.length > 0) return rows[0].academic_year;
 
-    // Fallback: generate dari tahun sekarang
     const now = new Date();
     const year = now.getFullYear();
     const month = now.getMonth() + 1;
-    // Tahun ajaran baru mulai Juli
     return month >= 7 ? `${year}/${year + 1}` : `${year - 1}/${year}`;
   };
 
