@@ -71,6 +71,9 @@ import PmbmManagementPage from "./pages/admin/pmbm/PmbmManagementPage";
 import PmbmStatusPage from "./pages/layanan/pmbm/PmbmStatusPage";
 import MaklumatPelayananPage from "./pages/layanan/MaklumatPelayanan";
 
+import CekKelulusanPage from "./pages/kelulusan/CekKelulusanPage";
+import KelulusanManagementPage from "./pages/admin/kelulusan/KelulusanManagementPage";
+
 /**
  * Layout wrapper component for admin routes that requires authentication.
  * Uses the ProtectedRoute component to ensure only authenticated users can access admin routes.
@@ -109,6 +112,7 @@ function App() {
                       <Route path="/Profile" element={<ProfilePage />} />
                       <Route path="/contact" element={<ContactPage />} />
                       <Route path="/webApp" element={<WebAppPage />} />
+                      <Route path="/kelulusan" element={<CekKelulusanPage />} />
                       <Route path="/login" element={<LoginPage />} />
                       <Route path="/layanan/pmbm" element={<PmbmPage />} />
 
@@ -274,6 +278,11 @@ function App() {
                         <Route
                           path="manajemen-siswa"
                           element={<ManajemenStudentPage />}
+                        />
+
+                        <Route
+                          path="kelulusan"
+                          element={<KelulusanManagementPage />}
                         />
 
                         <Route path="users" element={<UserManagementPage />} />

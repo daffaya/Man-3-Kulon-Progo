@@ -24,6 +24,7 @@ import adminGalleryRouterFactory from "./adminGalleryRoutes.js";
 import staffRouterFactory from "./staffRoutes.js";
 import publicStaffRouterFactory from "./publicStaffRoutes.js";
 import pmbmRouterFactory from "./pmbmRoutes.js";
+import kelulusanRouterFactory from "./kelulusanRoutes.js";
 
 /**
  * @typedef {object} ApiRouterOptions
@@ -81,6 +82,8 @@ const apiRouterFactory = ({
   apiRouter.use("/public-attendance", publicAttendanceRoutesFactory({ pool }));
 
   apiRouter.use("/pmbm", pmbmRouterFactory({ pool, JWT_SECRET }));
+
+  apiRouter.use("/kelulusan", kelulusanRouterFactory({ pool, JWT_SECRET }));
 
   // Admin Routes - These routes are protected and intended for administrative users
   apiRouter.use("/atmin/cms", adminCmsRouterFactory({ pool, JWT_SECRET }));

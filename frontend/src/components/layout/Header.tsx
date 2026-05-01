@@ -68,6 +68,11 @@ const Header: React.FC = () => {
     { to: "/layanan/maklumat-pelayanan", label: "Maklumat Pelayanan" }, // Item baru ditambahkan di sini
   ];
 
+  const alumniDropdownItems: DropdownItem[] = [
+    { to: "/alumni", label: "Data Alumni" },
+    { to: "/kelulusan", label: "Pengumuman Kelulusan" },
+  ];
+
   useEffect(() => {
     const handleScroll = () => setIsScrolled(window.scrollY > 20);
     window.addEventListener("scroll", handleScroll);
@@ -135,10 +140,10 @@ const Header: React.FC = () => {
               label="Web App"
               icon={<AppWindow size={18} />}
             />
-            <NavLink
-              to="/alumni"
+            <Dropdown
               label="Alumni"
               icon={<GraduationCap size={18} />}
+              items={alumniDropdownItems}
             />
             <NavLink to="/contact" label="Kontak" icon={<Mail size={18} />} />
             <ThemeToggle />
