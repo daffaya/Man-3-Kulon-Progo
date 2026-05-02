@@ -17,6 +17,7 @@ import {
   UserCheck,
   UserPlus,
   GraduationCap,
+  LayoutDashboard,
 } from "lucide-react";
 import AppCard from "../../components/ui/AppCard";
 import { useAuth } from "../../contexts/AuthContext";
@@ -54,6 +55,28 @@ const AdminDashboard: React.FC = () => {
   const username = user?.username || "Administrator";
 
   const apps = [
+    {
+      id: "cms",
+      title: "CMS",
+      description: "Kelola konten website sekolah dengan mudah",
+      icon: <LayoutDashboard className="w-6 h-6" />,
+      requiredRole: [
+        "super_admin",
+        "jurnalis",
+        "arsiparis",
+        "guru_bk",
+        "pengelola_bmn",
+      ] as UserRole[],
+      to: "/atmin/cms",
+    },
+    {
+      id: "articles",
+      title: "Artikel Sekolah",
+      description: "Buat dan kelola artikel untuk website sekolah",
+      icon: <BookOpen className="w-6 h-6" />,
+      requiredRole: "jurnalis" as UserRole,
+      to: "/atmin/articles",
+    },
     {
       id: "articles",
       title: "Artikel Sekolah",

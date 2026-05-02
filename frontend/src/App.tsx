@@ -73,6 +73,7 @@ import MaklumatPelayananPage from "./pages/layanan/MaklumatPelayanan";
 
 import CekKelulusanPage from "./pages/kelulusan/CekKelulusanPage";
 import KelulusanManagementPage from "./pages/admin/kelulusan/KelulusanManagementPage";
+import CmsOverviewPage from "./pages/admin/cms/CmsOverviewPage";
 
 /**
  * Layout wrapper component for admin routes that requires authentication.
@@ -279,6 +280,8 @@ function App() {
                           path="manajemen-siswa"
                           element={<ManajemenStudentPage />}
                         />
+
+                        <Route path="cms" element={<CmsOverviewPage />} />
 
                         <Route
                           path="kelulusan"

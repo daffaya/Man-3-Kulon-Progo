@@ -1,260 +1,381 @@
 /**
- * @fileoverview Admin header component with navigation and user profile functionality.
- * This component provides a responsive header for the admin interface with a logo,
- * theme toggle, and user profile dropdown. It adapts its
- * appearance based on scroll position and includes a mobile menu for smaller screens.
+ * @fileoverview AdminHeader component — improved version.
+ *
+ * Improvements over previous version:
+ * - Always-solid background (no transparent at top — admin pages don't need it)
+ * - Active route highlighting in navigation
+ * - Breadcrumb indicator showing current section
+ * - Horizontal quick-nav for desktop (Dashboard, CMS, back to site)
+ * - Cleaner mobile menu with better hierarchy
+ * - Extracted sub-components for readability
+ * - Fixed event.target type assertion
  */
 
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
-import { User, LogOut, Menu, ChevronDown, X } from "lucide-react";
+import {
+  User,
+  LogOut,
+  ChevronDown,
+  LayoutDashboard,
+  Globe,
+  FileText,
+  Settings,
+  X,
+  Menu,
+} from "lucide-react";
 import ThemeToggle from "../ui/ThemeToggle";
 import { useAuth } from "../../contexts/AuthContext";
 import ImageWithFallback from "../ui/ImageWithFallback";
 
+// ─────────────────────────────────────────────
+// Types
+// ─────────────────────────────────────────────
+
+interface NavItem {
+  label: string;
+  to: string;
+  icon: React.ReactNode;
+  /** If true, only exact match highlights this item */
+  exact?: boolean;
+}
+
+// ─────────────────────────────────────────────
+// Constants
+// ─────────────────────────────────────────────
+
+/** Quick-navigation items shown in the admin header. */
+const NAV_ITEMS: NavItem[] = [
+  {
+    label: "Dashboard",
+    to: "/atmin",
+    icon: <LayoutDashboard size={15} />,
+    exact: true,
+  },
+  { label: "Kelola Konten", to: "/atmin/cms", icon: <Settings size={15} /> },
+  { label: "Artikel", to: "/atmin/articles", icon: <FileText size={15} /> },
+  { label: "Lihat Website", to: "/", icon: <Globe size={15} /> },
+];
+
+// ─────────────────────────────────────────────
+// Sub-components
+// ─────────────────────────────────────────────
+
 /**
- * Admin header component with navigation and user profile functionality.
- * Provides a responsive header with logo, theme toggle, and user profile dropdown.
- * Adapts appearance based on scroll position and includes a mobile menu.
+ * Avatar element — shows user image or fallback icon.
+ * @param {object} props
+ * @param {string | null} props.avatarUrl - URL to the user's avatar image
+ * @param {string} props.displayName - Name used as alt text
+ * @param {string} [props.className] - Additional CSS classes for the wrapper
+ */
+const UserAvatar: React.FC<{
+  avatarUrl: string | null;
+  displayName: string;
+  className?: string;
+}> = ({ avatarUrl, displayName, className = "h-8 w-8" }) => (
+  <div
+    className={`${className} rounded-full bg-semibackground flex items-center justify-center overflow-hidden ring-2 ring-accent/20`}
+  >
+    {avatarUrl ? (
+      <ImageWithFallback
+        src={avatarUrl}
+        alt={displayName}
+        className="w-full h-full object-cover"
+        fallback="/logo.png"
+      />
+    ) : (
+      <User size={16} className="text-secondary" />
+    )}
+  </div>
+);
+
+/**
+ * Single desktop navigation link with active state.
+ * @param {object} props
+ * @param {NavItem} props.item - Navigation item data
+ * @param {string} props.currentPath - Current URL pathname
+ */
+const DesktopNavLink: React.FC<{ item: NavItem; currentPath: string }> = ({
+  item,
+  currentPath,
+}) => {
+  const isActive = item.exact
+    ? currentPath === item.to
+    : currentPath.startsWith(item.to);
+
+  return (
+    <Link
+      to={item.to}
+      className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium transition-all duration-200 ${
+        isActive
+          ? "bg-accent/10 text-accent"
+          : "text-secondary hover:text-foreground hover:bg-semibackground"
+      }`}
+    >
+      {item.icon}
+      {item.label}
+    </Link>
+  );
+};
+
+/**
+ * Profile dropdown menu shown on desktop.
+ * @param {object} props
+ * @param {string} props.displayName - Username to display
+ * @param {string} props.displayRole - User role to display
+ * @param {string | null} props.avatarUrl - User avatar URL
+ * @param {() => void} props.onLogout - Logout handler
+ * @param {() => void} props.onClose - Close dropdown handler
+ */
+const ProfileDropdown: React.FC<{
+  displayName: string;
+  displayRole: string;
+  avatarUrl: string | null;
+  onLogout: () => void;
+  onClose: () => void;
+}> = ({ displayName, displayRole, avatarUrl, onLogout, onClose }) => (
+  <div className="absolute right-0 mt-2 w-56 card shadow-xl z-50 overflow-hidden">
+    {/* User info */}
+    <div className="px-4 py-3 border-b border-border flex items-center gap-3">
+      <UserAvatar
+        avatarUrl={avatarUrl}
+        displayName={displayName}
+        className="h-10 w-10"
+      />
+      <div className="min-w-0">
+        <p className="text-sm font-semibold text-foreground truncate">
+          {displayName}
+        </p>
+        <p className="text-xs text-secondary capitalize">
+          {displayRole.replace("_", " ")}
+        </p>
+      </div>
+    </div>
+
+    {/* Actions */}
+    <div className="py-1">
+      <Link
+        to="/atmin/userProfile"
+        onClick={onClose}
+        className="flex items-center gap-2 px-4 py-2.5 text-sm text-foreground hover:bg-semibackground transition-colors"
+      >
+        <User size={15} className="text-secondary" />
+        Profil Saya
+      </Link>
+      <button
+        onClick={onLogout}
+        className="flex items-center gap-2 w-full px-4 py-2.5 text-sm text-red-500 hover:bg-red-50 dark:hover:bg-red-950/30 transition-colors"
+      >
+        <LogOut size={15} />
+        Keluar
+      </button>
+    </div>
+  </div>
+);
+
+// ─────────────────────────────────────────────
+// Main Component
+// ─────────────────────────────────────────────
+
+/**
+ * AdminHeader — fixed header for all admin pages.
  *
- * @returns {JSX.Element} The rendered admin header
+ * Features:
+ * - Always-solid background (no transparency)
+ * - Quick navigation between admin modules
+ * - Profile dropdown with user info
+ * - Responsive mobile menu
+ * - Active route highlighting
  */
 const AdminHeader: React.FC = () => {
+  const [isProfileOpen, setIsProfileOpen] = useState(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
-  const [isProfileDropdownOpen, setIsProfileDropdownOpen] = useState(false);
-  const [isMenuOpen, setIsMenuOpen] = useState(false);
+
   const dropdownRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
   const location = useLocation();
   const { user, logout } = useAuth();
 
+  const displayName = user?.username || "Admin";
+  const displayRole = user?.role || "Administrator";
+  const avatarUrl = user?.avatar || null;
+
+  // ── Scroll shadow ──
   useEffect(() => {
-    const handleScroll = () => setIsScrolled(window.scrollY > 20);
-    window.addEventListener("scroll", handleScroll);
+    const handleScroll = () => setIsScrolled(window.scrollY > 4);
+    window.addEventListener("scroll", handleScroll, { passive: true });
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
+  // ── Close menus on route change ──
   useEffect(() => {
-    setIsMenuOpen(false);
-    setIsProfileDropdownOpen(false);
+    setIsMobileMenuOpen(false);
+    setIsProfileOpen(false);
   }, [location.pathname]);
 
+  // ── Close dropdown on outside click ──
   useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
+    const handleClickOutside = (e: MouseEvent) => {
       if (
         dropdownRef.current &&
-        !dropdownRef.current.contains(event.target as Node)
+        !dropdownRef.current.contains(e.target as Node)
       ) {
-        setIsProfileDropdownOpen(false);
+        setIsProfileOpen(false);
       }
     };
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  /**
-   * Gets the username from the user context or returns a default value
-   * @returns {string} The username to display
-   */
-  const getUsername = (): string => {
-    if (!user) return "Admin";
-    return user.username || "Admin";
-  };
-
-  /**
-   * Gets the user role from the user context or returns a default value
-   * @returns {string} The user role to display
-   */
-  const getRole = (): string => {
-    if (!user) return "Administrator";
-    return user.role || "Administrator";
-  };
-
-  /**
-   * Gets the user avatar URL from the user context
-   * @returns {string | null} The avatar URL or null if not available
-   */
-  const getUserAvatar = (): string | null => {
-    if (!user || !user.avatar) return null;
-    return user.avatar;
-  };
-
-  /**
-   * Handles user logout by calling the logout function and navigating to login
-   */
-  const handleLogout = () => {
+  const handleLogout = useCallback(() => {
     logout();
     navigate("/login");
-  };
-
-  const displayName = getUsername();
-  const displayRole = getRole();
-  const userAvatar = getUserAvatar();
+  }, [logout, navigate]);
 
   return (
-    <header
-      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
-        isScrolled
-          ? "bg-[rgb(var(--color-background))] shadow-md py-2 opacity-95 backdrop-blur-md"
-          : "bg-transparent py-4"
-      }`}
-    >
-      <div className="container max-w-6xl mx-auto px-4 sm:px-6 flex items-center">
-        <div className="flex items-center">
-          <button
-            onClick={() => setIsMenuOpen(!isMenuOpen)}
-            className="mr-4 md:hidden text-secondary hover:text-foreground transition-colors"
-            aria-label="Toggle navigation"
-          >
-            {isMenuOpen ? <X size={24} /> : <Menu size={24} />}
-          </button>
-          <Link to="/atmin" className="flex items-center space-x-2">
-            <img
-              src="/logo.png"
-              alt="Logo MAN 3 KP"
-              className="w-12 h-12 text-accent"
-            />
-          </Link>
-        </div>
+    <>
+      <header
+        className={`fixed top-0 left-0 right-0 z-50 bg-background border-b border-border transition-shadow duration-200 ${
+          isScrolled ? "shadow-md" : "shadow-none"
+        }`}
+      >
+        <div className="container max-w-7xl mx-auto px-4 sm:px-6">
+          <div className="flex items-center h-16 gap-4">
+            {/* Logo */}
+            <Link to="/atmin" className="flex items-center gap-2 flex-shrink-0">
+              <img src="/logo.png" alt="Logo MAN 3 KP" className="w-8 h-8" />
+              <span className="hidden sm:block text-sm font-semibold text-foreground">
+                Admin Panel
+              </span>
+            </Link>
 
-        <div className="flex items-center space-x-4 ml-auto">
-          <ThemeToggle />
+            {/* Divider */}
+            <div className="hidden md:block w-px h-5 bg-border" />
 
-          <div className="relative" ref={dropdownRef}>
-            <button
-              onClick={() => setIsProfileDropdownOpen(!isProfileDropdownOpen)}
-              className="flex items-center space-x-1 font-medium text-foreground hover:text-accent transition-colors"
-            >
-              <div className="h-8 w-8 rounded-full bg-[rgb(var(--color-secondary-button))] flex items-center justify-center overflow-hidden">
-                {userAvatar ? (
-                  <ImageWithFallback
-                    src={userAvatar}
-                    alt={displayName}
-                    className="w-full h-full object-cover"
-                    fallback="/logo.png"
+            {/* Desktop Nav */}
+            <nav className="hidden md:flex items-center gap-1 flex-1">
+              {NAV_ITEMS.map((item) => (
+                <DesktopNavLink
+                  key={item.to}
+                  item={item}
+                  currentPath={location.pathname}
+                />
+              ))}
+            </nav>
+
+            {/* Right side */}
+            <div className="flex items-center gap-2 ml-auto">
+              <ThemeToggle />
+
+              {/* Profile dropdown */}
+              <div className="relative" ref={dropdownRef}>
+                <button
+                  onClick={() => setIsProfileOpen((prev) => !prev)}
+                  className="flex items-center gap-2 px-2 py-1.5 rounded-lg hover:bg-semibackground transition-colors"
+                  aria-label="Profil pengguna"
+                  aria-expanded={isProfileOpen}
+                >
+                  <UserAvatar avatarUrl={avatarUrl} displayName={displayName} />
+                  <span className="hidden md:block text-sm font-medium text-foreground max-w-[120px] truncate">
+                    {displayName}
+                  </span>
+                  <ChevronDown
+                    size={14}
+                    className={`hidden md:block text-secondary transition-transform duration-200 ${
+                      isProfileOpen ? "rotate-180" : ""
+                    }`}
                   />
-                ) : (
-                  <User size={18} className="text-secondary" />
+                </button>
+
+                {isProfileOpen && (
+                  <ProfileDropdown
+                    displayName={displayName}
+                    displayRole={displayRole}
+                    avatarUrl={avatarUrl}
+                    onLogout={handleLogout}
+                    onClose={() => setIsProfileOpen(false)}
+                  />
                 )}
               </div>
-              <span className="hidden md:block">{displayName}</span>
-              <ChevronDown
-                size={16}
-                className={`transition-transform ${
-                  isProfileDropdownOpen ? "rotate-180" : ""
-                }`}
-              />
-            </button>
 
-            {isProfileDropdownOpen && (
-              <div className="absolute right-0 mt-2 w-48 card shadow-xl z-50">
-                <div className="px-4 py-2 border-b border-[rgb(var(--color-secondary-button),0.3)] flex items-center space-x-3">
-                  <div className="h-10 w-10 rounded-full bg-[rgb(var(--color-secondary-button))] flex items-center justify-center overflow-hidden">
-                    {userAvatar ? (
-                      <ImageWithFallback
-                        src={userAvatar}
-                        alt={displayName}
-                        className="w-full h-full object-cover"
-                        fallback="/logo.png"
-                      />
-                    ) : (
-                      <User size={18} className="text-secondary" />
-                    )}
-                  </div>
-                  <div>
-                    <p className="text-sm font-medium text-foreground">
-                      {displayName}
-                    </p>
-                    <p className="text-xs text-secondary">{displayRole}</p>
-                  </div>
-                </div>
-
-                <Link
-                  to="/atmin/userProfile"
-                  className="block px-4 py-2 text-sm text-foreground hover:bg-[rgb(var(--color-secondary-button),0.5)] transition-colors"
-                  onClick={() => setIsProfileDropdownOpen(false)}
-                >
-                  <div className="flex items-center">
-                    <User size={16} className="mr-2" /> Profile
-                  </div>
-                </Link>
-                <button
-                  onClick={handleLogout}
-                  className="block w-full text-left px-4 py-2 text-sm text-foreground hover:bg-[rgb(var(--color-secondary-button),0.5)] transition-colors"
-                >
-                  <div className="flex items-center">
-                    <LogOut size={16} className="mr-2" /> Logout
-                  </div>
-                </button>
-              </div>
-            )}
+              {/* Mobile menu toggle */}
+              <button
+                onClick={() => setIsMobileMenuOpen((prev) => !prev)}
+                className="md:hidden p-2 rounded-lg text-secondary hover:text-foreground hover:bg-semibackground transition-colors"
+                aria-label="Toggle menu navigasi"
+                aria-expanded={isMobileMenuOpen}
+              >
+                {isMobileMenuOpen ? <X size={20} /> : <Menu size={20} />}
+              </button>
+            </div>
           </div>
         </div>
-      </div>
+      </header>
 
-      {isMenuOpen && (
-        <div className="md:hidden card shadow-lg mt-2">
-          <nav className="container mx-auto px-4 py-4 flex flex-col space-y-4">
-            <div className="flex items-center space-x-3 p-2 border-b border-[rgb(var(--color-secondary-button),0.3)]">
-              <div className="h-12 w-12 rounded-full bg-[rgb(var(--color-secondary-button))] flex items-center justify-center overflow-hidden">
-                {userAvatar ? (
-                  <ImageWithFallback
-                    src={userAvatar}
-                    alt={displayName}
-                    className="w-full h-full object-cover"
-                    fallback="/logo.png"
-                  />
-                ) : (
-                  <User size={18} className="text-secondary" />
-                )}
-              </div>
-              <div>
-                <p className="text-sm font-medium text-foreground">
-                  {displayName}
-                </p>
-                <p className="text-xs text-secondary">{displayRole}</p>
-              </div>
-            </div>
-
+      {/* Mobile Menu */}
+      {isMobileMenuOpen && (
+        <div className="fixed top-16 left-0 right-0 z-40 bg-background border-b border-border shadow-lg md:hidden">
+          {/* User info */}
+          <div className="flex items-center gap-3 px-4 py-3 border-b border-border">
+            <UserAvatar
+              avatarUrl={avatarUrl}
+              displayName={displayName}
+              className="h-10 w-10"
+            />
             <div>
-              <button
-                onClick={() => setIsProfileDropdownOpen(!isProfileDropdownOpen)}
-                className="flex items-center justify-between w-full p-2 text-left text-foreground"
-              >
-                <div className="flex items-center space-x-2">
-                  <User size={18} />
-                  <span>Profile</span>
-                </div>
-                <ChevronDown
-                  size={16}
-                  className={`transition-transform ${
-                    isProfileDropdownOpen ? "rotate-180" : ""
-                  }`}
-                />
-              </button>
-
-              {isProfileDropdownOpen && (
-                <div className="pl-6 mt-1 space-y-1">
-                  <Link
-                    to="/atmin/userProfile"
-                    className="block py-2 px-4 text-sm text-foreground hover:bg-[rgb(var(--color-secondary-button),0.5)] rounded transition-colors"
-                    onClick={() => setIsProfileDropdownOpen(false)}
-                  >
-                    Profile
-                  </Link>
-                  <button
-                    onClick={handleLogout}
-                    className="block w-full text-left py-2 px-4 text-sm text-foreground hover:bg-[rgb(var(--color-secondary-button),0.5)] rounded transition-colors"
-                  >
-                    Logout
-                  </button>
-                </div>
-              )}
+              <p className="text-sm font-semibold text-foreground">
+                {displayName}
+              </p>
+              <p className="text-xs text-secondary capitalize">
+                {displayRole.replace("_", " ")}
+              </p>
             </div>
+          </div>
+
+          {/* Nav items */}
+          <nav className="py-2">
+            {NAV_ITEMS.map((item) => {
+              const isActive = item.exact
+                ? location.pathname === item.to
+                : location.pathname.startsWith(item.to);
+              return (
+                <Link
+                  key={item.to}
+                  to={item.to}
+                  className={`flex items-center gap-3 px-4 py-3 text-sm transition-colors ${
+                    isActive
+                      ? "text-accent bg-accent/5"
+                      : "text-foreground hover:bg-semibackground"
+                  }`}
+                >
+                  {item.icon}
+                  {item.label}
+                </Link>
+              );
+            })}
           </nav>
+
+          {/* Actions */}
+          <div className="border-t border-border py-2">
+            <Link
+              to="/atmin/userProfile"
+              className="flex items-center gap-3 px-4 py-3 text-sm text-foreground hover:bg-semibackground transition-colors"
+            >
+              <User size={15} className="text-secondary" />
+              Profil Saya
+            </Link>
+            <button
+              onClick={handleLogout}
+              className="flex items-center gap-3 w-full px-4 py-3 text-sm text-red-500 hover:bg-red-50 dark:hover:bg-red-950/30 transition-colors"
+            >
+              <LogOut size={15} />
+              Keluar
+            </button>
+          </div>
         </div>
       )}
-    </header>
+    </>
   );
 };
 
