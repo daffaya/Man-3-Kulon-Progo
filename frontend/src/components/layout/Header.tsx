@@ -53,7 +53,6 @@ const Header: React.FC = () => {
 
   /**
    * Navigation items for the Services dropdown menu
-   * Updated: Added "Maklumat Pelayanan"
    */
   const layananDropdownItems: DropdownItem[] = [
     { to: "/layanan/zona-integritas", label: "Zona Integritas" },
@@ -65,9 +64,12 @@ const Header: React.FC = () => {
     },
     { to: "/layanan/sedum", label: "Sedum" },
     { to: "/layanan/ptsp", label: "PTSP Online" },
-    { to: "/layanan/maklumat-pelayanan", label: "Maklumat Pelayanan" }, // Item baru ditambahkan di sini
+    { to: "/layanan/maklumat-pelayanan", label: "Maklumat Pelayanan" },
   ];
 
+  /**
+   * Navigation items for Alumni dropdown menu
+   */
   const alumniDropdownItems: DropdownItem[] = [
     { to: "/alumni", label: "Data Alumni" },
     { to: "/kelulusan", label: "Pengumuman Kelulusan" },
@@ -91,6 +93,7 @@ const Header: React.FC = () => {
   const getHeaderClasses = () => {
     const baseClasses =
       "fixed top-0 left-0 right-0 z-50 transition-all duration-300";
+
     const scrolledClasses =
       "bg-[rgb(var(--color-background))] shadow-md py-2 opacity-95";
 
@@ -140,12 +143,15 @@ const Header: React.FC = () => {
               label="Web App"
               icon={<AppWindow size={18} />}
             />
+
             <Dropdown
               label="Alumni"
               icon={<GraduationCap size={18} />}
               items={alumniDropdownItems}
             />
+
             <NavLink to="/contact" label="Kontak" icon={<Mail size={18} />} />
+
             <ThemeToggle />
           </nav>
 

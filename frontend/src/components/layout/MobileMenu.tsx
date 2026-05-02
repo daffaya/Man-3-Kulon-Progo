@@ -44,15 +44,16 @@ export const MobileMenu: React.FC<MobileMenuProps> = ({
         isOpen ? "translate-y-0" : "-translate-y-full"
       }`}
     >
-      {" "}
       <nav className="container mx-auto px-4 py-4 flex flex-col space-y-4">
         <NavLink to="/" label="Home" icon={<Home size={18} />} isMobile />
+
         <NavLink
           to="/berita"
           label="Berita"
           icon={<FileText size={18} />}
           isMobile
         />
+
         <NavLink
           to="/galeri"
           label="Galeri"
@@ -74,30 +75,29 @@ export const MobileMenu: React.FC<MobileMenuProps> = ({
           isMobile
         />
 
+        {/* Alumni */}
         <NavLink
           to="/alumni"
           label="Alumni"
           icon={<GraduationCap size={18} />}
           isMobile
         />
+
+        {/* 🔥 NEW: Cek Kelulusan */}
         <NavLink
-          to="/contact"
-          label="Kontak"
-          icon={<Mail size={18} />}
+          to="/kelulusan"
+          label="Cek Kelulusan"
+          icon={<GraduationCap size={18} />}
           isMobile
         />
+
         <NavLink
           to="/webApp"
           label="Web App"
           icon={<AppWindow size={18} />}
           isMobile
         />
-        <NavLink
-          to="/alumni"
-          label="Alumni"
-          icon={<GraduationCap size={18} />}
-          isMobile
-        />
+
         <NavLink
           to="/contact"
           label="Kontak"

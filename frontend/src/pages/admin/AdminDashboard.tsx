@@ -16,6 +16,7 @@ import {
   LogIn,
   UserCheck,
   UserPlus,
+  GraduationCap,
 } from "lucide-react";
 import AppCard from "../../components/ui/AppCard";
 import { useAuth } from "../../contexts/AuthContext";
@@ -120,6 +121,14 @@ const AdminDashboard: React.FC = () => {
         "pengelola_bmn",
       ] as UserRole[],
       to: "/atmin/pmbm",
+    },
+    {
+      id: "kelulusan",
+      title: "Cek Kelulusan",
+      description: "Kelola dan lihat hasil kelulusan siswa",
+      icon: <GraduationCap className="w-6 h-6" />,
+      requiredRole: ["super_admin", "guru_bk"] as UserRole[],
+      to: "/atmin/kelulusan",
     },
     {
       id: "staff",
