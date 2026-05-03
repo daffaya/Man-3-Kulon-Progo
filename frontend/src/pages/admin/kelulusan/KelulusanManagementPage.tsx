@@ -190,7 +190,7 @@ const KelulusanManagementPage: React.FC = () => {
                 type="text"
                 value={importTahun}
                 onChange={(e) => setImportTahun(e.target.value)}
-                placeholder="Contoh: 2024/2025"
+                placeholder="Contoh: 2025/2026"
                 className="form-input w-full"
               />
             </div>

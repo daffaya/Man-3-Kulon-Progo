@@ -124,7 +124,7 @@ const createStaffModel = ({ pool }) => {
         FROM tendik
         ${whereClause};
       `,
-        queryParams
+        queryParams,
       );
 
       const total = totalRows[0].total;
@@ -160,7 +160,7 @@ const createStaffModel = ({ pool }) => {
         FROM tendik
         WHERE id = ?;
       `,
-        [id]
+        [id],
       );
 
       if (rows.length === 0) return null;
@@ -246,7 +246,7 @@ const createStaffModel = ({ pool }) => {
         const query = `
           SELECT 
             ROW_NUMBER() OVER (ORDER BY id) as no,
-            nama, nip, gender, status, jabatan
+            nama, gender, status, jabatan
           FROM tendik
           ORDER BY nama ASC
         `;

@@ -74,6 +74,8 @@ import MaklumatPelayananPage from "./pages/layanan/MaklumatPelayanan";
 import CekKelulusanPage from "./pages/kelulusan/CekKelulusanPage";
 import KelulusanManagementPage from "./pages/admin/kelulusan/KelulusanManagementPage";
 import CmsOverviewPage from "./pages/admin/cms/CmsOverviewPage";
+import CmsPmbmForm from "./pages/admin/cms/CmsPmbmForm";
+import CmsHomeForm from "./pages/admin/cms/CmsHomeForm";
 
 /**
  * Layout wrapper component for admin routes that requires authentication.
@@ -282,7 +284,8 @@ function App() {
                         />
 
                         <Route path="cms" element={<CmsOverviewPage />} />
-
+                        <Route path="cms/pmbm" element={<CmsPmbmForm />} />
+                        <Route path="cms/home" element={<CmsHomeForm />} />
                         <Route
                           path="kelulusan"
                           element={<KelulusanManagementPage />}

@@ -138,12 +138,6 @@ const DetailTendikTable: React.FC<{ data: Tendik[] }> = ({ data }) => {
               Nama
             </th>
             <th
-              className="border border-gray-300 dark:border-gray-600 px-4 py-2 text-left text-gray-800 dark:text-gray-200"
-              scope="col"
-            >
-              NIP
-            </th>
-            <th
               className="border border-gray-300 dark:border-gray-600 px-4 py-2 text-center text-gray-800 dark:text-gray-200"
               scope="col"
             >
@@ -166,7 +160,7 @@ const DetailTendikTable: React.FC<{ data: Tendik[] }> = ({ data }) => {
         <tbody>
           {data.map((item, index) => (
             <tr
-              key={item.nip}
+              key={item.no}
               className={
                 index % 2 === 0
                   ? "bg-white dark:bg-gray-800"
@@ -178,9 +172,6 @@ const DetailTendikTable: React.FC<{ data: Tendik[] }> = ({ data }) => {
               </td>
               <td className="border border-gray-300 dark:border-gray-600 px-4 py-2">
                 {item.nama}
-              </td>
-              <td className="border border-gray-300 dark:border-gray-600 px-4 py-2">
-                {item.nip}
               </td>
               <td className="border border-gray-300 dark:border-gray-600 px-4 py-2 text-center">
                 {item.gender}
