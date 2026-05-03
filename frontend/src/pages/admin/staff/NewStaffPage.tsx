@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { useStaff } from "../../../contexts/staffContext";
+import { useStaff } from "../../../contexts/StaffContext";
 import { useToastMessage } from "../../../hooks/useToastMessage";
 import AdminLayout from "../../../components/layout/AdminLayout";
 import StaffForm from "../../../components/forms/StaffForm";

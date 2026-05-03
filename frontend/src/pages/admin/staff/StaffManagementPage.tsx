@@ -10,7 +10,7 @@ import React, { useEffect, useState, useCallback } from "react";
 import { Link, Navigate, useNavigate } from "react-router-dom";
 import { Plus, RefreshCw, X, ArrowLeft } from "lucide-react";
 import StaffTable from "../../../components/tables/staffTable";
-import { useStaff } from "../../../contexts/staffContext";
+import { useStaff } from "../../../contexts/StaffContext";
 import { useAuth } from "../../../contexts/AuthContext";
 import { StaffFilters } from "../../../types/staffTypes";
 import { useToastMessage } from "../../../hooks/useToastMessage";

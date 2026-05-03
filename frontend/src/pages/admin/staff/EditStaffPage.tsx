@@ -5,7 +5,7 @@
  */
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate, Link, Navigate } from "react-router-dom";
-import { useStaff } from "../../../contexts/staffContext";
+import { useStaff } from "../../../contexts/StaffContext";
 import { StaffFormData } from "../../../types/staffTypes";
 import StaffForm from "../../../components/forms/StaffForm";
 import { RefreshCw, ChevronLeft } from "lucide-react";
