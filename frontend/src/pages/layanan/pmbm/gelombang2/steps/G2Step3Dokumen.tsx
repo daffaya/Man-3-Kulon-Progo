@@ -39,7 +39,6 @@ const G2Step3Dokumen: React.FC<G2StepProps> = ({ form, setForm, errors }) => {
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <PmbmFormField
               label="Nilai Literasi"
-              required
               error={errors.nilai_tka_literasi}
               hint="Skala 0–100"
             >
@@ -68,7 +67,6 @@ const G2Step3Dokumen: React.FC<G2StepProps> = ({ form, setForm, errors }) => {
 
             <PmbmFormField
               label="Nilai Numerasi"
-              required
               error={errors.nilai_tka_numerasi}
               hint="Skala 0–100"
             >

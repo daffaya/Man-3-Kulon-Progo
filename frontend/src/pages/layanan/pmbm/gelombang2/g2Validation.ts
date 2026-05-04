@@ -58,18 +58,18 @@ export const validateG2Step = (
     }
 
     case 2: {
-      const literasi = Number(form.nilai_tka_literasi);
-      const numerasi = Number(form.nilai_tka_numerasi);
+      const literasi =
+        form.nilai_tka_literasi !== "" ? Number(form.nilai_tka_literasi) : null;
 
-      if (!form.nilai_tka_literasi) {
-        errors.nilai_tka_literasi = "Nilai TKA Literasi wajib diisi";
-      } else if (literasi < 0 || literasi > 100) {
+      const numerasi =
+        form.nilai_tka_numerasi !== "" ? Number(form.nilai_tka_numerasi) : null;
+
+      // Optional: hanya validasi jika field diisi
+      if (literasi !== null && (literasi < 0 || literasi > 100)) {
         errors.nilai_tka_literasi = "Nilai harus antara 0–100";
       }
 
-      if (!form.nilai_tka_numerasi) {
-        errors.nilai_tka_numerasi = "Nilai TKA Numerasi wajib diisi";
-      } else if (numerasi < 0 || numerasi > 100) {
+      if (numerasi !== null && (numerasi < 0 || numerasi > 100)) {
         errors.nilai_tka_numerasi = "Nilai harus antara 0–100";
       }
 
