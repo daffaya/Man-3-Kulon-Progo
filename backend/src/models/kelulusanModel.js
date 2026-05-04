@@ -23,12 +23,13 @@ const createKelulusanModel = ({ pool }) => {
         row.nama,
         row.kelas,
         row.status,
+        row.file_pengumuman ?? null,
         tahun_ajaran,
       ]);
 
       await pool.query(
         `INSERT INTO kelulusan
-           (nisn, nism, nomor_asesmen, nama, kelas, status, tahun_ajaran)
+           (nisn, nism, nomor_asesmen, nama, kelas, status, file_pengumuman, tahun_ajaran)
          VALUES ?`,
         [values],
       );
@@ -41,7 +42,7 @@ const createKelulusanModel = ({ pool }) => {
      */
     findByNisn: async (nisn, tahun_ajaran) => {
       const [rows] = await pool.execute(
-        `SELECT nisn, nama, kelas, status, tahun_ajaran
+        `SELECT nisn, nama, kelas, status, file_pengumuman, tahun_ajaran
          FROM kelulusan
          WHERE nisn = ? AND tahun_ajaran = ?`,
         [nisn, tahun_ajaran],

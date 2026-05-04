@@ -168,6 +168,13 @@ const kelulusanControllerFactory = ({ pool }) => {
           ).trim(),
           kelas: String(normalizedRow["kelas"] || "").trim(),
           status: isLulus ? "lulus" : "tidak_lulus",
+          file_pengumuman:
+            String(
+              normalizedRow["file_pengumuman"] ||
+                normalizedRow["link_pengumuman"] ||
+                normalizedRow["link"] ||
+                "",
+            ).trim() || null,
         };
 
         if (data.nisn && data.nama) {

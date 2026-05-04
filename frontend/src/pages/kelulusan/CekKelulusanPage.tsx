@@ -307,6 +307,22 @@ const CekKelulusanPage: React.FC = () => {
                       </span>
                     </p>
                   </div>
+                  {result?.file_pengumuman && (
+                    <div className="pt-2">
+                      <p className="text-secondary mb-3">
+                        Silahkan unduh file Pengumuman Kelulusan di bawah ini:
+                      </p>
+
+                      <a
+                        href={result.file_pengumuman}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="btn btn-primary inline-block text-sm"
+                      >
+                        Unduh Pengumuman Kelulusan
+                      </a>
+                    </div>
+                  )}
                 </div>
 
                 <button

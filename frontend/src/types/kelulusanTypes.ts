@@ -5,6 +5,7 @@ export interface KelulusanResult {
   nama: string;
   kelas: string;
   status: StatusKelulusan;
+  file_pengumuman: string | null;
   tahun_ajaran: string;
 }
 
@@ -16,5 +17,6 @@ export interface KelulusanSummary {
   nama: string;
   kelas: string;
   status: StatusKelulusan;
+  file_pengumuman: string | null;
   tahun_ajaran: string;
 }
