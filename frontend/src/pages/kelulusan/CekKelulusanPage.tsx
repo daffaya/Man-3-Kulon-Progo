@@ -1,4 +1,12 @@
-import React, { useState } from "react";
+/**
+ * @fileoverview CekKelulusanPage component for checking student graduation status.
+ * This component provides a time-gated announcement page with a real-time countdown
+ * before access is unlocked. It allows users to input their NISN to retrieve
+ * graduation results and displays outcomes with animated transitions and
+ * conditional UI states (lulus, tidak lulus, not found, error).
+ */
+
+import React, { useEffect, useState } from "react";
 import Layout from "../../components/layout/Layout";
 import kelulusanApi from "../../api/kelulusanApi";
 import type { KelulusanResult } from "../../types/kelulusanTypes";
@@ -11,11 +19,53 @@ type PageState =
   | "not_found"
   | "error";
 
+const OPEN_TIME = new Date("2026-05-04T10:00:00+07:00");
+
 const CekKelulusanPage: React.FC = () => {
   const [nisn, setNisn] = useState("");
   const [state, setState] = useState<PageState>("idle");
   const [result, setResult] = useState<KelulusanResult | null>(null);
   const [showResult, setShowResult] = useState(false);
+
+  // Countdown state
+  const [timeLeft, setTimeLeft] = useState("00:00:00");
+  const [isLastSeconds, setIsLastSeconds] = useState(false);
+  const [isOpen, setIsOpen] = useState(false);
+
+  useEffect(() => {
+    const updateTime = () => {
+      const now = new Date();
+      const diff = OPEN_TIME.getTime() - now.getTime();
+
+      if (diff <= 0) {
+        setIsOpen(true);
+        setTimeLeft("00:00:00");
+        return true;
+      }
+
+      setIsLastSeconds(diff <= 10000 && diff > 0);
+
+      const hours = Math.floor(diff / (1000 * 60 * 60));
+      const minutes = Math.floor((diff / (1000 * 60)) % 60);
+      const seconds = Math.floor((diff / 1000) % 60);
+
+      const format = (n: number) => String(n).padStart(2, "0");
+
+      setTimeLeft(`${format(hours)}:${format(minutes)}:${format(seconds)}`);
+
+      return false;
+    };
+
+    const shouldStop = updateTime();
+    if (shouldStop) return;
+
+    const interval = setInterval(() => {
+      const stop = updateTime();
+      if (stop) clearInterval(interval);
+    }, 1000);
+
+    return () => clearInterval(interval);
+  }, []);
 
   const handleCek = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -29,7 +79,6 @@ const CekKelulusanPage: React.FC = () => {
       const res = await kelulusanApi.cekKelulusan(nisn.trim());
       setResult(res.data);
 
-      // Delay sebelum reveal — build up tension
       setTimeout(() => {
         setState(
           res.data.status === "lulus" ? "found_lulus" : "found_tidak_lulus",
@@ -55,6 +104,74 @@ const CekKelulusanPage: React.FC = () => {
     setShowResult(false);
   };
 
+  /**
+   * ───────────────────────────────
+   * PRE-OPEN SCREEN (SNBT VIBE)
+   * ───────────────────────────────
+   */
+  if (!isOpen) {
+    return (
+      <Layout>
+        <div className="min-h-screen flex items-center justify-center px-4 relative overflow-hidden bg-background">
+          <div className="absolute w-[500px] h-[500px] bg-accent/10 blur-3xl rounded-full top-1/3 left-1/2 -translate-x-1/2" />
+
+          <div className="relative z-10 text-center max-w-md w-full">
+            <h1 className="text-2xl font-serif font-bold text-foreground mb-2">
+              Pengumuman Kelulusan
+            </h1>
+
+            <p className="text-secondary text-sm mb-6">
+              MAN 3 Kulon Progo • TA 2025/2026
+            </p>
+
+            <div className="card p-10 shadow-xl backdrop-blur-md bg-semibackground/80">
+              <p className="text-secondary text-sm mb-2">
+                Pengumuman akan dibuka dalam
+              </p>
+
+              {/* COUNTDOWN */}
+              <div
+                className={`
+                  font-mono font-bold tracking-widest
+                  transition-all duration-300
+                  ${
+                    isLastSeconds
+                      ? "text-error text-5xl scale-110 animate-[pulse_0.5s_ease-in-out_infinite]"
+                      : "text-accent text-4xl"
+                  }
+                `}
+              >
+                {timeLeft}
+              </div>
+
+              <p className="mt-4 text-sm text-secondary">
+                {isLastSeconds
+                  ? "Bersiap... hasil akan segera muncul"
+                  : "Harap menunggu hingga waktu pengumuman"}
+              </p>
+
+              {isLastSeconds && (
+                <p className="mt-2 text-xs text-error animate-pulse">
+                  Jangan refresh halaman
+                </p>
+              )}
+
+              <div className="mt-6 text-xs text-muted">
+                Dibuka: 04 Mei 2026 • 10:00 WIB
+              </div>
+            </div>
+          </div>
+        </div>
+      </Layout>
+    );
+  }
+
+  /**
+   * ───────────────────────────────
+   * MAIN PAGE
+   * ───────────────────────────────
+   */
+
   return (
     <Layout>
       <div className="min-h-screen bg-semibackground flex items-center justify-center px-4 py-16">
@@ -73,7 +190,8 @@ const CekKelulusanPage: React.FC = () => {
           {state === "idle" && (
             <div className="card p-8 shadow-lg">
               <p className="text-secondary text-sm text-center mb-6">
-                Masukkan NISN kamu untuk mengetahui status kelulusan.
+                Masukkan NISN untuk melihat hasil perjuanganmu selama di bangku
+                sekolah.
               </p>
               <form onSubmit={handleCek} className="space-y-4">
                 <div>
@@ -109,10 +227,10 @@ const CekKelulusanPage: React.FC = () => {
                 <div className="absolute inset-0 rounded-full border-4 border-t-accent animate-spin" />
               </div>
               <p className="text-foreground font-semibold text-lg animate-pulse">
-                Sedang mencari data...
+                Sedang membaca hasil perjuanganmu...
               </p>
               <p className="text-secondary text-sm mt-2">
-                Mohon tunggu sebentar
+                Mohon tunggu sebentar, ya.
               </p>
             </div>
           )}
@@ -169,7 +287,7 @@ const CekKelulusanPage: React.FC = () => {
                   }`}
                 >
                   <p className="text-green-600 dark:text-green-400 font-bold text-2xl mb-1">
-                    SELAMAT!
+                    SELAMAT, KAMU LULUS!
                   </p>
                   <p className="text-foreground font-bold text-xl mb-1">
                     {result?.nama}
@@ -177,13 +295,18 @@ const CekKelulusanPage: React.FC = () => {
                   <p className="text-secondary text-sm mb-4">
                     {result?.kelas} · {result?.tahun_ajaran}
                   </p>
-                  <div className="inline-block bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 font-bold text-lg px-6 py-2 rounded-full">
-                    ✅ DINYATAKAN LULUS
+                  <div className="space-y-2 mb-4">
+                    <p className="text-foreground text-sm leading-relaxed">
+                      Perjuanganmu selama ini tidak sia-sia.
+                    </p>
+
+                    <p className="text-secondary text-sm leading-relaxed">
+                      Ini adalah hasil dari kerja keras, doa, dan ketekunanmu.
+                      <br />
+                      Semoga ini menjadi awal dari petualangan baru yang penuh
+                      keberhasilan dan kebahagiaan.
+                    </p>
                   </div>
-                  <p className="text-secondary text-sm mt-4">
-                    Semoga sukses di jenjang berikutnya. Tetap rendah hati dan
-                    terus berprestasi!
-                  </p>
                 </div>
 
                 <button
@@ -219,8 +342,9 @@ const CekKelulusanPage: React.FC = () => {
                 Belum Lulus
               </div>
               <p className="text-secondary text-sm">
-                Tetap semangat. Hubungi pihak sekolah untuk informasi lebih
-                lanjut mengenai langkah selanjutnya.
+                Terima kasih sudah berjuang sampai sejauh ini. Hasil hari ini
+                bukan akhir dari segalanya, masih banyak jalan untuk melanjutkan
+                langkahmu. Tetap semangat dan jangan berhenti berusaha.
               </p>
 
               <button
@@ -245,12 +369,12 @@ const CekKelulusanPage: React.FC = () => {
                 </div>
               </div>
               <p className="text-foreground font-semibold text-lg mb-2">
-                NISN Tidak Ditemukan
+                Data NISN tidak ditemukan
               </p>
               <p className="text-secondary text-sm mb-6">
                 NISN <strong className="text-foreground">{nisn}</strong> tidak
-                terdaftar dalam data kelulusan. Pastikan NISN yang kamu masukkan
-                sudah benar.
+                ditemukan. Pastikan kembali NISN yang kamu masukkan sudah benar.
+                Jika masih ada kendala, silakan hubungi pihak sekolah.
               </p>
               <button onClick={handleReset} className="btn btn-primary text-sm">
                 Coba Lagi
