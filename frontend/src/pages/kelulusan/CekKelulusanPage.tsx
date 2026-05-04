@@ -182,7 +182,7 @@ const CekKelulusanPage: React.FC = () => {
               Pengumuman Kelulusan
             </h1>
             <p className="text-secondary mt-2 text-sm">
-              MAN 3 Kulon Progo — TA 2025/2026 (Tes)
+              MAN 3 Kulon Progo — TA 2025/2026
             </p>
           </div>
 
