@@ -37,7 +37,8 @@ jobs:
           lftp -e "
           set ssl:verify-certificate no;
           open ftp://${{ secrets.FTP_USERNAME }}:${{ secrets.FTP_PASSWORD }}@${{ secrets.FTP_HOST }}:${{ secrets.FTP_PORT }};
-          mirror -R --delete --no-perms --ignore-time --exclude-glob .htaccess \
+          mirror -R --delete --no-perms --exclude-glob .htaccess \
             frontend/dist /public_html;
+          put frontend/dist/index.html -o /public_html/index.html;
           bye
           "
