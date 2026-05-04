@@ -69,9 +69,9 @@ jobs:
       - name: Setup SSH key
         run: |
           mkdir -p ~/.ssh
-          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
+          printf '%s' "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
           chmod 600 ~/.ssh/id_rsa
-          ssh-keyscan -p ${{ secrets.SSH_PORT }} ${{ secrets.SSH_HOST }} >> ~/.ssh/known_hosts
+          ssh-keyscan -p ${{ secrets.SSH_PORT }} -H ${{ secrets.SSH_HOST }} >> ~/.ssh/known_hosts 2>/dev/null
 
       - name: Deploy frontend to public_html
         run: |
@@ -95,9 +95,9 @@ jobs:
       - name: Setup SSH key
         run: |
           mkdir -p ~/.ssh
-          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
+          printf '%s' "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
           chmod 600 ~/.ssh/id_rsa
-          ssh-keyscan -p ${{ secrets.SSH_PORT }} ${{ secrets.SSH_HOST }} >> ~/.ssh/known_hosts
+          ssh-keyscan -p ${{ secrets.SSH_PORT }} -H ${{ secrets.SSH_HOST }} >> ~/.ssh/known_hosts 2>/dev/null
 
       - name: Sync backend files
         run: |
@@ -115,9 +115,5 @@ jobs:
           ssh -p ${{ secrets.SSH_PORT }} \
             -i ~/.ssh/id_rsa \
             -o StrictHostKeyChecking=no \
-            ${{ secrets.SSH_USERNAME }}@${{ secrets.SSH_HOST }} << 'EOF'
-            source /home/${{ secrets.SSH_USERNAME }}/nodevenv/${{ secrets.BACKEND_APP_NAME }}/20/bin/activate
-            cd ${{ secrets.BACKEND_PATH }}
-            npm ci --omit=dev
-            touch tmp/restart.txt
-          EOF
+            ${{ secrets.SSH_USERNAME }}@${{ secrets.SSH_HOST }} \
+            "source ~/nodevenv/${{ secrets.BACKEND_APP_NAME }}/20/bin/activate && cd ${{ secrets.BACKEND_PATH }} && npm ci --omit=dev && touch tmp/restart.txt"
