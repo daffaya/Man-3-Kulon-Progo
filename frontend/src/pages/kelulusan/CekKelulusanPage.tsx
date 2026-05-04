@@ -286,25 +286,25 @@ const CekKelulusanPage: React.FC = () => {
                       : "opacity-0 translate-y-4"
                   }`}
                 >
-                  <p className="text-green-600 dark:text-green-400 font-bold text-2xl mb-1">
-                    SELAMAT, KAMU LULUS!
-                  </p>
-                  <p className="text-foreground font-bold text-xl mb-1">
+                  <p className="text-green-600 dark:text-green-400 font-bold text-2xl mb-2">
+                    Selamat <br />
                     {result?.nama}
                   </p>
                   <p className="text-secondary text-sm mb-4">
                     {result?.kelas} · {result?.tahun_ajaran}
                   </p>
-                  <div className="space-y-2 mb-4">
-                    <p className="text-foreground text-sm leading-relaxed">
-                      Perjuanganmu selama ini tidak sia-sia.
-                    </p>
 
-                    <p className="text-secondary text-sm leading-relaxed">
-                      Ini adalah hasil dari kerja keras, doa, dan ketekunanmu.
-                      <br />
-                      Semoga ini menjadi awal dari petualangan baru yang penuh
-                      keberhasilan dan kebahagiaan.
+                  <p className="text-foreground text-sm leading-relaxed mb-4">
+                    Kamu dinyatakan <span className="font-bold">LULUS</span>{" "}
+                    dari MAN 3 Kulon Progo.
+                  </p>
+                  <div className="space-y-3 mb-4 text-sm text-secondary leading-relaxed">
+                    <p>
+                      Teriring doa:{" "}
+                      <span className="italic">
+                        "Barakallah fii ilmi, semoga ilmu yang kamu miliki
+                        membawa berkah dan kemanfaatan bagi agama dan bangsa."
+                      </span>
                     </p>
                   </div>
                 </div>
