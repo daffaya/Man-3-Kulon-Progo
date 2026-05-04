@@ -3,10 +3,7 @@
 # CI/CD Pipeline — MAN 3 Kulon Progo
 #
 # Triggered on push to main branch.
-# Jobs:
-#   1. build-frontend  → install, build, upload artifact
-#   2. deploy-frontend → download artifact, rsync to public_html via SSH
-#   3. deploy-backend  → rsync backend files, npm install, restart Node.js app
+# Uses webfactory/ssh-agent to handle SSH key correctly (preserves newlines).
 
 name: Deploy to Hostinger
 
@@ -66,17 +63,19 @@ jobs:
           name: frontend-dist
           path: dist/
 
-      - name: Setup SSH key
+      - name: Setup SSH agent
+        uses: webfactory/ssh-agent@v0.9.0
+        with:
+          ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
+
+      - name: Add server to known hosts
         run: |
-          mkdir -p ~/.ssh
-          printf '%s' "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
-          chmod 600 ~/.ssh/id_rsa
-          ssh-keyscan -p ${{ secrets.SSH_PORT }} -H ${{ secrets.SSH_HOST }} >> ~/.ssh/known_hosts 2>/dev/null
+          ssh-keyscan -p ${{ secrets.SSH_PORT }} -H ${{ secrets.SSH_HOST }} >> ~/.ssh/known_hosts
 
       - name: Deploy frontend to public_html
         run: |
           rsync -avz --delete \
-            -e "ssh -p ${{ secrets.SSH_PORT }} -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no" \
+            -e "ssh -p ${{ secrets.SSH_PORT }} -o StrictHostKeyChecking=no" \
             dist/ \
             ${{ secrets.SSH_USERNAME }}@${{ secrets.SSH_HOST }}:${{ secrets.FRONTEND_DIST_PATH }}/
 
@@ -92,12 +91,14 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Setup SSH key
+      - name: Setup SSH agent
+        uses: webfactory/ssh-agent@v0.9.0
+        with:
+          ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
+
+      - name: Add server to known hosts
         run: |
-          mkdir -p ~/.ssh
-          printf '%s' "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
-          chmod 600 ~/.ssh/id_rsa
-          ssh-keyscan -p ${{ secrets.SSH_PORT }} -H ${{ secrets.SSH_HOST }} >> ~/.ssh/known_hosts 2>/dev/null
+          ssh-keyscan -p ${{ secrets.SSH_PORT }} -H ${{ secrets.SSH_HOST }} >> ~/.ssh/known_hosts
 
       - name: Sync backend files
         run: |
@@ -106,14 +107,13 @@ jobs:
             --exclude='.env' \
             --exclude='uploads/' \
             --exclude='src/temp/' \
-            -e "ssh -p ${{ secrets.SSH_PORT }} -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no" \
+            -e "ssh -p ${{ secrets.SSH_PORT }} -o StrictHostKeyChecking=no" \
             backend/ \
             ${{ secrets.SSH_USERNAME }}@${{ secrets.SSH_HOST }}:${{ secrets.BACKEND_PATH }}/
 
       - name: Install dependencies and restart app
         run: |
           ssh -p ${{ secrets.SSH_PORT }} \
-            -i ~/.ssh/id_rsa \
             -o StrictHostKeyChecking=no \
             ${{ secrets.SSH_USERNAME }}@${{ secrets.SSH_HOST }} \
             "source ~/nodevenv/${{ secrets.BACKEND_APP_NAME }}/20/bin/activate && cd ${{ secrets.BACKEND_PATH }} && npm ci --omit=dev && touch tmp/restart.txt"
