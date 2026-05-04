@@ -1,4 +1,4 @@
-name: Deploy Vite to cPanel (FTP Safe)
+name: Deploy Vite Frontend to cPanel (FTP Safe)
 
 on:
   push:
@@ -18,22 +18,27 @@ jobs:
         with:
           node-version: 20
 
-      - name: Install dependencies
+      # INSTALL DI FRONTEND (PENTING)
+      - name: Install frontend dependencies
+        working-directory: frontend
         run: npm ci
 
+      # BUILD DI FRONTEND (PENTING)
       - name: Build Vite app
+        working-directory: frontend
         run: npm run build
 
       - name: Install lftp
         run: sudo apt-get install -y lftp
 
-      - name: Deploy safely to public_html
+      # DEPLOY DARI frontend/dist
+      - name: Deploy to FTP (safe mode)
         run: |
           lftp -e "
           set ssl:verify-certificate no;
           open ftp://${{ secrets.FTP_USERNAME }}:${{ secrets.FTP_PASSWORD }}@${{ secrets.FTP_HOST }}:${{ secrets.FTP_PORT }};
 
-          mirror -R dist /public_html \
+          mirror -R frontend/dist /public_html \
             --only-newer \
             --no-perms \
             --exclude-glob .htaccess \
