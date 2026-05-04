@@ -8,6 +8,7 @@ import {
   GraduationCap,
   Search,
   AlertCircle,
+  FileText,
 } from "lucide-react";
 import AdminLayout from "../../../components/layout/AdminLayout";
 import { useAuth } from "../../../contexts/AuthContext";
@@ -226,10 +227,11 @@ const KelulusanManagementPage: React.FC = () => {
               Format kolom Excel yang diharapkan:
             </strong>{" "}
             NO · NISM · NISN · NOMOR ASESMEN MADRASAH · NAMA PESERTA DIDIK ·
-            KELAS · DINYATAKAN
+            KELAS · DINYATAKAN · FILE_PENGUMUMAN
             <br />
             Kolom <strong>DINYATAKAN</strong> harus berisi teks "LULUS" atau
-            "TIDAK LULUS".
+            "TIDAK LULUS". Kolom <strong>FILE_PENGUMUMAN</strong> berisi link
+            Google Drive pengumuman tiap siswa.
           </div>
         </div>
 
@@ -353,6 +355,7 @@ const KelulusanManagementPage: React.FC = () => {
                   </th>
                   <th className="px-4 py-3 text-left">Kelas</th>
                   <th className="px-4 py-3 text-left">Status</th>
+                  <th className="px-4 py-3 text-left">File</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-secondary/10">
@@ -387,6 +390,21 @@ const KelulusanManagementPage: React.FC = () => {
                       >
                         {row.status === "lulus" ? "Lulus" : "Belum Lulus"}
                       </span>
+                    </td>
+                    <td className="px-4 py-3 text-center">
+                      {row.file_pengumuman ? (
+                        <a
+                          href={row.file_pengumuman}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="inline-flex items-center justify-center p-2 rounded-lg hover:bg-accent/10 text-accent transition-colors"
+                          title="Lihat file pengumuman"
+                        >
+                          <FileText size={18} />
+                        </a>
+                      ) : (
+                        <span className="text-secondary text-xs">—</span>
+                      )}
                     </td>
                   </tr>
                 ))}
