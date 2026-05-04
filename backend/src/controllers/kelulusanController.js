@@ -108,11 +108,19 @@ const kelulusanControllerFactory = ({ pool }) => {
           .json({ error: "Sheet tidak ditemukan dalam file Excel" });
       }
 
-      const normalize = (str) =>
-        String(str ?? "")
-          .toLowerCase()
-          .trim()
-          .replace(/\s+/g, "_");
+      const normalize = (value) => {
+        let text = "";
+
+        if (value == null) {
+          text = "";
+        } else if (typeof value === "object" && value.richText) {
+          text = value.richText.map((r) => r.text).join("");
+        } else {
+          text = String(value);
+        }
+
+        return text.toLowerCase().trim().replace(/\s+/g, "_");
+      };
 
       // Ambil header dari baris pertama
       const headerRow = worksheet.getRow(1);
@@ -133,6 +141,7 @@ const kelulusanControllerFactory = ({ pool }) => {
           if (!key) return;
 
           let val;
+
           if (cell.type === ExcelJS.ValueType.Number) {
             val = Math.round(cell.value).toString();
           } else if (cell.type === ExcelJS.ValueType.Formula) {
@@ -141,9 +150,16 @@ const kelulusanControllerFactory = ({ pool }) => {
               typeof result === "number"
                 ? Math.round(result).toString()
                 : String(result ?? "").trim();
+          } else if (
+            typeof cell.value === "object" &&
+            cell.value !== null &&
+            cell.value.hyperlink
+          ) {
+            val = String(cell.value.hyperlink).trim();
           } else {
             val = String(cell.value ?? "").trim();
           }
+
           normalizedRow[key] = val;
         });
 
