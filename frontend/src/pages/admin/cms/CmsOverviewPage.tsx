@@ -29,6 +29,8 @@ import {
   LayoutGrid,
   ChevronRight,
   Image,
+  Network,
+  AppWindow,
 } from "lucide-react";
 import CmsLayout from "../../../components/layout/CmsLayout";
 import { useAuth } from "../../../contexts/AuthContext";
@@ -55,7 +57,7 @@ interface CmsPageCard {
 // ─────────────────────────────────────────────
 
 const CMS_PAGES: CmsPageCard[] = [
-  // Halaman Utama
+  // ── Halaman Utama ──
   {
     label: "Homepage",
     description: "Stats, about, zona integritas, SEDUM, survey, quick actions",
@@ -67,13 +69,13 @@ const CMS_PAGES: CmsPageCard[] = [
   },
   {
     label: "Kontak",
-    description: "Alamat, telepon, email, WhatsApp, embed peta",
+    description: "Alamat, telepon, email, jam operasional, embed Google Maps",
     to: "/atmin/cms/kontak",
     icon: <Phone size={20} />,
     group: "Halaman Utama",
   },
 
-  // Profil
+  // ── Profil ──
   {
     label: "Sejarah",
     description: "Paragraf sejarah pendirian dan perkembangan madrasah",
@@ -83,14 +85,14 @@ const CMS_PAGES: CmsPageCard[] = [
   },
   {
     label: "Visi & Misi",
-    description: "Visi, misi, tujuan jangka panjang/pendek, strategi",
+    description: "Visi, misi (kategori + poin), tujuan, strategi",
     to: "/atmin/cms/visi-misi",
     icon: <Eye size={20} />,
     group: "Profil",
   },
   {
     label: "Kepala Madrasah",
-    description: "Periodisasi pimpinan dan kepala tata usaha",
+    description: "Tabel periodisasi kepala madrasah dari masa ke masa",
     to: "/atmin/cms/kepala-madrasah",
     icon: <UserCheck size={20} />,
     group: "Profil",
@@ -99,9 +101,9 @@ const CMS_PAGES: CmsPageCard[] = [
   },
   {
     label: "Struktur Organisasi",
-    description: "Posisi jabatan, nama pejabat, dan gambar bagan",
+    description: "Gambar bagan dan daftar jabatan-nama struktural",
     to: "/atmin/cms/struktur-organisasi",
-    icon: <Users size={20} />,
+    icon: <Network size={20} />,
     group: "Profil",
     badge: "Perlu update",
     badgeColor: "yellow",
@@ -131,13 +133,15 @@ const CMS_PAGES: CmsPageCard[] = [
   },
   {
     label: "Program Kerja",
-    description: "Kegiatan dan program kerja per periode",
+    description: "Program kerja per bidang dan tahun ajaran aktif",
     to: "/atmin/cms/program-kerja",
     icon: <Briefcase size={20} />,
     group: "Profil",
+    badge: "Tiap tahun ajaran",
+    badgeColor: "yellow",
   },
 
-  // Layanan
+  // ── Layanan ──
   {
     label: "PMBM",
     description: "Config gelombang, jadwal, jalur, syarat, alur, FAQ, kontak",
@@ -149,39 +153,39 @@ const CMS_PAGES: CmsPageCard[] = [
   },
   {
     label: "Zona Integritas",
-    description: "Header, 6 area, laporan kinerja, SOP, pengaduan, banner",
+    description: "Header, 6 area, LKJ, SOP, kontak pengaduan",
     to: "/atmin/cms/zona-integritas",
     icon: <Shield size={20} />,
     group: "Layanan",
   },
   {
     label: "SEDUM",
-    description: "Header, deskripsi, saluran pengaduan, SOP, FAQ",
+    description: "Header, tentang, saluran pengaduan, SOP, FAQ",
     to: "/atmin/cms/sedum",
     icon: <MessageSquare size={20} />,
     group: "Layanan",
   },
   {
     label: "PTSP",
-    description: "Header dan daftar layanan PTSP online",
+    description: "Header dan daftar layanan PTSP online dengan persyaratan",
     to: "/atmin/cms/ptsp",
     icon: <FileText size={20} />,
     group: "Layanan",
   },
   {
     label: "Maklumat Pelayanan",
-    description: "Judul, deskripsi, dan gambar maklumat",
+    description: "Judul, deskripsi, dan gambar maklumat yang ditandatangani",
     to: "/atmin/cms/maklumat-pelayanan",
     icon: <Settings size={20} />,
     group: "Layanan",
   },
 
-  // Lainnya
+  // ── Lainnya ──
   {
     label: "Web App",
     description: "Judul dan deskripsi halaman aplikasi sekolah",
     to: "/atmin/cms/web-app",
-    icon: <LayoutGrid size={20} />,
+    icon: <AppWindow size={20} />,
     group: "Lainnya",
   },
   {
@@ -210,8 +214,6 @@ const BADGE_STYLES: Record<string, string> = {
 
 /**
  * Individual CMS page card.
- * @param {object} props
- * @param {CmsPageCard} props.card - Card data to display
  */
 const PageCard: React.FC<{ card: CmsPageCard }> = ({ card }) => (
   <Link
@@ -244,6 +246,45 @@ const PageCard: React.FC<{ card: CmsPageCard }> = ({ card }) => (
     <p className="text-xs text-secondary leading-relaxed">{card.description}</p>
   </Link>
 );
+
+// ─────────────────────────────────────────────
+// Stats bar
+// ─────────────────────────────────────────────
+
+const StatsBar: React.FC = () => {
+  const total = CMS_PAGES.length;
+  const seringBerubah = CMS_PAGES.filter(
+    (p) => p.badge === "Sering berubah",
+  ).length;
+  const perluUpdate = CMS_PAGES.filter(
+    (p) => p.badge === "Perlu update" || p.badge === "Tiap tahun ajaran",
+  ).length;
+
+  return (
+    <div className="grid grid-cols-3 gap-4 mb-8">
+      {[
+        { label: "Total halaman", value: total, color: "text-foreground" },
+        {
+          label: "Sering berubah",
+          value: seringBerubah,
+          color: "text-green-600 dark:text-green-400",
+        },
+        {
+          label: "Perlu dicek",
+          value: perluUpdate,
+          color: "text-yellow-600 dark:text-yellow-400",
+        },
+      ].map((stat) => (
+        <div key={stat.label} className="card p-4 text-center">
+          <div className={`text-2xl font-bold font-serif ${stat.color}`}>
+            {stat.value}
+          </div>
+          <div className="text-xs text-secondary mt-0.5">{stat.label}</div>
+        </div>
+      ))}
+    </div>
+  );
+};
 
 // ─────────────────────────────────────────────
 // Page
@@ -285,15 +326,18 @@ const CmsOverviewPage: React.FC = () => {
     <CmsLayout title="Kelola Konten Website">
       <div className="max-w-5xl mx-auto">
         {/* Page header */}
-        <div className="mb-8">
+        <div className="mb-6">
           <h2 className="text-2xl font-serif font-bold text-foreground mb-1">
             Kelola Konten Website
           </h2>
           <p className="text-secondary text-sm">
-            Pilih halaman yang ingin diedit. Perubahan akan langsung tampil di
-            website publik.
+            Pilih halaman yang ingin diedit. Perubahan langsung tampil di
+            website publik setelah disimpan.
           </p>
         </div>
+
+        {/* Stats */}
+        <StatsBar />
 
         {/* Info banner */}
         <div className="mb-8 p-4 bg-accent/5 border border-accent/20 rounded-xl flex items-start gap-3">
@@ -301,9 +345,11 @@ const CmsOverviewPage: React.FC = () => {
             <span className="text-accent text-xs font-bold">i</span>
           </div>
           <p className="text-sm text-secondary">
-            Setiap perubahan yang disimpan akan langsung terlihat di website.
-            Pastikan data yang dimasukkan sudah benar sebelum menyimpan. Cache
-            akan diperbarui otomatis setelah perubahan disimpan.
+            Cache diperbarui otomatis setelah setiap perubahan disimpan. Badge{" "}
+            <span className="inline-block text-xs px-1.5 py-0.5 rounded-full bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400">
+              Perlu update
+            </span>{" "}
+            menandai halaman yang datanya mungkin sudah tidak akurat.
           </p>
         </div>
 
@@ -312,9 +358,14 @@ const CmsOverviewPage: React.FC = () => {
           const cards = CMS_PAGES.filter((p) => p.group === group);
           return (
             <section key={group} className="mb-10">
-              <h3 className="text-xs font-semibold text-secondary/60 uppercase tracking-wider mb-3">
-                {group}
-              </h3>
+              <div className="flex items-center gap-2 mb-3">
+                <h3 className="text-xs font-semibold text-secondary/60 uppercase tracking-wider">
+                  {group}
+                </h3>
+                <span className="text-xs text-secondary/40">
+                  · {cards.length} halaman
+                </span>
+              </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                 {cards.map((card) => (
                   <PageCard key={card.to} card={card} />

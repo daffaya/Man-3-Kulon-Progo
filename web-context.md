@@ -241,6 +241,18 @@ VITE_BACKEND_URL
 
 ## 💳 Technical Debt & Roadmap
 
+3. CmsMaklumatForm → 1 section, image upload
+4. CmsWebAppForm → 1 section, 2 field
+5. CmsSejarahForm → 1 section, array paragraf
+6. CmsVisiMisiForm → 4 sections
+7. CmsKepalaMadrasahForm → periodisasi tabel
+8. CmsStrukturForm → positions + image
+9. CmsProgramKerjaForm → nested sections
+10. CmsSedumForm → 5 sections
+11. CmsPtspForm → services array kompleks
+12. CmsZonaIntegritasForm → paling kompleks
+13. SurveySlider fix → sudah di CmsHomeForm sebenarnya
+
 ### 🔴 Debt (harus diselesaikan)
 
 1. **CI/CD Backend** — masih deploy manual

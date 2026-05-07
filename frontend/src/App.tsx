@@ -76,6 +76,20 @@ import KelulusanManagementPage from "./pages/admin/kelulusan/KelulusanManagement
 import CmsOverviewPage from "./pages/admin/cms/CmsOverviewPage";
 import CmsPmbmForm from "./pages/admin/cms/CmsPmbmForm";
 import CmsHomeForm from "./pages/admin/cms/CmsHomeForm";
+import CmsKontakForm from "./pages/admin/cms/CmsKontakForm";
+import CmsMaklumatForm from "./pages/admin/cms/CmsMaklumatForm";
+import CmsWebAppForm from "./pages/admin/cms/CmsWebAppForm";
+import CmsSejarahForm from "./pages/admin/cms/CmsSejarahForm";
+import CmsVisiMisiForm from "./pages/admin/cms/CmsVisiMisiForm";
+import CmsKepalaMadrasahForm from "./pages/admin/cms/CmsKepalaMadrasahForm";
+import CmsStrukturForm from "./pages/admin/cms/CmsStrukturForm";
+import CmsProgramKerjaForm from "./pages/admin/cms/CmsProgramKerjaForm";
+import CmsSedumForm from "./pages/admin/cms/CmsSedumForm";
+import CmsPtspForm from "./pages/admin/cms/CmsPtspForm";
+import CmsZonaIntegritasForm from "./pages/admin/cms/CmsZonaIntegritasForm";
+import CmsMitraForm from "./pages/admin/cms/CmsMitraForm";
+import CmsSarprasForm from "./pages/admin/cms/CmsSarprasForm";
+import CmsSiswaForm from "./pages/admin/cms/CmsSiswaForm";
 
 /**
  * Layout wrapper component for admin routes that requires authentication.
@@ -283,9 +297,49 @@ function App() {
                           element={<ManajemenStudentPage />}
                         />
 
+                        {/* CMS */}
                         <Route path="cms" element={<CmsOverviewPage />} />
                         <Route path="cms/pmbm" element={<CmsPmbmForm />} />
                         <Route path="cms/home" element={<CmsHomeForm />} />
+                        <Route path="cms/kontak" element={<CmsKontakForm />} />
+                        <Route
+                          path="cms/maklumat-pelayanan"
+                          element={<CmsMaklumatForm />}
+                        />
+                        <Route path="cms/web-app" element={<CmsWebAppForm />} />
+                        <Route
+                          path="cms/sejarah"
+                          element={<CmsSejarahForm />}
+                        />
+                        <Route
+                          path="cms/visi-misi"
+                          element={<CmsVisiMisiForm />}
+                        />
+                        <Route
+                          path="cms/kepala-madrasah"
+                          element={<CmsKepalaMadrasahForm />}
+                        />
+                        <Route
+                          path="cms/struktur-organisasi"
+                          element={<CmsStrukturForm />}
+                        />
+                        <Route
+                          path="cms/program-kerja"
+                          element={<CmsProgramKerjaForm />}
+                        />
+                        <Route path="cms/sedum" element={<CmsSedumForm />} />
+                        <Route path="cms/ptsp" element={<CmsPtspForm />} />
+                        <Route
+                          path="cms/zona-integritas"
+                          element={<CmsZonaIntegritasForm />}
+                        />
+                        <Route path="cms/mitra" element={<CmsMitraForm />} />
+                        <Route
+                          path="cms/sarana-prasarana"
+                          element={<CmsSarprasForm />}
+                        />
+                        <Route path="cms/siswa" element={<CmsSiswaForm />} />
+
                         <Route
                           path="kelulusan"
                           element={<KelulusanManagementPage />}
