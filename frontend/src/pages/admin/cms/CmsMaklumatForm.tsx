@@ -1,38 +1,58 @@
 /**
  * @fileoverview CmsMaklumatForm — CMS editor for Maklumat Pelayanan page.
  *
- * Sections:
- * - content: title, description, image_url (upload)
+ * Features:
+ * - Edit judul dan deskripsi maklumat
+ * - Upload gambar melalui file
+ * - Gunakan URL eksternal
+ * - Gunakan path lokal dari folder public
+ * - Preview gambar
+ * - Upload otomatis ke backend
  *
- * Route: /atmin/cms/maklumat-pelayanan
+ * Sections:
+ * - content: title, description, image_url
+ *
+ * Route:
+ * - /atmin/cms/maklumat-pelayanan
  */
 
-import React, { useState, useEffect, useCallback, useRef } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
-import { FileText, Upload, X, ImageIcon } from "lucide-react";
+import { FileText } from "lucide-react";
+
 import CmsLayout from "../../../components/layout/CmsLayout";
+import ImageUploader from "../../../components/ui/ImageUploader";
+
 import { useAuth } from "../../../contexts/AuthContext";
 import { useToastMessage } from "../../../hooks/useToastMessage";
+
 import { apiFetch } from "../../../lib/api";
+
 import {
   SectionCard,
-  saveSection,
-  PageLoadingSpinner,
-  CmsPageHeader,
   Field,
   TextareaField,
+  PageLoadingSpinner,
+  CmsPageHeader,
+  saveSection,
 } from "../../../components/cms/CmsFormComponents";
 
 // ─────────────────────────────────────────────
 // Types
 // ─────────────────────────────────────────────
 
+/**
+ * CMS content structure for Maklumat Pelayanan page.
+ */
 interface MaklumatContent {
   title: string;
   description: string;
   image_url: string;
 }
 
+/**
+ * Default fallback content.
+ */
 const FALLBACK: MaklumatContent = {
   title: "Maklumat Pelayanan",
   description: "",
@@ -40,28 +60,99 @@ const FALLBACK: MaklumatContent = {
 };
 
 // ─────────────────────────────────────────────
-// ImageUploadField
+// Page Component
 // ─────────────────────────────────────────────
 
 /**
- * Image upload field with preview.
- * Uploads to /api/atmin/upload and returns URL.
+ * CMS page for managing Maklumat Pelayanan content.
+ *
+ * Supports:
+ * - text editing
+ * - image upload
+ * - external image URL
+ * - local public folder image path
  */
-const ImageUploadField: React.FC<{
-  label: string;
-  value: string;
-  onChange: (url: string) => void;
-  hint?: string;
-}> = ({ label, value, onChange, hint }) => {
-  const inputRef = useRef<HTMLInputElement>(null);
-  const [uploading, setUploading] = useState(false);
-  const { showErrorToast } = useToastMessage();
+const CmsMaklumatForm: React.FC = () => {
+  const navigate = useNavigate();
 
-  const handleUpload = async (file: File) => {
+  const { user, isLoggedIn, isLoadingAuth } = useAuth();
+
+  const { showSuccessToast, showErrorToast, showInfoToast } = useToastMessage();
+
+  const [saving, setSaving] = useState(false);
+  const [uploading, setUploading] = useState(false);
+
+  const [isLoadingData, setIsLoadingData] = useState(true);
+
+  const [content, setContent] = useState<MaklumatContent>(FALLBACK);
+
+  // ─────────────────────────────────────────────
+  // Auth Guard
+  // ─────────────────────────────────────────────
+
+  useEffect(() => {
+    if (isLoadingAuth) return;
+
+    if (!isLoggedIn) {
+      navigate("/login", {
+        state: {
+          redirectTo: "/atmin/cms/maklumat-pelayanan",
+        },
+      });
+      return;
+    }
+
+    if (user?.role !== "super_admin") {
+      showErrorToast("Hanya Super Admin yang dapat mengakses halaman ini.");
+
+      navigate("/atmin");
+    }
+  }, [isLoadingAuth, isLoggedIn, user, navigate, showErrorToast]);
+
+  // ─────────────────────────────────────────────
+  // Fetch Existing CMS Data
+  // ─────────────────────────────────────────────
+
+  useEffect(() => {
+    if (isLoadingAuth || !isLoggedIn || user?.role !== "super_admin") {
+      return;
+    }
+
+    apiFetch("/cms/maklumat-pelayanan")
+      .then((data: any) => {
+        if (data?.content) {
+          setContent({
+            ...FALLBACK,
+            ...data.content,
+          });
+        }
+      })
+      .catch(() => {
+        showErrorToast("Gagal memuat data CMS Maklumat.");
+      })
+      .finally(() => {
+        setIsLoadingData(false);
+      });
+  }, [isLoadingAuth, isLoggedIn, user, showErrorToast]);
+
+  // ─────────────────────────────────────────────
+  // Upload Image To Backend
+  // ─────────────────────────────────────────────
+
+  /**
+   * Uploads image file to backend API.
+   *
+   * @param file Image file to upload
+   * @returns Uploaded image URL
+   */
+  const uploadImage = useCallback(async (file: File): Promise<string> => {
     setUploading(true);
+
     try {
       const formData = new FormData();
+
       formData.append("file", file);
+
       const res = await fetch(
         `${import.meta.env.VITE_BACKEND_URL}/api/atmin/upload`,
         {
@@ -72,140 +163,124 @@ const ImageUploadField: React.FC<{
           body: formData,
         },
       );
-      if (!res.ok) throw new Error("Upload gagal");
+
+      if (!res.ok) {
+        throw new Error("Upload gagal");
+      }
+
       const data = await res.json();
-      onChange(data.url ?? data.path ?? "");
-    } catch {
-      showErrorToast("Gagal mengupload gambar.");
+
+      return data.url ?? data.path ?? "";
     } finally {
       setUploading(false);
     }
-  };
+  }, []);
 
-  return (
-    <div>
-      <label className="block text-sm font-medium text-foreground mb-1">
-        {label}
-      </label>
-      {hint && <p className="text-xs text-secondary mb-2">{hint}</p>}
+  // ─────────────────────────────────────────────
+  // Handle Image Change
+  // ─────────────────────────────────────────────
 
-      {/* Preview */}
-      {value && (
-        <div className="relative mb-3 rounded-lg overflow-hidden border border-border bg-semibackground">
-          <img
-            src={value}
-            alt="Preview"
-            className="max-h-64 w-full object-contain"
-          />
-          <button
-            onClick={() => onChange("")}
-            className="absolute top-2 right-2 p-1.5 bg-black/60 text-white rounded-full hover:bg-black/80 transition-colors"
-            title="Hapus gambar"
-          >
-            <X size={12} />
-          </button>
-        </div>
-      )}
+  /**
+   * Handles image changes from ImageUploader.
+   *
+   * Cases:
+   * - file upload
+   * - external URL
+   * - local public path
+   * - remove image
+   */
+  const handleImageChange = useCallback(
+    async (file?: File, url?: string) => {
+      try {
+        // Remove image
+        if (!file && !url) {
+          setContent((prev) => ({
+            ...prev,
+            image_url: "",
+          }));
 
-      {/* URL manual */}
-      <Field
-        label="URL Gambar"
-        value={value}
-        onChange={onChange}
-        placeholder="/maklumat-pelayanan.jpg atau https://..."
-        hint="Isi manual atau upload file di bawah."
-      />
+          showInfoToast("Gambar dihapus");
+          return;
+        }
 
-      {/* Upload button */}
-      <div className="mt-2">
-        <input
-          ref={inputRef}
-          type="file"
-          accept="image/*"
-          className="hidden"
-          onChange={(e) => {
-            const file = e.target.files?.[0];
-            if (file) handleUpload(file);
-          }}
-        />
-        <button
-          onClick={() => inputRef.current?.click()}
-          disabled={uploading}
-          className="flex items-center gap-2 px-3 py-2 text-sm border border-border rounded-lg hover:bg-semibackground transition-colors text-foreground"
-          type="button"
-        >
-          {uploading ? (
-            <>
-              <div className="animate-spin h-4 w-4 border-2 border-accent border-t-transparent rounded-full" />
-              Mengupload...
-            </>
-          ) : (
-            <>
-              <Upload size={14} />
-              Upload File Gambar
-            </>
-          )}
-        </button>
-      </div>
-    </div>
+        // File upload
+        if (file) {
+          const uploadedUrl = await uploadImage(file);
+
+          setContent((prev) => ({
+            ...prev,
+            image_url: uploadedUrl,
+          }));
+
+          showSuccessToast("Gambar berhasil diupload.");
+
+          return;
+        }
+
+        // URL / local path
+        if (url) {
+          /**
+           * Accept:
+           * - https://...
+           * - http://...
+           * - /local-image.jpg
+           */
+
+          const isExternal =
+            url.startsWith("http://") || url.startsWith("https://");
+
+          const isLocalPath = url.startsWith("/");
+
+          if (!isExternal && !isLocalPath) {
+            showErrorToast(
+              "URL tidak valid. Gunakan URL penuh atau path lokal dimulai dengan /",
+            );
+
+            return;
+          }
+
+          setContent((prev) => ({
+            ...prev,
+            image_url: url,
+          }));
+
+          showSuccessToast("Gambar berhasil diperbarui.");
+        }
+      } catch (error) {
+        console.error(error);
+
+        showErrorToast("Gagal memproses gambar.");
+      }
+    },
+    [uploadImage, showSuccessToast, showErrorToast, showInfoToast],
   );
-};
 
-// ─────────────────────────────────────────────
-// Page
-// ─────────────────────────────────────────────
+  // ─────────────────────────────────────────────
+  // Save CMS Content
+  // ─────────────────────────────────────────────
 
-const CmsMaklumatForm: React.FC = () => {
-  const navigate = useNavigate();
-  const { user, isLoggedIn, isLoadingAuth } = useAuth();
-  const { showSuccessToast, showErrorToast } = useToastMessage();
-
-  const [saving, setSaving] = useState(false);
-  const [isLoadingData, setIsLoadingData] = useState(true);
-  const [content, setContent] = useState<MaklumatContent>(FALLBACK);
-
-  // ── Auth guard ──
-  useEffect(() => {
-    if (isLoadingAuth) return;
-    if (!isLoggedIn) {
-      navigate("/login", {
-        state: { redirectTo: "/atmin/cms/maklumat-pelayanan" },
-      });
-      return;
-    }
-    if (user?.role !== "super_admin") {
-      showErrorToast("Hanya Super Admin yang dapat mengakses halaman ini.");
-      navigate("/atmin");
-    }
-  }, [isLoadingAuth, isLoggedIn, user, navigate, showErrorToast]);
-
-  // ── Fetch data ──
-  useEffect(() => {
-    if (isLoadingAuth || !isLoggedIn || user?.role !== "super_admin") return;
-    apiFetch("/cms/maklumat-pelayanan")
-      .then((data: any) => {
-        if (data?.content) setContent({ ...FALLBACK, ...data.content });
-      })
-      .catch(() => showErrorToast("Gagal memuat data CMS Maklumat."))
-      .finally(() => setIsLoadingData(false));
-  }, [isLoadingAuth, isLoggedIn, user, showErrorToast]);
-
-  // ── Save ──
+  /**
+   * Saves CMS content to backend.
+   */
   const handleSave = useCallback(async () => {
     setSaving(true);
+
     try {
       await saveSection("maklumat-pelayanan", "content", content);
+
       showSuccessToast("Maklumat Pelayanan berhasil disimpan.");
     } catch {
       showErrorToast("Gagal menyimpan maklumat.");
+
       throw new Error("Save failed");
     } finally {
       setSaving(false);
     }
   }, [content, showSuccessToast, showErrorToast]);
 
-  const set = (field: keyof MaklumatContent) => (val: string) =>
-    setContent((prev) => ({ ...prev, [field]: val }));
+  // ─────────────────────────────────────────────
+  // Loading State
+  // ─────────────────────────────────────────────
 
   if (isLoadingAuth || isLoadingData) {
     return (
@@ -214,6 +289,10 @@ const CmsMaklumatForm: React.FC = () => {
       </CmsLayout>
     );
   }
+
+  // ─────────────────────────────────────────────
+  // Render
+  // ─────────────────────────────────────────────
 
   return (
     <CmsLayout title="CMS — Maklumat Pelayanan">
@@ -230,26 +309,63 @@ const CmsMaklumatForm: React.FC = () => {
           isSaving={saving}
         >
           <div className="space-y-4">
+            {/* Title */}
             <Field
               label="Judul"
               value={content.title}
-              onChange={set("title")}
+              onChange={(val) =>
+                setContent((prev) => ({
+                  ...prev,
+                  title: val,
+                }))
+              }
               placeholder="Maklumat Pelayanan"
             />
+
+            {/* Description */}
             <TextareaField
               label="Deskripsi / Teks Maklumat"
               value={content.description}
-              onChange={set("description")}
+              onChange={(val) =>
+                setContent((prev) => ({
+                  ...prev,
+                  description: val,
+                }))
+              }
               rows={5}
               placeholder="Kami penyelenggara pelayanan publik MAN 3 Kulon Progo..."
               hint="Teks utama yang muncul di halaman maklumat."
             />
-            <ImageUploadField
-              label="Gambar / Dokumen Visual Maklumat"
-              value={content.image_url}
-              onChange={set("image_url")}
-              hint="Gambar scan/foto maklumat resmi yang ditandatangani kepala madrasah."
-            />
+
+            {/* Image */}
+            <div>
+              <p className="text-sm font-medium text-foreground mb-1">
+                Gambar Maklumat
+              </p>
+
+              <p className="text-xs text-secondary mb-3">
+                Upload gambar scan/foto maklumat resmi atau gunakan:
+                <br />• URL eksternal:
+                <code className="ml-1 bg-semibackground px-1 rounded">
+                  https://example.com/image.jpg
+                </code>
+                <br />• Path lokal folder public:
+                <code className="ml-1 bg-semibackground px-1 rounded">
+                  /maklumat_pelayanan.jpeg
+                </code>
+              </p>
+
+              <ImageUploader
+                currentImage={content.image_url}
+                onImageChange={handleImageChange}
+                disabled={uploading || saving}
+                label=""
+              />
+
+              {uploading && (
+                <p className="text-xs text-accent mt-2">Mengupload gambar...</p>
+              )}
+            </div>
           </div>
         </SectionCard>
       </div>

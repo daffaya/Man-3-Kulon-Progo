@@ -36,6 +36,7 @@ import {
   Field,
   TextareaField,
 } from "../../../components/cms/CmsFormComponents";
+import ImageUploader from "../../../components/ui/ImageUploader";
 
 // ─────────────────────────────────────────────
 // Types
@@ -136,101 +137,6 @@ const FaqEditor: React.FC<{
         <Plus size={14} />
         Tambah FAQ
       </button>
-    </div>
-  );
-};
-
-// ─────────────────────────────────────────────
-// SopImageField
-// ─────────────────────────────────────────────
-
-const SopImageField: React.FC<{
-  value: string;
-  onChange: (url: string) => void;
-}> = ({ value, onChange }) => {
-  const inputRef = useRef<HTMLInputElement>(null);
-  const [uploading, setUploading] = useState(false);
-  const { showErrorToast } = useToastMessage();
-
-  const handleUpload = async (file: File) => {
-    setUploading(true);
-    try {
-      const formData = new FormData();
-      formData.append("file", file);
-      const res = await fetch(
-        `${import.meta.env.VITE_BACKEND_URL}/api/atmin/upload`,
-        {
-          method: "POST",
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem("token") ?? ""}`,
-          },
-          body: formData,
-        },
-      );
-      if (!res.ok) throw new Error();
-      const data = await res.json();
-      onChange(data.url ?? data.path ?? "");
-    } catch {
-      showErrorToast("Gagal mengupload gambar SOP.");
-    } finally {
-      setUploading(false);
-    }
-  };
-
-  return (
-    <div className="space-y-3">
-      {value && (
-        <div className="relative rounded-lg overflow-hidden border border-border bg-semibackground">
-          <img
-            src={value}
-            alt="Preview SOP"
-            className="max-h-64 w-full object-contain"
-          />
-          <button
-            onClick={() => onChange("")}
-            className="absolute top-2 right-2 p-1.5 bg-black/60 text-white rounded-full hover:bg-black/80 transition-colors"
-          >
-            <X size={12} />
-          </button>
-        </div>
-      )}
-      <Field
-        label="URL Gambar SOP"
-        value={value}
-        onChange={onChange}
-        placeholder="/SOP_Pengaduan_Masyarakat.png"
-        hint="Path relatif atau URL absolut gambar SOP."
-      />
-      <div>
-        <input
-          ref={inputRef}
-          type="file"
-          accept="image/*"
-          className="hidden"
-          onChange={(e) => {
-            const f = e.target.files?.[0];
-            if (f) handleUpload(f);
-          }}
-        />
-        <button
-          onClick={() => inputRef.current?.click()}
-          disabled={uploading}
-          className="flex items-center gap-2 px-3 py-2 text-sm border border-border rounded-lg hover:bg-semibackground transition-colors text-foreground"
-          type="button"
-        >
-          {uploading ? (
-            <>
-              <div className="animate-spin h-4 w-4 border-2 border-accent border-t-transparent rounded-full" />
-              Mengupload...
-            </>
-          ) : (
-            <>
-              <Upload size={14} />
-              Upload Gambar SOP
-            </>
-          )}
-        </button>
-      </div>
     </div>
   );
 };
@@ -467,9 +373,66 @@ const CmsSedumForm: React.FC = () => {
           onSave={handleSaveSop}
           isSaving={savingSop}
         >
-          <SopImageField
-            value={sop.image_url}
-            onChange={(url) => setSop({ image_url: url })}
+          <ImageUploader
+            currentImage={sop.image_url}
+            onImageChange={async (file, url) => {
+              try {
+                // remove image
+                if (!file && !url) {
+                  setSop({
+                    image_url: "",
+                  });
+
+                  return;
+                }
+
+                // upload file
+                if (file) {
+                  const formData = new FormData();
+
+                  formData.append("file", file);
+
+                  const res = await fetch(
+                    `${import.meta.env.VITE_BACKEND_URL}/api/atmin/upload`,
+                    {
+                      method: "POST",
+                      headers: {
+                        Authorization: `Bearer ${
+                          localStorage.getItem("token") ?? ""
+                        }`,
+                      },
+                      body: formData,
+                    },
+                  );
+
+                  if (!res.ok) {
+                    throw new Error("Upload gagal");
+                  }
+
+                  const data = await res.json();
+
+                  setSop({
+                    image_url: data.url ?? data.path ?? "",
+                  });
+
+                  showSuccessToast("Gambar SOP berhasil diupload.");
+
+                  return;
+                }
+
+                // URL eksternal atau local path
+                if (url) {
+                  setSop({
+                    image_url: url,
+                  });
+
+                  showSuccessToast("Gambar SOP berhasil diperbarui.");
+                }
+              } catch {
+                showErrorToast("Gagal memproses gambar SOP.");
+              }
+            }}
+            label=""
           />
         </SectionCard>
 

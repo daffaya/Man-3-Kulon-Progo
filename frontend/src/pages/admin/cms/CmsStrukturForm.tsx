@@ -21,6 +21,7 @@ import {
   CmsPageHeader,
   Field,
 } from "../../../components/cms/CmsFormComponents";
+import ImageUploader from "../../../components/ui/ImageUploader";
 
 // ─────────────────────────────────────────────
 // Types
@@ -39,103 +40,6 @@ interface StrukturContent {
 const FALLBACK: StrukturContent = {
   image_url: "",
   positions: [{ jabatan: "", nama: "" }],
-};
-
-// ─────────────────────────────────────────────
-// ImageUploadField (inline, reused from Maklumat pattern)
-// ─────────────────────────────────────────────
-
-const ImageUploadField: React.FC<{
-  value: string;
-  onChange: (url: string) => void;
-}> = ({ value, onChange }) => {
-  const inputRef = useRef<HTMLInputElement>(null);
-  const [uploading, setUploading] = useState(false);
-  const { showErrorToast } = useToastMessage();
-
-  const handleUpload = async (file: File) => {
-    setUploading(true);
-    try {
-      const formData = new FormData();
-      formData.append("file", file);
-      const res = await fetch(
-        `${import.meta.env.VITE_BACKEND_URL}/api/atmin/upload`,
-        {
-          method: "POST",
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem("token") ?? ""}`,
-          },
-          body: formData,
-        },
-      );
-      if (!res.ok) throw new Error("Upload gagal");
-      const data = await res.json();
-      onChange(data.url ?? data.path ?? "");
-    } catch {
-      showErrorToast("Gagal mengupload gambar.");
-    } finally {
-      setUploading(false);
-    }
-  };
-
-  return (
-    <div className="space-y-3">
-      {value && (
-        <div className="relative rounded-lg overflow-hidden border border-border bg-semibackground">
-          <img
-            src={value}
-            alt="Preview struktur organisasi"
-            className="max-h-72 w-full object-contain"
-          />
-          <button
-            onClick={() => onChange("")}
-            className="absolute top-2 right-2 p-1.5 bg-black/60 text-white rounded-full hover:bg-black/80 transition-colors"
-          >
-            <X size={12} />
-          </button>
-        </div>
-      )}
-
-      <Field
-        label="URL Gambar Struktur Organisasi"
-        value={value}
-        onChange={onChange}
-        placeholder="/strukturorganisasi.jpg atau https://..."
-        hint="Isi URL manual, atau upload file gambar di bawah."
-      />
-
-      <div>
-        <input
-          ref={inputRef}
-          type="file"
-          accept="image/*"
-          className="hidden"
-          onChange={(e) => {
-            const file = e.target.files?.[0];
-            if (file) handleUpload(file);
-          }}
-        />
-        <button
-          onClick={() => inputRef.current?.click()}
-          disabled={uploading}
-          className="flex items-center gap-2 px-3 py-2 text-sm border border-border rounded-lg hover:bg-semibackground transition-colors text-foreground"
-          type="button"
-        >
-          {uploading ? (
-            <>
-              <div className="animate-spin h-4 w-4 border-2 border-accent border-t-transparent rounded-full" />
-              Mengupload...
-            </>
-          ) : (
-            <>
-              <Upload size={14} />
-              Upload Gambar
-            </>
-          )}
-        </button>
-      </div>
-    </div>
-  );
 };
 
 // ─────────────────────────────────────────────
@@ -296,11 +200,63 @@ const CmsStrukturForm: React.FC = () => {
               <p className="text-sm font-medium text-foreground mb-3">
                 Gambar Bagan Organisasi
               </p>
-              <ImageUploadField
-                value={content.image_url}
-                onChange={(url) =>
-                  setContent((prev) => ({ ...prev, image_url: url }))
-                }
+              <ImageUploader
+                currentImage={content.image_url}
+                onImageChange={async (file, url) => {
+                  try {
+                    // remove image
+                    if (!file && !url) {
+                      setContent((prev) => ({
+                        ...prev,
+                        image_url: "",
+                      }));
+                      return;
+                    }
+
+                    // upload file
+                    if (file) {
+                      const formData = new FormData();
+                      formData.append("file", file);
+
+                      const res = await fetch(
+                        `${import.meta.env.VITE_BACKEND_URL}/api/atmin/upload`,
+                        {
+                          method: "POST",
+                          headers: {
+                            Authorization: `Bearer ${
+                              localStorage.getItem("token") ?? ""
+                            }`,
+                          },
+                          body: formData,
+                        },
+                      );
+
+                      if (!res.ok) {
+                        throw new Error("Upload gagal");
+                      }
+
+                      const data = await res.json();
+
+                      setContent((prev) => ({
+                        ...prev,
+                        image_url: data.url ?? data.path ?? "",
+                      }));
+
+                      return;
+                    }
+
+                    // URL atau local path
+                    if (url) {
+                      setContent((prev) => ({
+                        ...prev,
+                        image_url: url,
+                      }));
+                    }
+                  } catch {
+                    showErrorToast("Gagal memproses gambar.");
+                  }
+                }}
+                label=""
               />
             </div>
 
