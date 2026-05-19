@@ -2,7 +2,7 @@
  * @fileoverview CmsKepalaMadrasahForm — CMS editor for Kepala Madrasah page.
  *
  * Sections:
- * - content: { periodisasi: [{ tahun, nama_lengkap, keterangan? }] }
+ * - content: { periodisasi: [{ tahun, nama_madrasah, nama_lengkap, kepala_tu? }] }
  *
  * Route: /atmin/cms/kepala-madrasah
  */
@@ -28,8 +28,9 @@ import {
 
 interface PeriodisasiItem {
   tahun: string;
+  nama_madrasah: string;
   nama_lengkap: string;
-  keterangan?: string;
+  kepala_tu?: string;
 }
 
 interface KepalaMadrasahContent {
@@ -37,7 +38,9 @@ interface KepalaMadrasahContent {
 }
 
 const FALLBACK: KepalaMadrasahContent = {
-  periodisasi: [{ tahun: "", nama_lengkap: "", keterangan: "" }],
+  periodisasi: [
+    { tahun: "", nama_madrasah: "", nama_lengkap: "", kepala_tu: "" },
+  ],
 };
 
 // ─────────────────────────────────────────────
@@ -61,7 +64,10 @@ const PeriodisasiEditor: React.FC<{
   };
 
   const addItem = () => {
-    onChange([...items, { tahun: "", nama_lengkap: "", keterangan: "" }]);
+    onChange([
+      ...items,
+      { tahun: "", nama_madrasah: "", nama_lengkap: "", kepala_tu: "" },
+    ]);
   };
 
   const removeItem = (index: number) => {
@@ -72,10 +78,11 @@ const PeriodisasiEditor: React.FC<{
   return (
     <div className="space-y-3">
       {/* Header tabel */}
-      <div className="hidden sm:grid sm:grid-cols-[2fr_3fr_3fr_auto] gap-3 px-3 text-xs font-semibold text-secondary uppercase tracking-wide">
+      <div className="hidden sm:grid-cols-[2fr_2fr_2fr_2fr_auto] gap-3 px-3 text-xs font-semibold text-secondary uppercase tracking-wide">
         <span>Periode</span>
-        <span>Nama Lengkap</span>
-        <span>Keterangan</span>
+        <span>Nama Madrasah</span>
+        <span>Kepala Madrasah</span>
+        <span>Kepala Tata Usaha</span>
         <span />
       </div>
 
@@ -92,15 +99,21 @@ const PeriodisasiEditor: React.FC<{
           />
           <Field
             label=""
+            value={item.nama_madrasah}
+            onChange={(val) => updateItem(index, "nama_madrasah", val)}
+            placeholder="Nama Madrasah"
+          />
+          <Field
+            label=""
             value={item.nama_lengkap}
             onChange={(val) => updateItem(index, "nama_lengkap", val)}
             placeholder="Nama lengkap kepala madrasah"
           />
           <Field
             label=""
-            value={item.keterangan ?? ""}
-            onChange={(val) => updateItem(index, "keterangan", val)}
-            placeholder="Opsional (jabatan, gelar, dll.)"
+            value={item.kepala_tu ?? ""}
+            onChange={(val) => updateItem(index, "kepala_tu", val)}
+            placeholder="Nama Kepala TU"
           />
           <button
             onClick={() => removeItem(index)}
