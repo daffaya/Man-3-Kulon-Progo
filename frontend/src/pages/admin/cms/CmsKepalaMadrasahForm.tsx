@@ -2,7 +2,7 @@
  * @fileoverview CmsKepalaMadrasahForm — CMS editor for Kepala Madrasah page.
  *
  * Sections:
- * - content: { periodisasi: [{ tahun, nama_madrasah, nama_lengkap, kepala_tu? }] }
+ * - content: { periodisasi: [{ tahun, nama_madrasah, kepala, kepala_tu? }] }
  *
  * Route: /atmin/cms/kepala-madrasah
  */
@@ -29,7 +29,7 @@ import {
 interface PeriodisasiItem {
   tahun: string;
   nama_madrasah: string;
-  nama_lengkap: string;
+  kepala: string;
   kepala_tu?: string;
 }
 
@@ -38,9 +38,7 @@ interface KepalaMadrasahContent {
 }
 
 const FALLBACK: KepalaMadrasahContent = {
-  periodisasi: [
-    { tahun: "", nama_madrasah: "", nama_lengkap: "", kepala_tu: "" },
-  ],
+  periodisasi: [{ tahun: "", nama_madrasah: "", kepala: "", kepala_tu: "" }],
 };
 
 // ─────────────────────────────────────────────
@@ -66,7 +64,7 @@ const PeriodisasiEditor: React.FC<{
   const addItem = () => {
     onChange([
       ...items,
-      { tahun: "", nama_madrasah: "", nama_lengkap: "", kepala_tu: "" },
+      { tahun: "", nama_madrasah: "", kepala: "", kepala_tu: "" },
     ]);
   };
 
@@ -121,8 +119,8 @@ const PeriodisasiEditor: React.FC<{
           <div className="lg:[&>label]:hidden">
             <Field
               label="Nama Kepala Madrasah"
-              value={item.nama_lengkap}
-              onChange={(val) => updateItem(index, "nama_lengkap", val)}
+              value={item.kepala}
+              onChange={(val) => updateItem(index, "kepala", val)}
               placeholder="Nama lengkap"
             />
           </div>
