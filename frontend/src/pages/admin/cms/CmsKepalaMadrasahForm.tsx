@@ -76,69 +76,93 @@ const PeriodisasiEditor: React.FC<{
   };
 
   return (
-    <div className="space-y-3">
-      {/* Header tabel */}
-      <div className="hidden sm:grid-cols-[2fr_2fr_2fr_2fr_auto] gap-3 px-3 text-xs font-semibold text-secondary uppercase tracking-wide">
-        <span>Periode</span>
-        <span>Nama Madrasah</span>
-        <span>Kepala Madrasah</span>
-        <span>Kepala Tata Usaha</span>
+    <div className="space-y-4">
+      {/* HEADER TABEL (Desktop Only) */}
+      <div className="hidden lg:grid lg:grid-cols-[0.8fr_1.5fr_1.5fr_1fr_50px] gap-4 px-1 mb-2">
+        <span className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
+          Periode
+        </span>
+        <span className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
+          Nama Madrasah
+        </span>
+        <span className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
+          Kepala Madrasah
+        </span>
+        <span className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
+          Kepala TU
+        </span>
         <span />
       </div>
 
+      {/* LIST ITEM */}
       {items.map((item, index) => (
         <div
           key={index}
-          className="grid grid-cols-1 sm:grid-cols-[2fr_3fr_3fr_auto] gap-3 p-3 bg-semibackground rounded-lg border border-border items-start"
+          className="grid grid-cols-1 lg:grid-cols-[0.8fr_1.5fr_1.5fr_1fr_50px] gap-4 p-4 bg-semibackground rounded-xl border border-border transition-all hover:border-accent/30"
         >
-          <Field
-            label=""
-            value={item.tahun}
-            onChange={(val) => updateItem(index, "tahun", val)}
-            placeholder="1985 s.d 1987"
-          />
-          <Field
-            label=""
-            value={item.nama_madrasah}
-            onChange={(val) => updateItem(index, "nama_madrasah", val)}
-            placeholder="Nama Madrasah"
-          />
-          <Field
-            label=""
-            value={item.nama_lengkap}
-            onChange={(val) => updateItem(index, "nama_lengkap", val)}
-            placeholder="Nama lengkap kepala madrasah"
-          />
-          <Field
-            label=""
-            value={item.kepala_tu ?? ""}
-            onChange={(val) => updateItem(index, "kepala_tu", val)}
-            placeholder="Nama Kepala TU"
-          />
-          <button
-            onClick={() => removeItem(index)}
-            disabled={items.length <= 1}
-            className="mt-1 p-2 text-secondary hover:text-red-500 transition-colors rounded-lg hover:bg-red-50 dark:hover:bg-red-950/30 disabled:opacity-30 disabled:cursor-not-allowed self-start"
-            type="button"
-            title="Hapus baris"
-          >
-            <Trash2 size={14} />
-          </button>
+          <div className="lg:[&>label]:hidden">
+            <Field
+              label="Periode"
+              value={item.tahun}
+              onChange={(val) => updateItem(index, "tahun", val)}
+              placeholder="Contoh: 2020 - 2024"
+            />
+          </div>
+
+          <div className="lg:[&>label]:hidden">
+            <Field
+              label="Nama Madrasah"
+              value={item.nama_madrasah}
+              onChange={(val) => updateItem(index, "nama_madrasah", val)}
+              placeholder="Nama resmi madrasah"
+            />
+          </div>
+
+          <div className="lg:[&>label]:hidden">
+            <Field
+              label="Nama Kepala Madrasah"
+              value={item.nama_lengkap}
+              onChange={(val) => updateItem(index, "nama_lengkap", val)}
+              placeholder="Nama lengkap"
+            />
+          </div>
+
+          <div className="lg:[&>label]:hidden">
+            <Field
+              label="Kepala Tata Usaha"
+              value={item.kepala_tu ?? ""}
+              onChange={(val) => updateItem(index, "kepala_tu", val)}
+              placeholder="Nama Kepala TU"
+            />
+          </div>
+
+          {/* Action Button */}
+          <div className="flex items-center justify-end lg:justify-center mt-2 lg:mt-0">
+            <button
+              onClick={() => removeItem(index)}
+              disabled={items.length <= 1}
+              className="p-2 rounded-full text-muted-foreground hover:text-error hover:bg-error/10 transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+              type="button"
+              title="Hapus baris ini"
+            >
+              <Trash2 size={16} />
+            </button>
+          </div>
         </div>
       ))}
 
+      {/* Add Button */}
       <button
         onClick={addItem}
-        className="flex items-center gap-2 text-sm text-accent hover:text-accent/80 transition-colors pt-1"
+        className="flex items-center gap-2 text-sm font-medium text-accent hover:text-accent/80 transition-colors mt-2 py-2"
         type="button"
       >
-        <Plus size={14} />
-        Tambah Periode
+        <Plus size={16} />
+        Tambah Baris Periode
       </button>
 
-      <p className="text-xs text-secondary mt-1">
-        Urutan dari atas ke bawah = urutan tampil di tabel. Letakkan yang
-        terlama di atas.
+      <p className="text-xs text-muted-foreground mt-2 border-l-2 border-accent/50 pl-3">
+        Petunjuk: Urutan data di atas sesuai dengan urutan tampilan di website.
       </p>
     </div>
   );

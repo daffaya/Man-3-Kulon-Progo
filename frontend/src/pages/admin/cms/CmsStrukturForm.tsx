@@ -2,68 +2,170 @@
  * @fileoverview CmsStrukturForm — CMS editor for Struktur Organisasi page.
  *
  * Sections:
- * - content: { image_url, positions: [{ jabatan, nama }] }
+ * - content: {
+ *     image_url: string,
+ *     positions: [{ title: string, details: [{ label: string, value: string }] }]
+ *   }
  *
  * Route: /atmin/cms/struktur-organisasi
  */
 
-import React, { useState, useEffect, useCallback, useRef } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
-import { Network, Upload, X, Plus, Trash2 } from "lucide-react";
+import { Network, Plus, Trash2, ChevronDown, ChevronUp } from "lucide-react";
 import CmsLayout from "../../../components/layout/CmsLayout";
+import ImageUploader from "../../../components/ui/ImageUploader";
 import { useAuth } from "../../../contexts/AuthContext";
 import { useToastMessage } from "../../../hooks/useToastMessage";
 import { apiFetch } from "../../../lib/api";
 import {
   SectionCard,
-  saveSection,
+  Field,
   PageLoadingSpinner,
   CmsPageHeader,
-  Field,
+  saveSection,
 } from "../../../components/cms/CmsFormComponents";
-import ImageUploader from "../../../components/ui/ImageUploader";
 
 // ─────────────────────────────────────────────
 // Types
 // ─────────────────────────────────────────────
 
-interface Position {
-  jabatan: string;
-  nama: string;
+interface PositionDetail {
+  label: string;
+  value: string;
+}
+
+interface OrganizationPosition {
+  title: string;
+  details: PositionDetail[];
 }
 
 interface StrukturContent {
   image_url: string;
-  positions: Position[];
+  positions: OrganizationPosition[];
 }
 
 const FALLBACK: StrukturContent = {
-  image_url: "",
-  positions: [{ jabatan: "", nama: "" }],
+  image_url: "/strukturorganisasi.jpg",
+  positions: [
+    {
+      title: "Kepala Madrasah",
+      details: [
+        { label: "Nama", value: "" },
+        { label: "Pangkat Golongan", value: "" },
+        { label: "Pendidikan Terakhir", value: "" },
+      ],
+    },
+  ],
 };
 
 // ─────────────────────────────────────────────
-// PositionsEditor
+// DetailsEditor — edit label/value pairs per position
 // ─────────────────────────────────────────────
 
-const PositionsEditor: React.FC<{
-  positions: Position[];
-  onChange: (positions: Position[]) => void;
-}> = ({ positions, onChange }) => {
-  const updatePosition = (
+const DetailsEditor: React.FC<{
+  details: PositionDetail[];
+  onChange: (details: PositionDetail[]) => void;
+}> = ({ details, onChange }) => {
+  const updateDetail = (
     index: number,
-    field: keyof Position,
+    field: keyof PositionDetail,
     value: string,
   ) => {
     onChange(
-      positions.map((pos, i) =>
-        i === index ? { ...pos, [field]: value } : pos,
-      ),
+      details.map((d, i) => (i === index ? { ...d, [field]: value } : d)),
     );
   };
 
+  const addDetail = () => onChange([...details, { label: "", value: "" }]);
+
+  const removeDetail = (index: number) => {
+    if (details.length <= 1) return;
+    onChange(details.filter((_, i) => i !== index));
+  };
+
+  return (
+    <div className="space-y-2">
+      <div className="hidden sm:grid sm:grid-cols-[1fr_1fr_auto] gap-2 px-1 text-xs font-semibold text-secondary uppercase tracking-wide">
+        <span>Label</span>
+        <span>Nilai</span>
+        <span />
+      </div>
+      {details.map((detail, index) => (
+        <div
+          key={index}
+          className="grid grid-cols-1 sm:grid-cols-[1fr_1fr_auto] gap-2 items-start"
+        >
+          <Field
+            label=""
+            value={detail.label}
+            onChange={(val) => updateDetail(index, "label", val)}
+            placeholder="Nama"
+          />
+          <Field
+            label=""
+            value={detail.value}
+            onChange={(val) => updateDetail(index, "value", val)}
+            placeholder="Syaefulani, S.Ag., M.Pd"
+          />
+          <button
+            onClick={() => removeDetail(index)}
+            disabled={details.length <= 1}
+            className="mt-1 p-2 text-secondary hover:text-red-500 transition-colors rounded-lg hover:bg-red-50 dark:hover:bg-red-950/30 disabled:opacity-30 disabled:cursor-not-allowed"
+            type="button"
+            title="Hapus baris"
+          >
+            <Trash2 size={13} />
+          </button>
+        </div>
+      ))}
+      <button
+        onClick={addDetail}
+        className="flex items-center gap-1.5 text-xs text-accent hover:text-accent/80 transition-colors pt-1"
+        type="button"
+      >
+        <Plus size={12} />
+        Tambah Baris
+      </button>
+    </div>
+  );
+};
+
+// ─────────────────────────────────────────────
+// PositionsEditor — list of positions (Kepala Madrasah, Kepala TU, dst)
+// ─────────────────────────────────────────────
+
+const PositionsEditor: React.FC<{
+  positions: OrganizationPosition[];
+  onChange: (positions: OrganizationPosition[]) => void;
+}> = ({ positions, onChange }) => {
+  const [collapsed, setCollapsed] = useState<Record<number, boolean>>({});
+
+  const toggle = (index: number) =>
+    setCollapsed((prev) => ({ ...prev, [index]: !prev[index] }));
+
+  const updateTitle = (index: number, title: string) => {
+    onChange(positions.map((p, i) => (i === index ? { ...p, title } : p)));
+  };
+
+  const updateDetails = (index: number, details: PositionDetail[]) => {
+    onChange(positions.map((p, i) => (i === index ? { ...p, details } : p)));
+  };
+
   const addPosition = () => {
-    onChange([...positions, { jabatan: "", nama: "" }]);
+    onChange([
+      ...positions,
+      {
+        title: "",
+        details: [
+          { label: "Nama", value: "" },
+          { label: "Pangkat Golongan", value: "" },
+          { label: "Pendidikan Terakhir", value: "" },
+        ],
+      },
+    ]);
+    // expand yang baru ditambah
+    setCollapsed((prev) => ({ ...prev, [positions.length]: false }));
   };
 
   const removePosition = (index: number) => {
@@ -73,37 +175,64 @@ const PositionsEditor: React.FC<{
 
   return (
     <div className="space-y-3">
-      <div className="hidden sm:grid sm:grid-cols-[1fr_1fr_auto] gap-3 px-3 text-xs font-semibold text-secondary uppercase tracking-wide">
-        <span>Jabatan</span>
-        <span>Nama</span>
-        <span />
-      </div>
-
       {positions.map((pos, index) => (
         <div
           key={index}
-          className="grid grid-cols-1 sm:grid-cols-[1fr_1fr_auto] gap-3 p-3 bg-semibackground rounded-lg border border-border items-start"
+          className="border border-border rounded-lg overflow-hidden"
         >
-          <Field
-            label=""
-            value={pos.jabatan}
-            onChange={(val) => updatePosition(index, "jabatan", val)}
-            placeholder="Kepala Madrasah"
-          />
-          <Field
-            label=""
-            value={pos.nama}
-            onChange={(val) => updatePosition(index, "nama", val)}
-            placeholder="Nama lengkap"
-          />
-          <button
-            onClick={() => removePosition(index)}
-            disabled={positions.length <= 1}
-            className="mt-1 p-2 text-secondary hover:text-red-500 transition-colors rounded-lg hover:bg-red-50 dark:hover:bg-red-950/30 disabled:opacity-30 disabled:cursor-not-allowed self-start"
-            type="button"
-          >
-            <Trash2 size={14} />
-          </button>
+          {/* Header */}
+          <div className="flex items-center gap-2 p-3 bg-semibackground">
+            <button
+              onClick={() => toggle(index)}
+              className="flex-1 flex items-center gap-2 text-left"
+              type="button"
+            >
+              {collapsed[index] ? (
+                <ChevronDown
+                  size={14}
+                  className="text-secondary flex-shrink-0"
+                />
+              ) : (
+                <ChevronUp size={14} className="text-secondary flex-shrink-0" />
+              )}
+              <span className="text-sm font-medium text-foreground">
+                {pos.title || `Jabatan ${index + 1}`}
+              </span>
+              <span className="text-xs text-secondary ml-auto mr-2 flex-shrink-0">
+                {pos.details.length} detail
+              </span>
+            </button>
+            <button
+              onClick={() => removePosition(index)}
+              disabled={positions.length <= 1}
+              className="p-1.5 text-secondary hover:text-red-500 transition-colors rounded disabled:opacity-30 disabled:cursor-not-allowed flex-shrink-0"
+              type="button"
+            >
+              <Trash2 size={13} />
+            </button>
+          </div>
+
+          {/* Body */}
+          {!collapsed[index] && (
+            <div className="p-4 space-y-4">
+              <Field
+                label="Nama Jabatan"
+                value={pos.title}
+                onChange={(val) => updateTitle(index, val)}
+                placeholder="Kepala Madrasah"
+                hint="Ditampilkan sebagai heading di halaman publik."
+              />
+              <div>
+                <p className="text-sm font-medium text-foreground mb-2">
+                  Detail
+                </p>
+                <DetailsEditor
+                  details={pos.details}
+                  onChange={(details) => updateDetails(index, details)}
+                />
+              </div>
+            </div>
+          )}
         </div>
       ))}
 
@@ -152,7 +281,12 @@ const CmsStrukturForm: React.FC = () => {
     if (isLoadingAuth || !isLoggedIn || user?.role !== "super_admin") return;
     apiFetch("/cms/struktur-organisasi")
       .then((data: any) => {
-        if (data?.content) setContent({ ...FALLBACK, ...data.content });
+        if (data?.content) {
+          setContent({
+            image_url: data.content.image_url ?? FALLBACK.image_url,
+            positions: data.content.positions ?? FALLBACK.positions,
+          });
+        }
       })
       .catch(() => showErrorToast("Gagal memuat data CMS Struktur Organisasi."))
       .finally(() => setIsLoadingData(false));
@@ -185,89 +319,47 @@ const CmsStrukturForm: React.FC = () => {
       <div className="max-w-3xl mx-auto">
         <CmsPageHeader
           title="Kelola Struktur Organisasi"
-          description="Gambar bagan dan daftar nama-jabatan struktural madrasah."
+          description="Gambar bagan dan daftar jabatan struktural madrasah."
         />
 
         <SectionCard
           title="Bagan & Daftar Jabatan"
           icon={<Network size={18} />}
-          description="Upload gambar bagan organisasi dan kelola daftar jabatan-nama."
+          description="Perubahan disimpan sekaligus — gambar dan semua jabatan."
           onSave={handleSave}
           isSaving={saving}
         >
           <div className="space-y-6">
+            {/* Gambar */}
             <div>
-              <p className="text-sm font-medium text-foreground mb-3">
+              <p className="text-sm font-medium text-foreground mb-1">
                 Gambar Bagan Organisasi
+              </p>
+              <p className="text-xs text-secondary mb-2">
+                Gunakan tab <strong>URL</strong> dan masukkan path seperti{" "}
+                <code className="bg-semibackground px-1 rounded">
+                  /strukturorganisasi.jpg
+                </code>{" "}
+                untuk file yang sudah ada di folder public.
               </p>
               <ImageUploader
                 currentImage={content.image_url}
-                onImageChange={async (file, url) => {
-                  try {
-                    // remove image
-                    if (!file && !url) {
-                      setContent((prev) => ({
-                        ...prev,
-                        image_url: "",
-                      }));
-                      return;
-                    }
-
-                    // upload file
-                    if (file) {
-                      const formData = new FormData();
-                      formData.append("file", file);
-
-                      const res = await fetch(
-                        `${import.meta.env.VITE_BACKEND_URL}/api/atmin/upload`,
-                        {
-                          method: "POST",
-                          headers: {
-                            Authorization: `Bearer ${
-                              localStorage.getItem("token") ?? ""
-                            }`,
-                          },
-                          body: formData,
-                        },
-                      );
-
-                      if (!res.ok) {
-                        throw new Error("Upload gagal");
-                      }
-
-                      const data = await res.json();
-
-                      setContent((prev) => ({
-                        ...prev,
-                        image_url: data.url ?? data.path ?? "",
-                      }));
-
-                      return;
-                    }
-
-                    // URL atau local path
-                    if (url) {
-                      setContent((prev) => ({
-                        ...prev,
-                        image_url: url,
-                      }));
-                    }
-                  } catch {
-                    showErrorToast("Gagal memproses gambar.");
-                  }
+                onImageChange={(_, url) => {
+                  if (url) setContent((p) => ({ ...p, image_url: url }));
                 }}
                 label=""
               />
             </div>
 
+            {/* Jabatan */}
             <div className="border-t border-border pt-5">
               <p className="text-sm font-medium text-foreground mb-3">
-                Daftar Jabatan & Nama
+                Daftar Jabatan
               </p>
               <PositionsEditor
                 positions={content.positions}
                 onChange={(positions) =>
-                  setContent((prev) => ({ ...prev, positions }))
+                  setContent((p) => ({ ...p, positions }))
                 }
               />
             </div>
