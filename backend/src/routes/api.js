@@ -6,6 +6,7 @@
 import { Router } from "express";
 import cmsRouterFactory from "./cmsRoutes.js";
 import adminCmsRouterFactory from "./adminCmsRoutes.js";
+import cmsUploadRouterFactory from "./cmsUploadRoutes.js";
 import authRouterFactory from "./authRoutes.js";
 import tagRouterFactory from "./tagRoutes.js";
 import publicArticleRouterFactory from "./publicArticleRoutes.js";
@@ -26,22 +27,6 @@ import publicStaffRouterFactory from "./publicStaffRoutes.js";
 import pmbmRouterFactory from "./pmbmRoutes.js";
 import kelulusanRouterFactory from "./kelulusanRoutes.js";
 
-/**
- * @typedef {object} ApiRouterOptions
- * @property {import('mysql2/promise').Pool} pool - The MySQL connection pool.
- * @property {object} transporter - The Nodemailer transporter for sending emails.
- * @property {string} JWT_SECRET - The secret key for signing JSON Web Tokens.
- * @property {string|number} JWT_EXPIRATION - The expiration time for JWTs.
- * @property {string} FRONTEND_URL - The URL of the frontend application.
- */
-
-/**
- * Factory function that creates and configures the main API router.
- * It mounts various sub-routers for different parts of the application.
- *
- * @param {ApiRouterOptions} options - Configuration options for the routers.
- * @returns {import('express').Router} The configured Express router.
- */
 const apiRouterFactory = ({
   pool,
   transporter,
@@ -51,12 +36,6 @@ const apiRouterFactory = ({
 }) => {
   const apiRouter = Router();
 
-  /**
-   * Health check endpoint to verify that the API is running.
-   * Useful for load balancers and monitoring services.
-   * @route GET /
-   * @returns {object} Status message indicating API is running
-   */
   apiRouter.get("/", (req, res) => {
     res.status(200).json({ status: "OK", message: "API is running" });
   });
@@ -72,7 +51,6 @@ const apiRouterFactory = ({
       FRONTEND_URL,
     }),
   );
-  apiRouter.use("/cms", cmsRouterFactory({ pool }));
 
   apiRouter.use("/categories", publicCategoryRouterFactory({ pool }));
   apiRouter.use("/tags", tagRouterFactory({ pool }));
@@ -86,6 +64,8 @@ const apiRouterFactory = ({
   apiRouter.use("/kelulusan", kelulusanRouterFactory({ pool, JWT_SECRET }));
 
   // Admin Routes - These routes are protected and intended for administrative users
+  apiRouter.use("/cms", cmsRouterFactory({ pool }));
+  apiRouter.use("/atmin/cms", cmsUploadRouterFactory({ JWT_SECRET }));
   apiRouter.use("/atmin/cms", adminCmsRouterFactory({ pool, JWT_SECRET }));
 
   apiRouter.use(

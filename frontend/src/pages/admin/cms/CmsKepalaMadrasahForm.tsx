@@ -233,7 +233,7 @@ const CmsKepalaMadrasahForm: React.FC = () => {
 
   return (
     <CmsLayout title="CMS — Kepala Madrasah">
-      <div className="max-w-3xl mx-auto">
+      <div className="max-w-6xl mx-auto">
         <CmsPageHeader
           title="Kelola Periodisasi Kepala Madrasah"
           description="Tabel daftar kepala madrasah dari masa ke masa."

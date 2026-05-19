@@ -13,17 +13,6 @@ import { fileURLToPath } from "url";
 import { dirname } from "path";
 import mysql from "mysql2/promise";
 
-/**
- * Initializes the application and its core dependencies.
- * @async
- * @function initializeApplication
- * @returns {Promise<Object>} A promise that resolves to an object containing the core dependencies.
- * @property {mysql.Pool} pool - The MySQL connection pool.
- * @property {string} JWT_SECRET - The secret key for JWT signing.
- * @property {string} JWT_EXPIRATION - The expiration time for JWT tokens.
- * @property {string} FRONTEND_URL - The URL of the frontend application.
- * @throws {Error} Terminates the process if required environment variables are missing or the database connection fails.
- */
 const initializeApplication = async () => {
   const __filename = fileURLToPath(import.meta.url);
   const __dirname = dirname(__filename);
@@ -48,14 +37,14 @@ const initializeApplication = async () => {
     !FRONTEND_URL
   ) {
     console.error(
-      "\nFATAL ERROR: Missing required environment variables in bootstrap!"
+      "\nFATAL ERROR: Missing required environment variables in bootstrap!",
     );
     console.error("Please check your .env file (root folder) for:");
     console.error(
-      "JWT_SECRET, JWT_EXPIRATION, DATABASE_HOST, DATABASE_USER, DATABASE_PASSWORD, DATABASE_NAME,"
+      "JWT_SECRET, JWT_EXPIRATION, DATABASE_HOST, DATABASE_USER, DATABASE_PASSWORD, DATABASE_NAME,",
     );
     console.error(
-      "EMAIL_HOST, EMAIL_PORT, EMAIL_USER, EMAIL_PASS, EMAIL_SENDER, FRONTEND_URL\n"
+      "EMAIL_HOST, EMAIL_PORT, EMAIL_USER, EMAIL_PASS, EMAIL_SENDER, FRONTEND_URL\n",
     );
     process.exit(1);
   }
@@ -75,7 +64,7 @@ const initializeApplication = async () => {
   } catch (error) {
     console.error("\nFATAL ERROR: Database connection failed:", error.message);
     console.error(
-      "Check your database credentials and server status in .env.\n"
+      "Check your database credentials and server status in .env.\n",
     );
     process.exit(1);
   }

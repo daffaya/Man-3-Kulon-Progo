@@ -16,12 +16,6 @@ import apiRouterFactory from "./src/routes/api.js";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
-/**
- * Immediately-invoked function expression (IIFE) to initialize and start the server.
- * It first bootstraps the application to get necessary dependencies like the
- * database pool and configuration, then configures and starts the Express app.
- * @async
- */
 (async () => {
   try {
     const { pool, JWT_SECRET, JWT_EXPIRATION, FRONTEND_URL } =
