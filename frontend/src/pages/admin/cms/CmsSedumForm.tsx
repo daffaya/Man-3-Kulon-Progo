@@ -70,6 +70,27 @@ interface SedumFaq {
   items: FaqItem[];
 }
 
+const uploadCmsImage = async (file: File): Promise<string> => {
+  const formData = new FormData();
+  formData.append("image", file);
+
+  const res = await fetch(
+    `${import.meta.env.VITE_BACKEND_URL}/api/atmin/cms/upload`,
+    {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${localStorage.getItem("token") ?? ""}`,
+      },
+      body: formData,
+    },
+  );
+
+  if (!res.ok) throw new Error("Upload gagal");
+
+  const data = await res.json();
+  return data.url;
+};
+
 // ─────────────────────────────────────────────
 // FaqEditor
 // ─────────────────────────────────────────────
@@ -377,59 +398,23 @@ const CmsSedumForm: React.FC = () => {
             currentImage={sop.image_url}
             onImageChange={async (file, url) => {
               try {
-                // remove image
-                if (!file && !url) {
-                  setSop({
-                    image_url: "",
-                  });
-
-                  return;
-                }
-
-                // upload file
                 if (file) {
-                  const formData = new FormData();
-
-                  formData.append("file", file);
-
-                  const res = await fetch(
-                    `${import.meta.env.VITE_BACKEND_URL}/api/atmin/upload`,
-                    {
-                      method: "POST",
-                      headers: {
-                        Authorization: `Bearer ${
-                          localStorage.getItem("token") ?? ""
-                        }`,
-                      },
-                      body: formData,
-                    },
-                  );
-
-                  if (!res.ok) {
-                    throw new Error("Upload gagal");
-                  }
-
-                  const data = await res.json();
+                  const uploaded = await uploadCmsImage(file);
 
                   setSop({
-                    image_url: data.url ?? data.path ?? "",
+                    image_url: uploaded,
                   });
-
-                  showSuccessToast("Gambar SOP berhasil diupload.");
 
                   return;
                 }
 
-                // URL eksternal atau local path
                 if (url) {
                   setSop({
                     image_url: url,
                   });
-
-                  showSuccessToast("Gambar SOP berhasil diperbarui.");
                 }
               } catch {
-                showErrorToast("Gagal memproses gambar SOP.");
+                showErrorToast("Gagal mengupload gambar SOP.");
               }
             }}
             label=""

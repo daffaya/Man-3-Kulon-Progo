@@ -59,6 +59,27 @@ const FALLBACK: MaklumatContent = {
   image_url: "",
 };
 
+const uploadCmsImage = async (file: File): Promise<string> => {
+  const formData = new FormData();
+  formData.append("image", file);
+
+  const res = await fetch(
+    `${import.meta.env.VITE_BACKEND_URL}/api/atmin/cms/upload`,
+    {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${localStorage.getItem("token") ?? ""}`,
+      },
+      body: formData,
+    },
+  );
+
+  if (!res.ok) throw new Error("Upload gagal");
+
+  const data = await res.json();
+  return data.url;
+};
+
 // ─────────────────────────────────────────────
 // Page Component
 // ─────────────────────────────────────────────
@@ -80,7 +101,6 @@ const CmsMaklumatForm: React.FC = () => {
   const { showSuccessToast, showErrorToast, showInfoToast } = useToastMessage();
 
   const [saving, setSaving] = useState(false);
-  const [uploading, setUploading] = useState(false);
 
   const [isLoadingData, setIsLoadingData] = useState(true);
 
@@ -139,43 +159,6 @@ const CmsMaklumatForm: React.FC = () => {
   // Upload Image To Backend
   // ─────────────────────────────────────────────
 
-  /**
-   * Uploads image file to backend API.
-   *
-   * @param file Image file to upload
-   * @returns Uploaded image URL
-   */
-  const uploadImage = useCallback(async (file: File): Promise<string> => {
-    setUploading(true);
-
-    try {
-      const formData = new FormData();
-
-      formData.append("file", file);
-
-      const res = await fetch(
-        `${import.meta.env.VITE_BACKEND_URL}/api/atmin/upload`,
-        {
-          method: "POST",
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem("token") ?? ""}`,
-          },
-          body: formData,
-        },
-      );
-
-      if (!res.ok) {
-        throw new Error("Upload gagal");
-      }
-
-      const data = await res.json();
-
-      return data.url ?? data.path ?? "";
-    } finally {
-      setUploading(false);
-    }
-  }, []);
-
   // ─────────────────────────────────────────────
   // Handle Image Change
   // ─────────────────────────────────────────────
@@ -192,67 +175,28 @@ const CmsMaklumatForm: React.FC = () => {
   const handleImageChange = useCallback(
     async (file?: File, url?: string) => {
       try {
-        // Remove image
-        if (!file && !url) {
-          setContent((prev) => ({
-            ...prev,
-            image_url: "",
-          }));
-
-          showInfoToast("Gambar dihapus");
-          return;
-        }
-
-        // File upload
         if (file) {
-          const uploadedUrl = await uploadImage(file);
+          const uploaded = await uploadCmsImage(file);
 
           setContent((prev) => ({
             ...prev,
-            image_url: uploadedUrl,
+            image_url: uploaded,
           }));
-
-          showSuccessToast("Gambar berhasil diupload.");
 
           return;
         }
 
-        // URL / local path
         if (url) {
-          /**
-           * Accept:
-           * - https://...
-           * - http://...
-           * - /local-image.jpg
-           */
-
-          const isExternal =
-            url.startsWith("http://") || url.startsWith("https://");
-
-          const isLocalPath = url.startsWith("/");
-
-          if (!isExternal && !isLocalPath) {
-            showErrorToast(
-              "URL tidak valid. Gunakan URL penuh atau path lokal dimulai dengan /",
-            );
-
-            return;
-          }
-
           setContent((prev) => ({
             ...prev,
             image_url: url,
           }));
-
-          showSuccessToast("Gambar berhasil diperbarui.");
         }
-      } catch (error) {
-        console.error(error);
-
-        showErrorToast("Gagal memproses gambar.");
+      } catch {
+        showErrorToast("Gagal mengupload gambar.");
       }
     },
-    [uploadImage, showSuccessToast, showErrorToast, showInfoToast],
+    [showErrorToast],
   );
 
   // ─────────────────────────────────────────────
@@ -358,13 +302,9 @@ const CmsMaklumatForm: React.FC = () => {
               <ImageUploader
                 currentImage={content.image_url}
                 onImageChange={handleImageChange}
-                disabled={uploading || saving}
+                disabled={saving}
                 label=""
               />
-
-              {uploading && (
-                <p className="text-xs text-accent mt-2">Mengupload gambar...</p>
-              )}
             </div>
           </div>
         </SectionCard>

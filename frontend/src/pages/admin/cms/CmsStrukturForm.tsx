@@ -59,6 +59,27 @@ const FALLBACK: StrukturContent = {
   ],
 };
 
+const uploadCmsImage = async (file: File): Promise<string> => {
+  const formData = new FormData();
+  formData.append("image", file);
+
+  const res = await fetch(
+    `${import.meta.env.VITE_BACKEND_URL}/api/atmin/cms/upload`,
+    {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${localStorage.getItem("token") ?? ""}`,
+      },
+      body: formData,
+    },
+  );
+
+  if (!res.ok) throw new Error("Upload gagal");
+
+  const data = await res.json();
+  return data.url;
+};
+
 // ─────────────────────────────────────────────
 // DetailsEditor — edit label/value pairs per position
 // ─────────────────────────────────────────────
@@ -344,8 +365,17 @@ const CmsStrukturForm: React.FC = () => {
               </p>
               <ImageUploader
                 currentImage={content.image_url}
-                onImageChange={(_, url) => {
-                  if (url) setContent((p) => ({ ...p, image_url: url }));
+                onImageChange={async (file, url) => {
+                  if (file) {
+                    try {
+                      const uploaded = await uploadCmsImage(file);
+                      setContent((p) => ({ ...p, image_url: uploaded }));
+                    } catch {
+                      showErrorToast("Gagal mengupload gambar.");
+                    }
+                  } else if (url) {
+                    setContent((p) => ({ ...p, image_url: url }));
+                  }
                 }}
                 label=""
               />
