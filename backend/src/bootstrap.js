@@ -67,7 +67,7 @@ const initializeApplication = async () => {
     console.error("Host:", DATABASE_HOST);
     console.error("User:", DATABASE_USER);
     console.error("Database:", DATABASE_NAME);
-    process.exit(1);
+    // process.exit(1); // sementara dicomment
   }
 
   return {
