@@ -61,13 +61,12 @@ const initializeApplication = async () => {
 
   try {
     await pool.query("SELECT 1");
-    console.log("✅ Database connected successfully");
   } catch (error) {
     console.error("\nFATAL ERROR: Database connection failed:", error.message);
-    console.error("Host:", DATABASE_HOST);
-    console.error("User:", DATABASE_USER);
-    console.error("Database:", DATABASE_NAME);
-    // process.exit(1); // sementara dicomment
+    console.error(
+      "Check your database credentials and server status in .env.\n",
+    );
+    process.exit(1);
   }
 
   return {
