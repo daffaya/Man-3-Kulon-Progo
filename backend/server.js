@@ -85,6 +85,9 @@ const __dirname = dirname(__filename);
     app.get(/.*/, (req, res) => {
       res.sendFile(path.join(buildPath, "index.html"));
     });
+    app.listen(PORT, () => {
+      console.log(`✅ Server running on port ${PORT}`);
+    });
   } catch (error) {
     console.error("❌ FATAL ERROR during application startup:", error);
     process.exit(1);
