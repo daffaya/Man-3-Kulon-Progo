@@ -57,7 +57,7 @@ const initializeApplication = async () => {
   }
 
   const pool = mysql.createPool({
-    host: DATABASE_HOST,
+    socketPath: "/var/run/mysqld/mysqld.sock",
     user: DATABASE_USER,
     password: DATABASE_PASSWORD,
     database: DATABASE_NAME,
