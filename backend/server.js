@@ -73,18 +73,6 @@ const __dirname = dirname(__filename);
     });
     app.use("/api", apiRoutes);
 
-    // Frontend Static Assets
-    const buildPath = path.join(__dirname, "..", "frontend", "dist");
-    app.use(express.static(buildPath));
-
-    /**
-     * Catch-all handler to serve the frontend's index.html for any non-API routes.
-     * This enables client-side routing for a Single Page Application (SPA).
-     * @route GET /*
-     */
-    app.get(/.*/, (req, res) => {
-      res.sendFile(path.join(buildPath, "index.html"));
-    });
     app.listen(PORT, () => {
       console.log(`✅ Server running on port ${PORT}`);
     });
