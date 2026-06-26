@@ -1,17 +1,16 @@
 import React from "react";
 import { CalendarX, ArrowLeft, ClipboardList } from "lucide-react";
 import Layout from "../../../components/layout/Layout";
-import { GELOMBANG_AKTIF, BATAS_PENDAFTARAN } from "./pmbmConfig";
 
-const PmbmTutupNotice: React.FC = () => {
-  const gelombangTerakhir = Math.max(
-    ...Object.entries(BATAS_PENDAFTARAN)
-      .filter(([, tanggal]) => tanggal)
-      .map(([g]) => Number(g)),
-    1,
-  );
-  const tanggalTutup = BATAS_PENDAFTARAN[gelombangTerakhir];
+interface Props {
+  gelombangTerakhir?: number;
+  tanggalTutup?: string;
+}
 
+const PmbmTutupNotice: React.FC<Props> = ({
+  gelombangTerakhir = 2,
+  tanggalTutup = "",
+}) => {
   return (
     <Layout>
       <div className="min-h-screen bg-semibackground flex items-center justify-center px-4 py-16">
@@ -32,8 +31,14 @@ const PmbmTutupNotice: React.FC = () => {
               <strong className="text-foreground">
                 Gelombang {gelombangTerakhir}
               </strong>{" "}
-              telah ditutup pada{" "}
-              <strong className="text-foreground">{tanggalTutup}</strong>.
+              {tanggalTutup ? (
+                <>
+                  telah ditutup pada{" "}
+                  <strong className="text-foreground">{tanggalTutup}</strong>.
+                </>
+              ) : (
+                "telah ditutup."
+              )}
             </p>
 
             <p className="text-secondary text-sm mb-8">

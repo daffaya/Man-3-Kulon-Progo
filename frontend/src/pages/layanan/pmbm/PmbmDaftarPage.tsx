@@ -18,7 +18,9 @@ const PmbmDaftarPage: React.FC = () => {
     );
   }
 
-  if (config.PENDAFTARAN_DITUTUP) return <PmbmTutupNotice />;
+  if (config.PENDAFTARAN_DITUTUP) {
+    return <PmbmTutupNotice gelombangTerakhir={config.GELOMBANG_TAMPIL} />;
+  }
 
   return (
     <Layout>
