@@ -12,10 +12,6 @@ import {
 import Section from "../../../../components/ui/Section";
 import type { PmbmConfig } from "../usePmbmConfig";
 
-// ─────────────────────────────────────────────
-// Types
-// ─────────────────────────────────────────────
-
 export interface JadwalItem {
   label: string;
   value: string;
@@ -27,16 +23,8 @@ interface PmbmJadwalSectionProps {
   jadwalG2: JadwalItem[];
 }
 
-// ─────────────────────────────────────────────
-// Icon map — index → icon (urutan: daftar, tes/seleksi, pengumuman, lapor diri)
-// ─────────────────────────────────────────────
-
 const JADWAL_ICONS_G1 = [Calendar, ClipboardList, Bell, FileText];
 const JADWAL_ICONS_G2 = [Calendar, ClipboardCheck, Bell, FileText];
-
-// ─────────────────────────────────────────────
-// Fallback
-// ─────────────────────────────────────────────
 
 const FALLBACK_G1: JadwalItem[] = [
   {
@@ -54,10 +42,6 @@ const FALLBACK_G2: JadwalItem[] = [
   { label: "Pengumuman Hasil Tes", value: "Segera diumumkan" },
   { label: "Lapor Diri", value: "Segera diumumkan" },
 ];
-
-// ─────────────────────────────────────────────
-// Component
-// ─────────────────────────────────────────────
 
 const PmbmJadwalSection: React.FC<PmbmJadwalSectionProps> = ({
   config,
@@ -105,12 +89,21 @@ const PmbmJadwalSection: React.FC<PmbmJadwalSectionProps> = ({
         </div>
 
         {/* Jadwal G2 */}
-        <div className="card p-6 md:p-8 border-accent/30">
+        <div
+          className={`card p-6 md:p-8 ${PENDAFTARAN_DITUTUP ? "opacity-60" : "border-accent/30"}`}
+        >
           <div className="flex items-center gap-2 mb-4">
-            <Bell size={15} className="text-accent" />
+            <Lock
+              size={15}
+              className={PENDAFTARAN_DITUTUP ? "text-secondary" : "text-accent"}
+            />
             <h3 className="font-semibold text-foreground">
               Gelombang II
-              {!PENDAFTARAN_DITUTUP && (
+              {PENDAFTARAN_DITUTUP ? (
+                <span className="ml-2 text-xs font-normal text-secondary bg-secondary/10 px-2 py-0.5 rounded-full">
+                  Ditutup
+                </span>
+              ) : (
                 <span className="ml-2 text-xs font-normal text-accent bg-accent/10 px-2 py-0.5 rounded-full">
                   Sedang Dibuka
                 </span>
@@ -122,7 +115,10 @@ const PmbmJadwalSection: React.FC<PmbmJadwalSectionProps> = ({
               const Icon = JADWAL_ICONS_G2[index] ?? Calendar;
               return (
                 <div key={item.label} className="flex items-start gap-3">
-                  <Icon className="text-accent mt-1 flex-shrink-0" size={18} />
+                  <Icon
+                    className={`${PENDAFTARAN_DITUTUP ? "text-secondary" : "text-accent"} mt-1 flex-shrink-0`}
+                    size={18}
+                  />
                   <div>
                     <p className="font-semibold text-foreground text-sm">
                       {item.label}

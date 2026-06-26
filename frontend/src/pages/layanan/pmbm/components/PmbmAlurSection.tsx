@@ -5,10 +5,6 @@ import { Lock, Bell } from "lucide-react";
 import Section from "../../../../components/ui/Section";
 import type { PmbmConfig } from "../usePmbmConfig";
 
-// ─────────────────────────────────────────────
-// Types
-// ─────────────────────────────────────────────
-
 export interface AlurItem {
   nomor: number;
   judul: string;
@@ -20,10 +16,6 @@ interface PmbmAlurSectionProps {
   alurG1: AlurItem[];
   alurG2: AlurItem[];
 }
-
-// ─────────────────────────────────────────────
-// Fallback
-// ─────────────────────────────────────────────
 
 const FALLBACK_G1: AlurItem[] = [
   {
@@ -87,10 +79,6 @@ const FALLBACK_G2: AlurItem[] = [
   },
 ];
 
-// ─────────────────────────────────────────────
-// Component
-// ─────────────────────────────────────────────
-
 const PmbmAlurSection: React.FC<PmbmAlurSectionProps> = ({
   config,
   alurG1,
@@ -137,11 +125,19 @@ const PmbmAlurSection: React.FC<PmbmAlurSectionProps> = ({
         </div>
 
         {/* Alur G2 */}
-        <div>
+        <div className={PENDAFTARAN_DITUTUP ? "opacity-60" : ""}>
           <h3 className="font-semibold text-foreground mb-4 flex items-center gap-2">
-            <Bell size={15} className="text-accent" />
+            {PENDAFTARAN_DITUTUP ? (
+              <Lock size={15} className="text-secondary" />
+            ) : (
+              <Bell size={15} className="text-accent" />
+            )}
             Gelombang II
-            {!PENDAFTARAN_DITUTUP && (
+            {PENDAFTARAN_DITUTUP ? (
+              <span className="text-xs font-normal text-secondary bg-secondary/10 px-2 py-0.5 rounded-full">
+                Ditutup
+              </span>
+            ) : (
               <span className="text-xs font-normal text-accent bg-accent/10 px-2 py-0.5 rounded-full">
                 Sedang Dibuka
               </span>
@@ -154,9 +150,13 @@ const PmbmAlurSection: React.FC<PmbmAlurSectionProps> = ({
                 className="flex items-start gap-4 mb-6 last:mb-0 relative"
               >
                 {index < g2.length - 1 && (
-                  <div className="absolute left-4 top-10 bottom-0 w-0.5 bg-accent/30 hidden md:block" />
+                  <div
+                    className={`absolute left-4 top-10 bottom-0 w-0.5 hidden md:block ${PENDAFTARAN_DITUTUP ? "bg-secondary/20" : "bg-accent/30"}`}
+                  />
                 )}
-                <div className="bg-accent text-white rounded-full w-9 h-9 flex items-center justify-center font-bold text-sm z-10 flex-shrink-0 shadow-md">
+                <div
+                  className={`rounded-full w-9 h-9 flex items-center justify-center font-bold text-sm z-10 flex-shrink-0 ${PENDAFTARAN_DITUTUP ? "bg-secondary/20 text-secondary" : "bg-accent text-white shadow-md"}`}
+                >
                   {item.nomor}
                 </div>
                 <div className="flex-1 pt-1">
