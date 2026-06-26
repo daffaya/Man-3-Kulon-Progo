@@ -1,18 +1,30 @@
 import React from "react";
 import Layout from "../../../components/layout/Layout";
-import { PENDAFTARAN_DITUTUP, GELOMBANG_AKTIF } from "./pmbmConfig";
+import { usePmbmConfig } from "./usePmbmConfig";
 import PmbmTutupNotice from "./PmbmTutupNotice";
 import G1Form from "./gelombang1/G1Form";
 import G2Form from "./gelombang2/G2Form";
 
 const PmbmDaftarPage: React.FC = () => {
-  if (PENDAFTARAN_DITUTUP) return <PmbmTutupNotice />;
+  const { config, loading } = usePmbmConfig();
+
+  if (loading) {
+    return (
+      <Layout>
+        <div className="min-h-screen flex items-center justify-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-accent" />
+        </div>
+      </Layout>
+    );
+  }
+
+  if (config.PENDAFTARAN_DITUTUP) return <PmbmTutupNotice />;
 
   return (
     <Layout>
       <div className="min-h-screen bg-semibackground py-10 px-4">
-        {GELOMBANG_AKTIF === 1 && <G1Form />}
-        {GELOMBANG_AKTIF === 2 && <G2Form />}
+        {config.GELOMBANG_AKTIF === 1 && <G1Form />}
+        {config.GELOMBANG_AKTIF === 2 && <G2Form />}
       </div>
     </Layout>
   );
