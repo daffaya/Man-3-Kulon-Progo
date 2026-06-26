@@ -70,10 +70,7 @@ export const usePmbmConfig = () => {
   const { data, loading } = useCmsSection<PmbmConfigRaw>("pmbm", "config");
 
   const raw: PmbmConfigRaw = {
-    gelombang_aktif:
-      data !== null
-        ? data.gelombang_aktif // bisa null, itu valid
-        : FALLBACK_RAW.gelombang_aktif,
+    gelombang_aktif: data !== null ? data.gelombang_aktif : null, // null = ditutup saat loading
     gelombang_tampil: data?.gelombang_tampil ?? FALLBACK_RAW.gelombang_tampil,
     batas_g1: data?.batas_g1 ?? FALLBACK_RAW.batas_g1,
     batas_g2: data?.batas_g2 ?? FALLBACK_RAW.batas_g2,

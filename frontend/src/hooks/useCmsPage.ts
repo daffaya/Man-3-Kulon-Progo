@@ -45,7 +45,7 @@ export const useCmsPage = <T extends Record<string, any>>(page: string) => {
     mountedRef.current = true;
     setState({ data: null, loading: true, error: null });
 
-    apiFetch<T>(`/cms/${page}`)
+    apiFetch<T>(`/cms/${page}`, { cache: "no-store" })
       .then((data) => {
         if (mountedRef.current) {
           setState({ data, loading: false, error: null });
@@ -93,7 +93,7 @@ export const useCmsSection = <T extends Record<string, any>>(
     mountedRef.current = true;
     setState({ data: null, loading: true, error: null });
 
-    apiFetch<T>(`/cms/${page}/${section}`)
+    apiFetch<T>(`/cms/${page}/${section}`, { cache: "no-store" })
       .then((data) => {
         if (mountedRef.current) {
           setState({ data, loading: false, error: null });

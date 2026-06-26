@@ -58,8 +58,9 @@ export const apiFetch = async <T = any>(
   try {
     const response = await fetch(url, {
       ...options,
-      credentials: "include", // to include cookies for authentication
+      credentials: "include",
       signal: controller.signal,
+      cache: "no-store", // ← tambah ini
       headers: {
         "Content-Type": "application/json",
         ...options.headers,
