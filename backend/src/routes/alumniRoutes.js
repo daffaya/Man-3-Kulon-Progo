@@ -23,8 +23,12 @@ import rateLimiter from "../middleware/rateLimiter.js";
 const alumniRouterFactory = ({ pool, JWT_SECRET }) => {
   const router = express.Router();
 
-  const { handleGetAlumni, handleGetAlumniById, handleUpdateAlumni } =
-    alumniControllerFactory({ pool });
+  const {
+    handleGetAlumni,
+    handleGetAlumniById,
+    handleUpdateAlumni,
+    handleGetGraduationYears,
+  } = alumniControllerFactory({ pool });
 
   const limiter = rateLimiter({
     windowMs: 15 * 60 * 1000,
@@ -34,6 +38,9 @@ const alumniRouterFactory = ({ pool, JWT_SECRET }) => {
 
   // Public: get alumni list
   router.get("/", limiter, handleGetAlumni);
+
+  // Public: get all distinct graduation years (unfiltered) — must stay above "/:id"
+  router.get("/years", limiter, handleGetGraduationYears);
 
   // Protected: get alumni by ID
   router.get(

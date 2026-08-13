@@ -88,6 +88,7 @@ const AlumniPage: React.FC = () => {
   const alumniPerPage = 20;
   const [status, setStatus] = useState("");
   const [statusOptions] = useState(["Bekerja", "Usaha", "Kuliah", "Lainnya"]);
+  const [availableYears, setAvailableYears] = useState<string[]>([]);
 
   const isAdminOrGuruBK = hasEditAccess(isLoggedIn, user?.role);
 
@@ -122,6 +123,20 @@ const AlumniPage: React.FC = () => {
     };
     loadAlumni();
   }, [searchQuery, graduationYear, status, currentPage, token, showToast]);
+
+  // Ambil daftar tahun lulus sekali saja, terlepas dari filter yang aktif,
+  // supaya opsi dropdown ga collapse waktu graduationYear di-set.
+  useEffect(() => {
+    const loadYears = async () => {
+      try {
+        const years = await alumniApi.getGraduationYears();
+        setAvailableYears(years);
+      } catch (err) {
+        showToast((err as Error).message, "error");
+      }
+    };
+    loadYears();
+  }, [showToast]);
 
   /**
    * Handles the edit button click event.
@@ -177,10 +192,6 @@ const AlumniPage: React.FC = () => {
   };
 
   const SelectedLayout = isAdminOrGuruBK ? AdminLayout : Layout;
-
-  const uniqueYears = [...new Set(alumni.map((a) => a.graduation_year))].sort(
-    (a, b) => parseInt(b) - parseInt(a),
-  );
 
   return (
     <SelectedLayout>
@@ -264,8 +275,8 @@ const AlumniPage: React.FC = () => {
                 {pagination ? pagination.totalAlumni : alumni.length}
               </p>
               <p className="text-xs text-secondary">
-                {uniqueYears.length > 0
-                  ? `${uniqueYears.length} angkatan`
+                {availableYears.length > 0
+                  ? `${availableYears.length} angkatan`
                   : "Data sedang dikumpulkan"}
               </p>
             </div>
@@ -287,7 +298,7 @@ const AlumniPage: React.FC = () => {
             setGraduationYear={setGraduationYear}
             status={status}
             setStatus={setStatus}
-            years={uniqueYears}
+            years={availableYears}
             statusOptions={statusOptions}
             onFilterChange={handleFilterChange}
           />

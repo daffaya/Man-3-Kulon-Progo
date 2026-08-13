@@ -66,7 +66,7 @@ const alumniModelFactory = ({ pool }) => {
       countParams.push(status);
     }
 
-    query += ` ORDER BY a.name LIMIT ? OFFSET ?`;
+    query += ` ORDER BY a.graduation_year DESC, a.last_class_name ASC, a.name ASC LIMIT ? OFFSET ?`;
     queryParams.push(limit, offset);
 
     const [countResult] = await pool.query(countQuery, countParams);
@@ -176,11 +176,24 @@ const alumniModelFactory = ({ pool }) => {
     return result.insertId;
   };
 
+  /**
+   * Retrieves all distinct graduation years present in the alumni table, independent of any filter.
+   * @async
+   * @returns {Promise<string[]>} A promise that resolves to an array of graduation years, descending.
+   */
+  const getGraduationYears = async () => {
+    const [rows] = await pool.query(
+      `SELECT DISTINCT graduation_year FROM alumni ORDER BY graduation_year DESC`,
+    );
+    return rows.map((r) => r.graduation_year);
+  };
+
   return {
     getAlumni,
     getAlumniById,
     updateAlumni,
     createAlumni,
+    getGraduationYears,
   };
 };
 

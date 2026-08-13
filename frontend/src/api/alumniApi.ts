@@ -96,6 +96,21 @@ export const alumniApi = {
   },
 
   /**
+   * Fetches all distinct graduation years present in the alumni table, independent of any filter.
+   * Used to populate the "Tahun Lulus" dropdown so it doesn't collapse to the currently selected filter.
+   * @returns A promise resolving to an array of graduation years, descending.
+   */
+  getGraduationYears: async (): Promise<string[]> => {
+    const response = await fetch(`${backendUrl}/api/alumni/years`);
+
+    if (!response.ok) {
+      throw new Error("Gagal memuat daftar tahun lulus");
+    }
+
+    return response.json();
+  },
+
+  /**
    * Gets a single alumni record by ID.
    * @param id - The ID of the alumni to retrieve.
    * @param token - Authentication token.

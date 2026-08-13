@@ -88,10 +88,27 @@ const alumniControllerFactory = ({ pool }) => {
     }
   };
 
+  /**
+   * Handles the request to get all distinct graduation years, independent of filters.
+   * @async
+   * @param {Object} req - Express request object.
+   * @param {Object} res - Express response object.
+   * @returns {Promise<void>}
+   */
+  const handleGetGraduationYears = async (req, res) => {
+    try {
+      const years = await alumniModel.getGraduationYears();
+      res.json(years);
+    } catch (error) {
+      res.status(500).json({ error: error.message });
+    }
+  };
+
   return {
     handleGetAlumni,
     handleUpdateAlumni,
     handleGetAlumniById,
+    handleGetGraduationYears,
   };
 };
 

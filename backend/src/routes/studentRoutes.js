@@ -144,7 +144,7 @@ const studentRouterFactory = ({ pool, JWT_SECRET }) => {
 
       if (getClassesByAngkatan) {
         const [angkatanCheck] = await pool.query(
-          `SELECT DISTINCT s.angkatan FROM students s WHERE s.angkatan = ? LIMIT 1`,
+          `SELECT DISTINCT angkatan FROM student_academic_history WHERE angkatan = ? LIMIT 1`,
           [angkatan],
         );
 
@@ -154,14 +154,14 @@ const studentRouterFactory = ({ pool, JWT_SECRET }) => {
 
         const [classes] = await pool.query(
           `SELECT DISTINCT c.id, c.name, c.academic_year, c.semester
-            FROM classes c
-            JOIN student_academic_history sah ON c.id = sah.class_id
-            JOIN students s ON sah.student_id = s.id
-            WHERE s.angkatan = ? 
-              AND s.is_deleted = 0 
-              AND s.is_active = 1
-              AND sah.is_current = 1
-            ORDER BY c.name`,
+              FROM classes c
+              JOIN student_academic_history sah ON c.id = sah.class_id
+              JOIN students s ON sah.student_id = s.id
+              WHERE sah.angkatan = ? 
+                AND s.is_deleted = 0 
+                AND s.is_active = 1
+                AND sah.is_current = 1
+              ORDER BY c.name`,
           [angkatan],
         );
 
@@ -971,7 +971,7 @@ const studentRouterFactory = ({ pool, JWT_SECRET }) => {
                 student.id,
                 student.nisn,
                 student.name,
-                academicYear.split("/")[0],
+                academicYear.split("/")[1],
                 classIdFrom,
                 fromClass[0].name,
                 academicYear,
