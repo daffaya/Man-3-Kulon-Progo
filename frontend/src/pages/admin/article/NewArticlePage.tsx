@@ -42,7 +42,13 @@ const NewArticlePage: React.FC = () => {
     } catch (err) {
       const message =
         err instanceof Error ? err.message : "Gagal membuat artikel";
-      showErrorToast(message);
+
+      if (message.startsWith("NETWORK_UNCERTAIN:")) {
+        showErrorToast(message.replace("NETWORK_UNCERTAIN:", ""));
+        setTimeout(() => navigate("/atmin/articles", { replace: true }), 1500);
+      } else {
+        showErrorToast(message);
+      }
     } finally {
       setIsLoading(false);
     }

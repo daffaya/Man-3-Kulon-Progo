@@ -55,11 +55,26 @@ const articleApi = {
 
     // For FormData, we need to use fetch directly to avoid Content-Type header
     const token = getAuthToken();
-    const response = await fetch(`${backendUrl}/atmin/articles`, {
-      method: "POST",
-      headers: token ? { Authorization: `Bearer ${token}` } : {},
-      body: data,
-    });
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 30000);
+
+    let response: Response;
+    try {
+      response = await fetch(`${backendUrl}/atmin/articles`, {
+        method: "POST",
+        headers: token ? { Authorization: `Bearer ${token}` } : {},
+        body: data,
+        signal: controller.signal,
+      });
+    } catch (err: any) {
+      clearTimeout(timeoutId);
+      const reason =
+        err.name === "AbortError" ? "Koneksi timeout" : "Koneksi terputus";
+      throw new Error(
+        `NETWORK_UNCERTAIN:${reason} — artikel mungkin sudah tersimpan, cek daftar artikel sebelum membuat ulang`
+      );
+    }
+    clearTimeout(timeoutId);
 
     if (!response.ok) {
       const errorData = await response.json();
