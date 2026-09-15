@@ -5,7 +5,7 @@
  * new articles and editing existing ones.
  */
 
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useMemo, useCallback } from "react";
 import { format } from "date-fns";
 import ReactQuill from "react-quill";
 import "react-quill/dist/quill.snow.css";
@@ -14,6 +14,7 @@ import { useArticles } from "../../contexts/ArticleContext";
 import { useAuth } from "../../contexts/AuthContext";
 import { RefreshCw, X } from "lucide-react";
 import ImageUploader from "../ui/ImageUploader";
+import articleApi from "../../api/articleApi";
 
 /** Props for ArticleForm component. */
 interface ArticleFormProps {
@@ -58,17 +59,70 @@ const ArticleForm: React.FC<ArticleFormProps> = ({
 
   const [tagInput, setTagInput] = useState("");
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [contentImageError, setContentImageError] = useState<string | null>(
+    null,
+  );
+  const [isUploadingContentImage, setIsUploadingContentImage] =
+    useState(false);
+
+  const quillRef = useRef<ReactQuill>(null);
+
+  /**
+   * Custom image handler for the Quill toolbar's image button.
+   * Instead of letting Quill embed the picked file as base64 inside the
+   * content HTML (which silently breaks once the combined content field
+   * gets too large — e.g. after inserting 2+ images), this uploads the file
+   * to the backend and inserts the returned URL instead.
+   */
+  const imageHandler = useCallback(() => {
+    const input = document.createElement("input");
+    input.setAttribute("type", "file");
+    input.setAttribute("accept", "image/*");
+    input.click();
+
+    input.onchange = async () => {
+      const file = input.files?.[0];
+      if (!file) return;
+
+      const quill = quillRef.current?.getEditor();
+      const range = quill?.getSelection(true);
+      const insertIndex = range?.index ?? quill?.getLength() ?? 0;
+
+      setContentImageError(null);
+      setIsUploadingContentImage(true);
+
+      try {
+        const url = await articleApi.uploadContentImage(file);
+        quill?.insertEmbed(insertIndex, "image", url, "user");
+        quill?.setSelection(insertIndex + 1, 0);
+      } catch (err) {
+        setContentImageError(
+          err instanceof Error ? err.message : "Gagal mengunggah gambar",
+        );
+      } finally {
+        setIsUploadingContentImage(false);
+      }
+    };
+  }, []);
 
   /** Configuration for the React Quill rich text editor toolbar. */
-  const quillModules = {
-    toolbar: [
-      [{ header: [1, 2, 3, false] }],
-      ["bold", "italic", "underline", "strike", "blockquote"],
-      [{ list: "ordered" }, { list: "bullet" }],
-      ["link", "image"],
-      ["clean"],
-    ],
-  };
+  const quillModules = useMemo(
+    () => ({
+      toolbar: {
+        container: [
+          [{ header: [1, 2, 3, false] }],
+          ["bold", "italic", "underline", "strike", "blockquote"],
+          [{ list: "ordered" }, { list: "bullet" }],
+          ["link", "image"],
+          ["clean"],
+        ],
+        handlers: {
+          image: imageHandler,
+        },
+      },
+    }),
+    [imageHandler],
+  );
 
   /**
    * Populates the form with article data if an article prop is provided (for editing).
@@ -292,6 +346,7 @@ const ArticleForm: React.FC<ArticleFormProps> = ({
           Konten <span className="text-[rgb(var(--color-error))]">*</span>
         </label>
         <ReactQuill
+          ref={quillRef}
           value={formData.content}
           onChange={handleContentChange}
           modules={quillModules}
@@ -300,6 +355,17 @@ const ArticleForm: React.FC<ArticleFormProps> = ({
           theme="snow"
           readOnly={isLoading}
         />
+        {isUploadingContentImage && (
+          <p className="text-xs text-secondary mt-1 flex items-center">
+            <RefreshCw size={12} className="animate-spin mr-1" />
+            Mengunggah gambar...
+          </p>
+        )}
+        {contentImageError && (
+          <p className="text-xs text-[rgb(var(--color-error))] mt-1">
+            {contentImageError}
+          </p>
+        )}
       </div>
 
       <div>

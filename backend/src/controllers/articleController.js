@@ -325,6 +325,31 @@ const createArticleController = ({
         });
       }
     },
+
+    /**
+     * Uploads a single image to be embedded inside article content (used by the
+     * rich text editor's image toolbar button). Returns a relative URL pointing
+     * to the stored file under /uploads/content/.
+     * @param {Object} req - Express request object (expects req.file from multer)
+     * @param {Object} res - Express response object
+     * @returns {Promise<void>}
+     */
+    uploadContentImage: async (req, res) => {
+      try {
+        if (!req.file) {
+          return res.status(400).json({ message: "No image file provided" });
+        }
+
+        const url = `/uploads/content/${req.file.filename}`;
+
+        res.status(200).json({ url });
+      } catch (error) {
+        res.status(500).json({
+          message: "Failed to upload image",
+          error: error.message,
+        });
+      }
+    },
   };
 };
 

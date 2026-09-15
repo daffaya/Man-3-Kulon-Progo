@@ -2,7 +2,8 @@
  * @fileoverview API service for managing articles.
  * This module provides a set of functions to interact with the backend API endpoints
  * for creating, reading, updating, and deleting articles. It handles both public and
- * administrative operations, including file uploads for article cover images.
+ * administrative operations, including file uploads for article cover images and
+ * images embedded inside article content.
  * Authentication is managed using JWT tokens stored in localStorage.
  */
 
@@ -17,6 +18,10 @@ import { apiFetch } from "../lib/api";
 const backendUrl =
   import.meta.env.VITE_BACKEND_URL ||
   "https://backend.man3kulonprogo.sch.id/api";
+
+// backendUrl includes the "/api" suffix (e.g. ".../api"); strip it to get the
+// origin used to serve static files under /uploads/*.
+const backendOrigin = backendUrl.replace(/\/api\/?$/, "");
 
 /**
  * Retrieves the authorization token from localStorage.
@@ -210,6 +215,36 @@ const articleApi = {
     }
     const result = await response.json();
     return result.article || result;
+  },
+
+  /**
+   * Uploads a single image to be embedded inside article content (used by the
+   * rich text editor's image toolbar button), and returns its absolute URL.
+   * This avoids embedding images as base64 inside the `content` field, which
+   * caused "File upload error" once the combined content field exceeded
+   * multer's field size limit (e.g. after inserting 2+ images).
+   * @param {File} file - The image file to upload.
+   * @returns {Promise<string>} A promise that resolves with the absolute URL of the uploaded image.
+   * @throws {Error} If the API request fails.
+   */
+  uploadContentImage: async (file: File): Promise<string> => {
+    const data = new FormData();
+    data.append("image", file);
+
+    const token = getAuthToken();
+    const response = await fetch(`${backendUrl}/atmin/articles/upload-image`, {
+      method: "POST",
+      headers: token ? { Authorization: `Bearer ${token}` } : {},
+      body: data,
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.message || "Gagal mengunggah gambar");
+    }
+
+    const result = await response.json();
+    return `${backendOrigin}${result.url}`;
   },
 
   /**

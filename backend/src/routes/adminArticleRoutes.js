@@ -9,7 +9,7 @@ import {
   authenticateTokenFactory,
   restrictTo,
 } from "../middleware/authMiddleware.js";
-import { imageUpload } from "../services/fileUploadService.js";
+import { imageUpload, contentImageUpload } from "../services/fileUploadService.js";
 
 // Models
 import createArticleModel from "../models/articleModel.js";
@@ -48,6 +48,15 @@ const adminArticleRouterFactory = ({ pool, JWT_SECRET }) => {
     categoryModel,
     userModel,
   });
+
+  // Image upload endpoint used by the rich text editor (content images).
+  // Must be declared before "/:id" routes are irrelevant here since method+path differ,
+  // but kept close to the top for clarity.
+  router.post(
+    "/upload-image",
+    contentImageUpload,
+    articleController.uploadContentImage
+  );
 
   router.post("/", imageUpload, articleController.createArticle);
   router.get("/", articleController.getAllArticles);

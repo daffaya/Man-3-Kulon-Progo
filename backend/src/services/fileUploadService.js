@@ -15,7 +15,7 @@ const __dirname = path.dirname(__filename);
  * A flexible and reusable service for handling file uploads with Multer.
  * It provides a factory function to create custom upload middleware
  * and several pre-configured middlewares for common use cases like
- * document uploads, article covers, and user avatars.
+ * document uploads, article covers, article content images, and user avatars.
  */
 
 /**
@@ -82,6 +82,9 @@ const createFileFilter = (allowedMimeTypes) => {
  * @param {number} [options.maxFileSize=10*1024*1024] - The maximum file size in bytes (default: 10MB).
  * @param {string} [options.fieldName="file"] - The name of the field in the multipart form.
  * @param {Function} [options.filenameGenerator=null] - A custom function to generate filenames.
+ * @param {number} [options.maxFieldSize=5*1024*1024] - Max size (bytes) for non-file text fields
+ *   in the same multipart request (e.g. rich text `content` field). Prevents pasted/base64
+ *   content from being silently rejected with a generic error.
  * @returns {import('express').RequestHandler} An Express middleware function.
  */
 const createUploadMiddleware = (options = {}) => {
@@ -91,6 +94,7 @@ const createUploadMiddleware = (options = {}) => {
     maxFileSize = 10 * 1024 * 1024, // 10MB
     fieldName = "file",
     filenameGenerator = null,
+    maxFieldSize = 5 * 1024 * 1024, // 5MB safety net for text fields (e.g. content)
   } = options;
 
   const storage = createStorage(subfolder, filenameGenerator);
@@ -99,7 +103,7 @@ const createUploadMiddleware = (options = {}) => {
   const upload = multer({
     storage,
     fileFilter,
-    limits: { fileSize: maxFileSize },
+    limits: { fileSize: maxFileSize, fieldSize: maxFieldSize },
   }).single(fieldName);
 
   // Return a standard Express middleware that handles multer errors
@@ -112,6 +116,12 @@ const createUploadMiddleware = (options = {}) => {
           message = `File is too large. Maximum size is ${
             maxFileSize / 1024 / 1024
           }MB.`;
+        } else if (err.code === "LIMIT_FIELD_VALUE") {
+          message = `One of the form fields is too large (max ${
+            maxFieldSize / 1024 / 1024
+          }MB). If this is the article content, avoid pasting images directly — use the image upload button instead.`;
+        } else if (err.code === "LIMIT_UNEXPECTED_FILE") {
+          message = `Unexpected file field: "${err.field}". Only field "${fieldName}" is accepted here.`;
         }
         return res.status(400).json({ message });
       } else if (err) {
@@ -197,6 +207,30 @@ const imageUpload = createUploadMiddleware({
 /**
  * @constant {import('express').RequestHandler}
  * @description
+ * Pre-configured middleware for uploading images embedded inside article content
+ * (inserted via the rich text editor's image toolbar button).
+ * - Supported Types: JPEG, PNG, GIF, WebP.
+ * - Max Size: 15MB.
+ * - Field Name: 'image'.
+ * - Saved in: 'uploads/content'.
+ * - Filename Format: timestamp-random.ext (default generator).
+ */
+const contentImageUpload = createUploadMiddleware({
+  subfolder: "content",
+  allowedMimeTypes: [
+    "image/jpeg",
+    "image/jpg",
+    "image/png",
+    "image/gif",
+    "image/webp",
+  ],
+  maxFileSize: 15 * 1024 * 1024,
+  fieldName: "image",
+});
+
+/**
+ * @constant {import('express').RequestHandler}
+ * @description
  * Pre-configured middleware for uploading user avatars.
  * - Supported Types: JPEG, PNG, SVG.
  * - Max Size: 10MB.
@@ -210,4 +244,10 @@ const avatarUpload = createUploadMiddleware({
   fieldName: "avatar",
 });
 
-export { createUploadMiddleware, documentUpload, imageUpload, avatarUpload };
+export {
+  createUploadMiddleware,
+  documentUpload,
+  imageUpload,
+  contentImageUpload,
+  avatarUpload,
+};
