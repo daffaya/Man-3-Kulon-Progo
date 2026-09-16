@@ -50,11 +50,25 @@ const __dirname = dirname(__filename);
     app.use(express.json());
 
     /**
-     * Serves uploaded files from the 'uploads' directory.
-     * Sets a Cross-Origin-Resource-Policy header to allow access.
-     * @route GET /uploads/*
+     * Serves uploaded files.
+     *
+     * IMPORTANT: this path lives OUTSIDE the app root on purpose.
+     * The `backend` git branch is force-pushed as an orphan branch on every
+     * deploy (see deploy-backend.yml), so anything inside the app root that
+     * isn't tracked in git risks being wiped on redeploy. UPLOADS_DIR must
+     * point to a persistent folder outside the app root
+     * (e.g. /home/u277943328/persistent-uploads), set via Hostinger's
+     * environment variable dashboard.
+     *
+     * Falls back to the old in-repo ./uploads path only for local dev when
+     * UPLOADS_DIR isn't set.
      */
-    const uploadsPath = path.join(__dirname, "uploads");
+    const uploadsPath = process.env.UPLOADS_DIR
+      ? path.resolve(process.env.UPLOADS_DIR)
+      : path.join(__dirname, "uploads");
+
+    console.log(`📁 Serving uploads from: ${uploadsPath}`);
+
     app.use(
       "/uploads",
       (req, res, next) => {

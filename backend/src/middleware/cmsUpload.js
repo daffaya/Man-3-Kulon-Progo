@@ -1,10 +1,11 @@
 import multer from "multer";
 import path from "path";
+import fs from "fs";
 import { fileURLToPath } from "url";
 
 /**
  * @fileoverview Multer configuration for CMS image uploads.
- * Stores files in /uploads/cms/ with unique filenames.
+ * Stores files in <UPLOADS_DIR>/cms/ with unique filenames.
  * Accepts jpeg, jpg, png, webp, gif, svg.
  * Max size: 15MB. Field name: "image".
  */
@@ -12,7 +13,18 @@ import { fileURLToPath } from "url";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-const UPLOAD_DIR = path.join(__dirname, "../../uploads/cms");
+/**
+ * Base uploads directory. See services/fileUploadService.js for why this must
+ * point outside the app root on Hostinger (UPLOADS_DIR env var).
+ */
+const UPLOADS_BASE = process.env.UPLOADS_DIR
+  ? path.resolve(process.env.UPLOADS_DIR)
+  : path.resolve(__dirname, "../../uploads");
+
+const UPLOAD_DIR = path.join(UPLOADS_BASE, "cms");
+if (!fs.existsSync(UPLOAD_DIR)) {
+  fs.mkdirSync(UPLOAD_DIR, { recursive: true });
+}
 const MAX_FILE_SIZE_BYTES = 15 * 1024 * 1024; // 15MB
 const ALLOWED_FILE_TYPES = /jpeg|jpg|png|webp|gif|svg/;
 

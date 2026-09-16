@@ -1,5 +1,6 @@
 import multer from "multer";
 import path from "path";
+import fs from "fs";
 import { fileURLToPath } from "url";
 
 /**
@@ -18,8 +19,24 @@ import { fileURLToPath } from "url";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
+/**
+ * Base uploads directory. See services/fileUploadService.js for why this must
+ * point outside the app root on Hostinger (UPLOADS_DIR env var).
+ *
+ * NOTE: previously this middleware used its own "../temp" folder under src/,
+ * which was inside the app root and therefore at risk of being wiped on
+ * every backend redeploy. Consolidated into the same persistent temp folder
+ * used by gallery uploads.
+ */
+const UPLOADS_BASE = process.env.UPLOADS_DIR
+  ? path.resolve(process.env.UPLOADS_DIR)
+  : path.resolve(__dirname, "../../uploads");
+
 // --- Configuration ---
-const UPLOAD_DIR = path.join(__dirname, "../temp");
+const UPLOAD_DIR = path.join(UPLOADS_BASE, "temp");
+if (!fs.existsSync(UPLOAD_DIR)) {
+  fs.mkdirSync(UPLOAD_DIR, { recursive: true });
+}
 const MAX_FILE_SIZE_BYTES = 10 * 1024 * 1024; // 10MB
 const ALLOWED_FILE_TYPES = /jpeg|jpg|png|svg/;
 

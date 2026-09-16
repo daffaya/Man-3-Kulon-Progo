@@ -4,6 +4,14 @@ import fs from "fs";
 import { v4 as uuidv4 } from "uuid";
 
 /**
+ * Base uploads directory. See services/fileUploadService.js for why this must
+ * point outside the app root on Hostinger (UPLOADS_DIR env var).
+ */
+const UPLOADS_BASE = process.env.UPLOADS_DIR
+  ? path.resolve(process.env.UPLOADS_DIR)
+  : path.resolve("uploads");
+
+/**
  * Creates and configures a Multer middleware for handling gallery image uploads.
  * This middleware handles multiple image files, saves them to a temporary directory,
  * and applies file type and size restrictions.
@@ -12,7 +20,7 @@ import { v4 as uuidv4 } from "uuid";
  */
 const createGalleryUploadMiddleware = () => {
   // Ensure the temporary directory for uploads exists
-  const tempDir = path.resolve("uploads/temp");
+  const tempDir = path.join(UPLOADS_BASE, "temp");
   if (!fs.existsSync(tempDir)) {
     fs.mkdirSync(tempDir, { recursive: true });
   }

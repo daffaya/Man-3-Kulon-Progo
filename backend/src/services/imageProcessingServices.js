@@ -9,6 +9,14 @@ import path from "path";
  */
 
 /**
+ * Base uploads directory. See fileUploadService.js for why this must point
+ * outside the app root on Hostinger (UPLOADS_DIR env var).
+ */
+const UPLOADS_BASE = process.env.UPLOADS_DIR
+  ? path.resolve(process.env.UPLOADS_DIR)
+  : path.resolve("uploads");
+
+/**
  * A service class for handling image processing operations.
  * It provides methods to create thumbnails, compress images, and orchestrate
  * the entire processing workflow for uploaded gallery images.
@@ -69,7 +77,7 @@ class ImageProcessingService {
   async processImage(tempPath, albumId) {
     try {
       // Create the album directory if it doesn't already exist.
-      const albumDir = path.resolve("uploads/gallery", albumId);
+      const albumDir = path.join(UPLOADS_BASE, "gallery", albumId);
       await fs.mkdir(albumDir, { recursive: true });
 
       // Generate filenames for the original image and its thumbnail.

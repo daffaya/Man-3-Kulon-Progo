@@ -11,6 +11,14 @@ import fs from "fs/promises";
 import { v4 as uuidv4 } from "uuid";
 
 /**
+ * Base uploads directory. See fileUploadService.js for why this must point
+ * outside the app root on Hostinger (UPLOADS_DIR env var).
+ */
+const UPLOADS_BASE = process.env.UPLOADS_DIR
+  ? path.resolve(process.env.UPLOADS_DIR)
+  : path.resolve("uploads");
+
+/**
  * Service class for handling gallery image uploads.
  * Provides functionality for file validation, storage, and image processing.
  */
@@ -18,13 +26,13 @@ class GalleryUploadService {
   /**
    * Creates an instance of GalleryUploadService.
    * @param {Object} options - Configuration options for the service.
-   * @param {string} [options.basePath="uploads/gallery"] - Base path for storing uploaded images.
+   * @param {string} [options.basePath] - Base path for storing uploaded images. Defaults to `<UPLOADS_DIR>/gallery`.
    * @param {number} [options.maxFiles=10] - Maximum number of files allowed per upload.
    * @param {number} [options.maxFileSize=10485760] - Maximum file size in bytes (default: 10MB).
    * @param {string[]} [options.allowedMimeTypes] - Array of allowed MIME types.
    */
   constructor(options = {}) {
-    this.basePath = options.basePath || "uploads/gallery";
+    this.basePath = options.basePath || path.join(UPLOADS_BASE, "gallery");
     this.maxFiles = options.maxFiles || 10;
     this.maxFileSize = options.maxFileSize || 10 * 1024 * 1024;
     this.allowedMimeTypes = options.allowedMimeTypes || [

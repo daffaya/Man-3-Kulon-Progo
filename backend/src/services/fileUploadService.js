@@ -11,6 +11,19 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 /**
+ * Base uploads directory.
+ *
+ * Reads UPLOADS_DIR from env — this MUST point to a persistent folder
+ * outside the app root on Hostinger (e.g. /home/u277943328/persistent-uploads),
+ * because the `backend` branch is force-pushed as an orphan branch on every
+ * deploy and anything inside the app root that isn't tracked in git can be
+ * wiped on redeploy. Falls back to the old in-repo path for local dev.
+ */
+const UPLOADS_BASE = process.env.UPLOADS_DIR
+  ? path.resolve(process.env.UPLOADS_DIR)
+  : path.resolve(__dirname, "../../uploads");
+
+/**
  * @fileoverview
  * A flexible and reusable service for handling file uploads with Multer.
  * It provides a factory function to create custom upload middleware
@@ -30,13 +43,13 @@ const __dirname = path.dirname(__filename);
 const createStorage = (subfolder = "", filenameGenerator = null) => {
   return multer.diskStorage({
     destination: (req, file, cb) => {
-      let uploadPath = path.resolve(__dirname, "../../uploads");
+      let uploadPath = UPLOADS_BASE;
       if (subfolder) {
         uploadPath = path.join(uploadPath, subfolder);
-        // Ensure the directory exists before attempting to write to it
-        if (!fs.existsSync(uploadPath)) {
-          fs.mkdirSync(uploadPath, { recursive: true });
-        }
+      }
+      // Ensure the directory exists before attempting to write to it
+      if (!fs.existsSync(uploadPath)) {
+        fs.mkdirSync(uploadPath, { recursive: true });
       }
       cb(null, uploadPath);
     },
