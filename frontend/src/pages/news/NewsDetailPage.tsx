@@ -165,9 +165,12 @@ const NewsDetailPage: React.FC = () => {
           )}
         </div>
 
-        <ArticleContent article={article} />
+        <ShareButtons
+          title={article.title}
+          url={`${import.meta.env.VITE_BACKEND_URL}/share/berita/${article.slug}`}
+        />
 
-        <ShareButtons title={article.title} url={window.location.href} />
+        <ArticleContent article={article} />
 
         {relatedArticles.length > 0 && (
           <div className="mt-16">

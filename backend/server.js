@@ -12,6 +12,7 @@ import { fileURLToPath } from "url";
 import { dirname } from "path";
 import { initializeApplication } from "./src/bootstrap.js";
 import apiRouterFactory from "./src/routes/api.js";
+import shareRouterFactory from "./src/routes/shareRoutes.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -86,6 +87,9 @@ const __dirname = dirname(__filename);
       FRONTEND_URL,
     });
     app.use("/api", apiRoutes);
+
+    const shareRoutes = shareRouterFactory({ pool, FRONTEND_URL });
+    app.use("/share", shareRoutes);
 
     app.listen(PORT, () => {
       console.log(`✅ Server running on port ${PORT}`);

@@ -46,7 +46,7 @@ const ShareButtons: React.FC<ShareButtonsProps> = ({ title, url }) => {
   ];
 
   return (
-    <div className="mt-10 border-t pt-6">
+    <div className="mb-8 border-b pb-6">
       <div className="flex items-center gap-2 mb-4 text-secondary">
         <Share2 size={18} />
         <span className="font-medium">Bagikan berita</span>
