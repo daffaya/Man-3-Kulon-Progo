@@ -13,6 +13,7 @@ import ArticleCard from "../../components/article/ArticleCard";
 import { useArticles } from "../../contexts/ArticleContext";
 import { Article } from "../../types/articleTypes";
 import ShareButtons from "../../components/ui/ShareButton";
+import { BACKEND_ORIGIN } from "../../lib/api";
 
 /**
  * Component that displays a detailed view of a single article.
@@ -165,12 +166,12 @@ const NewsDetailPage: React.FC = () => {
           )}
         </div>
 
+        <ArticleContent article={article} />
+
         <ShareButtons
           title={article.title}
-          url={`${import.meta.env.VITE_BACKEND_URL}/share/berita/${article.slug}`}
+          url={`${BACKEND_ORIGIN}/share/berita/${article.slug}`}
         />
-
-        <ArticleContent article={article} />
 
         {relatedArticles.length > 0 && (
           <div className="mt-16">

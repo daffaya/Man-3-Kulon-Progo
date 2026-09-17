@@ -11,6 +11,12 @@ const API_BASE =
   "https://backend.man3kulonprogo.sch.id/api";
 
 /**
+ * Origin backend tanpa suffix /api — dipakai untuk endpoint non-API
+ * seperti /share (og:image dinamis untuk artikel).
+ */
+export const BACKEND_ORIGIN = API_BASE.replace(/\/api\/?$/, "");
+
+/**
  * A wrapper function around the native `fetch` API to simplify communication with the backend.
  * It automatically prepends the base API URL, includes credentials for cookie-based authentication,
  * sets the 'Content-Type' header to 'application/json', and has a 15-second timeout.
