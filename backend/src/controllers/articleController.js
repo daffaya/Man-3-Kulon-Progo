@@ -48,6 +48,23 @@ const createArticleController = ({
   };
 
   /**
+   * Helper function to append a numeric suffix to a slug until it's unique,
+   * excluding the article being updated (if any) from the collision check.
+   * @param {string} baseSlug - The initial slug generated from the title.
+   * @param {string} [excludeId] - Article ID to exclude (for updates).
+   * @returns {Promise<string>} A guaranteed-unique slug.
+   */
+  const generateUniqueSlug = async (baseSlug, excludeId = null) => {
+    let slug = baseSlug;
+    let counter = 2;
+    while (await articleModel.slugExists(slug, excludeId)) {
+      slug = `${baseSlug}-${counter}`;
+      counter += 1;
+    }
+    return slug;
+  };
+
+  /**
    * Helper function to prepare article data from request
    * @param {Object} req - Express request object
    * @param {string} [id] - Article ID (for updates)
@@ -67,11 +84,12 @@ const createArticleController = ({
     } = req.body;
 
     const parsedTags = parseTags(tags);
-    const slug = slugify(title, {
+    const baseSlug = slugify(title, {
       lower: true,
       strict: true,
       remove: /[*+~.()'"!:@]/g,
     });
+    const slug = await generateUniqueSlug(baseSlug, id);
     const readingTime = calculateReadingTime(content);
     const finalCoverImage = req.file
       ? `/uploads/covers/${req.file.filename}`

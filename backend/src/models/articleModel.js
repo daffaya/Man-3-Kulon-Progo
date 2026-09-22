@@ -46,6 +46,23 @@ const createArticleModel = ({ pool }) => {
 
   return {
     /**
+     * Checks whether a slug already exists (optionally excluding one article ID,
+     * for use during updates so an article doesn't collide with itself).
+     *
+     * @param {string} slug - The slug to check.
+     * @param {string|number|null} [excludeId=null] - Article ID to exclude from the check.
+     * @returns {Promise<boolean>} True if the slug is already taken.
+     */
+    async slugExists(slug, excludeId = null) {
+      const sql = excludeId
+        ? "SELECT id FROM articles WHERE slug = ? AND id != ? LIMIT 1"
+        : "SELECT id FROM articles WHERE slug = ? LIMIT 1";
+      const params = excludeId ? [slug, excludeId] : [slug];
+      const [rows] = await pool.execute(sql, params);
+      return rows.length > 0;
+    },
+
+    /**
      * Creates a new article record in the database.
      *
      * @param {object} articleData - Data for the new article.
