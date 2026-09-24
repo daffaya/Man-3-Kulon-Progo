@@ -251,14 +251,14 @@ const contentImageUpload = createUploadMiddleware({
  * @constant {import('express').RequestHandler}
  * @description
  * Pre-configured middleware for uploading user avatars.
- * - Supported Types: JPEG, PNG, SVG.
+ * - Supported Types: JPEG, PNG.
  * - Max Size: 10MB.
  * - Field Name: 'avatar'.
  * - Saved in: 'uploads/avatars'.
  */
 const avatarUpload = createUploadMiddleware({
   subfolder: "avatars",
-  allowedMimeTypes: ["image/jpeg", "image/jpg", "image/png", "image/svg+xml"],
+  allowedMimeTypes: ["image/jpeg", "image/jpg", "image/png"], // svg dropped (AUDIT-010)
   maxFileSize: 10 * 1024 * 1024,
   fieldName: "avatar",
 });

@@ -6,7 +6,7 @@ import { fileURLToPath } from "url";
 /**
  * @fileoverview Multer configuration for CMS image uploads.
  * Stores files in <UPLOADS_DIR>/cms/ with unique filenames.
- * Accepts jpeg, jpg, png, webp, gif, svg.
+ * Accepts jpeg, jpg, png, webp, gif.
  * Max size: 15MB. Field name: "image".
  */
 
@@ -26,7 +26,7 @@ if (!fs.existsSync(UPLOAD_DIR)) {
   fs.mkdirSync(UPLOAD_DIR, { recursive: true });
 }
 const MAX_FILE_SIZE_BYTES = 15 * 1024 * 1024; // 15MB
-const ALLOWED_FILE_TYPES = /jpeg|jpg|png|webp|gif|svg/;
+const ALLOWED_FILE_TYPES = /jpeg|jpg|png|webp|gif/; // svg dropped (AUDIT-010) — stored-XSS vector via unsanitized SVG
 
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
@@ -50,7 +50,7 @@ const fileFilter = (req, file, cb) => {
   }
   return cb(
     new Error(
-      "Hanya file gambar yang diperbolehkan (jpeg, jpg, png, webp, gif, svg).",
+      "Hanya file gambar yang diperbolehkan (jpeg, jpg, png, webp, gif).",
     ),
     false,
   );
