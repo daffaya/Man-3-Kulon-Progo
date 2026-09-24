@@ -9,6 +9,7 @@ import PDFDocument from "pdfkit";
 import fs from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
+import { escapeExcelCell } from "../utils/helper.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -83,7 +84,13 @@ export const exportToExcel = async (data, options) => {
 
   // ====================== DATA ROWS ======================
   data.forEach((student, index) => {
-    const rowData = [index + 1, student.nisn, student.name];
+    // AUDIT-007: defense-in-depth — sanitize even though this data is
+    // staff-entered rather than public-submitted.
+    const rowData = [
+      index + 1,
+      escapeExcelCell(student.nisn),
+      escapeExcelCell(student.name),
+    ];
 
     if (period !== "daily") {
       rowData.push(
@@ -95,7 +102,10 @@ export const exportToExcel = async (data, options) => {
         `${student.persentase_kehadiran || 0}%`,
       );
     } else {
-      rowData.push(student.status || "-", student.notes || "-");
+      rowData.push(
+        student.status || "-",
+        escapeExcelCell(student.notes) || "-",
+      );
     }
 
     const row = worksheet.addRow(rowData);

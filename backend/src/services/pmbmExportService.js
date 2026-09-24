@@ -4,6 +4,7 @@
  */
 
 import ExcelJS from "exceljs";
+import { escapeExcelCell } from "../utils/helper.js";
 
 /**
  * Human-readable labels
@@ -131,53 +132,57 @@ export const exportPmbmToExcel = async (res, data, options = {}) => {
     headerRow.height = 22;
 
     // ====================== DATA ROWS ======================
+    // AUDIT-007: every value below is sourced from pmbm_registrations rows,
+    // which originate from the unauthenticated public /api/pmbm/register
+    // endpoint — wrap with escapeExcelCell() to prevent formula/CSV
+    // injection when staff later open the export in Excel.
     data.forEach((reg, index) => {
       const row = worksheet.addRow([
         index + 1,
-        reg.nomor_pendaftaran,
-        reg.gelombang,
-        JALUR_LABEL[reg.jalur] ?? reg.jalur,
+        escapeExcelCell(reg.nomor_pendaftaran),
+        escapeExcelCell(reg.gelombang),
+        JALUR_LABEL[reg.jalur] ?? escapeExcelCell(reg.jalur),
         reg.pilihan_keterampilan
           ? (KETERAMPILAN_LABEL[reg.pilihan_keterampilan] ??
-            reg.pilihan_keterampilan)
+            escapeExcelCell(reg.pilihan_keterampilan))
           : "-",
-        STATUS_LABEL[reg.status] ?? reg.status,
-        reg.nama_lengkap,
-        reg.nisn,
-        reg.nik,
-        reg.tempat_lahir,
+        STATUS_LABEL[reg.status] ?? escapeExcelCell(reg.status),
+        escapeExcelCell(reg.nama_lengkap),
+        escapeExcelCell(reg.nisn),
+        escapeExcelCell(reg.nik),
+        escapeExcelCell(reg.tempat_lahir),
         reg.tanggal_lahir
           ? new Date(reg.tanggal_lahir).toLocaleDateString("id-ID")
           : "-",
         reg.jenis_kelamin === "L" ? "Laki-laki" : "Perempuan",
-        reg.asal_sekolah,
-        reg.no_kk,
-        reg.alamat_lengkap,
-        reg.alamat_domisili,
-        reg.no_hp_siswa,
-        reg.nama_ayah,
-        reg.nama_ibu,
-        reg.pekerjaan_ayah,
-        reg.pekerjaan_ibu,
-        reg.penghasilan_ayah,
-        reg.penghasilan_ibu,
-        reg.alamat_ortu,
-        reg.alamat_domisili_ortu,
-        reg.no_hp_ayah,
-        reg.no_hp_ibu,
-        reg.jumlah_hafalan_juz ?? "-",
-        reg.cabang_olahraga ?? "-",
-        reg.rata_rata_rapor ?? "-",
-        reg.jenis_kejuaraan ?? "-",
-        reg.tingkat_kejuaraan ?? "-",
-        reg.nama_kejuaraan ?? "-",
-        reg.tahun_kejuaraan ?? "-",
-        reg.link_dokumen ?? "-",
+        escapeExcelCell(reg.asal_sekolah),
+        escapeExcelCell(reg.no_kk),
+        escapeExcelCell(reg.alamat_lengkap),
+        escapeExcelCell(reg.alamat_domisili),
+        escapeExcelCell(reg.no_hp_siswa),
+        escapeExcelCell(reg.nama_ayah),
+        escapeExcelCell(reg.nama_ibu),
+        escapeExcelCell(reg.pekerjaan_ayah),
+        escapeExcelCell(reg.pekerjaan_ibu),
+        escapeExcelCell(reg.penghasilan_ayah),
+        escapeExcelCell(reg.penghasilan_ibu),
+        escapeExcelCell(reg.alamat_ortu),
+        escapeExcelCell(reg.alamat_domisili_ortu),
+        escapeExcelCell(reg.no_hp_ayah),
+        escapeExcelCell(reg.no_hp_ibu),
+        escapeExcelCell(reg.jumlah_hafalan_juz) ?? "-",
+        escapeExcelCell(reg.cabang_olahraga) ?? "-",
+        escapeExcelCell(reg.rata_rata_rapor) ?? "-",
+        escapeExcelCell(reg.jenis_kejuaraan) ?? "-",
+        escapeExcelCell(reg.tingkat_kejuaraan) ?? "-",
+        escapeExcelCell(reg.nama_kejuaraan) ?? "-",
+        escapeExcelCell(reg.tahun_kejuaraan) ?? "-",
+        escapeExcelCell(reg.link_dokumen) ?? "-",
         reg.komitmen ? "Ya" : "Tidak",
         reg.created_at
           ? new Date(reg.created_at).toLocaleDateString("id-ID")
           : "-",
-        reg.catatan_admin ?? "-",
+        escapeExcelCell(reg.catatan_admin) ?? "-",
       ]);
 
       // Alternating row color
