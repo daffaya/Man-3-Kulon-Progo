@@ -88,6 +88,16 @@ const pmbmControllerFactory = ({ pool }) => {
       });
     }
 
+    // AUDIT-016: server-side format check for NISN/NIK — the frontend
+    // already enforces this (gelombang1Validation.ts), but the API must
+    // not trust that, since /api/pmbm/register can be called directly.
+    if (!/^\d{10}$/.test(String(body.nisn))) {
+      return res.status(400).json({ error: "NISN harus 10 digit angka" });
+    }
+    if (!/^\d{16}$/.test(String(body.nik))) {
+      return res.status(400).json({ error: "NIK harus 16 digit angka" });
+    }
+
     if (!JALUR_VALID_ALL.includes(body.jalur)) {
       return res.status(400).json({ error: "Jalur pendaftaran tidak valid" });
     }

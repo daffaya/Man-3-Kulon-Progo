@@ -7,6 +7,7 @@
 import { Router } from "express";
 import pmbmControllerFactory from "../controllers/pmbmController.js";
 import { authenticateTokenFactory } from "../middleware/authMiddleware.js";
+import rateLimiter from "../middleware/rateLimiter.js";
 
 /**
  * Factory function to create an Express router for PMBM routes.
@@ -29,8 +30,16 @@ const pmbmRouterFactory = ({ pool, JWT_SECRET }) => {
     handleUpdate,
   } = pmbmControllerFactory({ pool });
 
+  // AUDIT-015: public PII-intake endpoint — throttle to curb spam/abuse
+  // during the real admissions window (same config as archiveRoutes.js).
+  const registerLimiter = rateLimiter({
+    windowMs: 15 * 60 * 1000,
+    max: 100,
+    message: { error: "Terlalu banyak permintaan. Coba lagi nanti" },
+  });
+
   // Public
-  pmbmRouter.post("/register", handleRegister);
+  pmbmRouter.post("/register", registerLimiter, handleRegister);
   pmbmRouter.get("/public", handleGetPublic);
 
   // Protected
