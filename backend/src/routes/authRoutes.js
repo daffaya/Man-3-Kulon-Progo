@@ -13,6 +13,7 @@ import {
   restrictTo,
 } from "../middleware/authMiddleware.js";
 import createUserModel from "../models/userModel.js";
+import rateLimiter from "../middleware/rateLimiter.js";
 
 /**
  * Factory function to create authentication routes with login and register endpoints.
@@ -26,6 +27,13 @@ const authRouterFactory = ({ pool, JWT_SECRET, JWT_EXPIRATION }) => {
   const authRouter = Router();
   const authenticateToken = authenticateTokenFactory({ JWT_SECRET });
   const userModel = createUserModel({ pool });
+
+  // AUDIT-005: brute-force protection on the highest-value endpoint
+  const loginLimiter = rateLimiter({
+    windowMs: 15 * 60 * 1000,
+    max: 10,
+    message: { error: "Terlalu banyak percobaan login. Coba lagi nanti" },
+  });
 
   /**
    * Array of valid user roles in the system.
@@ -49,7 +57,7 @@ const authRouterFactory = ({ pool, JWT_SECRET, JWT_EXPIRATION }) => {
    * @param {Object} res - Express response object.
    * @returns {Object} JSON response with user data and JWT token.
    */
-  authRouter.post("/login", async (req, res) => {
+  authRouter.post("/login", loginLimiter, async (req, res) => {
     const { username, password } = req.body;
 
     try {
