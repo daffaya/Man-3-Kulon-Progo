@@ -4,7 +4,10 @@
 
 import { Router } from "express";
 import kelulusanControllerFactory from "../controllers/kelulusanController.js";
-import { authenticateTokenFactory } from "../middleware/authMiddleware.js";
+import {
+  authenticateTokenFactory,
+  restrictTo,
+} from "../middleware/authMiddleware.js";
 import excelUpload from "../middleware/excelUpload.js";
 
 const kelulusanRouterFactory = ({ pool, JWT_SECRET }) => {
@@ -31,6 +34,7 @@ const kelulusanRouterFactory = ({ pool, JWT_SECRET }) => {
 
   // ── Admin (protected) ────────────────────────────────
   router.use(authenticateToken);
+  router.use(restrictTo(["guru_bk", "super_admin"])); // AUDIT-004
 
   router.get("/", handleGetAll);
   router.get("/tahun-ajaran", handleGetTahunAjaran);
