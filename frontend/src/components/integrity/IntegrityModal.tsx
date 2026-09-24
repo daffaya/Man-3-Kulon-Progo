@@ -6,6 +6,7 @@
 
 import React from "react";
 import { X, ExternalLink } from "lucide-react";
+import DOMPurify from "dompurify";
 
 /**
  * Props for the IntegrityModal component.
@@ -70,7 +71,11 @@ const IntegrityModal: React.FC<Props> = ({
         </div>
 
         <div className="prose prose-sm max-w-none">
-          <div dangerouslySetInnerHTML={{ __html: description }} />
+          <div
+            dangerouslySetInnerHTML={{
+              __html: DOMPurify.sanitize(description),
+            }}
+          />
         </div>
 
         <div className="mt-6 pt-4 border-t border-border">
