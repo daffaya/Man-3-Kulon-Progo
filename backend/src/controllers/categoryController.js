@@ -13,9 +13,9 @@ const createCategoryController = ({ categoryModel }) => {
    * @returns {Object} Express response object with a 500 status code.
    */
   const handleError = (res, context, error) => {
+    console.error(error); // full detail to server logs only (AUDIT-012)
     return res.status(500).json({
       message: `Failed to ${context}`,
-      error: error.message,
     });
   };
 

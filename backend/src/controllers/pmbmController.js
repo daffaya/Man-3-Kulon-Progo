@@ -6,6 +6,7 @@
 
 import createPmbmModel from "../models/pmbmModel.js";
 import { exportPmbmToExcel } from "../services/pmbmExportService.js";
+import { sendServerError } from "../utils/errorResponse.js";
 // Hapus import fs karena tidak diperlukan lagi
 
 const JALUR_VALID_G1 = [
@@ -144,7 +145,7 @@ const pmbmControllerFactory = ({ pool }) => {
         },
       });
     } catch (error) {
-      return res.status(500).json({ error: error.message });
+      return sendServerError(res, error);
     }
   };
 
@@ -174,7 +175,7 @@ const pmbmControllerFactory = ({ pool }) => {
       });
       res.json(result);
     } catch (error) {
-      res.status(500).json({ error: error.message });
+      sendServerError(res, error);
     }
   };
 
@@ -207,7 +208,7 @@ const pmbmControllerFactory = ({ pool }) => {
       });
       res.json(result);
     } catch (error) {
-      res.status(500).json({ error: error.message });
+      sendServerError(res, error);
     }
   };
 
@@ -234,7 +235,7 @@ const pmbmControllerFactory = ({ pool }) => {
 
       res.json(registration);
     } catch (error) {
-      res.status(500).json({ error: error.message });
+      sendServerError(res, error);
     }
   };
 
@@ -291,7 +292,7 @@ const pmbmControllerFactory = ({ pool }) => {
         message: "Data pendaftaran berhasil diperbarui",
       });
     } catch (error) {
-      res.status(500).json({ error: error.message });
+      sendServerError(res, error);
     }
   };
 
@@ -329,7 +330,7 @@ const pmbmControllerFactory = ({ pool }) => {
         message: "Status pendaftaran berhasil diperbarui",
       });
     } catch (error) {
-      res.status(500).json({ error: error.message });
+      sendServerError(res, error);
     }
   };
 
@@ -362,7 +363,7 @@ const pmbmControllerFactory = ({ pool }) => {
       });
     } catch (error) {
       if (!res.headersSent) {
-        res.status(500).json({ error: error.message });
+        sendServerError(res, error);
       }
     }
   };

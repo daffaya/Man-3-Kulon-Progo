@@ -1,4 +1,5 @@
 import alumniModelFactory from "../models/alumniModel.js";
+import { sendServerError } from "../utils/errorResponse.js";
 
 /**
  * Factory function to create an Alumni Controller.
@@ -29,7 +30,7 @@ const alumniControllerFactory = ({ pool }) => {
       });
       res.json(result);
     } catch (error) {
-      res.status(500).json({ error: error.message });
+      sendServerError(res, error);
     }
   };
 
@@ -59,7 +60,7 @@ const alumniControllerFactory = ({ pool }) => {
 
       res.json({ success: true, message: "Data alumni diperbarui" });
     } catch (error) {
-      res.status(500).json({ error: error.message });
+      sendServerError(res, error);
     }
   };
 
@@ -84,7 +85,7 @@ const alumniControllerFactory = ({ pool }) => {
 
       res.json(alumni);
     } catch (error) {
-      res.status(500).json({ error: error.message });
+      sendServerError(res, error);
     }
   };
 
@@ -100,7 +101,7 @@ const alumniControllerFactory = ({ pool }) => {
       const years = await alumniModel.getGraduationYears();
       res.json(years);
     } catch (error) {
-      res.status(500).json({ error: error.message });
+      sendServerError(res, error);
     }
   };
 

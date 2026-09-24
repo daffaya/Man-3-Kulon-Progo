@@ -4,6 +4,7 @@
  */
 
 import cmsCache from "../utils/cmsCache.js";
+import { sendServerError } from "../utils/errorResponse.js";
 
 /**
  * Cache key helpers — consistent naming across controller and cache.
@@ -48,10 +49,7 @@ const createCmsController = ({ cmsModel }) => {
         cmsCache.set(key, data);
         return res.status(200).json(data);
       } catch (error) {
-        return res.status(500).json({
-          message: "Failed to fetch page content",
-          error: error.message,
-        });
+        return sendServerError(res, error, "Failed to fetch page content");
       }
     },
 
@@ -79,10 +77,7 @@ const createCmsController = ({ cmsModel }) => {
         cmsCache.set(key, data);
         return res.status(200).json(data);
       } catch (error) {
-        return res.status(500).json({
-          message: "Failed to fetch section",
-          error: error.message,
-        });
+        return sendServerError(res, error, "Failed to fetch section");
       }
     },
 
@@ -103,10 +98,7 @@ const createCmsController = ({ cmsModel }) => {
         cmsCache.set(key, data);
         return res.status(200).json(data);
       } catch (error) {
-        return res.status(500).json({
-          message: "Failed to fetch collection",
-          error: error.message,
-        });
+        return sendServerError(res, error, "Failed to fetch collection");
       }
     },
 
@@ -139,10 +131,7 @@ const createCmsController = ({ cmsModel }) => {
           message: `Section '${section}' on page '${page}' updated successfully`,
         });
       } catch (error) {
-        return res.status(500).json({
-          message: "Failed to update section",
-          error: error.message,
-        });
+        return sendServerError(res, error, "Failed to update section");
       }
     },
 
@@ -156,10 +145,7 @@ const createCmsController = ({ cmsModel }) => {
         const data = await cmsModel.findCollectionAdmin(type);
         return res.status(200).json(data);
       } catch (error) {
-        return res.status(500).json({
-          message: "Failed to fetch collection",
-          error: error.message,
-        });
+        return sendServerError(res, error, "Failed to fetch collection");
       }
     },
 
@@ -192,10 +178,7 @@ const createCmsController = ({ cmsModel }) => {
           id: newId,
         });
       } catch (error) {
-        return res.status(500).json({
-          message: "Failed to create collection item",
-          error: error.message,
-        });
+        return sendServerError(res, error, "Failed to create collection item");
       }
     },
 
@@ -232,10 +215,7 @@ const createCmsController = ({ cmsModel }) => {
           message: "Collection item updated successfully",
         });
       } catch (error) {
-        return res.status(500).json({
-          message: "Failed to update collection item",
-          error: error.message,
-        });
+        return sendServerError(res, error, "Failed to update collection item");
       }
     },
 
@@ -259,10 +239,7 @@ const createCmsController = ({ cmsModel }) => {
           message: "Collection item deleted successfully",
         });
       } catch (error) {
-        return res.status(500).json({
-          message: "Failed to delete collection item",
-          error: error.message,
-        });
+        return sendServerError(res, error, "Failed to delete collection item");
       }
     },
   };

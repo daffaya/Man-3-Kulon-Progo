@@ -1,3 +1,4 @@
+import { sendServerError } from "../utils/errorResponse.js";
 // import fs from "fs"; // Unused import removed
 
 /**
@@ -60,7 +61,7 @@ const studentControllerFactory = ({ pool, importStudentService }) => {
         },
       });
     } catch (error) {
-      res.status(500).json({ error: error.message });
+      sendServerError(res, error);
     }
   };
 
@@ -137,7 +138,7 @@ const studentControllerFactory = ({ pool, importStudentService }) => {
         studentId,
       });
     } catch (error) {
-      res.status(500).json({ error: error.message });
+      sendServerError(res, error);
     }
   };
 
@@ -168,7 +169,7 @@ const studentControllerFactory = ({ pool, importStudentService }) => {
 
       res.json(students[0]);
     } catch (error) {
-      res.status(500).json({ error: error.message });
+      sendServerError(res, error);
     }
   };
 
@@ -193,7 +194,7 @@ const studentControllerFactory = ({ pool, importStudentService }) => {
 
       res.json(students[0]);
     } catch (error) {
-      res.status(500).json({ error: error.message });
+      sendServerError(res, error);
     }
   };
 
@@ -292,7 +293,7 @@ const studentControllerFactory = ({ pool, importStudentService }) => {
 
       res.json({ message: "Siswa berhasil diupdate" });
     } catch (error) {
-      res.status(500).json({ error: error.message });
+      sendServerError(res, error);
     }
   };
 
@@ -321,7 +322,7 @@ const studentControllerFactory = ({ pool, importStudentService }) => {
 
       res.json({ message: "Siswa berhasil dihapus" });
     } catch (error) {
-      res.status(500).json({ error: error.message });
+      sendServerError(res, error);
     }
   };
 
@@ -344,7 +345,7 @@ const studentControllerFactory = ({ pool, importStudentService }) => {
       });
     } catch (error) {
       console.error("Error fetching student stats:", error);
-      res.status(500).json({ error: error.message });
+      sendServerError(res, error);
     }
   };
 
@@ -379,7 +380,6 @@ const studentControllerFactory = ({ pool, importStudentService }) => {
       console.error("Import error:", error);
       res.status(500).json({
         message: "Failed to process file",
-        error: error.message,
         success: 0,
         failed: 1,
       });

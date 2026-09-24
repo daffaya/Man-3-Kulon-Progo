@@ -1,6 +1,7 @@
 import slugify from "slugify";
 import { calculateReadingTime } from "../utils/helper.js";
 import { v4 as uuidv4 } from "uuid";
+import { sendServerError } from "../utils/errorResponse.js";
 
 /**
  * Factory function to create an Article Controller with CRUD operations.
@@ -154,10 +155,7 @@ const createArticleController = ({
           article: newArticle,
         });
       } catch (error) {
-        res.status(500).json({
-          message: "Failed to create article",
-          error: error.message,
-        });
+        sendServerError(res, error, "Failed to create article");
       }
     },
 
@@ -200,10 +198,7 @@ const createArticleController = ({
           article: updatedArticle,
         });
       } catch (error) {
-        res.status(500).json({
-          message: "Failed to update article",
-          error: error.message,
-        });
+        sendServerError(res, error, "Failed to update article");
       }
     },
 
@@ -224,10 +219,7 @@ const createArticleController = ({
 
         res.status(200).json({ message: "Article deleted successfully" });
       } catch (error) {
-        res.status(500).json({
-          message: "Failed to delete article",
-          error: error.message,
-        });
+        sendServerError(res, error, "Failed to delete article");
       }
     },
 
@@ -262,10 +254,7 @@ const createArticleController = ({
         const result = await articleModel.findAll(filters);
         res.status(200).json(result);
       } catch (error) {
-        res.status(500).json({
-          message: "Failed to fetch articles",
-          error: error.message,
-        });
+        sendServerError(res, error, "Failed to fetch articles");
       }
     },
 
@@ -289,10 +278,7 @@ const createArticleController = ({
         const result = await articleModel.findAll(filters);
         res.status(200).json(result);
       } catch (error) {
-        res.status(500).json({
-          message: "Failed to fetch articles",
-          error: error.message,
-        });
+        sendServerError(res, error, "Failed to fetch articles");
       }
     },
 
@@ -313,10 +299,7 @@ const createArticleController = ({
 
         res.status(200).json(article);
       } catch (error) {
-        res.status(500).json({
-          message: "Failed to fetch article",
-          error: error.message,
-        });
+        sendServerError(res, error, "Failed to fetch article");
       }
     },
 
@@ -337,10 +320,7 @@ const createArticleController = ({
 
         res.status(200).json(article);
       } catch (error) {
-        res.status(500).json({
-          message: "Failed to fetch article",
-          error: error.message,
-        });
+        sendServerError(res, error, "Failed to fetch article");
       }
     },
 
@@ -362,10 +342,7 @@ const createArticleController = ({
 
         res.status(200).json({ url });
       } catch (error) {
-        res.status(500).json({
-          message: "Failed to upload image",
-          error: error.message,
-        });
+        sendServerError(res, error, "Failed to upload image");
       }
     },
   };

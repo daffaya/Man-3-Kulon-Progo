@@ -4,6 +4,7 @@
 
 import createKelulusanModel from "../models/kelulusanModel.js";
 import ExcelJS from "exceljs";
+import { sendServerError } from "../utils/errorResponse.js";
 
 // Tahun ajaran aktif — ganti tiap tahun di sini
 // TODO: integrasikan dengan tabel tahun_ajaran kalau sudah siap
@@ -50,7 +51,7 @@ const kelulusanControllerFactory = ({ pool }) => {
       }
       res.json({ success: true, data: result });
     } catch (error) {
-      res.status(500).json({ error: error.message });
+      sendServerError(res, error);
     }
   };
 
@@ -69,7 +70,7 @@ const kelulusanControllerFactory = ({ pool }) => {
       });
       res.json(result);
     } catch (error) {
-      res.status(500).json({ error: error.message });
+      sendServerError(res, error);
     }
   };
 
@@ -82,7 +83,7 @@ const kelulusanControllerFactory = ({ pool }) => {
       const data = await kelulusanModel.getTahunAjaran();
       res.json({ data, aktif: tahunAktif });
     } catch (error) {
-      res.status(500).json({ error: error.message });
+      sendServerError(res, error);
     }
   };
 
@@ -214,7 +215,7 @@ const kelulusanControllerFactory = ({ pool }) => {
       });
     } catch (error) {
       console.error("IMPORT ERROR:", error);
-      res.status(500).json({ error: error.message });
+      sendServerError(res, error);
     }
   };
 
@@ -233,7 +234,7 @@ const kelulusanControllerFactory = ({ pool }) => {
         message: `${deleted} data kelulusan berhasil dihapus`,
       });
     } catch (error) {
-      res.status(500).json({ error: error.message });
+      sendServerError(res, error);
     }
   };
 

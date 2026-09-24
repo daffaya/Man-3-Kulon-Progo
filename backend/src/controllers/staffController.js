@@ -5,6 +5,8 @@
  * on the 'tendik' table in the database.
  */
 
+import { sendServerError } from "../utils/errorResponse.js";
+
 /**
  * Factory function that creates a Staff Controller for managing staff data.
  *
@@ -50,10 +52,7 @@ const createStaffController = ({ staffModel }) => {
           data: newRecord,
         });
       } catch (error) {
-        res.status(500).json({
-          message: "Failed to create data",
-          error: error.message,
-        });
+        sendServerError(res, error, "Failed to create data");
       }
     },
 
@@ -98,10 +97,7 @@ const createStaffController = ({ staffModel }) => {
           data: updatedRecord,
         });
       } catch (error) {
-        res.status(500).json({
-          message: "Failed to update data",
-          error: error.message,
-        });
+        sendServerError(res, error, "Failed to update data");
       }
     },
 
@@ -122,10 +118,7 @@ const createStaffController = ({ staffModel }) => {
 
         res.status(200).json({ message: "Data deleted successfully" });
       } catch (error) {
-        res.status(500).json({
-          message: "Failed to delete data",
-          error: error.message,
-        });
+        sendServerError(res, error, "Failed to delete data");
       }
     },
 
@@ -149,10 +142,7 @@ const createStaffController = ({ staffModel }) => {
         const result = await staffModel.findAll(filters);
         res.status(200).json(result);
       } catch (error) {
-        res.status(500).json({
-          message: "Failed to fetch data",
-          error: error.message,
-        });
+        sendServerError(res, error, "Failed to fetch data");
       }
     },
 
@@ -173,10 +163,7 @@ const createStaffController = ({ staffModel }) => {
 
         res.status(200).json({ data: record });
       } catch (error) {
-        res.status(500).json({
-          message: "Failed to fetch data",
-          error: error.message,
-        });
+        sendServerError(res, error, "Failed to fetch data");
       }
     },
 
@@ -195,10 +182,10 @@ const createStaffController = ({ staffModel }) => {
           data,
         });
       } catch (error) {
+        console.error(error); // AUDIT-012: full detail server-side only
         res.status(500).json({
           success: false,
           message: "Terjadi kesalahan pada server",
-          error: error.message,
         });
       }
     },
@@ -218,10 +205,10 @@ const createStaffController = ({ staffModel }) => {
           data,
         });
       } catch (error) {
+        console.error(error); // AUDIT-012: full detail server-side only
         res.status(500).json({
           success: false,
           message: "Terjadi kesalahan pada server",
-          error: error.message,
         });
       }
     },
@@ -241,10 +228,10 @@ const createStaffController = ({ staffModel }) => {
           data,
         });
       } catch (error) {
+        console.error(error); // AUDIT-012: full detail server-side only
         res.status(500).json({
           success: false,
           message: "Terjadi kesalahan pada server",
-          error: error.message,
         });
       }
     },

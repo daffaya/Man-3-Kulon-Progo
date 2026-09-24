@@ -5,6 +5,7 @@ import fs from "fs/promises";
 import path from "path";
 import GalleryService from "../services/galleryService.js";
 import GalleryModel from "../models/galleryModel.js";
+import { sendServerError } from "../utils/errorResponse.js";
 
 /**
  * Factory function to create a Gallery Controller with CRUD operations.
@@ -69,10 +70,7 @@ const createGalleryController = ({ galleryModel }) => {
           album: newAlbum,
         });
       } catch (error) {
-        res.status(500).json({
-          message: "Failed to create album",
-          error: error.message,
-        });
+        sendServerError(res, error, "Failed to create album");
       }
     },
 
@@ -110,10 +108,7 @@ const createGalleryController = ({ galleryModel }) => {
           album: updatedAlbum,
         });
       } catch (error) {
-        res.status(500).json({
-          message: "Failed to update album",
-          error: error.message,
-        });
+        sendServerError(res, error, "Failed to update album");
       }
     },
 
@@ -166,10 +161,7 @@ const createGalleryController = ({ galleryModel }) => {
 
         res.status(200).json({ message: "Album deleted successfully" });
       } catch (error) {
-        res.status(500).json({
-          message: "Failed to delete album",
-          error: error.message,
-        });
+        sendServerError(res, error, "Failed to delete album");
       }
     },
 
@@ -190,10 +182,7 @@ const createGalleryController = ({ galleryModel }) => {
         const result = await galleryModel.findAllAlbums(filters);
         res.status(200).json(result);
       } catch (error) {
-        res.status(500).json({
-          message: "Failed to fetch albums",
-          error: error.message,
-        });
+        sendServerError(res, error, "Failed to fetch albums");
       }
     },
 
@@ -219,10 +208,7 @@ const createGalleryController = ({ galleryModel }) => {
           photos,
         });
       } catch (error) {
-        res.status(500).json({
-          message: "Failed to fetch album",
-          error: error.message,
-        });
+        sendServerError(res, error, "Failed to fetch album");
       }
     },
 
@@ -248,10 +234,7 @@ const createGalleryController = ({ galleryModel }) => {
           photos,
         });
       } catch (error) {
-        res.status(500).json({
-          message: "Failed to fetch album",
-          error: error.message,
-        });
+        sendServerError(res, error, "Failed to fetch album");
       }
     },
 
@@ -322,10 +305,7 @@ const createGalleryController = ({ galleryModel }) => {
         console.error("UploadPhotos controller error:", error);
 
         // Return proper JSON error response
-        res.status(500).json({
-          message: "Failed to upload photos",
-          error: error.message,
-        });
+        sendServerError(res, error, "Failed to upload photos");
       }
     },
 
@@ -360,10 +340,7 @@ const createGalleryController = ({ galleryModel }) => {
         });
       } catch (error) {
         console.error("Error in setAlbumCover:", error);
-        res.status(500).json({
-          message: "Failed to set album cover",
-          error: error.message,
-        });
+        sendServerError(res, error, "Failed to set album cover");
       }
     },
 
@@ -384,10 +361,7 @@ const createGalleryController = ({ galleryModel }) => {
           message: "Photo order updated successfully",
         });
       } catch (error) {
-        res.status(500).json({
-          message: "Failed to update photo order",
-          error: error.message,
-        });
+        sendServerError(res, error, "Failed to update photo order");
       }
     },
 
@@ -429,10 +403,7 @@ const createGalleryController = ({ galleryModel }) => {
 
         res.status(200).json({ message: "Photo deleted successfully" });
       } catch (error) {
-        res.status(500).json({
-          message: "Failed to delete photo",
-          error: error.message,
-        });
+        sendServerError(res, error, "Failed to delete photo");
       }
     },
   };
