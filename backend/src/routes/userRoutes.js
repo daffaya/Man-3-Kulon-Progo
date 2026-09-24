@@ -6,7 +6,7 @@
  */
 
 import { Router } from "express";
-import { body } from "express-validator";
+import { body, validationResult } from "express-validator";
 import {
   authenticateTokenFactory,
   restrictTo,
@@ -14,6 +14,19 @@ import {
 import { avatarUpload } from "../services/fileUploadService.js";
 import createUserModel from "../models/userModel.js";
 import createUserController from "../controllers/userController.js";
+
+/**
+ * Shared middleware: reads the result of any preceding express-validator
+ * chain and short-circuits with 400 on failure. Without this, validation
+ * chains register their result on req but nothing ever reads it. (AUDIT-008)
+ */
+const validate = (req, res, next) => {
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    return res.status(400).json({ errors: errors.array() });
+  }
+  next();
+};
 
 /**
  * Array of valid user roles in the system.
@@ -116,6 +129,7 @@ const userRouterFactory = ({ pool, JWT_SECRET }) => {
   router.put(
     "/profile",
     [body("full_name").notEmpty().withMessage("Full name is required.")],
+    validate,
     userController.updateUserProfile
   );
 
@@ -134,6 +148,7 @@ const userRouterFactory = ({ pool, JWT_SECRET }) => {
   router.put(
     "/profile/avatar",
     [body("avatarUrl").isURL().withMessage("Avatar URL must be a valid URL.")],
+    validate,
     userController.updateAvatarByUrl
   );
 
@@ -158,6 +173,7 @@ const userRouterFactory = ({ pool, JWT_SECRET }) => {
         return true;
       }),
     ],
+    validate,
     userController.changePassword
   );
 
@@ -177,6 +193,7 @@ const userRouterFactory = ({ pool, JWT_SECRET }) => {
     "/users",
     restrictTo(["super_admin"]),
     createUserValidation,
+    validate,
     userController.createUser
   );
 
@@ -189,6 +206,7 @@ const userRouterFactory = ({ pool, JWT_SECRET }) => {
     "/users/:id",
     restrictTo(["super_admin"]),
     updateUserValidation,
+    validate,
     userController.updateUser
   );
 
