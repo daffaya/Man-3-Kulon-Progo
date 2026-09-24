@@ -92,6 +92,17 @@ const __dirname = dirname(__filename);
     const shareRoutes = shareRouterFactory({ pool, FRONTEND_URL });
     app.use("/share", shareRoutes);
 
+    // AUDIT-013: catch anything that falls through controllers' own
+    // try/catch (malformed JSON body, CORS rejection, etc.) so Express's
+    // default handler — which leaks stack traces unless NODE_ENV is set
+    // externally — never gets a chance to respond.
+    app.use((err, req, res, next) => {
+      console.error(err);
+      res
+        .status(err.status || 500)
+        .json({ error: "Terjadi kesalahan pada server" });
+    });
+
     app.listen(PORT, () => {
       console.log(`✅ Server running on port ${PORT}`);
     });
