@@ -169,7 +169,13 @@ const documentUpload = createUploadMiddleware({
     const month = String(now.getMonth() + 1).padStart(2, "0");
     const year = now.getFullYear();
     const datePrefix = `${day}${month}${year}`;
-    cb(null, `${datePrefix}_${file.originalname}`);
+    // Strip any path segments and restrict to a safe character set before
+    // reusing originalname, so a crafted filename (e.g. "../../evil.pdf")
+    // can't escape the upload directory. (AUDIT-001)
+    const safeName = path
+      .basename(file.originalname)
+      .replace(/[^a-zA-Z0-9._-]/g, "_");
+    cb(null, `${datePrefix}_${safeName}`);
   },
 });
 
