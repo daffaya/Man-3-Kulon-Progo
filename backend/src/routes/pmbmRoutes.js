@@ -41,13 +41,6 @@ const pmbmRouterFactory = ({ pool, JWT_SECRET }) => {
   pmbmRouter.patch("/registrations/:id/status", handleUpdateStatus);
   pmbmRouter.put("/registrations/:id", handleUpdate);
 
-  pmbmRouter.get("/debug-secret", (req, res) => {
-    res.json({
-      hasSecret: !!JWT_SECRET,
-      secretLength: JWT_SECRET?.length ?? 0,
-    });
-  });
-
   return pmbmRouter;
 };
 
