@@ -26,6 +26,7 @@ const initializeApplication = async () => {
   const DATABASE_PASSWORD = process.env.DATABASE_PASSWORD;
   const DATABASE_NAME = process.env.DATABASE_NAME;
   const FRONTEND_URL = process.env.FRONTEND_URL;
+  const PUBLIC_ATTENDANCE_PASSWORD = process.env.PUBLIC_ATTENDANCE_PASSWORD;
 
   if (
     !JWT_SECRET ||
@@ -34,7 +35,8 @@ const initializeApplication = async () => {
     !DATABASE_USER ||
     !DATABASE_PASSWORD ||
     !DATABASE_NAME ||
-    !FRONTEND_URL
+    !FRONTEND_URL ||
+    !PUBLIC_ATTENDANCE_PASSWORD
   ) {
     console.error(
       "\nFATAL ERROR: Missing required environment variables in bootstrap!",
@@ -44,7 +46,7 @@ const initializeApplication = async () => {
       "JWT_SECRET, JWT_EXPIRATION, DATABASE_HOST, DATABASE_USER, DATABASE_PASSWORD, DATABASE_NAME,",
     );
     console.error(
-      "EMAIL_HOST, EMAIL_PORT, EMAIL_USER, EMAIL_PASS, EMAIL_SENDER, FRONTEND_URL\n",
+      "EMAIL_HOST, EMAIL_PORT, EMAIL_USER, EMAIL_PASS, EMAIL_SENDER, FRONTEND_URL, PUBLIC_ATTENDANCE_PASSWORD\n",
     );
     process.exit(1);
   }
@@ -74,6 +76,7 @@ const initializeApplication = async () => {
     JWT_SECRET,
     JWT_EXPIRATION,
     FRONTEND_URL,
+    PUBLIC_ATTENDANCE_PASSWORD,
   };
 };
 

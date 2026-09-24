@@ -33,6 +33,7 @@ const apiRouterFactory = ({
   JWT_SECRET,
   JWT_EXPIRATION,
   FRONTEND_URL,
+  PUBLIC_ATTENDANCE_PASSWORD,
 }) => {
   const apiRouter = Router();
 
@@ -57,7 +58,10 @@ const apiRouterFactory = ({
   apiRouter.use("/articles", publicArticleRouterFactory({ pool }));
   apiRouter.use("/gallery", publicGalleryRouterFactory({ pool }));
   apiRouter.use("/staff", publicStaffRouterFactory({ pool }));
-  apiRouter.use("/public-attendance", publicAttendanceRoutesFactory({ pool }));
+  apiRouter.use(
+    "/public-attendance",
+    publicAttendanceRoutesFactory({ pool, PUBLIC_ATTENDANCE_PASSWORD }),
+  );
 
   apiRouter.use("/pmbm", pmbmRouterFactory({ pool, JWT_SECRET }));
 

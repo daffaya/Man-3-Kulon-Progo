@@ -2,22 +2,29 @@
 import { Router } from "express";
 import attendanceControllerFactory from "../controllers/attendanceController.js";
 import attendanceModelFactory from "../models/attendanceModel.js";
+import rateLimiter from "../middleware/rateLimiter.js";
 
-const publicAttendanceRouterFactory = ({ pool }) => {
+const publicAttendanceRouterFactory = ({ pool, PUBLIC_ATTENDANCE_PASSWORD }) => {
   const router = Router();
   const attendanceController = attendanceControllerFactory({ pool });
   const attendanceModel = attendanceModelFactory({ pool });
 
-  // Password for public access (stored in environment variables)
-  const PUBLIC_ATTENDANCE_PASSWORD =
-    process.env.PUBLIC_ATTENDANCE_PASSWORD || "parent123";
+  // AUDIT-006: no hardcoded fallback — bootstrap.js already fails startup
+  // if PUBLIC_ATTENDANCE_PASSWORD isn't set, so this is always a real value.
+
+  // AUDIT-006: rate-limit both password-guessing vectors (body + query string)
+  const passwordGuessLimiter = rateLimiter({
+    windowMs: 15 * 60 * 1000,
+    max: 10,
+    message: { error: "Terlalu banyak percobaan. Coba lagi nanti" },
+  });
 
   /**
    * @route   POST /verify-password
    * @desc    Verify password for public access to attendance data
    * @access  Public
    */
-  router.post("/verify-password", (req, res) => {
+  router.post("/verify-password", passwordGuessLimiter, (req, res) => {
     const { password } = req.body;
 
     if (!password) {
@@ -40,7 +47,7 @@ const publicAttendanceRouterFactory = ({ pool }) => {
    * @desc    Get attendance recap with password protection
    * @access  Public (with password)
    */
-  router.get("/recap", async (req, res) => {
+  router.get("/recap", passwordGuessLimiter, async (req, res) => {
     try {
       const { classId, period, startDate, endDate, password } = req.query;
 

@@ -19,7 +19,7 @@ const __dirname = dirname(__filename);
 
 (async () => {
   try {
-    const { pool, JWT_SECRET, JWT_EXPIRATION, FRONTEND_URL } =
+    const { pool, JWT_SECRET, JWT_EXPIRATION, FRONTEND_URL, PUBLIC_ATTENDANCE_PASSWORD } =
       await initializeApplication();
 
     const app = express();
@@ -85,6 +85,7 @@ const __dirname = dirname(__filename);
       JWT_SECRET,
       JWT_EXPIRATION,
       FRONTEND_URL,
+      PUBLIC_ATTENDANCE_PASSWORD,
     });
     app.use("/api", apiRoutes);
 
