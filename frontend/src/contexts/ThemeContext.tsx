@@ -5,7 +5,7 @@
  */
 
 import React, { createContext, useState, useEffect, ReactNode } from "react";
-import { getThemePreference, saveThemePreference } from "../lib/storage";
+import { getThemePreference, saveThemePreference } from "../lib/themeStorage";
 
 type Theme = "light" | "dark";
 
