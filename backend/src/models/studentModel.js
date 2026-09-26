@@ -143,6 +143,40 @@ const studentModelFactory = ({ pool }) => {
   };
 
   /**
+   * Retrieves every class for a given academic year in one query, so
+   * callers doing bulk work (e.g. student import) can look classes up from
+   * an in-memory Map instead of one getClassByName() round-trip per row.
+   * (AUDIT-030)
+   * @async
+   * @param {string} academicYear - The academic year.
+   * @returns {Promise<object[]>} All classes for that academic year.
+   */
+  const getClassesByAcademicYear = async (academicYear) => {
+    const [classes] = await pool.query(
+      "SELECT * FROM classes WHERE academic_year = ?",
+      [academicYear]
+    );
+    return classes;
+  };
+
+  /**
+   * Given a list of NISNs, returns the subset that already exist (and are
+   * not soft-deleted) — one query instead of one getStudentByNISN() per
+   * row. (AUDIT-030)
+   * @async
+   * @param {string[]} nisns - NISNs to check.
+   * @returns {Promise<Set<string>>} The NISNs from the input that already exist.
+   */
+  const getExistingNisns = async (nisns) => {
+    if (!nisns || nisns.length === 0) return new Set();
+    const [rows] = await pool.query(
+      "SELECT nisn FROM students WHERE nisn IN (?) AND is_deleted = 0",
+      [nisns]
+    );
+    return new Set(rows.map((r) => r.nisn.toString()));
+  };
+
+  /**
    * Retrieves a student's academic history for a specific academic year.
    * @async
    * @param {number} studentId - The ID of the student.
@@ -247,6 +281,8 @@ const studentModelFactory = ({ pool }) => {
     createStudent,
     updateStudent,
     getClassByName,
+    getClassesByAcademicYear,
+    getExistingNisns,
     getStudentAcademicHistory,
     createStudentAcademicHistory,
     updateStudentAcademicHistory,

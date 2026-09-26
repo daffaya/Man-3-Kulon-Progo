@@ -373,6 +373,12 @@ const importStudentServiceFactory = ({ studentModel }) => {
 
     const academicYear = await studentModel.getCurrentAcademicYear();
 
+    // AUDIT-030: pre-fetch once instead of querying per row inside the loop
+    // below. Classes for a school year are a small, static list; NISNs are
+    // checked as a single IN (?) batch instead of N individual lookups.
+    const allClasses = await studentModel.getClassesByAcademicYear(academicYear);
+    const classByName = new Map(allClasses.map((c) => [c.name, c]));
+
     const tempData = [];
 
     const validateRowData = (rowData, rowNumber) => {
@@ -405,6 +411,19 @@ const importStudentServiceFactory = ({ studentModel }) => {
         break;
       }
     }
+
+    // AUDIT-030: lightweight pre-pass (processRow does no I/O — it just
+    // reads already-loaded cell values) to collect every candidate NISN up
+    // front, so the duplicate check below is one query instead of one
+    // getStudentByNISN() call per row.
+    const candidateNisns = [];
+    for (let i = 2; i <= actualRowCount; i++) {
+      const row = worksheet.getRow(i);
+      if (isEmptyRow(row)) continue;
+      const candidate = processRow(row, headerMapping);
+      if (candidate.nisn) candidateNisns.push(candidate.nisn.toString().trim());
+    }
+    const existingNisns = await studentModel.getExistingNisns(candidateNisns);
 
     for (let i = 2; i <= actualRowCount; i++) {
       try {
@@ -469,10 +488,7 @@ const importStudentServiceFactory = ({ studentModel }) => {
           continue;
         }
 
-        const classData = await studentModel.getClassByName(
-          className,
-          academicYear
-        );
+        const classData = classByName.get(className) || null;
         if (!classData) {
           skipReasons.classNotFound++;
           results.skipped++;
@@ -484,10 +500,7 @@ const importStudentServiceFactory = ({ studentModel }) => {
           continue;
         }
 
-        const existingStudent = await studentModel.getStudentByNISN(
-          rowData.nisn
-        );
-        if (existingStudent) {
+        if (existingNisns.has(rowData.nisn.toString().trim())) {
           skipReasons.duplicate++;
           results.skipped++;
           continue;
@@ -518,37 +531,44 @@ const importStudentServiceFactory = ({ studentModel }) => {
       }
     }
 
-    for (const data of tempData) {
-      try {
-        const studentId = await studentModel.createStudent({
-          nisn: data.nisn,
-          name: data.name,
-          jenisKelamin: data.jenisKelamin,
-          academicYear: data.academicYear,
-          nik: data.nik,
-          birthPlace: data.birthPlace,
-          birthDate: data.birthDate,
-          address: data.address,
-          phone: data.phone,
-          parentName: data.parentName,
-        });
+    // AUDIT-030: inserts still run one createStudent + createStudentAcademicHistory
+    // pair per row (so a bad row's error stays attributed to that row, exactly
+    // as before), but the pairs are fired concurrently via Promise.all instead
+    // of sequentially awaited one at a time — the pool (connectionLimit: 10)
+    // queues any excess automatically.
+    await Promise.all(
+      tempData.map(async (data) => {
+        try {
+          const studentId = await studentModel.createStudent({
+            nisn: data.nisn,
+            name: data.name,
+            jenisKelamin: data.jenisKelamin,
+            academicYear: data.academicYear,
+            nik: data.nik,
+            birthPlace: data.birthPlace,
+            birthDate: data.birthDate,
+            address: data.address,
+            phone: data.phone,
+            parentName: data.parentName,
+          });
 
-        await studentModel.createStudentAcademicHistory({
-          studentId,
-          classId: data.classId,
-          academicYear: data.academicYear,
-        });
+          await studentModel.createStudentAcademicHistory({
+            studentId,
+            classId: data.classId,
+            academicYear: data.academicYear,
+          });
 
-        results.success++;
-      } catch (error) {
-        results.failed++;
-        results.errors.push({
-          row: 0,
-          worksheet: worksheetName,
-          error: `Gagal simpan ${data.nisn}: ${error.message}`,
-        });
-      }
-    }
+          results.success++;
+        } catch (error) {
+          results.failed++;
+          results.errors.push({
+            row: 0,
+            worksheet: worksheetName,
+            error: `Gagal simpan ${data.nisn}: ${error.message}`,
+          });
+        }
+      }),
+    );
 
     return results;
   };
