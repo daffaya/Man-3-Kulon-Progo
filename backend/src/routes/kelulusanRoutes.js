@@ -26,12 +26,6 @@ const kelulusanRouterFactory = ({ pool, JWT_SECRET }) => {
   // ── Public ──────────────────────────────────────────
   router.get("/cek/:nisn", handleCekKelulusan);
 
-  // ── IMPORTANT: bypass OPTIONS request ───────────────
-  router.use((req, res, next) => {
-    if (req.method === "OPTIONS") return next();
-    next();
-  });
-
   // ── Admin (protected) ────────────────────────────────
   router.use(authenticateToken);
   router.use(restrictTo(["guru_bk", "super_admin"])); // AUDIT-004
