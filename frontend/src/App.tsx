@@ -102,6 +102,28 @@ const AdminLayout = () => (
 );
 
 /**
+ * Layout wrapper for sections restricted to super_admin only.
+ * Mirrors backend restrictTo(["super_admin"]) on adminCmsRoutes.js and
+ * the /api/users POST|PUT routes. (AUDIT-022)
+ */
+const SuperAdminOnlyLayout = () => (
+  <ProtectedRoute requiredRoles={["super_admin"]}>
+    <Outlet />
+  </ProtectedRoute>
+);
+
+/**
+ * Layout wrapper for the kelulusan (graduation) admin section.
+ * Mirrors backend restrictTo(["guru_bk", "super_admin"]) on
+ * kelulusanRoutes.js. (AUDIT-022, mirrors AUDIT-004)
+ */
+const KelulusanLayout = () => (
+  <ProtectedRoute requiredRoles={["guru_bk", "super_admin"]}>
+    <Outlet />
+  </ProtectedRoute>
+);
+
+/**
  * Root component of the application that sets up all routing and context providers.
  * Configures the application's routing structure including public routes, protected admin routes,
  * and nested routes for various features.
@@ -297,55 +319,61 @@ function App() {
                           element={<ManajemenStudentPage />}
                         />
 
-                        {/* CMS */}
-                        <Route path="cms" element={<CmsOverviewPage />} />
-                        <Route path="cms/pmbm" element={<CmsPmbmForm />} />
-                        <Route path="cms/home" element={<CmsHomeForm />} />
-                        <Route path="cms/kontak" element={<CmsKontakForm />} />
-                        <Route
-                          path="cms/maklumat-pelayanan"
-                          element={<CmsMaklumatForm />}
-                        />
-                        <Route path="cms/web-app" element={<CmsWebAppForm />} />
-                        <Route
-                          path="cms/sejarah"
-                          element={<CmsSejarahForm />}
-                        />
-                        <Route
-                          path="cms/visi-misi"
-                          element={<CmsVisiMisiForm />}
-                        />
-                        <Route
-                          path="cms/kepala-madrasah"
-                          element={<CmsKepalaMadrasahForm />}
-                        />
-                        <Route
-                          path="cms/struktur-organisasi"
-                          element={<CmsStrukturForm />}
-                        />
-                        <Route
-                          path="cms/program-kerja"
-                          element={<CmsProgramKerjaForm />}
-                        />
-                        <Route path="cms/sedum" element={<CmsSedumForm />} />
-                        <Route path="cms/ptsp" element={<CmsPtspForm />} />
-                        <Route
-                          path="cms/zona-integritas"
-                          element={<CmsZonaIntegritasForm />}
-                        />
-                        <Route path="cms/mitra" element={<CmsMitraForm />} />
-                        <Route
-                          path="cms/sarana-prasarana"
-                          element={<CmsSarprasForm />}
-                        />
-                        <Route path="cms/siswa" element={<CmsSiswaForm />} />
+                        {/* CMS — super_admin only, mirrors adminCmsRoutes.js (AUDIT-022) */}
+                        <Route path="cms" element={<SuperAdminOnlyLayout />}>
+                          <Route index element={<CmsOverviewPage />} />
+                          <Route path="pmbm" element={<CmsPmbmForm />} />
+                          <Route path="home" element={<CmsHomeForm />} />
+                          <Route path="kontak" element={<CmsKontakForm />} />
+                          <Route
+                            path="maklumat-pelayanan"
+                            element={<CmsMaklumatForm />}
+                          />
+                          <Route path="web-app" element={<CmsWebAppForm />} />
+                          <Route path="sejarah" element={<CmsSejarahForm />} />
+                          <Route
+                            path="visi-misi"
+                            element={<CmsVisiMisiForm />}
+                          />
+                          <Route
+                            path="kepala-madrasah"
+                            element={<CmsKepalaMadrasahForm />}
+                          />
+                          <Route
+                            path="struktur-organisasi"
+                            element={<CmsStrukturForm />}
+                          />
+                          <Route
+                            path="program-kerja"
+                            element={<CmsProgramKerjaForm />}
+                          />
+                          <Route path="sedum" element={<CmsSedumForm />} />
+                          <Route path="ptsp" element={<CmsPtspForm />} />
+                          <Route
+                            path="zona-integritas"
+                            element={<CmsZonaIntegritasForm />}
+                          />
+                          <Route path="mitra" element={<CmsMitraForm />} />
+                          <Route
+                            path="sarana-prasarana"
+                            element={<CmsSarprasForm />}
+                          />
+                          <Route path="siswa" element={<CmsSiswaForm />} />
+                        </Route>
 
                         <Route
                           path="kelulusan"
-                          element={<KelulusanManagementPage />}
-                        />
+                          element={<KelulusanLayout />}
+                        >
+                          <Route
+                            index
+                            element={<KelulusanManagementPage />}
+                          />
+                        </Route>
 
-                        <Route path="users" element={<UserManagementPage />} />
+                        <Route path="users" element={<SuperAdminOnlyLayout />}>
+                          <Route index element={<UserManagementPage />} />
+                        </Route>
                       </Route>
 
                       <Route path="*" element={<NotFoundPage />} />

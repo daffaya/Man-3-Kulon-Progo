@@ -12,19 +12,20 @@ import { apiFetch } from "./lib/api";
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
-  requiredRole?: string;
+  /** Allow access if the user's role is any of these. Omit to allow any authenticated role. */
+  requiredRoles?: string[];
 }
 
 /**
  * Component that protects routes by checking authentication and role permissions.
  * Validates the authentication token and redirects to login if not authenticated.
- * Redirects to "/atmin" if the user doesn't have the required role.
+ * Redirects to "/atmin" if the user's role isn't in requiredRoles.
  * @param {React.ReactNode} children - Child components to render if authentication passes
- * @param {string} requiredRole - Optional role required to access the route
+ * @param {string[]} requiredRoles - Optional list of roles allowed to access the route (any match)
  */
 const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
   children,
-  requiredRole,
+  requiredRoles,
 }) => {
   const { isLoggedIn, user, token, logout, isLoadingAuth } = useAuth();
   const location = useLocation();
@@ -76,7 +77,11 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
     );
   }
 
-  if (requiredRole && user?.role !== requiredRole) {
+  if (
+    requiredRoles &&
+    requiredRoles.length > 0 &&
+    !requiredRoles.includes(user?.role ?? "")
+  ) {
     return <Navigate to="/atmin" replace={true} />;
   }
 
