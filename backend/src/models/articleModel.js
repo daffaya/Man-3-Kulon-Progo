@@ -228,10 +228,10 @@ const createArticleModel = ({ pool }) => {
         LEFT JOIN categories ON articles.category_id = categories.id
         ${whereClause}
         ORDER BY articles.published_date DESC
-        LIMIT ${limit} OFFSET ${offset};
+        LIMIT ? OFFSET ?;
       `;
 
-      const [rows] = await pool.execute(sql, queryParams);
+      const [rows] = await pool.execute(sql, [...queryParams, limit, offset]);
       const [totalRows] = await pool.execute(
         `
         SELECT COUNT(*) AS total

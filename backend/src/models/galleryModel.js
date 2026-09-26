@@ -109,10 +109,10 @@ const createGalleryModel = ({ pool }) => {
         ${whereClause}
         GROUP BY a.id
         ORDER BY a.created_at DESC
-        LIMIT ${limit} OFFSET ${offset};
+        LIMIT ? OFFSET ?;
       `;
 
-      const [rows] = await pool.execute(sql, queryParams);
+      const [rows] = await pool.execute(sql, [...queryParams, limit, offset]);
 
       const [totalRows] = await pool.execute(
         `

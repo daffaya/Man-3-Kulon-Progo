@@ -114,10 +114,10 @@ const createStaffModel = ({ pool }) => {
           FROM tendik
           ${whereClause}
           ORDER BY nama ASC
-          LIMIT ${limit} OFFSET ${offset};
+          LIMIT ? OFFSET ?;
         `;
 
-      const [rows] = await pool.execute(sql, queryParams);
+      const [rows] = await pool.execute(sql, [...queryParams, limit, offset]);
       const [totalRows] = await pool.execute(
         `
         SELECT COUNT(*) AS total
