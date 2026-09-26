@@ -1,7 +1,24 @@
 <IfModule mod_rewrite.c>
   RewriteEngine On
   RewriteBase /
+
+  # ── 1. index.html passthrough (hindari loop) ──────────────────────
   RewriteRule ^index\.html$ - [L]
+
+  # ── 2. Bot / link-preview crawler detection ──────────────────────
+  # AUDIT-019: crawler (WhatsApp/Facebook/Twitter/Telegram/dll) tidak
+  # menjalankan JS, jadi tidak bisa baca og:meta hasil render SPA.
+  # Redirect ke generator og:meta dinamis di backend.
+  # NOTE: rule ini menggantikan rule share.php lokal. Verifikasi lewat
+  # Facebook Sharing Debugger / share WA asli sebelum hapus share.php.
+  RewriteCond %{HTTP_USER_AGENT} (facebookexternalhit|Facebot|Twitterbot|WhatsApp|LinkedInBot|TelegramBot|Slackbot|Discordbot|Pinterest|vkShare|W3C_Validator) [NC]
+  RewriteRule ^berita/([^/]+)/?$ https://backend.man3kulonprogo.sch.id/share/berita/$1 [R=302,L]
+
+  # (Fallback lama — aktifkan kalau mau pakai share.php lokal)
+  # RewriteCond %{HTTP_USER_AGENT} (facebookexternalhit|WhatsApp|Twitterbot|LinkedInBot|TelegramBot|Slackbot|Discordbot|Pinterest) [NC]
+  # RewriteRule ^berita/([^/]+)/?$ /share.php?slug=$1 [L,QSA]
+
+  # ── 3. SPA fallback ──────────────────────────────────────────────
   RewriteCond %{REQUEST_FILENAME} !-f
   RewriteCond %{REQUEST_FILENAME} !-d
   RewriteRule . /index.html [L]
