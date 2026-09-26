@@ -108,10 +108,20 @@ const authRouterFactory = ({ pool, JWT_SECRET, JWT_EXPIRATION }) => {
         }`;
       }
 
+      res.cookie("token", token, {
+        httpOnly: true,
+        secure: true,
+        sameSite: "lax", // frontend + backend share the same registrable domain (man3kulonprogo.sch.id)
+        path: "/",
+        maxAge: (jwt.decode(token).exp - Math.floor(Date.now() / 1000)) * 1000,
+      });
+
       res.json({
         success: true,
         user: userWithoutPassword,
-        token: token,
+        // AUDIT-011: token no longer returned in the body — it lives only
+        // in the httpOnly cookie above, unreachable from JS (and therefore
+        // from any XSS payload that might run on this origin).
       });
     } catch (error) {
       res.status(500).json({
@@ -119,6 +129,21 @@ const authRouterFactory = ({ pool, JWT_SECRET, JWT_EXPIRATION }) => {
         message: "Server error during login",
       });
     }
+  });
+
+  /**
+   * Clears the httpOnly auth cookie. JS cannot delete an httpOnly cookie
+   * itself, so logout must be a real request the backend handles. (AUDIT-011)
+   * @route POST /logout
+   */
+  authRouter.post("/logout", (req, res) => {
+    res.clearCookie("token", {
+      httpOnly: true,
+      secure: true,
+      sameSite: "lax",
+      path: "/",
+    });
+    res.json({ success: true });
   });
 
   /**

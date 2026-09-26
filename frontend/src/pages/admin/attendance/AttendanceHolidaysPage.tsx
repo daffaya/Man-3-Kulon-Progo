@@ -78,7 +78,7 @@ const AttendanceHolidaysPage: React.FC = () => {
   useEffect(() => {
     const fetchHolidays = async () => {
       try {
-        const response = await fetch(`${backendUrl}/api/attendance/holidays`, {
+        const response = await fetch(`${backendUrl}/api/attendance/holidays`, { credentials: "include",
           headers: {
             Authorization: `Bearer ${token}`,
           },
@@ -113,7 +113,7 @@ const AttendanceHolidaysPage: React.FC = () => {
     setLoading(true);
 
     try {
-      const response = await fetch(`${backendUrl}/api/attendance/holidays`, {
+      const response = await fetch(`${backendUrl}/api/attendance/holidays`, { credentials: "include",
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -134,7 +134,7 @@ const AttendanceHolidaysPage: React.FC = () => {
 
         const holidaysResponse = await fetch(
           `${backendUrl}/api/attendance/holidays`,
-          {
+          { credentials: "include",
             headers: {
               Authorization: `Bearer ${token}`,
             },
@@ -170,7 +170,7 @@ const AttendanceHolidaysPage: React.FC = () => {
     try {
       const response = await fetch(
         `${backendUrl}/api/attendance/holidays/${id}`,
-        {
+        { credentials: "include",
           method: "DELETE",
           headers: {
             Authorization: `Bearer ${token}`,
@@ -185,7 +185,7 @@ const AttendanceHolidaysPage: React.FC = () => {
 
         const holidaysResponse = await fetch(
           `${backendUrl}/api/attendance/holidays`,
-          {
+          { credentials: "include",
             headers: {
               Authorization: `Bearer ${token}`,
             },

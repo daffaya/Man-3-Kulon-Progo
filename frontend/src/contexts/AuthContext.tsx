@@ -1,7 +1,14 @@
 /**
  * @fileoverview Authentication context provider for managing user authentication state.
  * This context provides authentication state and methods for login, logout, and profile updates.
- * It persists authentication data in localStorage and handles token management.
+ *
+ * AUDIT-011: the JWT itself is no longer stored anywhere JS can read it (no
+ * localStorage token). The backend sets it as an httpOnly cookie on login,
+ * and this context treats a successful GET /users/profile call (authenticated
+ * via that cookie, sent automatically by the browser) as the source of truth
+ * for "is this user logged in" — not the mere presence of a stored token.
+ * The cached `user` object in localStorage is still used, but only as a
+ * fast-paint cache, never as the auth check itself.
  */
 
 import React, {
@@ -18,9 +25,16 @@ import userApi from "../api/userApi";
 interface AuthContextValue {
   isLoggedIn: boolean;
   user: User | null;
+  /**
+   * @deprecated AUDIT-011: the JWT is no longer exposed to JS (httpOnly
+   * cookie instead) — this is always null now. Kept only so existing call
+   * sites that destructure `token` for an `Authorization: Bearer ...`
+   * header keep compiling; that header is harmless dead weight once null
+   * (the backend authenticates via the cookie instead).
+   */
   token: string | null;
-  login: (userData: User, authToken: string) => void;
-  logout: () => void;
+  login: (userData: User) => void;
+  logout: () => Promise<void>;
   updateUserProfile: (profileData: { full_name: string }) => Promise<void>;
   updateUserAvatar: (avatar: string | null) => void;
   refreshUserProfile: () => Promise<void>;
@@ -35,15 +49,16 @@ interface AuthProviderProps {
   children: ReactNode;
 }
 
+const BACKEND_URL =
+  import.meta.env.VITE_BACKEND_URL || "https://backend.man3kulonprogo.sch.id";
+
 /**
  * Provider component that manages authentication state and provides it to child components.
- * Handles user authentication, token management, and profile updates with localStorage persistence.
  * @param {ReactNode} children - Child components that will have access to the auth context.
  */
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [isLoggedIn, setIsLoggedIn] = useState<boolean>(false);
   const [user, setUser] = useState<User | null>(null);
-  const [token, setToken] = useState<string | null>(null);
   const [isLoadingAuth, setIsLoadingAuth] = useState<boolean>(true);
 
   /**
@@ -55,13 +70,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     if (!user) return null;
 
     if (user.avatar && !user.avatar.startsWith("http")) {
-      const backendUrl =
-        import.meta.env.VITE_BACKEND_URL ||
-        "https://backend.man3kulonprogo.sch.id";
-
       return {
         ...user,
-        avatar: `${backendUrl}${user.avatar}`,
+        avatar: `${BACKEND_URL}${user.avatar}`,
       };
     }
 
@@ -69,35 +80,17 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   }, []);
 
   /**
-   * Loads user data from the API using the stored token.
-   * Updates the user state and localStorage with the fetched data.
-   */
-  const loadUserData = useCallback(async () => {
-    if (token) {
-      try {
-        const userData = await userApi.getUserProfile();
-        const userWithFullUrl = ensureFullAvatarUrl(userData);
-        setUser(userWithFullUrl);
-        localStorage.setItem("user", JSON.stringify(userWithFullUrl));
-      } catch (error) {
-        console.error("Failed to load user data:", error);
-        logout();
-      }
-    }
-  }, [token, ensureFullAvatarUrl]);
-
-  /**
-   * Logs in a user by setting authentication state and storing data in localStorage.
+   * Logs in a user by setting authentication state.
+   * The JWT itself is never handled here — the backend already set it as
+   * an httpOnly cookie in the login response, which the browser stores and
+   * sends automatically on future requests. (AUDIT-011)
    * @param {User} userData - The user data object.
-   * @param {string} authToken - The authentication token.
    */
   const login = useCallback(
-    (userData: User, authToken: string) => {
+    (userData: User) => {
       const userWithFullUrl = ensureFullAvatarUrl(userData);
       setIsLoggedIn(true);
       setUser(userWithFullUrl);
-      setToken(authToken);
-      localStorage.setItem("token", authToken);
       localStorage.setItem("user", JSON.stringify(userWithFullUrl));
     },
     [ensureFullAvatarUrl],
@@ -119,14 +112,25 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   }, [ensureFullAvatarUrl]);
 
   /**
-   * Logs out the user by clearing authentication state and localStorage.
+   * Logs out the user. Since the auth cookie is httpOnly, JS can't delete
+   * it directly — a real request to the backend is required to clear it.
+   * Local state is cleared regardless of whether that request succeeds, so
+   * the user is never stuck "logged in" client-side. (AUDIT-011)
    */
-  const logout = useCallback(() => {
+  const logout = useCallback(async () => {
     setIsLoggedIn(false);
     setUser(null);
-    setToken(null);
-    localStorage.removeItem("token");
     localStorage.removeItem("user");
+    localStorage.removeItem("token"); // clean up any pre-migration leftover
+
+    try {
+      await fetch(`${BACKEND_URL}/api/auth/logout`, {
+        method: "POST",
+        credentials: "include",
+      });
+    } catch (error) {
+      console.error("Failed to clear session on server:", error);
+    }
   }, []);
 
   /**
@@ -162,27 +166,55 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     [user],
   );
 
-  // Effect to load authentication data from localStorage on app initialization
+  // AUDIT-011: on app load, show any cached user immediately (fast paint,
+  // avoids a flash of "logged out"), then confirm/refresh it with a real
+  // cookie-authenticated request. A cached user is a UI convenience only —
+  // GET /users/profile succeeding or failing is what actually determines
+  // isLoggedIn now, not whatever happens to be sitting in localStorage.
   useEffect(() => {
-    const storedToken = localStorage.getItem("token");
-    const storedUser = localStorage.getItem("user");
+    let cancelled = false;
 
-    if (storedToken && storedUser) {
-      try {
-        const parsedUser = JSON.parse(storedUser) as User;
-        const userWithFullUrl = ensureFullAvatarUrl(parsedUser);
-        setIsLoggedIn(true);
-        setUser(userWithFullUrl);
-        setToken(storedToken);
-        localStorage.setItem("user", JSON.stringify(userWithFullUrl));
-      } catch (error) {
-        console.error("Error parsing user data:", error);
-        localStorage.removeItem("user");
-        localStorage.removeItem("token");
+    const checkSession = async () => {
+      const cachedUser = localStorage.getItem("user");
+      if (cachedUser) {
+        try {
+          const parsedUser = ensureFullAvatarUrl(
+            JSON.parse(cachedUser) as User,
+          );
+          if (!cancelled) {
+            setUser(parsedUser);
+            setIsLoggedIn(true);
+          }
+        } catch (error) {
+          console.error("Error parsing cached user data:", error);
+          localStorage.removeItem("user");
+        }
       }
-    }
 
-    setIsLoadingAuth(false);
+      try {
+        const userData = await userApi.getUserProfile();
+        const userWithFullUrl = ensureFullAvatarUrl(userData);
+        if (!cancelled) {
+          setUser(userWithFullUrl);
+          setIsLoggedIn(true);
+          localStorage.setItem("user", JSON.stringify(userWithFullUrl));
+        }
+      } catch {
+        // No valid session cookie (missing, expired, or never logged in).
+        if (!cancelled) {
+          setUser(null);
+          setIsLoggedIn(false);
+          localStorage.removeItem("user");
+        }
+      } finally {
+        if (!cancelled) setIsLoadingAuth(false);
+      }
+    };
+
+    checkSession();
+    return () => {
+      cancelled = true;
+    };
   }, [ensureFullAvatarUrl]);
 
   // Effect to handle unauthorized events by logging out the user
@@ -198,17 +230,10 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     };
   }, [logout]);
 
-  // Effect to load user data when the user is logged in
-  useEffect(() => {
-    if (isLoggedIn && token) {
-      loadUserData();
-    }
-  }, [isLoggedIn, token, loadUserData]);
-
   const value: AuthContextValue = {
     isLoggedIn,
     user,
-    token,
+    token: null, // AUDIT-011: see the deprecated note on the type above
     login,
     logout,
     updateUserProfile,

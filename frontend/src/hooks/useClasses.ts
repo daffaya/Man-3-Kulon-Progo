@@ -36,7 +36,7 @@ export const useClasses = () => {
 
     try {
       const token = localStorage.getItem("token");
-      const response = await fetch(`${backendUrl}/api/attendance/classes`, {
+      const response = await fetch(`${backendUrl}/api/attendance/classes`, { credentials: "include",
         headers: {
           Authorization: `Bearer ${token}`,
         },

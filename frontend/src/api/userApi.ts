@@ -115,7 +115,7 @@ const userApi = {
 
     // For FormData, we need to use fetch directly to avoid Content-Type header
     const token = getAuthToken();
-    const response = await fetch(`${backendUrl}/users/profile/avatar`, {
+    const response = await fetch(`${backendUrl}/users/profile/avatar`, { credentials: "include",
       method: "POST",
       headers: token ? { Authorization: `Bearer ${token}` } : {},
       body: formData,

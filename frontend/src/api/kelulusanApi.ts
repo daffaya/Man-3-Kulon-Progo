@@ -59,7 +59,7 @@ const kelulusanApi = {
       import.meta.env.VITE_BACKEND_URL ||
       "https://backend.man3kulonprogo.sch.id/api";
 
-    const response = await fetch(`${baseUrl}/kelulusan/import`, {
+    const response = await fetch(`${baseUrl}/kelulusan/import`, { credentials: "include",
       method: "POST",
       headers: token ? { Authorization: `Bearer ${token}` } : {},
       body: formData,

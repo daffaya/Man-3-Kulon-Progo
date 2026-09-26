@@ -32,8 +32,14 @@ export const restrictTo = (roles) => (req, res, next) => {
  */
 export const authenticateTokenFactory = ({ JWT_SECRET }) => {
   return (req, res, next) => {
+    // AUDIT-011: prefer the httpOnly cookie (set by POST /login) — this is
+    // what the frontend now relies on, since the JWT is no longer written
+    // anywhere JS can read it (localStorage). The Authorization header is
+    // kept as a fallback so non-browser API clients (and this project's own
+    // test suite) that send a Bearer token still work.
     const authHeader = req.headers["authorization"];
-    const token = authHeader && authHeader.split(" ")[1];
+    const headerToken = authHeader && authHeader.split(" ")[1];
+    const token = req.cookies?.token || headerToken;
 
     if (token == null) {
       return res.status(401).json({ error: "Tidak ada token disediakan" });

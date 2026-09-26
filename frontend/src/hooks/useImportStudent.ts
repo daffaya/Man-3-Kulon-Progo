@@ -100,7 +100,7 @@ export const useImportStudent = (): UseImportStudentReturn => {
         import.meta.env.VITE_BACKEND_URL ||
         "https://backend.man3kulonprogo.sch.id";
 
-      const response = await fetch(`${backendUrl}/api/students/import`, {
+      const response = await fetch(`${backendUrl}/api/students/import`, { credentials: "include",
         method: "POST",
         headers: {
           Authorization: `Bearer ${token}`,

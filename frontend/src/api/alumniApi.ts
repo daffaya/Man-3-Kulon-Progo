@@ -41,7 +41,7 @@ export const alumniApi = {
 
     const url = `${backendUrl}/api/alumni?${query.toString()}`;
 
-    const response = await fetch(url, {
+    const response = await fetch(url, { credentials: "include",
       headers: token ? { Authorization: `Bearer ${token}` } : {},
     });
 
@@ -78,7 +78,7 @@ export const alumniApi = {
   ) => {
     if (!token) throw new Error("Token is required");
 
-    const response = await fetch(`${backendUrl}/api/alumni/admin/${id}`, {
+    const response = await fetch(`${backendUrl}/api/alumni/admin/${id}`, { credentials: "include",
       method: "PUT",
       headers: {
         "Content-Type": "application/json",
@@ -101,7 +101,7 @@ export const alumniApi = {
    * @returns A promise resolving to an array of graduation years, descending.
    */
   getGraduationYears: async (): Promise<string[]> => {
-    const response = await fetch(`${backendUrl}/api/alumni/years`);
+    const response = await fetch(`${backendUrl}/api/alumni/years`, { credentials: "include" });
 
     if (!response.ok) {
       throw new Error("Gagal memuat daftar tahun lulus");
@@ -119,7 +119,7 @@ export const alumniApi = {
   getAlumniById: async (id: number, token: string) => {
     if (!token) throw new Error("Token is required");
 
-    const response = await fetch(`${backendUrl}/api/alumni/${id}`, {
+    const response = await fetch(`${backendUrl}/api/alumni/${id}`, { credentials: "include",
       headers: {
         Authorization: `Bearer ${token}`,
       },

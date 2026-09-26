@@ -36,7 +36,6 @@ const LoginPage: React.FC = () => {
    */
   const handleLoginSuccess = (data: {
     user: { username: string; role: string };
-    token: string;
   }) => {
     // Validasi role dari API
     const validRoles: UserRole[] = [
@@ -63,7 +62,7 @@ const LoginPage: React.FC = () => {
       created_at: new Date().toISOString(), // atau dari API jika ada
     };
 
-    login(user, data.token);
+    login(user);
   };
 
   /**

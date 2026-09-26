@@ -53,7 +53,7 @@ export const studentService = {
     const url = `${backendUrl}/api/students?${queryParams.toString()}`;
 
     try {
-      const response = await fetch(url, {
+      const response = await fetch(url, { credentials: "include",
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -106,7 +106,7 @@ export const studentService = {
       throw new Error("Token is required");
     }
 
-    const response = await fetch(`${backendUrl}/api/students/${id}`, {
+    const response = await fetch(`${backendUrl}/api/students/${id}`, { credentials: "include",
       headers: {
         Authorization: `Bearer ${token}`,
       },
@@ -135,7 +135,7 @@ export const studentService = {
       throw new Error("Token is required");
     }
 
-    const response = await fetch(`${backendUrl}/api/students/nisn/${nisn}`, {
+    const response = await fetch(`${backendUrl}/api/students/nisn/${nisn}`, { credentials: "include",
       headers: {
         Authorization: `Bearer ${token}`,
       },
@@ -215,7 +215,7 @@ export const studentService = {
       throw new Error("Token is required");
     }
 
-    const response = await fetch(`${backendUrl}/api/students`, {
+    const response = await fetch(`${backendUrl}/api/students`, { credentials: "include",
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -257,7 +257,7 @@ export const studentService = {
         throw new Error("Token is required");
       }
 
-      const response = await fetch(`${backendUrl}/api/students/${id}`, {
+      const response = await fetch(`${backendUrl}/api/students/${id}`, { credentials: "include",
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
@@ -305,7 +305,7 @@ export const studentService = {
       throw new Error("Token is required");
     }
 
-    const response = await fetch(`${backendUrl}/api/students/${id}`, {
+    const response = await fetch(`${backendUrl}/api/students/${id}`, { credentials: "include",
       method: "DELETE",
       headers: {
         Authorization: `Bearer ${token}`,
@@ -339,7 +339,7 @@ export const studentService = {
 
     const response = await fetch(
       `${backendUrl}/api/students/${studentId}/move-class`,
-      {
+      { credentials: "include",
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -376,7 +376,7 @@ export const studentService = {
   ): Promise<BulkMoveClassResponse> => {
     if (!token) throw new Error("Token is required");
 
-    const response = await fetch(`${backendUrl}/api/students/bulk-move-class`, {
+    const response = await fetch(`${backendUrl}/api/students/bulk-move-class`, { credentials: "include",
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -408,7 +408,7 @@ export const studentService = {
   ): Promise<GraduateStudentsResponse> => {
     if (!token) throw new Error("Token is required");
 
-    const response = await fetch(`${backendUrl}/api/students/graduate`, {
+    const response = await fetch(`${backendUrl}/api/students/graduate`, { credentials: "include",
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -438,7 +438,7 @@ export const studentService = {
     const url = `${backendUrl}/api/students/angkatans`;
 
     try {
-      const response = await fetch(url, {
+      const response = await fetch(url, { credentials: "include",
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -490,7 +490,7 @@ export const studentService = {
     )}`;
 
     try {
-      const response = await fetch(url, {
+      const response = await fetch(url, { credentials: "include",
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -539,7 +539,7 @@ export const studentService = {
     const url = `${backendUrl}/api/students?getClassesByLevel=${level}`;
 
     try {
-      const response = await fetch(url, {
+      const response = await fetch(url, { credentials: "include",
         headers: {
           Authorization: `Bearer ${token}`,
         },

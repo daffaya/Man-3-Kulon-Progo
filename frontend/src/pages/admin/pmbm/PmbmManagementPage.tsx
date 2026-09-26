@@ -116,7 +116,7 @@ const PmbmManagementPage: React.FC = () => {
       // PERBAIKAN URL DI SINI: Tambahan /registrations
       const url = `${backendUrl}/pmbm/registrations/export?${params.toString()}`;
 
-      const response = await fetch(url, {
+      const response = await fetch(url, { credentials: "include",
         method: "GET",
         headers: {
           Authorization: token ? `Bearer ${token}` : "",

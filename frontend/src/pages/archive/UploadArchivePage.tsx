@@ -135,7 +135,7 @@ const UploadArchivePage: React.FC = () => {
     formData.append("document_date", documentDate);
 
     try {
-      const response = await fetch(`${backendUrl}/api/archives`, {
+      const response = await fetch(`${backendUrl}/api/archives`, { credentials: "include",
         method: "POST",
         headers: {
           Authorization: `Bearer ${token}`,

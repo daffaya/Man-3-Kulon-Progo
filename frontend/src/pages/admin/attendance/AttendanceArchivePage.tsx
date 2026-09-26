@@ -78,7 +78,7 @@ const AttendanceArchivePage: React.FC = () => {
   useEffect(() => {
     const fetchClasses = async () => {
       try {
-        const response = await fetch(`${backendUrl}/api/attendance/classes`, {
+        const response = await fetch(`${backendUrl}/api/attendance/classes`, { credentials: "include",
           headers: {
             Authorization: `Bearer ${token}`,
           },
@@ -109,7 +109,7 @@ const AttendanceArchivePage: React.FC = () => {
           url += `&classId=${selectedClass}`;
         }
 
-        const response = await fetch(url, {
+        const response = await fetch(url, { credentials: "include",
           headers: {
             Authorization: `Bearer ${token}`,
           },
@@ -151,7 +151,7 @@ const AttendanceArchivePage: React.FC = () => {
     setLoading(true);
 
     try {
-      const response = await fetch(`${backendUrl}/api/attendance/archive`, {
+      const response = await fetch(`${backendUrl}/api/attendance/archive`, { credentials: "include",
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -170,7 +170,7 @@ const AttendanceArchivePage: React.FC = () => {
 
         const archiveResponse = await fetch(
           `${backendUrl}/api/attendance/archive?academicYear=${selectedYear}&semester=${selectedSemester}`,
-          {
+          { credentials: "include",
             headers: {
               Authorization: `Bearer ${token}`,
             },

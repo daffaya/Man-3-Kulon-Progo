@@ -209,7 +209,7 @@ export const exportAttendanceData = async (
   }
 
   // For blob responses, we need to use fetch directly
-  const response = await fetch(url, {
+  const response = await fetch(url, { credentials: "include",
     headers: {
       Authorization: `Bearer ${token}`,
     },
@@ -345,7 +345,7 @@ export const verifyPublicPassword = async (password: string) => {
 
   const response = await fetch(
     `${backendUrl}/public-attendance/verify-password`,
-    {
+    { credentials: "include",
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -385,7 +385,7 @@ export const fetchPublicAttendanceRecap = async (params: {
     url += `&endDate=${params.endDate}`;
   }
 
-  const response = await fetch(url);
+  const response = await fetch(url, { credentials: "include" });
 
   if (!response.ok) {
     const errorData = await response.json();
@@ -405,7 +405,7 @@ export const fetchPublicClasses = async () => {
     import.meta.env.VITE_BACKEND_URL ||
     "https://backend.man3kulonprogo.sch.id/api";
 
-  const response = await fetch(`${backendUrl}/public-attendance/classes`);
+  const response = await fetch(`${backendUrl}/public-attendance/classes`, { credentials: "include" });
 
   if (!response.ok) {
     const errorData = await response.json();

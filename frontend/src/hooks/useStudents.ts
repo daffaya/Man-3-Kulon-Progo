@@ -93,7 +93,7 @@ export const useStudents = (filters?: StudentFilters) => {
           ...(filters?.page && { page: String(filters.page) }),
           ...(filters?.limit && { limit: String(filters.limit) }),
         })}`,
-        {
+        { credentials: "include",
           headers: {
             Authorization: `Bearer ${currentToken}`,
           },

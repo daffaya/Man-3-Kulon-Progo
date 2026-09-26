@@ -13,7 +13,6 @@ import { Eye, EyeOff, User, Lock } from "lucide-react";
 interface LoginFormProps {
   onLoginSuccess: (userData: {
     user: { username: string; role: string; avatar?: string };
-    token: string;
   }) => void;
   onLoginError: (message: string) => void;
 }
@@ -56,6 +55,7 @@ const LoginForm: React.FC<LoginFormProps> = ({
     try {
       const response = await fetch(`${backendUrl}/api/auth/login`, {
         method: "POST",
+        credentials: "include", // AUDIT-011: required for the browser to accept/store the httpOnly cookie cross-origin
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ username, password }),
       });
@@ -66,7 +66,7 @@ const LoginForm: React.FC<LoginFormProps> = ({
         if (data.user.avatar && !data.user.avatar.startsWith("http")) {
           data.user.avatar = `${backendUrl}${data.user.avatar}`;
         }
-        onLoginSuccess({ user: data.user, token: data.token });
+        onLoginSuccess({ user: data.user });
       } else {
         onLoginError(data.message || "Login gagal.");
       }

@@ -53,7 +53,7 @@ export const useAngkatans = () => {
       // Gunakan endpoint /students dengan parameter getAngkatans=true
       const response = await fetch(
         `${backendUrl}/api/students?getAngkatans=true`,
-        {
+        { credentials: "include",
           headers: {
             Authorization: `Bearer ${token}`,
           },

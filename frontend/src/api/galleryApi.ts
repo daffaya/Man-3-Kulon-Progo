@@ -169,7 +169,7 @@ const galleryApi = {
 
       // For FormData, we need to use fetch directly to avoid Content-Type header
       const token = getAuthToken();
-      const response = await fetch(`${backendUrl}/atmin/gallery/photos`, {
+      const response = await fetch(`${backendUrl}/atmin/gallery/photos`, { credentials: "include",
         method: "POST",
         headers: token ? { Authorization: `Bearer ${token}` } : {},
         body: formData,

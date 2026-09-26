@@ -64,7 +64,7 @@ const AttendanceForm = () => {
    * Fetches the list of classes when the component mounts
    */
   useEffect(() => {
-    fetch("/api/classes")
+    fetch("/api/classes", { credentials: "include" })
       .then((res) => res.json())
       .then((data) => setClasses(data))
       .catch((error) => {
@@ -78,7 +78,7 @@ const AttendanceForm = () => {
   useEffect(() => {
     if (selectedClass) {
       setIsLoading(true);
-      fetch(`/api/students?classId=${selectedClass}`)
+      fetch(`/api/students?classId=${selectedClass}`, { credentials: "include" })
         .then((res) => res.json())
         .then((data: Student[]) => {
           setStudents(data);
@@ -108,7 +108,7 @@ const AttendanceForm = () => {
 
     setIsLoading(true);
     try {
-      const response = await fetch("/api/attendance", {
+      const response = await fetch("/api/attendance", { credentials: "include",
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({

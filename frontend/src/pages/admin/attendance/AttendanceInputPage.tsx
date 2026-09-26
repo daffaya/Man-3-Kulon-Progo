@@ -95,7 +95,7 @@ const AttendanceInputPage: React.FC = () => {
      */
     const fetchClasses = async () => {
       try {
-        const response = await fetch(`${backendUrl}/api/attendance/classes`, {
+        const response = await fetch(`${backendUrl}/api/attendance/classes`, { credentials: "include",
           headers: {
             Authorization: `Bearer ${token}`,
           },
@@ -128,7 +128,7 @@ const AttendanceInputPage: React.FC = () => {
       try {
         const response = await fetch(
           `${backendUrl}/api/attendance/students?classId=${selectedClass}`,
-          {
+          { credentials: "include",
             headers: {
               Authorization: `Bearer ${token}`,
             },
@@ -170,7 +170,7 @@ const AttendanceInputPage: React.FC = () => {
       try {
         const response = await fetch(
           `${backendUrl}/api/attendance?classId=${selectedClass}&date=${selectedDate}`,
-          {
+          { credentials: "include",
             headers: {
               Authorization: `Bearer ${token}`,
             },
@@ -269,7 +269,7 @@ const AttendanceInputPage: React.FC = () => {
         })),
       };
 
-      const response = await fetch(`${backendUrl}/api/attendance`, {
+      const response = await fetch(`${backendUrl}/api/attendance`, { credentials: "include",
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -287,7 +287,7 @@ const AttendanceInputPage: React.FC = () => {
           try {
             const verifyResponse = await fetch(
               `${backendUrl}/api/attendance/verify?classId=${selectedClass}&date=${selectedDate}`,
-              {
+              { credentials: "include",
                 headers: {
                   Authorization: `Bearer ${token}`,
                 },
@@ -321,7 +321,7 @@ const AttendanceInputPage: React.FC = () => {
     try {
       const response = await fetch(
         `${backendUrl}/api/attendance/check-existing?classId=${selectedClass}&date=${selectedDate}`,
-        {
+        { credentials: "include",
           headers: {
             Authorization: `Bearer ${token}`,
           },

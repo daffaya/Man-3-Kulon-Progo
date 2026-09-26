@@ -26,7 +26,7 @@ export const importStudents = async (
   const formData = new FormData();
   formData.append("file", file);
 
-  const response = await fetch(`${backendUrl}/api/students/import`, {
+  const response = await fetch(`${backendUrl}/api/students/import`, { credentials: "include",
     method: "POST",
     headers: {
       Authorization: `Bearer ${token}`,

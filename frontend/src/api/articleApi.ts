@@ -65,7 +65,7 @@ const articleApi = {
 
     let response: Response;
     try {
-      response = await fetch(`${backendUrl}/atmin/articles`, {
+      response = await fetch(`${backendUrl}/atmin/articles`, { credentials: "include",
         method: "POST",
         headers: token ? { Authorization: `Bearer ${token}` } : {},
         body: data,
@@ -203,7 +203,7 @@ const articleApi = {
 
     // For FormData, we need to use fetch directly to avoid Content-Type header
     const token = getAuthToken();
-    const response = await fetch(`${backendUrl}/atmin/articles/${id}`, {
+    const response = await fetch(`${backendUrl}/atmin/articles/${id}`, { credentials: "include",
       method: "PUT",
       headers: token ? { Authorization: `Bearer ${token}` } : {},
       body: data,
@@ -232,7 +232,7 @@ const articleApi = {
     data.append("image", file);
 
     const token = getAuthToken();
-    const response = await fetch(`${backendUrl}/atmin/articles/upload-image`, {
+    const response = await fetch(`${backendUrl}/atmin/articles/upload-image`, { credentials: "include",
       method: "POST",
       headers: token ? { Authorization: `Bearer ${token}` } : {},
       body: data,

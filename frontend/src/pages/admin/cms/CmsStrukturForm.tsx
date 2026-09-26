@@ -65,7 +65,7 @@ const uploadCmsImage = async (file: File): Promise<string> => {
 
   const res = await fetch(
     `${import.meta.env.VITE_BACKEND_URL}/api/atmin/cms/upload`,
-    {
+    { credentials: "include",
       method: "POST",
       headers: {
         Authorization: `Bearer ${localStorage.getItem("token") ?? ""}`,

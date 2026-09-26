@@ -7,6 +7,7 @@
  * verification logic runs unmodified.
  */
 import express from "express";
+import cookieParser from "cookie-parser";
 import jwt from "jsonwebtoken";
 
 export const TEST_JWT_SECRET = "test-secret-for-authorization-matrix-tests";
@@ -38,6 +39,7 @@ export const signToken = (role, overrides = {}) =>
 export const startTestServer = async (routerFactory, mountPath) => {
   const app = express();
   app.use(express.json());
+  app.use(cookieParser());
   app.use(mountPath, routerFactory({ pool: fakePool, JWT_SECRET: TEST_JWT_SECRET }));
 
   return new Promise((resolve) => {
