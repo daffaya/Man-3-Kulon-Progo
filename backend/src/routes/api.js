@@ -29,7 +29,6 @@ import kelulusanRouterFactory from "./kelulusanRoutes.js";
 
 const apiRouterFactory = ({
   pool,
-  transporter,
   JWT_SECRET,
   JWT_EXPIRATION,
   FRONTEND_URL,
@@ -46,7 +45,6 @@ const apiRouterFactory = ({
     "/auth",
     authRouterFactory({
       pool,
-      transporter,
       JWT_SECRET,
       JWT_EXPIRATION,
       FRONTEND_URL,
