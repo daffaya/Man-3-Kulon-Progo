@@ -58,6 +58,11 @@ const createUserController = ({ userModel }) => {
     }
     const filename = path.basename(avatarUrl);
     const oldAvatarPath = path.join(AVATAR_DIR, filename);
+    // AUDIT-034: extra bounds-check on top of path.basename() — confirm the
+    // resolved path is actually still inside AVATAR_DIR before unlinking.
+    if (path.dirname(oldAvatarPath) !== AVATAR_DIR) {
+      return;
+    }
     if (fs.existsSync(oldAvatarPath)) {
       fs.unlinkSync(oldAvatarPath);
     }
