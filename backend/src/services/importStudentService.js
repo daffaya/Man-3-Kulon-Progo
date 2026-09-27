@@ -9,6 +9,41 @@ import ExcelJS from "exceljs";
 import fs from "fs";
 
 /**
+ * Words/name-fragments that mark an Excel row as a summary/signature row
+ * (to skip) rather than a real student record.
+ *
+ * AUDIT-031: this heuristic is tightly coupled to one specific school's
+ * Excel template — the current template's signature block includes the
+ * developer's own name ("daffa", "pasya", "al ghifary") and staff-title
+ * abbreviations ("nip", "kom", "pd", "s.pd", "sekretaris", "kepala").
+ * These are matched as case-insensitive substrings against the row's name
+ * column, so they'll misbehave the moment the template's signatory or
+ * wording changes, and a future maintainer has no way to know why these
+ * specific strings are here without this comment. Left as-is (not moved to
+ * a more structural check) since changing the matching logic itself needs
+ * testing against real historical import files, which weren't available
+ * for this pass — see AUDIT-031 in CODEBASE_AUDIT_REPORT.md.
+ * @type {string[]}
+ */
+const SUMMARY_ROW_KEYWORDS = [
+  "jumlah",
+  "total",
+  "summary",
+  "subtotal",
+  "keseluruhan",
+  "rekapitulasi",
+  "daffa",
+  "pasya",
+  "al ghifary",
+  "nip",
+  "kom",
+  "pd",
+  "s.pd",
+  "sekretaris",
+  "kepala",
+];
+
+/**
  * Factory function that creates a student import service.
  * This service processes Excel files containing student data and imports valid records
  * into the database while handling various Excel formats and data validation.
@@ -176,25 +211,7 @@ const importStudentServiceFactory = ({ studentModel }) => {
     const nameLower = rowData.name.toString().toLowerCase().trim();
     const nisnStr = rowData.nisn.toString().trim();
 
-    const summaryKeywords = [
-      "jumlah",
-      "total",
-      "summary",
-      "subtotal",
-      "keseluruhan",
-      "rekapitulasi",
-      "daffa",
-      "pasya",
-      "al ghifary",
-      "nip",
-      "kom",
-      "pd",
-      "s.pd",
-      "sekretaris",
-      "kepala",
-    ];
-
-    const hasSummaryKeyword = summaryKeywords.some(
+    const hasSummaryKeyword = SUMMARY_ROW_KEYWORDS.some(
       (keyword) =>
         nameLower.includes(keyword) || nisnStr.toLowerCase().includes(keyword)
     );
