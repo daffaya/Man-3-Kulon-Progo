@@ -55,8 +55,8 @@ const createUserValidation = [
   body("password")
     .notEmpty()
     .withMessage("Password is required.")
-    .isLength({ min: 6 })
-    .withMessage("Password must be at least 6 characters long."),
+    .isLength({ min: 8, max: 128 })
+    .withMessage("Password must be 8-128 characters long."),
   body("role")
     .notEmpty()
     .withMessage("Role is required.")
@@ -91,8 +91,8 @@ const updateUserValidation = [
     .withMessage("Full name cannot exceed 255 characters."),
   body("password")
     .optional()
-    .isLength({ min: 6 })
-    .withMessage("Password must be at least 6 characters long."),
+    .isLength({ min: 8, max: 128 })
+    .withMessage("Password must be 8-128 characters long."),
 ];
 
 /**
@@ -164,8 +164,8 @@ const userRouterFactory = ({ pool, JWT_SECRET }) => {
         .notEmpty()
         .withMessage("Current password is required."),
       body("newPassword")
-        .isLength({ min: 6 })
-        .withMessage("New password must be at least 6 characters long."),
+        .isLength({ min: 8, max: 128 })
+        .withMessage("New password must be 8-128 characters long."),
       body("confirmPassword").custom((value, { req }) => {
         if (value !== req.body.newPassword) {
           throw new Error("Password confirmation does not match.");
