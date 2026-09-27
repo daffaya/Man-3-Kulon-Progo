@@ -14,6 +14,11 @@ import {
 } from "../middleware/authMiddleware.js";
 import createUserModel from "../models/userModel.js";
 import rateLimiter from "../middleware/rateLimiter.js";
+import {
+  checkLockout,
+  recordFailedAttempt,
+  clearFailedAttempts,
+} from "../utils/loginAttemptTracker.js";
 
 /**
  * Factory function to create authentication routes with login and register endpoints.
@@ -68,9 +73,21 @@ const authRouterFactory = ({ pool, JWT_SECRET, JWT_EXPIRATION }) => {
         });
       }
 
+      // AUDIT-018: per-account lockout, independent of AUDIT-005's per-IP limit
+      const lockout = checkLockout(username);
+      if (lockout.locked) {
+        res.set("Retry-After", String(lockout.retryAfterSeconds));
+        return res.status(429).json({
+          success: false,
+          message:
+            "Akun ini sementara dikunci karena terlalu banyak percobaan gagal. Coba lagi nanti.",
+        });
+      }
+
       const user = await userModel.findByUsername(username);
 
       if (!user) {
+        recordFailedAttempt(username);
         return res.status(401).json({
           success: false,
           message: "Invalid username or password",
@@ -83,11 +100,14 @@ const authRouterFactory = ({ pool, JWT_SECRET, JWT_EXPIRATION }) => {
       );
 
       if (!isPasswordValid) {
+        recordFailedAttempt(username);
         return res.status(401).json({
           success: false,
           message: "Invalid username or password",
         });
       }
+
+      clearFailedAttempts(username);
 
       const token = jwt.sign(
         { id: user.id, username: user.username, role: user.role },
