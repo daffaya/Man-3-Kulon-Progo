@@ -8,6 +8,7 @@
 import express from "express";
 import cors from "cors";
 import cookieParser from "cookie-parser";
+import helmet from "helmet";
 import path from "path";
 import { fileURLToPath } from "url";
 import { dirname } from "path";
@@ -24,6 +25,7 @@ const __dirname = dirname(__filename);
       await initializeApplication();
 
     const app = express();
+    app.use(helmet()); // AUDIT-014: baseline security headers (X-Content-Type-Options, frame-ancestors, HSTS, etc.)
     const PORT = process.env.PORT || 3001;
 
     // Middleware Configuration
