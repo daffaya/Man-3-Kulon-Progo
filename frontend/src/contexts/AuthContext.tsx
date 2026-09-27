@@ -1,14 +1,6 @@
 /**
  * @fileoverview Authentication context provider for managing user authentication state.
- * This context provides authentication state and methods for login, logout, and profile updates.
- *
- * AUDIT-011: the JWT itself is no longer stored anywhere JS can read it (no
- * localStorage token). The backend sets it as an httpOnly cookie on login,
- * and this context treats a successful GET /users/profile call (authenticated
- * via that cookie, sent automatically by the browser) as the source of truth
- * for "is this user logged in" — not the mere presence of a stored token.
- * The cached `user` object in localStorage is still used, but only as a
- * fast-paint cache, never as the auth check itself.
+ * This context provides authentication state and methods for login, logout, and profile updates
  */
 
 import React, {

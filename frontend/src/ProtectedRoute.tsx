@@ -27,7 +27,7 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
   children,
   requiredRoles,
 }) => {
-  const { isLoggedIn, user, token, logout, isLoadingAuth } = useAuth();
+  const { isLoggedIn, user, logout, isLoadingAuth } = useAuth();
   const location = useLocation();
   const [isValidating, setIsValidating] = useState(true);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -36,17 +36,15 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
     const checkAuth = async () => {
       if (isLoadingAuth) return;
 
-      if (isLoggedIn && token) {
+      if (isLoggedIn) {
         try {
-          await apiFetch("/users/profile", {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          });
+          // AUDIT-011: auth is cookie-based now — apiFetch sends it
+          // automatically via credentials: "include", no header needed.
+          await apiFetch("/users/profile");
 
           setIsAuthenticated(true);
         } catch (error) {
-          console.error("Token validation error:", error);
+          console.error("Session validation error:", error);
           logout();
           setIsAuthenticated(false);
         }
@@ -57,7 +55,7 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
     };
 
     checkAuth();
-  }, [isLoggedIn, token, logout, isLoadingAuth]);
+  }, [isLoggedIn, logout, isLoadingAuth]);
 
   if (isLoadingAuth || isValidating) {
     return (
