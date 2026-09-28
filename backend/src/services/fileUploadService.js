@@ -5,6 +5,9 @@ import path from "path";
 import { fileURLToPath } from "url";
 import fs from "fs";
 import slugify from "slugify";
+import ImageProcessingService from "./imageProcessingServices.js";
+
+const imageProcessor = new ImageProcessingService();
 
 // Polyfill for __dirname in ES Modules
 const __filename = fileURLToPath(import.meta.url);
@@ -98,6 +101,9 @@ const createFileFilter = (allowedMimeTypes) => {
  * @param {number} [options.maxFieldSize=5*1024*1024] - Max size (bytes) for non-file text fields
  *   in the same multipart request (e.g. rich text `content` field). Prevents pasted/base64
  *   content from being silently rejected with a generic error.
+ * @param {boolean} [options.optimizeImage=false] - If true, the saved image is resized
+ *   (max 1920px) and re-compressed in place after upload, keeping format and filename.
+ *   Fails open: if optimization throws, the original upload is kept and the request continues.
  * @returns {import('express').RequestHandler} An Express middleware function.
  */
 const createUploadMiddleware = (options = {}) => {
@@ -108,6 +114,7 @@ const createUploadMiddleware = (options = {}) => {
     fieldName = "file",
     filenameGenerator = null,
     maxFieldSize = 5 * 1024 * 1024, // 5MB safety net for text fields (e.g. content)
+    optimizeImage = false,
   } = options;
 
   const storage = createStorage(subfolder, filenameGenerator);
@@ -121,7 +128,7 @@ const createUploadMiddleware = (options = {}) => {
 
   // Return a standard Express middleware that handles multer errors
   return (req, res, next) => {
-    upload(req, res, (err) => {
+    upload(req, res, async (err) => {
       if (err instanceof multer.MulterError) {
         // A Multer error occurred when uploading.
         let message = "File upload error.";
@@ -140,6 +147,17 @@ const createUploadMiddleware = (options = {}) => {
       } else if (err) {
         // An unknown error occurred.
         return res.status(400).json({ message: err.message });
+      }
+      // PERF (P0-3): resize/compress before the file is served to visitors.
+      if (optimizeImage && req.file) {
+        try {
+          await imageProcessor.optimizeInPlace(req.file.path);
+        } catch (optimizeError) {
+          console.error(
+            `[upload] Image optimization failed for ${req.file.filename}, keeping original:`,
+            optimizeError
+          );
+        }
       }
       // Everything went fine.
       next();
@@ -200,6 +218,7 @@ const imageUpload = createUploadMiddleware({
   ],
   maxFileSize: 15 * 1024 * 1024,
   fieldName: "coverImageFile",
+  optimizeImage: true,
   filenameGenerator: (req, file, cb) => {
     // Ambil judul dari request body
     const title = req.body.title || "artikel";
@@ -245,6 +264,7 @@ const contentImageUpload = createUploadMiddleware({
   ],
   maxFileSize: 15 * 1024 * 1024,
   fieldName: "image",
+  optimizeImage: true,
 });
 
 /**

@@ -60,6 +60,71 @@ class ImageProcessingService {
   }
 
   /**
+   * Optimizes an uploaded image IN PLACE, keeping its format and filename.
+   *
+   * Unlike compressImage() (gallery), this does NOT force JPEG, so it is safe
+   * for images where format matters (transparent PNG logos, WebP):
+   * - Resizes to fit within maxDimension x maxDimension (never enlarges).
+   * - Applies EXIF orientation (.rotate()) before metadata is stripped, so
+   *   phone photos don't end up sideways.
+   * - Re-encodes in the SAME format (jpeg/png/webp); alpha is preserved.
+   * - Skips animated images (GIF / animated WebP) and unsupported formats.
+   * - Never makes a file bigger: if the result isn't smaller, the original
+   *   is left untouched.
+   *
+   * @param {string} imagePath - Path of the image file to optimize.
+   * @param {object} [options]
+   * @param {number} [options.maxDimension=1920] - Max width/height in px.
+   * @param {number} [options.quality=80] - JPEG/WebP quality (1-100).
+   * @returns {Promise<{optimized: boolean, reason?: string, before?: number, after?: number}>}
+   */
+  async optimizeInPlace(imagePath, { maxDimension = 1920, quality = 80 } = {}) {
+    const tempPath = `${imagePath}.optimizing`;
+
+    try {
+      const image = sharp(imagePath);
+      const { format, pages } = await image.metadata();
+
+      if (pages && pages > 1) return { optimized: false, reason: "animated" };
+
+      let pipeline = image
+        .rotate()
+        .resize(maxDimension, maxDimension, {
+          fit: "inside",
+          withoutEnlargement: true,
+        });
+
+      if (format === "jpeg") {
+        pipeline = pipeline.jpeg({ quality, mozjpeg: true });
+      } else if (format === "png") {
+        pipeline = pipeline.png({ compressionLevel: 9 });
+      } else if (format === "webp") {
+        pipeline = pipeline.webp({ quality });
+      } else {
+        return { optimized: false, reason: `unsupported format: ${format}` };
+      }
+
+      await pipeline.toFile(tempPath);
+
+      const [original, output] = await Promise.all([
+        fs.stat(imagePath),
+        fs.stat(tempPath),
+      ]);
+
+      if (output.size >= original.size) {
+        await fs.unlink(tempPath);
+        return { optimized: false, reason: "not smaller" };
+      }
+
+      await fs.rename(tempPath, imagePath);
+      return { optimized: true, before: original.size, after: output.size };
+    } catch (error) {
+      await fs.unlink(tempPath).catch(() => {});
+      throw error;
+    }
+  }
+
+  /**
    * Processes a newly uploaded image for the gallery.
    * This method handles the complete workflow: creating an album-specific directory,
    * moving the temporary file, generating a thumbnail, and compressing the original image.

@@ -2,6 +2,7 @@ import multer from "multer";
 import path from "path";
 import fs from "fs";
 import { fileURLToPath } from "url";
+import ImageProcessingService from "../services/imageProcessingServices.js";
 
 /**
  * @fileoverview Multer configuration for CMS image uploads.
@@ -62,4 +63,29 @@ const upload = multer({
   fileFilter,
 });
 
-export default upload.single("image");
+const singleUpload = upload.single("image");
+const imageProcessor = new ImageProcessingService();
+
+/**
+ * PERF (P0-3): same as upload.single("image"), then resizes/compresses the
+ * saved image in place (max 1920px, format + filename preserved, so
+ * transparent PNG logos stay transparent). Multer errors are forwarded to
+ * next(err) exactly as before; optimization failure fails open (original kept).
+ */
+export default (req, res, next) => {
+  singleUpload(req, res, async (err) => {
+    if (err) return next(err);
+
+    if (req.file) {
+      try {
+        await imageProcessor.optimizeInPlace(req.file.path);
+      } catch (optimizeError) {
+        console.error(
+          `[cmsUpload] Image optimization failed for ${req.file.filename}, keeping original:`,
+          optimizeError,
+        );
+      }
+    }
+    next();
+  });
+};
