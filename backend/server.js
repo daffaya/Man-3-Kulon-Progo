@@ -76,17 +76,28 @@ const __dirname = dirname(__filename);
 
     console.log(`📁 Serving uploads from: ${uploadsPath}`);
 
+    const IMMUTABLE_UPLOAD_FOLDERS = new Set(["cms", "content"]);
+
     app.use(
       "/uploads",
       (req, res, next) => {
         res.setHeader("Cross-Origin-Resource-Policy", "cross-origin");
         next();
       },
-      // PERF (P0-5, sebagian): zero Cache-Control sebelumnya di sini.
-      // Nama file di /uploads selalu diprefix timestamp oleh multer (mis.
-      // 1762241969930-logo.png) — tidak pernah ditimpa dengan nama sama —
-      // jadi aman di-cache lama + immutable.
-      express.static(uploadsPath, { maxAge: "30d", immutable: true }),
+      // PERF (P0-5, sebagian): long-lived immutable cache HANYA untuk folder yang
+      // nama filenya dijamin unik (timestamp+random, tidak pernah ditimpa):
+      // cms/ (middleware/cmsUpload.js) dan content/ (contentImageUpload).
+      // Folder lain (covers/ = man3kulonprogo-{slug}.ext, dokumen = DDMMYYYY_nama)
+      // BISA ditimpa dengan nama sama, jadi tetap default express.static
+      // (max-age=0 + ETag/Last-Modified -> revalidate, 304 kalau tak berubah).
+      express.static(uploadsPath, {
+        setHeaders: (res, filePath) => {
+          const topFolder = path.relative(uploadsPath, filePath).split(path.sep)[0];
+          if (IMMUTABLE_UPLOAD_FOLDERS.has(topFolder)) {
+            res.setHeader("Cache-Control", "public, max-age=2592000, immutable");
+          }
+        },
+      }),
     );
 
     // API Routes
