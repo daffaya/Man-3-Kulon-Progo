@@ -9,6 +9,7 @@ import express from "express";
 import cors from "cors";
 import cookieParser from "cookie-parser";
 import helmet from "helmet";
+import compression from "compression";
 import path from "path";
 import { fileURLToPath } from "url";
 import { dirname } from "path";
@@ -26,6 +27,7 @@ const __dirname = dirname(__filename);
 
     const app = express();
     app.use(helmet()); // AUDIT-014: baseline security headers (X-Content-Type-Options, frame-ancestors, HSTS, etc.)
+    app.use(compression()); // PERF (P1): gzip/deflate JSON & text responses — zero compression middleware existed before this
     const PORT = process.env.PORT || 3001;
 
     // Middleware Configuration
@@ -80,7 +82,11 @@ const __dirname = dirname(__filename);
         res.setHeader("Cross-Origin-Resource-Policy", "cross-origin");
         next();
       },
-      express.static(uploadsPath),
+      // PERF (P0-5, sebagian): zero Cache-Control sebelumnya di sini.
+      // Nama file di /uploads selalu diprefix timestamp oleh multer (mis.
+      // 1762241969930-logo.png) — tidak pernah ditimpa dengan nama sama —
+      // jadi aman di-cache lama + immutable.
+      express.static(uploadsPath, { maxAge: "30d", immutable: true }),
     );
 
     // API Routes
