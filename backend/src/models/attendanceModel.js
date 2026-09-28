@@ -643,6 +643,21 @@ const attendanceModelFactory = ({ pool }) => {
     // Get all classes
     const classes = await getClasses();
 
+    // PERF (P0-6): ONE query for every (date, class) pair that already has
+    // attendance in the range, instead of one COUNT(*) per (weekday x class).
+    // Same join/semantics as before (student's CURRENT class). Dates come back
+    // as 'YYYY-MM-DD' strings from the DB, so no JS Date/timezone conversion.
+    const [existing] = await pool.query(
+      `SELECT DISTINCT DATE_FORMAT(a.date, '%Y-%m-%d') AS date_str, sah.class_id
+       FROM attendances a
+       JOIN student_academic_history sah ON a.student_id = sah.student_id AND sah.is_current = 1
+       WHERE a.date BETWEEN ? AND ?`,
+      [startDate, endDate],
+    );
+    const attendedSet = new Set(
+      existing.map((row) => `${row.date_str}_${row.class_id}`),
+    );
+
     // For each date in the range, check for missing attendance
     const results = {};
     let currentDate = new Date(startDate);
@@ -657,15 +672,8 @@ const attendanceModelFactory = ({ pool }) => {
         const missingClasses = [];
 
         for (const classItem of classes) {
-          const [attendanceCheck] = await pool.query(
-            `SELECT COUNT(*) as count FROM attendances a
-           JOIN student_academic_history sah ON a.student_id = sah.student_id AND sah.is_current = 1
-           WHERE a.date = ? AND sah.class_id = ?`,
-            [dateStr, classItem.id],
-          );
-
           // If no attendance records found for this class on this date
-          if (attendanceCheck[0].count === 0) {
+          if (!attendedSet.has(`${dateStr}_${classItem.id}`)) {
             missingClasses.push({
               id: classItem.id,
               name: classItem.name,
