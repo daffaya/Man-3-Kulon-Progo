@@ -205,12 +205,15 @@ const createArticleModel = ({ pool }) => {
       const whereClause =
         conditions.length > 0 ? `WHERE ${conditions.join(" AND ")}` : "";
 
+      // PERF (P1): endpoint list tidak pernah menampilkan full HTML content
+      // (lihat ArticleCard.tsx — hanya title/overview/coverImage/tags/author
+      // yang dipakai). Kolom content di-drop dari SELECT di sini; findById
+      // dan findBySlug (detail view) tetap mengambilnya seperti biasa.
       const sql = `
         SELECT
           articles.id,
           articles.title,
           articles.slug,
-          articles.content,
           articles.overview,
           articles.cover_image,
           articles.published_date,
@@ -248,7 +251,6 @@ const createArticleModel = ({ pool }) => {
         id: row.id,
         title: row.title,
         slug: row.slug,
-        content: row.content,
         overview: row.overview,
         coverImage: row.cover_image,
         publishedDate: row.published_date,
