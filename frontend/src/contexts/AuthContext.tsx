@@ -234,10 +234,14 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     isLoadingAuth,
   };
 
+  // PERF (P0-1): previously `{!isLoadingAuth && children}` — this blocked
+  // first paint on EVERY page, including fully public ones, until the
+  // GET /users/profile call resolved. Consumers that actually care about
+  // the loading state (ProtectedRoute, AdminDashboard) already read
+  // `isLoadingAuth` themselves and show their own loading UI, so gating
+  // here was redundant and only cost time-to-first-paint app-wide.
   return (
-    <AuthContext.Provider value={value}>
-      {!isLoadingAuth && children}
-    </AuthContext.Provider>
+    <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
   );
 };
 

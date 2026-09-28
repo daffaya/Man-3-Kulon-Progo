@@ -1,24 +1,22 @@
 /**
  * @fileoverview Main entry point for the React application.
- * This file renders the root component of the application. It wraps the App component
- * with AuthProvider and StaffProvider to make authentication and staff state available
- * throughout the component tree and uses StrictMode to highlight potential problems during development.
+ * This file renders the root component of the application and uses StrictMode
+ * to highlight potential problems during development.
+ *
+ * PERF: AuthProvider/StaffProvider used to be wrapped here AND again inside
+ * App.tsx. The inner pair (App.tsx) is the one that actually reaches every
+ * route, so the outer pair here was dead weight — a second, redundant
+ * GET /users/profile fetch on every load for no consumer. Removed; App.tsx
+ * remains the single source of these contexts.
  */
 
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import App from "./App.tsx";
 import "./index.css";
-import { AuthProvider } from "./contexts/AuthContext";
-import { StaffProvider } from "./contexts/StaffContext";
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
-    <AuthProvider>
-      <StaffProvider>
-        {" "}
-        <App />
-      </StaffProvider>{" "}
-    </AuthProvider>
+    <App />
   </StrictMode>,
 );
