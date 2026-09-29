@@ -1,0 +1,91 @@
+import multer from "multer";
+import path from "path";
+import fs from "fs";
+import { fileURLToPath } from "url";
+import ImageProcessingService from "../services/imageProcessingServices.js";
+
+/**
+ * @fileoverview Multer configuration for CMS image uploads.
+ * Stores files in <UPLOADS_DIR>/cms/ with unique filenames.
+ * Accepts jpeg, jpg, png, webp, gif.
+ * Max size: 15MB. Field name: "image".
+ */
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+/**
+ * Base uploads directory. See services/fileUploadService.js for why this must
+ * point outside the app root on Hostinger (UPLOADS_DIR env var).
+ */
+const UPLOADS_BASE = process.env.UPLOADS_DIR
+  ? path.resolve(process.env.UPLOADS_DIR)
+  : path.resolve(__dirname, "../../uploads");
+
+const UPLOAD_DIR = path.join(UPLOADS_BASE, "cms");
+if (!fs.existsSync(UPLOAD_DIR)) {
+  fs.mkdirSync(UPLOAD_DIR, { recursive: true });
+}
+const MAX_FILE_SIZE_BYTES = 15 * 1024 * 1024; // 15MB
+const ALLOWED_FILE_TYPES = /jpeg|jpg|png|webp|gif/; // svg dropped (AUDIT-010) — stored-XSS vector via unsanitized SVG
+
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    cb(null, UPLOAD_DIR);
+  },
+  filename: (req, file, cb) => {
+    const uniqueSuffix = `${Date.now()}-${Math.round(Math.random() * 1e9)}`;
+    const ext = path.extname(file.originalname).toLowerCase();
+    cb(null, `${uniqueSuffix}${ext}`); // never re-use originalname itself (AUDIT-001)
+  },
+});
+
+const fileFilter = (req, file, cb) => {
+  const extname = ALLOWED_FILE_TYPES.test(
+    path.extname(file.originalname).toLowerCase(),
+  );
+  const mimetype = ALLOWED_FILE_TYPES.test(file.mimetype);
+
+  if (mimetype && extname) {
+    return cb(null, true);
+  }
+  return cb(
+    new Error(
+      "Hanya file gambar yang diperbolehkan (jpeg, jpg, png, webp, gif).",
+    ),
+    false,
+  );
+};
+
+const upload = multer({
+  storage,
+  limits: { fileSize: MAX_FILE_SIZE_BYTES },
+  fileFilter,
+});
+
+const singleUpload = upload.single("image");
+const imageProcessor = new ImageProcessingService();
+
+/**
+ * PERF (P0-3): same as upload.single("image"), then resizes/compresses the
+ * saved image in place (max 1920px, format + filename preserved, so
+ * transparent PNG logos stay transparent). Multer errors are forwarded to
+ * next(err) exactly as before; optimization failure fails open (original kept).
+ */
+export default (req, res, next) => {
+  singleUpload(req, res, async (err) => {
+    if (err) return next(err);
+
+    if (req.file) {
+      try {
+        await imageProcessor.optimizeInPlace(req.file.path);
+      } catch (optimizeError) {
+        console.error(
+          `[cmsUpload] Image optimization failed for ${req.file.filename}, keeping original:`,
+          optimizeError,
+        );
+      }
+    }
+    next();
+  });
+};

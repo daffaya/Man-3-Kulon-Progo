@@ -1,0 +1,138 @@
+/**
+ * @fileoverview Main application entry point.
+ * This file initializes and starts the Express server. It configures middleware,
+ * mounts API routes, serves static assets (uploads and the frontend build),
+ * and sets up a catch-all route for client-side routing.
+ */
+
+import express from "express";
+import cors from "cors";
+import cookieParser from "cookie-parser";
+import helmet from "helmet";
+import compression from "compression";
+import path from "path";
+import { fileURLToPath } from "url";
+import { dirname } from "path";
+import { initializeApplication } from "./src/bootstrap.js";
+import apiRouterFactory from "./src/routes/api.js";
+import shareRouterFactory from "./src/routes/shareRoutes.js";
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+
+(async () => {
+  try {
+    const { pool, JWT_SECRET, JWT_EXPIRATION, FRONTEND_URL, PUBLIC_ATTENDANCE_PASSWORD } =
+      await initializeApplication();
+
+    const app = express();
+    app.use(helmet()); // AUDIT-014: baseline security headers (X-Content-Type-Options, frame-ancestors, HSTS, etc.)
+    app.use(compression()); // PERF (P1): gzip/deflate JSON & text responses — zero compression middleware existed before this
+    const PORT = process.env.PORT || 3001;
+
+    // Middleware Configuration
+    const allowedOrigins = (
+      process.env.ALLOWED_ORIGINS ||
+      process.env.FRONTEND_URL ||
+      "http://localhost:5173"
+    )
+      .split(",")
+      .map((origin) => origin.trim());
+
+    app.use(
+      cors({
+        origin: function (origin, callback) {
+          if (!origin) return callback(null, true);
+
+          if (allowedOrigins.indexOf(origin) !== -1) {
+            callback(null, true);
+          } else {
+            callback(new Error("Not allowed by CORS"));
+          }
+        },
+        credentials: true,
+        // PERF: let browsers cache the CORS preflight (OPTIONS) result. Without
+        // this Chrome re-sends it after just 5s, so JSON API calls cost 2 round
+        // trips. Browsers clamp this (Chrome 2h, Firefox 24h).
+        maxAge: 86400,
+      }),
+    );
+    app.use(express.json());
+    app.use(cookieParser());
+
+    /**
+     * Serves uploaded files.
+     *
+     * IMPORTANT: this path lives OUTSIDE the app root on purpose.
+     * The `backend` git branch is force-pushed as an orphan branch on every
+     * deploy (see deploy-backend.yml), so anything inside the app root that
+     * isn't tracked in git risks being wiped on redeploy. UPLOADS_DIR must
+     * point to a persistent folder outside the app root
+     * (e.g. /home/u277943328/persistent-uploads), set via Hostinger's
+     * environment variable dashboard.
+     *
+     * Falls back to the old in-repo ./uploads path only for local dev when
+     * UPLOADS_DIR isn't set.
+     */
+    const uploadsPath = process.env.UPLOADS_DIR
+      ? path.resolve(process.env.UPLOADS_DIR)
+      : path.join(__dirname, "uploads");
+
+    console.log(`📁 Serving uploads from: ${uploadsPath}`);
+
+    const IMMUTABLE_UPLOAD_FOLDERS = new Set(["cms", "content"]);
+
+    app.use(
+      "/uploads",
+      (req, res, next) => {
+        res.setHeader("Cross-Origin-Resource-Policy", "cross-origin");
+        next();
+      },
+      // PERF (P0-5, sebagian): long-lived immutable cache HANYA untuk folder yang
+      // nama filenya dijamin unik (timestamp+random, tidak pernah ditimpa):
+      // cms/ (middleware/cmsUpload.js) dan content/ (contentImageUpload).
+      // Folder lain (covers/ = man3kulonprogo-{slug}.ext, dokumen = DDMMYYYY_nama)
+      // BISA ditimpa dengan nama sama, jadi tetap default express.static
+      // (max-age=0 + ETag/Last-Modified -> revalidate, 304 kalau tak berubah).
+      express.static(uploadsPath, {
+        setHeaders: (res, filePath) => {
+          const topFolder = path.relative(uploadsPath, filePath).split(path.sep)[0];
+          if (IMMUTABLE_UPLOAD_FOLDERS.has(topFolder)) {
+            res.setHeader("Cache-Control", "public, max-age=2592000, immutable");
+          }
+        },
+      }),
+    );
+
+    // API Routes
+    const apiRoutes = apiRouterFactory({
+      pool,
+      JWT_SECRET,
+      JWT_EXPIRATION,
+      FRONTEND_URL,
+      PUBLIC_ATTENDANCE_PASSWORD,
+    });
+    app.use("/api", apiRoutes);
+
+    const shareRoutes = shareRouterFactory({ pool, FRONTEND_URL });
+    app.use("/share", shareRoutes);
+
+    // AUDIT-013: catch anything that falls through controllers' own
+    // try/catch (malformed JSON body, CORS rejection, etc.) so Express's
+    // default handler — which leaks stack traces unless NODE_ENV is set
+    // externally — never gets a chance to respond.
+    app.use((err, req, res, next) => {
+      console.error(err);
+      res
+        .status(err.status || 500)
+        .json({ error: "Terjadi kesalahan pada server" });
+    });
+
+    app.listen(PORT, () => {
+      console.log(`✅ Server running on port ${PORT}`);
+    });
+  } catch (error) {
+    console.error("❌ FATAL ERROR during application startup:", error);
+    process.exit(1);
+  }
+})();
