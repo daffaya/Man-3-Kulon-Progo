@@ -28,13 +28,18 @@ const publicArticleRouterFactory = ({ pool }) => {
    * @param {string} [req.query.category] - Filter by category slug.
    * @param {string} [req.query.keyword] - Search by title or content.
    * @param {number} [req.query.page=1] - Page number for pagination.
-   * @param {number} [req.query.limit=10] - Number of articles per page.
+   * @param {number} [req.query.limit=10] - Number of articles per page (capped at 50).
    * @returns {object} Paginated list of articles with metadata.
    */
   publicArticleRouter.get("/", publicCache(PUBLIC_CACHE), async (req, res) => {
     const { tag, keyword, category: categoryFilter } = req.query;
     const page = Math.max(1, parseInt(req.query.page) || 1);
-    const limit = Math.max(1, parseInt(req.query.limit) || 10);
+    // PERF: cap so ?limit=999999 can't force a full-table scan/transfer.
+    const MAX_LIMIT = 50;
+    const limit = Math.min(
+      Math.max(1, parseInt(req.query.limit) || 10),
+      MAX_LIMIT,
+    );
     const offset = (page - 1) * limit;
 
     try {
@@ -94,10 +99,14 @@ const publicArticleRouterFactory = ({ pool }) => {
           categories ON articles.category_id = categories.id
         ${whereClause}
         ORDER BY articles.published_date DESC
-        LIMIT ${limit} OFFSET ${offset};
+        LIMIT ? OFFSET ?;
       `;
 
-      const [rows] = await pool.execute(sql, queryParams);
+      // SECURITY (defense-in-depth): LIMIT/OFFSET used to be inlined into the
+      // SQL string. Safe today only because they're pre-validated integers
+      // above - parameterized so that stays true even if that validation is
+      // ever changed without noticing this string.
+      const [rows] = await pool.execute(sql, [...queryParams, limit, offset]);
 
       const [totalRows] = await pool.execute(
         `
