@@ -6,6 +6,7 @@
 import { Router } from "express";
 import createGalleryModel from "../models/galleryModel.js";
 import createGalleryController from "../controllers/galleryController.js";
+import publicCache, { PUBLIC_CACHE } from "../middleware/publicCache.js";
 
 /**
  * Factory function that creates the public gallery router.
@@ -28,7 +29,7 @@ const publicGalleryRouterFactory = ({ pool }) => {
    * @route GET /api/gallery/albums
    * @returns {object} A list of all public albums.
    */
-  router.get("/albums", galleryController.getAllAlbums);
+  router.get("/albums", publicCache(PUBLIC_CACHE), galleryController.getAllAlbums);
 
   /**
    * GET /api/gallery/albums/:slug
@@ -38,7 +39,7 @@ const publicGalleryRouterFactory = ({ pool }) => {
    * @param {string} req.params.slug - The slug of the album to fetch.
    * @returns {object} The requested album with its photos.
    */
-  router.get("/albums/:slug", galleryController.getAlbumBySlug);
+  router.get("/albums/:slug", publicCache(PUBLIC_CACHE), galleryController.getAlbumBySlug);
 
   return router;
 };

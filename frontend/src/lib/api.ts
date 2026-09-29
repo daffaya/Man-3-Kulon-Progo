@@ -66,7 +66,8 @@ export const apiFetch = async <T = any>(
       ...options,
       credentials: "include",
       signal: controller.signal,
-      cache: "no-store", // ← tambah ini
+      // PERF (P0-5): no `cache` override here. The browser follows each endpoint's
+      // Cache-Control/ETag from the server (callers can still pass options.cache).
       headers: {
         "Content-Type": "application/json",
         ...options.headers,

@@ -6,6 +6,7 @@
  */
 
 import { Router } from "express";
+import publicCache, { PUBLIC_CACHE } from "../middleware/publicCache.js";
 
 /**
  * Factory function that creates the public article router.
@@ -30,7 +31,7 @@ const publicArticleRouterFactory = ({ pool }) => {
    * @param {number} [req.query.limit=10] - Number of articles per page.
    * @returns {object} Paginated list of articles with metadata.
    */
-  publicArticleRouter.get("/", async (req, res) => {
+  publicArticleRouter.get("/", publicCache(PUBLIC_CACHE), async (req, res) => {
     const { tag, keyword, category: categoryFilter } = req.query;
     const page = Math.max(1, parseInt(req.query.page) || 1);
     const limit = Math.max(1, parseInt(req.query.limit) || 10);
@@ -169,7 +170,7 @@ const publicArticleRouterFactory = ({ pool }) => {
    * @param {string} req.params.slug - The slug of the article to fetch.
    * @returns {object} The requested article or an error message.
    */
-  publicArticleRouter.get("/:slug", async (req, res) => {
+  publicArticleRouter.get("/:slug", publicCache(PUBLIC_CACHE), async (req, res) => {
     const { slug } = req.params;
 
     try {
