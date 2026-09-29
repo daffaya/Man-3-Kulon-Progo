@@ -130,6 +130,9 @@ const QUICK_ACTION_ICONS: Record<string, React.ReactNode> = {
 
 const DEFAULT_QA_ICON = <Bell size={24} />;
 
+// Slug the "Lihat Semua" link in the Achievements section already assumes.
+const PRESTASI_SLUG = "prestasi";
+
 // ─────────────────────────────────────────────
 // Page
 // ─────────────────────────────────────────────
@@ -159,41 +162,68 @@ const HomePage: React.FC = () => {
     fetchCategories();
   }, [fetchArticles, fetchAlbums, fetchCategories]);
 
+  // PERF (P1-3): fast path — fetch achievements in parallel with everything
+  // else instead of waiting for /categories to learn the slug first.
   useEffect(() => {
-    if (categories.length === 0) return;
+    let cancelled = false;
 
-    const fetchPrestasiArticles = async () => {
-      setAchievementLoading(true);
-      try {
-        const prestasiCategory = categories.find(
-          (cat: Category) => cat.name === "Prestasi",
-        );
-        if (prestasiCategory) {
-          const data = await articleApi.getPublicArticles({
-            category: prestasiCategory.slug,
-            limit: 4,
-          });
-          setAchievementArticles(data.articles || []);
+    articleApi
+      .getPublicArticles({ category: PRESTASI_SLUG, limit: 4 })
+      .then((data) => {
+        // Never overwrite results already loaded by the fallback below.
+        if (!cancelled) {
+          setAchievementArticles((prev) =>
+            prev.length > 0 ? prev : data.articles || [],
+          );
         }
-        setAchievementLoading(false);
-      } catch (error) {
+      })
+      .catch((error) => {
         console.error("Error fetching achievement articles:", error);
-        setAchievementLoading(false);
-      }
-    };
+      })
+      .finally(() => {
+        if (!cancelled) setAchievementLoading(false);
+      });
 
-    fetchPrestasiArticles();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  // Fallback: if the real "Prestasi" category has a different slug, use it.
+  useEffect(() => {
+    const prestasiCategory = categories.find(
+      (cat: Category) => cat.name === "Prestasi",
+    );
+    if (!prestasiCategory || prestasiCategory.slug === PRESTASI_SLUG) return;
+
+    let cancelled = false;
+
+    articleApi
+      .getPublicArticles({ category: prestasiCategory.slug, limit: 4 })
+      .then((data) => {
+        if (!cancelled) setAchievementArticles(data.articles || []);
+      })
+      .catch((error) => {
+        console.error("Error fetching achievement articles:", error);
+      })
+      .finally(() => {
+        // Whichever fetch (fast path or this fallback) finishes first clears
+        // the skeleton. Without this, a fallback that resolves before the
+        // (wrong-slug) fast path would sit on correct data behind a skeleton
+        // until the fast path's own .finally() eventually fires.
+        if (!cancelled) setAchievementLoading(false);
+      });
+
+    return () => {
+      cancelled = true;
+    };
   }, [categories]);
 
-  if (loading) {
-    return (
-      <Layout>
-        <div className="text-center py-12">
-          <p className="text-foreground">Loading articles...</p>
-        </div>
-      </Layout>
-    );
-  }
+  // PERF (P1-6): no more early `return <Loading/>` here. That replaced the WHOLE
+  // page (Carousel, Hero, ...) while articles loaded, then remounted it all
+  // (layout shift + duplicate CMS requests). Only the article sections show a
+  // placeholder now; articles already in state keep showing while refetching.
+  const showArticleSkeleton = loading && articles.length === 0;
 
   const featuredArticles = articles.filter((article) => article.featured);
   const recentArticles = articles.slice(0, 6);
@@ -352,10 +382,16 @@ const HomePage: React.FC = () => {
               MAN 3 Kulon Progo.
             </p>
           </div>
-          {featuredArticles.length > 0 && (
-            <div className="mb-16 slide-up">
-              <ArticleCard article={featuredArticles[0]} featured />
+          {showArticleSkeleton ? (
+            <div className="mb-16">
+              <div className="aspect-[3/4] sm:aspect-[16/9] md:aspect-[21/9] w-full rounded-xl bg-accent/10 animate-pulse" />
             </div>
+          ) : (
+            featuredArticles.length > 0 && (
+              <div className="mb-16 slide-up">
+                <ArticleCard article={featuredArticles[0]} featured />
+              </div>
+            )
           )}
         </div>
       </section>
@@ -375,9 +411,19 @@ const HomePage: React.FC = () => {
             </Link>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-4">
-            {recentArticles.map((article) => (
-              <ArticleCard key={article.id} article={article} />
-            ))}
+            {showArticleSkeleton
+              ? Array.from({ length: 6 }, (_, i) => (
+                  <div
+                    key={i}
+                    className="rounded-xl overflow-hidden bg-accent/10 animate-pulse"
+                  >
+                    <div className="aspect-[16/9]" />
+                    <div className="h-44" />
+                  </div>
+                ))
+              : recentArticles.map((article) => (
+                  <ArticleCard key={article.id} article={article} />
+                ))}
           </div>
         </div>
       </section>
@@ -397,9 +443,13 @@ const HomePage: React.FC = () => {
             </Link>
           </div>
           {achievementLoading ? (
-            <div className="text-center py-8">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-accent mx-auto" />
-              <p className="mt-2 text-secondary">Memuat prestasi...</p>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {Array.from({ length: 4 }, (_, i) => (
+                <div
+                  key={i}
+                  className="h-32 rounded-lg bg-accent/10 animate-pulse"
+                />
+              ))}
             </div>
           ) : achievementArticles.length > 0 ? (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">

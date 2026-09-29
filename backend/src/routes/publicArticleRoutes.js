@@ -63,12 +63,18 @@ const publicArticleRouterFactory = ({ pool }) => {
       const whereClause =
         conditions.length > 0 ? `WHERE ${conditions.join(" AND ")}` : "";
 
+      // PERF (P1, follow-up to 04-drop-content-from-list): this route has its
+      // own inline SQL and does NOT go through articleModel.findAll(), so the
+      // content column removed there was still being selected and sent here
+      // for every article on every list request. Verified unused: NewsPage/
+      // HomePage only read title/overview/coverImage/tags/author from list
+      // results; the detail page fetches full content separately via
+      // GET /api/articles/:slug (unchanged, still SELECTs articles.content).
       const sql = `
         SELECT
           articles.id,
           articles.title,
           articles.slug,
-          articles.content,
           articles.overview,
           articles.cover_image,
           articles.published_date,
@@ -123,7 +129,6 @@ const publicArticleRouterFactory = ({ pool }) => {
           id: row.id,
           title: row.title,
           slug: row.slug,
-          content: row.content,
           overview: row.overview,
           coverImage: row.cover_image,
           publishedDate: row.published_date,
