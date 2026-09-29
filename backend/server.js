@@ -51,6 +51,10 @@ const __dirname = dirname(__filename);
           }
         },
         credentials: true,
+        // PERF: let browsers cache the CORS preflight (OPTIONS) result. Without
+        // this Chrome re-sends it after just 5s, so JSON API calls cost 2 round
+        // trips. Browsers clamp this (Chrome 2h, Firefox 24h).
+        maxAge: 86400,
       }),
     );
     app.use(express.json());

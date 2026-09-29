@@ -58,6 +58,12 @@ export const apiFetch = async <T = any>(
   const cleanEndpoint = endpoint.startsWith("/") ? endpoint : `/${endpoint}`;
   const url = `${API_BASE}${cleanEndpoint}`;
 
+  // PERF: a Content-Type of application/json makes a cross-origin request
+  // "non-simple", so the browser sends an OPTIONS preflight before EVERY call.
+  // A GET/HEAD has no body, so it doesn't need the header (and no preflight).
+  const method = (options.method || "GET").toUpperCase();
+  const hasBodyMethod = method !== "GET" && method !== "HEAD";
+
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), 15000); // 15 seconds
 
@@ -69,7 +75,7 @@ export const apiFetch = async <T = any>(
       // PERF (P0-5): no `cache` override here. The browser follows each endpoint's
       // Cache-Control/ETag from the server (callers can still pass options.cache).
       headers: {
-        "Content-Type": "application/json",
+        ...(hasBodyMethod ? { "Content-Type": "application/json" } : {}),
         ...options.headers,
       },
     });
