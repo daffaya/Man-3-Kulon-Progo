@@ -11,6 +11,8 @@ import publicArticleRouterFactory from "../src/routes/publicArticleRoutes.js";
 import publicGalleryRouterFactory from "../src/routes/publicGalleryRoutes.js";
 import publicStaffRouterFactory from "../src/routes/publicStaffRoutes.js";
 import publicStudentStatsRouterFactory from "../src/routes/publicStudentStatRoutes.js";
+import publicCategoryRouterFactory from "../src/routes/publicCategoryRoutes.js";
+import tagRouterFactory from "../src/routes/tagRoutes.js";
 
 let server;
 let base;
@@ -129,4 +131,12 @@ test("public student stats router: /students is wired", () => {
   const routes = wiredGetRoutes(publicStudentStatsRouterFactory({ pool: {} }));
   assert.deepEqual(routes.map((r) => r.path), ["/students"]);
   assert.ok(routes.every((r) => r.cached), JSON.stringify(routes));
+});
+
+test("public category and tag routers: GET / is wired", () => {
+  for (const factory of [publicCategoryRouterFactory, tagRouterFactory]) {
+    const routes = wiredGetRoutes(factory({ pool: {} }));
+    assert.deepEqual(routes.map((r) => r.path), ["/"]);
+    assert.ok(routes.every((r) => r.cached), JSON.stringify(routes));
+  }
 });

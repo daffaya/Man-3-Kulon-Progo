@@ -4,6 +4,7 @@
  */
 
 import { Router } from "express";
+import publicCache, { PUBLIC_CACHE } from "../middleware/publicCache.js";
 
 /**
  * Factory function to create an Express router for public category routes.
@@ -21,7 +22,7 @@ const publicCategoryRouterFactory = ({ pool }) => {
    * @param {Object} res - Express response object.
    * @returns {Object} JSON response with category data or error message.
    */
-  publicCategoryRouter.get("/", async (req, res) => {
+  publicCategoryRouter.get("/", publicCache(PUBLIC_CACHE), async (req, res) => {
     try {
       const sql = `SELECT id, name, slug, description FROM categories ORDER BY name ASC`;
 

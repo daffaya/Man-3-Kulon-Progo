@@ -4,6 +4,7 @@
  */
 
 import { Router } from "express";
+import publicCache, { PUBLIC_CACHE } from "../middleware/publicCache.js";
 
 /**
  * Factory function to create an Express router for tag routes.
@@ -21,7 +22,7 @@ const tagRouterFactory = ({ pool }) => {
    * @param {Object} res - Express response object.
    * @returns {Object} JSON response with an array of unique tags or an error message.
    */
-  tagRouter.get("/", async (req, res) => {
+  tagRouter.get("/", publicCache(PUBLIC_CACHE), async (req, res) => {
     try {
       const [rows] = await pool.execute(
         "SELECT tags FROM articles WHERE published = TRUE"
