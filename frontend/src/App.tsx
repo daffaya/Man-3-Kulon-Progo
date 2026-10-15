@@ -4,6 +4,7 @@
  * and nested routes for various features like articles, galleries, attendance, student management, and staff management.
  */
 
+import { Suspense } from "react";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import { ThemeProvider } from "./contexts/ThemeContext";
 import { ArticleProvider } from "./contexts/ArticleContext";
@@ -13,84 +14,102 @@ import { GalleryProvider } from "./contexts/GalleryContext";
 import { StudentStatsProvider } from "./contexts/StudentStatsContext";
 import { StaffProvider } from "./contexts/StaffContext";
 import { Outlet } from "react-router-dom";
+import { lazyWithRetry } from "./lib/lazyWithRetry";
 
-// Pages
+// Eager: HomePage (first paint) + pieces needed by every route
 import HomePage from "./pages/HomePage";
-import NewsPage from "./pages/news/NewsPage";
-import NewsDetailPage from "./pages/news/NewsDetailPage";
-import ProfilePage from "./pages/ProfilePage";
-import ContactPage from "./pages/ContactPage";
-import AdminDashboard from "./pages/admin/AdminDashboard";
-import ArticleManagementPage from "./pages/admin/article/ArticleManagementPage";
-import NewArticlePage from "./pages/admin/article/NewArticlePage";
-import EditArticlePage from "./pages/admin/article/EditArticlePage";
-import LoginPage from "./pages/auth/LoginPage";
-import NotFoundPage from "./pages/NotFoundPage";
 import ProtectedRoute from "./ProtectedRoute";
-import { AdminShell } from "./components/layout/AdminLayout";
-import AdminCategoriesPage from "./pages/AdminCategoriesPage";
-import WebAppPage from "./pages/WebAppPage";
-import SejarahPage from "./pages/profile/SejarahPage";
-import GuruStafPage from "./pages/profile/GuruStafPage";
-import KepalaMadrasahPage from "./pages/profile/KepalaMadrasahPage";
-import MitraPage from "./pages/profile/MitraPage";
-import ProgramKerjaPage from "./pages/profile/ProgramKerjaPage";
-import SaranaPrasaranaPage from "./pages/profile/SaranaPrasaranaPage";
-import StrukturOrganisasiPage from "./pages/profile/StrukturOrganisasiPage";
-import VisiMisiPage from "./pages/profile/VisiMisiPage";
-import SiswaPage from "./pages/profile/SiswaPage";
-import AttendanceStudentPage from "./pages/admin/attendance/AttendanceStudentPage";
-import ArchiveManagementPage from "./pages/archive/ArchiveManagementPage";
-import UploadArchivePage from "./pages/archive/UploadArchivePage";
-import EditArchivePage from "./pages/archive/EditArchivePage";
-import AttendanceInputPage from "./pages/admin/attendance/AttendanceInputPage";
-import AttendanceRecapPage from "./pages/admin/attendance/AttendanceRecapPage";
-import AttendanceHolidaysPage from "./pages/admin/attendance/AttendanceHolidaysPage";
-import AttendanceArchivePage from "./pages/admin/attendance/AttendanceArchivePage";
-import ManajemenStudentPage from "./pages/admin/student-management/ManagementStudentPage";
-import AlumniPage from "./pages/alumni/AlumniPage";
-import UserProfilePage from "./pages/admin/user/UserProfile";
-import UserManagementPage from "./pages/admin/user/UserManagementPage";
 import UnauthorizedHandler from "./components/ui/UnathorizedHandler";
-import GalleryPage from "./pages/GalleryPage";
-import AlbumPage from "./pages/AlbumPage";
-import GalleryManagementPage from "./pages/admin/gallery/GalleryManagementPage";
-import NewAlbumPage from "./pages/admin/gallery/NewAlbumPage";
-import EditAlbumPage from "./pages/admin/gallery/EditAlbumPage";
-import AlbumPhotosPage from "./pages/admin/gallery/AlbumPhotosPage";
-import ZonaIntegritasPage from "./pages/layanan/ZonaIntegritasPage";
-import SedumPage from "./pages/layanan/SedumPage";
-import PtspPage from "./pages/layanan/PtspPage";
-import StaffManagementPage from "./pages/admin/staff/StaffManagementPage";
-import EditStaffPage from "./pages/admin/staff/EditStaffPage";
-import NewStaffPage from "./pages/admin/staff/NewStaffPage";
-import AttendanceCalendarPage from "./pages/admin/attendance/AttendanceCalendarPage";
-import PmbmDaftarPage from "./pages/layanan/pmbm/PmbmDaftarPage";
-import PmbmSuksesPage from "./pages/layanan/pmbm/PmbmSuksesPage";
-import PmbmPage from "./pages/layanan/PmbmPage";
-import PmbmManagementPage from "./pages/admin/pmbm/PmbmManagementPage";
-import PmbmStatusPage from "./pages/layanan/pmbm/PmbmStatusPage";
-import MaklumatPelayananPage from "./pages/layanan/MaklumatPelayanan";
 
-import CekKelulusanPage from "./pages/kelulusan/CekKelulusanPage";
-import KelulusanManagementPage from "./pages/admin/kelulusan/KelulusanManagementPage";
-import CmsOverviewPage from "./pages/admin/cms/CmsOverviewPage";
-import CmsPmbmForm from "./pages/admin/cms/CmsPmbmForm";
-import CmsHomeForm from "./pages/admin/cms/CmsHomeForm";
-import CmsKontakForm from "./pages/admin/cms/CmsKontakForm";
-import CmsMaklumatForm from "./pages/admin/cms/CmsMaklumatForm";
-import CmsWebAppForm from "./pages/admin/cms/CmsWebAppForm";
-import CmsSejarahForm from "./pages/admin/cms/CmsSejarahForm";
-import CmsVisiMisiForm from "./pages/admin/cms/CmsVisiMisiForm";
-import CmsKepalaMadrasahForm from "./pages/admin/cms/CmsKepalaMadrasahForm";
-import CmsStrukturForm from "./pages/admin/cms/CmsStrukturForm";
-import CmsProgramKerjaForm from "./pages/admin/cms/CmsProgramKerjaForm";
-import CmsSedumForm from "./pages/admin/cms/CmsSedumForm";
-import CmsPtspForm from "./pages/admin/cms/CmsPtspForm";
-import CmsZonaIntegritasForm from "./pages/admin/cms/CmsZonaIntegritasForm";
-import CmsMitraForm from "./pages/admin/cms/CmsMitraForm";
-import CmsSarprasForm from "./pages/admin/cms/CmsSarprasForm";
-import CmsSiswaForm from "./pages/admin/cms/CmsSiswaForm";
+// Code-split: tiap halaman jadi chunk sendiri
+const NewsPage = lazyWithRetry(() => import("./pages/news/NewsPage"));
+const NewsDetailPage = lazyWithRetry(() => import("./pages/news/NewsDetailPage"));
+const ProfilePage = lazyWithRetry(() => import("./pages/ProfilePage"));
+const ContactPage = lazyWithRetry(() => import("./pages/ContactPage"));
+const AdminDashboard = lazyWithRetry(() => import("./pages/admin/AdminDashboard"));
+const ArticleManagementPage = lazyWithRetry(() => import("./pages/admin/article/ArticleManagementPage"));
+const NewArticlePage = lazyWithRetry(() => import("./pages/admin/article/NewArticlePage"));
+const EditArticlePage = lazyWithRetry(() => import("./pages/admin/article/EditArticlePage"));
+const LoginPage = lazyWithRetry(() => import("./pages/auth/LoginPage"));
+const NotFoundPage = lazyWithRetry(() => import("./pages/NotFoundPage"));
+const AdminCategoriesPage = lazyWithRetry(() => import("./pages/AdminCategoriesPage"));
+const WebAppPage = lazyWithRetry(() => import("./pages/WebAppPage"));
+const SejarahPage = lazyWithRetry(() => import("./pages/profile/SejarahPage"));
+const GuruStafPage = lazyWithRetry(() => import("./pages/profile/GuruStafPage"));
+const KepalaMadrasahPage = lazyWithRetry(() => import("./pages/profile/KepalaMadrasahPage"));
+const MitraPage = lazyWithRetry(() => import("./pages/profile/MitraPage"));
+const ProgramKerjaPage = lazyWithRetry(() => import("./pages/profile/ProgramKerjaPage"));
+const SaranaPrasaranaPage = lazyWithRetry(() => import("./pages/profile/SaranaPrasaranaPage"));
+const StrukturOrganisasiPage = lazyWithRetry(() => import("./pages/profile/StrukturOrganisasiPage"));
+const VisiMisiPage = lazyWithRetry(() => import("./pages/profile/VisiMisiPage"));
+const SiswaPage = lazyWithRetry(() => import("./pages/profile/SiswaPage"));
+const AttendanceStudentPage = lazyWithRetry(() => import("./pages/admin/attendance/AttendanceStudentPage"));
+const ArchiveManagementPage = lazyWithRetry(() => import("./pages/archive/ArchiveManagementPage"));
+const UploadArchivePage = lazyWithRetry(() => import("./pages/archive/UploadArchivePage"));
+const EditArchivePage = lazyWithRetry(() => import("./pages/archive/EditArchivePage"));
+const AttendanceInputPage = lazyWithRetry(() => import("./pages/admin/attendance/AttendanceInputPage"));
+const AttendanceRecapPage = lazyWithRetry(() => import("./pages/admin/attendance/AttendanceRecapPage"));
+const AttendanceHolidaysPage = lazyWithRetry(() => import("./pages/admin/attendance/AttendanceHolidaysPage"));
+const AttendanceArchivePage = lazyWithRetry(() => import("./pages/admin/attendance/AttendanceArchivePage"));
+const ManajemenStudentPage = lazyWithRetry(() => import("./pages/admin/student-management/ManagementStudentPage"));
+const AlumniPage = lazyWithRetry(() => import("./pages/alumni/AlumniPage"));
+const UserProfilePage = lazyWithRetry(() => import("./pages/admin/user/UserProfile"));
+const UserManagementPage = lazyWithRetry(() => import("./pages/admin/user/UserManagementPage"));
+const GalleryPage = lazyWithRetry(() => import("./pages/GalleryPage"));
+const AlbumPage = lazyWithRetry(() => import("./pages/AlbumPage"));
+const GalleryManagementPage = lazyWithRetry(() => import("./pages/admin/gallery/GalleryManagementPage"));
+const NewAlbumPage = lazyWithRetry(() => import("./pages/admin/gallery/NewAlbumPage"));
+const EditAlbumPage = lazyWithRetry(() => import("./pages/admin/gallery/EditAlbumPage"));
+const AlbumPhotosPage = lazyWithRetry(() => import("./pages/admin/gallery/AlbumPhotosPage"));
+const ZonaIntegritasPage = lazyWithRetry(() => import("./pages/layanan/ZonaIntegritasPage"));
+const SedumPage = lazyWithRetry(() => import("./pages/layanan/SedumPage"));
+const PtspPage = lazyWithRetry(() => import("./pages/layanan/PtspPage"));
+const StaffManagementPage = lazyWithRetry(() => import("./pages/admin/staff/StaffManagementPage"));
+const EditStaffPage = lazyWithRetry(() => import("./pages/admin/staff/EditStaffPage"));
+const NewStaffPage = lazyWithRetry(() => import("./pages/admin/staff/NewStaffPage"));
+const AttendanceCalendarPage = lazyWithRetry(() => import("./pages/admin/attendance/AttendanceCalendarPage"));
+const PmbmDaftarPage = lazyWithRetry(() => import("./pages/layanan/pmbm/PmbmDaftarPage"));
+const PmbmSuksesPage = lazyWithRetry(() => import("./pages/layanan/pmbm/PmbmSuksesPage"));
+const PmbmPage = lazyWithRetry(() => import("./pages/layanan/PmbmPage"));
+const PmbmManagementPage = lazyWithRetry(() => import("./pages/admin/pmbm/PmbmManagementPage"));
+const PmbmStatusPage = lazyWithRetry(() => import("./pages/layanan/pmbm/PmbmStatusPage"));
+const MaklumatPelayananPage = lazyWithRetry(() => import("./pages/layanan/MaklumatPelayanan"));
+const CekKelulusanPage = lazyWithRetry(() => import("./pages/kelulusan/CekKelulusanPage"));
+const KelulusanManagementPage = lazyWithRetry(() => import("./pages/admin/kelulusan/KelulusanManagementPage"));
+const CmsOverviewPage = lazyWithRetry(() => import("./pages/admin/cms/CmsOverviewPage"));
+const CmsPmbmForm = lazyWithRetry(() => import("./pages/admin/cms/CmsPmbmForm"));
+const CmsHomeForm = lazyWithRetry(() => import("./pages/admin/cms/CmsHomeForm"));
+const CmsKontakForm = lazyWithRetry(() => import("./pages/admin/cms/CmsKontakForm"));
+const CmsMaklumatForm = lazyWithRetry(() => import("./pages/admin/cms/CmsMaklumatForm"));
+const CmsWebAppForm = lazyWithRetry(() => import("./pages/admin/cms/CmsWebAppForm"));
+const CmsSejarahForm = lazyWithRetry(() => import("./pages/admin/cms/CmsSejarahForm"));
+const CmsVisiMisiForm = lazyWithRetry(() => import("./pages/admin/cms/CmsVisiMisiForm"));
+const CmsKepalaMadrasahForm = lazyWithRetry(() => import("./pages/admin/cms/CmsKepalaMadrasahForm"));
+const CmsStrukturForm = lazyWithRetry(() => import("./pages/admin/cms/CmsStrukturForm"));
+const CmsProgramKerjaForm = lazyWithRetry(() => import("./pages/admin/cms/CmsProgramKerjaForm"));
+const CmsSedumForm = lazyWithRetry(() => import("./pages/admin/cms/CmsSedumForm"));
+const CmsPtspForm = lazyWithRetry(() => import("./pages/admin/cms/CmsPtspForm"));
+const CmsZonaIntegritasForm = lazyWithRetry(() => import("./pages/admin/cms/CmsZonaIntegritasForm"));
+const CmsMitraForm = lazyWithRetry(() => import("./pages/admin/cms/CmsMitraForm"));
+const CmsSarprasForm = lazyWithRetry(() => import("./pages/admin/cms/CmsSarprasForm"));
+const CmsSiswaForm = lazyWithRetry(() => import("./pages/admin/cms/CmsSiswaForm"));
+const AdminShell = lazyWithRetry(() =>
+  import("./components/layout/AdminLayout").then((m) => ({
+    default: m.AdminShell,
+  })),
+);
+
+/** Fallback ringan saat chunk halaman sedang diunduh. */
+const PageFallback = () => (
+  <div
+    className="flex items-center justify-center text-secondary"
+    style={{ minHeight: "50vh" }}
+    role="status"
+    aria-live="polite"
+  >
+    Memuat...
+  </div>
+);
 
 /**
  * Layout wrapper component for admin routes that requires authentication.
@@ -98,9 +117,13 @@ import CmsSiswaForm from "./pages/admin/cms/CmsSiswaForm";
  */
 const AdminLayout = () => (
   <ProtectedRoute>
-    <AdminShell>
-      <Outlet />
-    </AdminShell>
+    <Suspense fallback={<PageFallback />}>
+      <AdminShell>
+        <Suspense fallback={<PageFallback />}>
+          <Outlet />
+        </Suspense>
+      </AdminShell>
+    </Suspense>
   </ProtectedRoute>
 );
 
@@ -144,7 +167,8 @@ function App() {
                     {" "}
                     {/* Tambahkan StaffProvider */}
                     <UnauthorizedHandler />
-                    <Routes>
+                    <Suspense fallback={<PageFallback />}>
+                      <Routes>
                       <Route path="/" element={<HomePage />} />
                       <Route path="/berita" element={<NewsPage />} />
                       <Route
@@ -381,6 +405,7 @@ function App() {
 
                       <Route path="*" element={<NotFoundPage />} />
                     </Routes>
+                    </Suspense>
                   </StaffProvider>{" "}
                 </StudentStatsProvider>
               </GalleryProvider>
