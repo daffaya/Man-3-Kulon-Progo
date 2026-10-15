@@ -1,0 +1,239 @@
+/**
+ * @fileoverview Defines the Express router for authentication-related endpoints.
+ * This module creates and configures routes for user login and registration.
+ * It includes middleware for authentication and role-based access control to protect
+ * the registration endpoint, ensuring only super admins can create new users.
+ */
+
+import { Router } from "express";
+import bcrypt from "bcrypt";
+import jwt from "jsonwebtoken";
+import {
+  authenticateTokenFactory,
+  restrictTo,
+} from "../middleware/authMiddleware.js";
+import createUserModel from "../models/userModel.js";
+import rateLimiter from "../middleware/rateLimiter.js";
+import {
+  checkLockout,
+  recordFailedAttempt,
+  clearFailedAttempts,
+} from "../utils/loginAttemptTracker.js";
+
+/**
+ * Factory function to create authentication routes with login and register endpoints.
+ * @param {Object} dependencies - Dependencies to be injected.
+ * @param {mysql.Pool} dependencies.pool - Database connection pool.
+ * @param {string} dependencies.JWT_SECRET - Secret key for JWT signing.
+ * @param {string} dependencies.JWT_EXPIRATION - Expiration time for JWT tokens.
+ * @returns {Router} Express router with authentication endpoints.
+ */
+const authRouterFactory = ({ pool, JWT_SECRET, JWT_EXPIRATION }) => {
+  const authRouter = Router();
+  const authenticateToken = authenticateTokenFactory({ JWT_SECRET });
+  const userModel = createUserModel({ pool });
+
+  // AUDIT-005: brute-force protection on the highest-value endpoint
+  const loginLimiter = rateLimiter({
+    windowMs: 15 * 60 * 1000,
+    max: 10,
+    message: { error: "Terlalu banyak percobaan login. Coba lagi nanti" },
+  });
+
+  /**
+   * Array of valid user roles in the system.
+   * @type {string[]}
+   */
+  const VALID_ROLES = [
+    "arsiparis",
+    "pengelola_bmn",
+    "guru_bk",
+    "jurnalis",
+    "super_admin",
+  ];
+
+  /**
+   * Handles user login and returns a JWT token.
+   * @route POST /login
+   * @param {Object} req - Express request object.
+   * @param {Object} req.body - Request body.
+   * @param {string} req.body.username - User's username.
+   * @param {string} req.body.password - User's password.
+   * @param {Object} res - Express response object.
+   * @returns {Object} JSON response with user data and JWT token.
+   */
+  authRouter.post("/login", loginLimiter, async (req, res) => {
+    const { username, password } = req.body;
+
+    try {
+      if (!username || !password) {
+        return res.status(400).json({
+          success: false,
+          message: "Username and password are required",
+        });
+      }
+
+      // AUDIT-018: per-account lockout, independent of AUDIT-005's per-IP limit
+      const lockout = checkLockout(username);
+      if (lockout.locked) {
+        res.set("Retry-After", String(lockout.retryAfterSeconds));
+        return res.status(429).json({
+          success: false,
+          message:
+            "Akun ini sementara dikunci karena terlalu banyak percobaan gagal. Coba lagi nanti.",
+        });
+      }
+
+      const user = await userModel.findByUsername(username);
+
+      if (!user) {
+        recordFailedAttempt(username);
+        return res.status(401).json({
+          success: false,
+          message: "Invalid username or password",
+        });
+      }
+
+      const isPasswordValid = await bcrypt.compare(
+        password,
+        user.password_hash
+      );
+
+      if (!isPasswordValid) {
+        recordFailedAttempt(username);
+        return res.status(401).json({
+          success: false,
+          message: "Invalid username or password",
+        });
+      }
+
+      clearFailedAttempts(username);
+
+      const token = jwt.sign(
+        { id: user.id, username: user.username, role: user.role },
+        JWT_SECRET,
+        {
+          expiresIn: JWT_EXPIRATION,
+        }
+      );
+
+      const { password_hash, ...userWithoutPassword } = user;
+
+      if (
+        userWithoutPassword.avatar &&
+        !userWithoutPassword.avatar.startsWith("http")
+      ) {
+        userWithoutPassword.avatar = `${req.protocol}://${req.get("host")}${
+          userWithoutPassword.avatar
+        }`;
+      }
+
+      res.cookie("token", token, {
+        httpOnly: true,
+        secure: true,
+        sameSite: "lax", // frontend + backend share the same registrable domain (man3kulonprogo.sch.id)
+        path: "/",
+        maxAge: (jwt.decode(token).exp - Math.floor(Date.now() / 1000)) * 1000,
+      });
+
+      res.json({
+        success: true,
+        user: userWithoutPassword,
+        // AUDIT-011: token no longer returned in the body — it lives only
+        // in the httpOnly cookie above, unreachable from JS (and therefore
+        // from any XSS payload that might run on this origin).
+      });
+    } catch (error) {
+      res.status(500).json({
+        success: false,
+        message: "Server error during login",
+      });
+    }
+  });
+
+  /**
+   * Clears the httpOnly auth cookie. JS cannot delete an httpOnly cookie
+   * itself, so logout must be a real request the backend handles. (AUDIT-011)
+   * @route POST /logout
+   */
+  authRouter.post("/logout", (req, res) => {
+    res.clearCookie("token", {
+      httpOnly: true,
+      secure: true,
+      sameSite: "lax",
+      path: "/",
+    });
+    res.json({ success: true });
+  });
+
+  /**
+   * Handles user registration (restricted to super_admin role).
+   * @route POST /register
+   * @param {Object} req - Express request object.
+   * @param {Object} req.body - Request body.
+   * @param {string} req.body.username - New user's username.
+   * @param {string} req.body.password - New user's password.
+   * @param {string} req.body.role - New user's role.
+   * @param {string} [req.body.full_name] - New user's full name.
+   * @param {Object} res - Express response object.
+   * @returns {Object} JSON response with registration status.
+   */
+  authRouter.post(
+    "/register",
+    authenticateToken,
+    restrictTo(["super_admin"]),
+    async (req, res) => {
+      const { username, password, role, full_name = "" } = req.body;
+
+      try {
+        if (!username || !password || !role) {
+          return res.status(400).json({
+            success: false,
+            message: "Username, password, and role are required",
+          });
+        }
+
+        const existingUser = await userModel.findByUsername(username);
+
+        if (existingUser) {
+          return res.status(400).json({
+            success: false,
+            message: "Username already exists",
+          });
+        }
+
+        if (!VALID_ROLES.includes(role)) {
+          return res.status(400).json({
+            success: false,
+            message: "Invalid role",
+          });
+        }
+
+        const saltRounds = 10;
+        const passwordHash = await bcrypt.hash(password, saltRounds);
+
+        const userId = await userModel.create({
+          username,
+          password_hash: passwordHash,
+          role,
+          full_name,
+        });
+
+        res.status(201).json({
+          success: true,
+          message: "User registered successfully",
+          userId,
+        });
+      } catch (error) {
+        res.status(500).json({
+          success: false,
+          message: "Server error during registration",
+        });
+      }
+    }
+  );
+
+  return authRouter;
+};
+
+export default authRouterFactory;
