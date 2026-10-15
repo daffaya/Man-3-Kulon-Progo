@@ -28,3 +28,6 @@ frontend/.env
 *.sw?
 backend/uploads/
 backend/src/temp/
+
+export zip.txt
+paths.txt

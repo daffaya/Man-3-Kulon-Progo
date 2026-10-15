@@ -225,7 +225,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const value: AuthContextValue = {
     isLoggedIn,
     user,
-    token: null, // AUDIT-011: see the deprecated note on the type above
+    token: isLoggedIn ? "cookie-session" : null,
     login,
     logout,
     updateUserProfile,
@@ -240,9 +240,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   // the loading state (ProtectedRoute, AdminDashboard) already read
   // `isLoadingAuth` themselves and show their own loading UI, so gating
   // here was redundant and only cost time-to-first-paint app-wide.
-  return (
-    <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
-  );
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };
 
 /**
