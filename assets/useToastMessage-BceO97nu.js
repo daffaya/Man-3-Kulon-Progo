@@ -1,0 +1,1 @@
+import{J as u,r as t}from"./index-Dclt2w3E.js";const T=()=>{const{showToast:s}=u(),r=t.useCallback((o,a)=>{s(o,"success",a)},[s]),c=t.useCallback((o,a)=>{s(o,"error",a)},[s]),e=t.useCallback((o,a)=>{s(o,"warning",a)},[s]),n=t.useCallback((o,a)=>{s(o,"info",a)},[s]);return{showSuccessToast:r,showErrorToast:c,showWarningToast:e,showInfoToast:n}};export{T as u};
