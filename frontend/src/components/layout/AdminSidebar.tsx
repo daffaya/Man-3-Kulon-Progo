@@ -1,7 +1,7 @@
 /**
  * @fileoverview AdminSidebar — navigasi utama admin (sesuai mockup v2).
- * Item disaring menurut role; presensi & inventaris sengaja tidak ditampilkan
- * (belum dipakai / belum ada).
+ * Item disaring menurut role. Presensi hanya untuk guru_bk/super_admin;
+ * inventaris sengaja tidak ditampilkan (belum ada).
  */
 import React, { useEffect, useState } from "react";
 import { Link, useLocation } from "react-router-dom";
@@ -14,6 +14,7 @@ import {
   Archive,
   UserPlus,
   GraduationCap,
+  ClipboardCheck,
   ShieldCheck,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
@@ -137,6 +138,13 @@ const AdminSidebar: React.FC<Props> = ({ open }) => {
           to: "/atmin/pmbm",
           icon: UserPlus,
           match: starts("/atmin/pmbm"),
+        },
+        {
+          label: "Presensi",
+          to: "/atmin/presensi",
+          icon: ClipboardCheck,
+          roles: ["guru_bk"],
+          match: starts("/atmin/presensi"),
         },
         {
           label: "Cek Kelulusan",
