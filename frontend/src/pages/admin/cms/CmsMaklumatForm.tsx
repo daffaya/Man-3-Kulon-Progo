@@ -240,7 +240,7 @@ const CmsMaklumatForm: React.FC = () => {
 
   return (
     <CmsLayout title="CMS — Maklumat Pelayanan">
-      <div className="max-w-3xl mx-auto">
+      <div className="max-w-3xl">
         <CmsPageHeader
           title="Kelola Maklumat Pelayanan"
           description="Teks dan gambar maklumat yang ditampilkan di halaman Maklumat Pelayanan."

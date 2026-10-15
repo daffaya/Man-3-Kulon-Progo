@@ -316,7 +316,7 @@ const CmsSedumForm: React.FC = () => {
 
   return (
     <CmsLayout title="CMS — SEDUM">
-      <div className="max-w-3xl mx-auto">
+      <div className="max-w-3xl">
         <CmsPageHeader
           title="Kelola Halaman SEDUM"
           description="Serapan Aduan Masyarakat — header, deskripsi, saluran, SOP, dan FAQ."

@@ -7,12 +7,22 @@
 
 import React, { useState, useEffect } from "react";
 import { useAuth } from "../../contexts/AuthContext";
-import { File, LogIn, ArrowLeft, Plus } from "lucide-react";
+import { LogIn, ArrowLeft, Plus } from "lucide-react";
 import Layout from "../../components/layout/Layout";
 import AdminLayout from "../../components/layout/AdminLayout";
-import { useNavigate, Link } from "react-router-dom";
+import { useSearchParams, useNavigate, Link } from "react-router-dom";
 import Filters from "../../components/archive/ArchiveFilter";
 import ArchiveTable from "../../components/tables/ArchiveTable";
+import ArchiveAdminTable from "../../components/tables/ArchiveAdminTable";
+import {
+  ConfirmDialog,
+  EmptyState,
+  FilterSelect,
+  PageHead,
+  SearchBox,
+  TableFooter,
+  rangeText,
+} from "../../components/admin/ListKit";
 import { Archive, Category } from "../../types/archiveTypes";
 import {
   fetchArchives,
@@ -45,11 +55,14 @@ const ArchiveManagementPage: React.FC = () => {
   const { showToast } = useToast();
   const [archives, setArchives] = useState<Archive[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
-  const [searchQuery, setSearchQuery] = useState("");
+  const [urlParams] = useSearchParams();
+  const [searchQuery, setSearchQuery] = useState(urlParams.get("q") ?? "");
   const [categoryId, setCategoryId] = useState("");
   const [showConfirmation, setShowConfirmation] = useState(false);
   const [archiveToDelete, setArchiveToDelete] = useState<number | null>(null);
   const [loading, setLoading] = useState(false);
+  const [page, setPage] = useState(1);
+  const PER_PAGE = 10;
 
   const isAdminOrArsiparis = hasEditAccess(isLoggedIn, user?.role);
 
@@ -153,7 +166,94 @@ const ArchiveManagementPage: React.FC = () => {
     setArchiveToDelete(null);
   };
 
-  const SelectedLayout = isAdminOrArsiparis ? AdminLayout : Layout;
+  useEffect(() => setPage(1), [searchQuery, categoryId]);
+  useEffect(() => {
+    const q = urlParams.get("q");
+    if (q !== null) setSearchQuery(q);
+  }, [urlParams]);
+
+  if (isAdminOrArsiparis) {
+    const totalPages = Math.max(1, Math.ceil(archives.length / PER_PAGE));
+    const cur = Math.min(page, totalPages);
+    const rows = archives.slice((cur - 1) * PER_PAGE, cur * PER_PAGE);
+    const filtered = !!searchQuery || !!categoryId;
+    const resetFilters = () => {
+      setSearchQuery("");
+      setCategoryId("");
+    };
+    return (
+      <AdminLayout>
+        <div className="a-pg">
+          <PageHead title="Arsip Dokumen" sub="Surat, SK, dan dokumen resmi madrasah.">
+            <Link to="/atmin/uploadArchive" className="a-btn a-p">
+              <Plus size={18} />
+              Tambah Arsip
+            </Link>
+          </PageHead>
+
+          <div className="a-cd" style={{ padding: 0 }}>
+            <div className="a-tl">
+              <SearchBox
+                value={searchQuery}
+                onChange={setSearchQuery}
+                placeholder="Cari nama file, deskripsi…"
+                label="Cari arsip"
+              />
+              <FilterSelect
+                value={categoryId === "" ? "all" : categoryId}
+                onChange={(v) => setCategoryId(v === "all" ? "" : v)}
+                label="Semua kategori"
+                options={categories.map((c) => [String(c.id), c.name])}
+              />
+            </div>
+
+            {!loading && archives.length === 0 ? (
+              <EmptyState
+                filtered={filtered}
+                entity="arsip"
+                hint="Unggah dokumen pertama untuk mulai mengarsipkan."
+                onReset={resetFilters}
+              >
+                <Link to="/atmin/uploadArchive" className="a-btn a-p">
+                  <Plus size={18} />
+                  Tambah Arsip
+                </Link>
+              </EmptyState>
+            ) : (
+              <ArchiveAdminTable
+                archives={rows}
+                loading={loading}
+                onDownload={handleDownloadClick}
+                onEdit={handleEditClick}
+                onDelete={handleDeleteClick}
+              />
+            )}
+
+            {archives.length > 0 && (
+              <TableFooter
+                text={filtered ? `${archives.length} hasil ditemukan` : rangeText(cur, PER_PAGE, archives.length, "arsip")}
+                page={cur}
+                totalPages={totalPages}
+                loading={loading}
+                onPrev={() => setPage(cur - 1)}
+                onNext={() => setPage(cur + 1)}
+              />
+            )}
+          </div>
+        </div>
+
+        <ConfirmDialog
+          open={showConfirmation}
+          title="Hapus arsip?"
+          body="Arsip yang dihapus tidak dapat dikembalikan."
+          onCancel={cancelDelete}
+          onConfirm={confirmDelete}
+        />
+      </AdminLayout>
+    );
+  }
+
+  const SelectedLayout = Layout;
 
   return (
     <SelectedLayout>

@@ -7,13 +7,21 @@
 
 import React, { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
-import { Plus, RefreshCw, X, ArrowLeft, Users, Search } from "lucide-react";
+import { Plus } from "lucide-react";
 import { useAuth } from "../../../contexts/AuthContext";
 import { useToast } from "../../../contexts/ToastContext";
 import AdminLayout from "../../../components/layout/AdminLayout";
 import UserTable from "../../../components/tables/UserTable";
 import UserManagementForm from "../../../components/forms/auth/UserManagementForm";
 import userApi from "../../../api/userApi";
+import {
+  ConfirmDialog,
+  EmptyState,
+  FilterSelect,
+  PageHead,
+  SearchBox,
+  TableFooter,
+} from "../../../components/admin/ListKit";
 import { User, UserFormData } from "../../../types/userTypes";
 
 /**
@@ -222,177 +230,67 @@ const UserManagementPage: React.FC = () => {
 
   const hasActiveFilters = keyword.trim() || selectedRole !== "all";
 
-  if (!loading && users.length === 0 && !hasActiveFilters) {
-    return (
-      <AdminLayout>
-        <div className="container mx-auto px-4 py-12 text-center">
-          <div className="card p-12 max-w-md mx-auto">
-            <Users className="h-16 w-16 text-secondary/40 mx-auto mb-4" />
-            <h3 className="text-xl font-semibold text-foreground mb-2">
-              Belum Ada User
-            </h3>
-            <p className="text-secondary mb-6">
-              Mulai tambahkan user pertama untuk mengelola sistem.
-            </p>
-            <button onClick={handleAddUser} className="btn btn-primary">
-              <Plus size={18} className="mr-2" />
-              Tambah User Pertama
-            </button>
-          </div>
-        </div>
-      </AdminLayout>
-    );
-  }
-
-  if (!loading && users.length === 0 && hasActiveFilters) {
-    return (
-      <AdminLayout>
-        <div className="container mx-auto px-4 py-12 text-center">
-          <div className="card p-12 max-w-md mx-auto">
-            <Search className="h-16 w-16 text-secondary/40 mx-auto mb-4" />
-            <h3 className="text-xl font-semibold text-foreground mb-2">
-              Tidak Ada Hasil
-            </h3>
-            <p className="text-secondary mb-6">
-              Tidak ada user yang cocok dengan filter yang diterapkan.
-            </p>
-            <button onClick={resetFilters} className="btn btn-secondary">
-              <X size={18} className="mr-2" />
-              Hapus Filter
-            </button>
-          </div>
-        </div>
-      </AdminLayout>
-    );
-  }
+  const empty = !loading && users.length === 0;
 
   return (
     <AdminLayout>
-      <div className="container mx-auto px-4 sm:px-6 py-8 fade-in">
-        <button
-          onClick={() => navigate("/atmin")}
-          className="text-sm text-secondary hover:text-accent flex items-center mb-6 transition-colors"
-        >
-          <ArrowLeft className="h-4 w-4 mr-1" />
-          Kembali ke Dashboard
-        </button>
-
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-8 gap-4">
-          <h1 className="text-3xl font-serif font-bold text-foreground">
-            Manajemen User
-          </h1>
-          <button
-            onClick={handleAddUser}
-            className="btn btn-primary flex items-center"
-          >
-            <Plus size={18} className="mr-2" />
+      <div className="a-pg">
+        <PageHead title="Manajemen User" sub="Kelola akun dan hak akses pengguna sistem.">
+          <button type="button" onClick={handleAddUser} className="a-btn a-p">
+            <Plus size={18} />
             User Baru
           </button>
-        </div>
+        </PageHead>
 
-        <div className="card p-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-            <div>
-              <label
-                htmlFor="search"
-                className="block text-sm font-medium text-foreground mb-1"
-              >
-                Cari User
-              </label>
-              <input
-                id="search"
-                type="text"
-                value={keyword}
-                onChange={(e) => setKeyword(e.target.value)}
-                onKeyPress={(e) => e.key === "Enter" && setCurrentPage(1)}
-                placeholder="Username atau nama..."
-                className="form-input w-full"
-              />
-            </div>
-
-            <div>
-              <label
-                htmlFor="role"
-                className="block text-sm font-medium text-foreground mb-1"
-              >
-                Filter Role
-              </label>
-              <select
-                id="role"
-                value={selectedRole}
-                onChange={(e) => setSelectedRole(e.target.value)}
-                className="form-input w-full"
-              >
-                <option value="all">Semua Role</option>
-                <option value="super_admin">Super Admin</option>
-                <option value="arsiparis">Arsiparis</option>
-                <option value="pengelola_bmn">Pengelola BMN</option>
-                <option value="guru_bk">Guru BK</option>
-                <option value="jurnalis">Jurnalis</option>
-              </select>
-            </div>
+        <div className="a-cd" style={{ padding: 0 }}>
+          <div className="a-tl">
+            <SearchBox value={keyword} onChange={setKeyword} placeholder="Cari username atau nama…" label="Cari user" />
+            <FilterSelect
+              value={selectedRole}
+              onChange={setSelectedRole}
+              label="Semua role"
+              options={[
+                ["super_admin", "Super Admin"],
+                ["jurnalis", "Jurnalis"],
+                ["guru_bk", "Guru BK"],
+                ["arsiparis", "Arsiparis"],
+                ["pengelola_bmn", "Pengelola BMN"],
+              ]}
+            />
           </div>
 
-          {hasActiveFilters && (
-            <div className="flex justify-end mb-4">
-              <button
-                onClick={resetFilters}
-                className="text-sm text-secondary hover:text-accent flex items-center"
-              >
-                <X size={16} className="mr-1" />
-                Hapus Filter
+          {empty ? (
+            <EmptyState
+              filtered={!!hasActiveFilters}
+              entity="user"
+              hint="Tambahkan user pertama untuk mengelola sistem."
+              onReset={resetFilters}
+            >
+              <button type="button" onClick={handleAddUser} className="a-btn a-p">
+                <Plus size={18} />
+                Tambah User Pertama
               </button>
-            </div>
+            </EmptyState>
+          ) : (
+            <UserTable users={users} onEdit={handleEditUser} onDelete={handleDeleteClick} loading={loading} />
           )}
 
-          {loading ? (
-            <div className="text-center py-12">
-              <RefreshCw className="h-8 w-8 text-accent animate-spin mx-auto mb-3" />
-              <p className="text-secondary">Memuat data user...</p>
-            </div>
-          ) : (
-            <>
-              <UserTable
-                users={users}
-                onEdit={handleEditUser}
-                onDelete={handleDeleteClick}
-                loading={loading}
-              />
-
-              {totalPages > 1 && (
-                <div className="flex items-center justify-center gap-3 mt-6">
-                  <button
-                    onClick={() =>
-                      setCurrentPage((prev) => Math.max(1, prev - 1))
-                    }
-                    disabled={currentPage === 1}
-                    className="btn btn-secondary text-sm"
-                  >
-                    Sebelumnya
-                  </button>
-                  <span className="text-sm text-secondary">
-                    Halaman <strong>{currentPage}</strong> dari{" "}
-                    <strong>{totalPages}</strong>
-                  </span>
-                  <button
-                    onClick={() =>
-                      setCurrentPage((prev) => Math.min(totalPages, prev + 1))
-                    }
-                    disabled={currentPage === totalPages}
-                    className="btn btn-secondary text-sm"
-                  >
-                    Berikutnya
-                  </button>
-                </div>
-              )}
-            </>
+          {!empty && (
+            <TableFooter
+              text={loading ? "Memuat…" : `Halaman ${currentPage} dari ${totalPages}`}
+              page={currentPage}
+              totalPages={totalPages}
+              loading={loading}
+              onPrev={() => setCurrentPage((p) => Math.max(1, p - 1))}
+              onNext={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+            />
           )}
         </div>
       </div>
 
       {showForm && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="card max-w-lg w-full max-h-[90vh] overflow-y-auto p-6">
+        <div className="a-mo">
+          <div className="a-mc a-wide" style={{ maxWidth: 520 }}>
             <UserManagementForm
               onSubmit={editingUser ? handleUpdateUser : handleCreateUser}
               onCancel={handleCancelForm}
@@ -403,29 +301,16 @@ const UserManagementPage: React.FC = () => {
         </div>
       )}
 
-      {showConfirmation && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="card p-6 max-w-sm w-full">
-            <h3 className="text-lg font-semibold text-foreground mb-3">
-              Konfirmasi Hapus
-            </h3>
-            <p className="text-secondary mb-6">
-              User ini akan dihapus permanen. Lanjutkan?
-            </p>
-            <div className="flex justify-end gap-3">
-              <button
-                onClick={() => setShowConfirmation(false)}
-                className="btn btn-secondary"
-              >
-                Batal
-              </button>
-              <button onClick={confirmDelete} className="btn btn-danger">
-                Hapus
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      <ConfirmDialog
+        open={showConfirmation}
+        title="Hapus user?"
+        body="User yang dihapus tidak dapat mengakses sistem lagi."
+        onCancel={() => {
+          setShowConfirmation(false);
+          setUserToDelete(null);
+        }}
+        onConfirm={confirmDelete}
+      />
     </AdminLayout>
   );
 };

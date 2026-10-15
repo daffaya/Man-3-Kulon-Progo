@@ -12,7 +12,7 @@
  * Route: /atmin/cms/home
  */
 
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   BarChart2,
@@ -318,6 +318,24 @@ const CmsHomeForm: React.FC = () => {
     [showSuccessToast, showErrorToast],
   );
 
+  const slidesRef = useRef<SlideItem[]>([]);
+  slidesRef.current = slides;
+
+  /** Simpan semua slide secara berurutan (dipakai tombol Simpan Perubahan di atas). */
+  const handleSaveAllSlides = useCallback(async () => {
+    const list = [...slidesRef.current];
+    let failed = 0;
+    for (let i = 0; i < list.length; i++) {
+      if (!list[i].src && !list[i].headline && !list[i].id) continue; // slide baru yang masih kosong
+      try {
+        await handleSaveSlide(list[i], i);
+      } catch {
+        failed += 1;
+      }
+    }
+    if (failed > 0) throw new Error("failed");
+  }, [handleSaveSlide]);
+
   const handleDeleteSlide = useCallback(
     async (slide: SlideItem, index: number) => {
       if (!slide.id) {
@@ -377,7 +395,7 @@ const CmsHomeForm: React.FC = () => {
 
   return (
     <CmsLayout title="CMS — Homepage">
-      <div className="max-w-3xl mx-auto">
+      <div className="max-w-3xl">
         <CmsPageHeader
           title="Kelola Konten Homepage"
           description="Perubahan yang disimpan akan langsung tampil di halaman utama website."
@@ -677,31 +695,18 @@ const CmsHomeForm: React.FC = () => {
         </SectionCard>
 
         {/* ── Slider ── */}
-        <div className="card p-6 mb-6">
-          <div className="flex items-start justify-between mb-4 gap-4">
-            <div className="flex items-center gap-2">
-              <div className="text-accent">
-                <Image size={18} />
-              </div>
-              <div>
-                <h3 className="font-semibold text-foreground">
-                  Slider / Carousel Homepage
-                </h3>
-                <p className="text-xs text-secondary mt-0.5">
-                  Kelola slide yang tampil di carousel atas homepage. Simpan
-                  tiap slide secara terpisah.
-                </p>
-              </div>
-            </div>
-            <button
-              onClick={handleAddSlide}
-              className="flex items-center gap-2 btn btn-secondary text-sm flex-shrink-0"
-            >
+        <SectionCard
+          title="Slider / Carousel Homepage"
+          icon={<Image size={18} />}
+          description="Slide yang tampil di carousel atas homepage. Semua slide disimpan lewat tombol Simpan Perubahan."
+          onSave={handleSaveAllSlides}
+          isSaving={savingSlide !== null}
+        >
+          <div style={{ display: "flex", justifyContent: "flex-end", marginBottom: 12 }}>
+            <button type="button" onClick={handleAddSlide} className="a-btn a-sm">
               <Plus size={14} /> Tambah Slide
             </button>
           </div>
-
-          <div className="border-t border-border mb-4" />
 
           <div className="space-y-6">
             {slides.map((slide, index) => (
@@ -726,18 +731,6 @@ const CmsHomeForm: React.FC = () => {
                       />
                       Aktif
                     </label>
-
-                    {/* Save slide */}
-                    <button
-                      onClick={() => handleSaveSlide(slide, index)}
-                      disabled={savingSlide === index}
-                      className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium btn btn-primary"
-                    >
-                      {savingSlide === index ? (
-                        <RefreshCw size={12} className="animate-spin" />
-                      ) : null}
-                      Simpan
-                    </button>
 
                     {/* Delete slide */}
                     <button
@@ -799,7 +792,7 @@ const CmsHomeForm: React.FC = () => {
               </p>
             )}
           </div>
-        </div>
+        </SectionCard>
       </div>
     </CmsLayout>
   );

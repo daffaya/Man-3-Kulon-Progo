@@ -337,7 +337,7 @@ const CmsStrukturForm: React.FC = () => {
 
   return (
     <CmsLayout title="CMS — Struktur Organisasi">
-      <div className="max-w-3xl mx-auto">
+      <div className="max-w-3xl">
         <CmsPageHeader
           title="Kelola Struktur Organisasi"
           description="Gambar bagan dan daftar jabatan struktural madrasah."

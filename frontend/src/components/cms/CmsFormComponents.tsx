@@ -12,7 +12,7 @@
  * Import from this file in all CmsXxxForm components.
  */
 
-import React, { useState, useCallback } from "react";
+import React, { useCallback, useEffect, useId, useRef, useState } from "react";
 import {
   Save,
   RefreshCw,
@@ -23,6 +23,7 @@ import {
   GripVertical,
 } from "lucide-react";
 import { apiFetch } from "../../lib/api";
+import { CmsBackLink, CmsSaveBar, useCmsSave, useMarkHeaderMounted } from "./CmsSave";
 
 // ─────────────────────────────────────────────
 // API helper
@@ -54,104 +55,115 @@ export const saveSection = async (
 // SectionCard
 // ─────────────────────────────────────────────
 
+/** Sidik isi kartu: jumlah elemen, nilai field, dan sumber gambar. Dipakai untuk mendeteksi perubahan nyata. */
+const fingerprint = (root: HTMLElement | null): string => {
+  if (!root) return "";
+  const fields = Array.from(root.querySelectorAll("input,textarea,select"))
+    .map((el) => {
+      const f = el as HTMLInputElement;
+      return f.type === "checkbox" || f.type === "radio" ? String(f.checked) : f.value;
+    })
+    .join("\u0001");
+  const imgs = Array.from(root.querySelectorAll("img"))
+    .map((i) => i.getAttribute("src") ?? "")
+    .join("\u0001");
+  return `${root.querySelectorAll("*").length}|${root.textContent?.length ?? 0}|${fields}|${imgs}`;
+};
+
 interface SectionCardProps {
-  /** Section title shown in card header */
   title: string;
-  /** Icon element shown beside title */
-  icon: React.ReactNode;
-  /** Optional subtitle/description */
+  icon?: React.ReactNode;
   description?: string;
-  /** Async save handler — should throw on failure */
   onSave: () => Promise<void>;
-  /** Whether save is in progress */
-  isSaving: boolean;
+  isSaving?: boolean;
   children: React.ReactNode;
 }
 
 /**
- * Card wrapper for a single CMS section.
- * Handles save button state: idle → saving → success/error → idle.
- * Each section saves independently.
+ * Kartu bagian editor CMS (mockup v3). Mendaftarkan fungsi simpan ke CmsSaveProvider dan menandai
+ * dirty saat ada input/klik tombol di dalamnya; penyimpanan dilakukan lewat tombol "Simpan Perubahan".
+ * Di luar provider, kartu menampilkan tombol Simpan sendiri.
  */
 export const SectionCard: React.FC<SectionCardProps> = ({
   title,
-  icon,
   description,
   onSave,
-  isSaving,
+  isSaving = false,
   children,
 }) => {
-  const [saveStatus, setSaveStatus] = useState<"idle" | "success" | "error">(
-    "idle",
-  );
+  const ctx = useCmsSave();
+  const id = useId();
+  const saveRef = useRef(onSave);
+  saveRef.current = onSave;
+  const [dirty, setDirty] = useState(false);
+  const [busy, setBusy] = useState(false);
+  const bodyRef = useRef<HTMLDivElement>(null);
 
-  const handleSave = async () => {
+  const register = ctx?.register;
+  const unregister = ctx?.unregister;
+  const report = ctx?.setDirty;
+
+  useEffect(() => {
+    if (!register || !unregister) return;
+    register(id, async () => {
+      await saveRef.current();
+      setDirty(false);
+    });
+    return () => unregister(id);
+  }, [id, register, unregister]);
+
+  useEffect(() => {
+    report?.(id, dirty);
+  }, [id, dirty, report]);
+
+  const mark = () => setDirty(true);
+
+  const localSave = async () => {
+    setBusy(true);
     try {
-      await onSave();
-      setSaveStatus("success");
-      setTimeout(() => setSaveStatus("idle"), 3000);
+      await saveRef.current();
+      setDirty(false);
     } catch {
-      setSaveStatus("error");
-      setTimeout(() => setSaveStatus("idle"), 3000);
+      /* error toast ditampilkan oleh form */
+    } finally {
+      setBusy(false);
     }
   };
 
-  const buttonClass =
-    saveStatus === "success"
-      ? "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400"
-      : saveStatus === "error"
-        ? "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400"
-        : "btn btn-primary";
-
-  const buttonLabel = isSaving
-    ? "Menyimpan..."
-    : saveStatus === "success"
-      ? "Tersimpan!"
-      : saveStatus === "error"
-        ? "Gagal"
-        : "Simpan";
-
-  const ButtonIcon = isSaving
-    ? () => <RefreshCw size={14} className="animate-spin" />
-    : saveStatus === "success"
-      ? () => <CheckCircle size={14} />
-      : saveStatus === "error"
-        ? () => <AlertCircle size={14} />
-        : () => <Save size={14} />;
-
   return (
-    <div className="card p-6 mb-6">
-      {/* Header */}
-      <div className="flex items-start justify-between mb-4 gap-4">
-        <div className="flex items-center gap-2">
-          <div className="text-accent flex-shrink-0">{icon}</div>
-          <div>
-            <h3 className="font-semibold text-foreground">{title}</h3>
-            {description && (
-              <p className="text-xs text-secondary mt-0.5">{description}</p>
-            )}
-          </div>
+    <section className="a-cd a-cms-card">
+      <div className="a-ch" style={{ alignItems: "flex-start", gap: 12 }}>
+        <div>
+          <h2 className="a-h2">{title}</h2>
+          {description && <p className="a-sub" style={{ fontSize: 12.5 }}>{description}</p>}
         </div>
-        <button
-          onClick={handleSave}
-          disabled={isSaving}
-          className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all flex-shrink-0 ${buttonClass}`}
-        >
-          <ButtonIcon />
-          {buttonLabel}
-        </button>
+        {!ctx && (
+          <button type="button" className="a-btn a-sm a-p" onClick={localSave} disabled={busy || isSaving || !dirty}>
+            {busy || isSaving ? "Menyimpan…" : "Simpan"}
+          </button>
+        )}
       </div>
-
-      <div className="border-t border-border mb-4" />
-
-      {children}
-    </div>
+      <div
+        ref={bodyRef}
+        onInput={mark}
+        onChange={mark}
+        onClick={(e) => {
+          // Klik tombol dianggap perubahan hanya jika isi kartu benar-benar berubah
+          // (baris ditambah/dihapus/diurutkan, gambar diunggah, dst).
+          if (!(e.target as HTMLElement).closest("button")) return;
+          const before = fingerprint(bodyRef.current);
+          [60, 400, 1500].forEach((ms) =>
+            window.setTimeout(() => {
+              if (fingerprint(bodyRef.current) !== before) mark();
+            }, ms),
+          );
+        }}
+      >
+        {children}
+      </div>
+    </section>
   );
 };
-
-// ─────────────────────────────────────────────
-// Field
-// ─────────────────────────────────────────────
 
 interface FieldProps {
   label: string;
@@ -164,9 +176,6 @@ interface FieldProps {
   required?: boolean;
 }
 
-/**
- * Labeled text/date/email/number input field.
- */
 export const Field: React.FC<FieldProps> = ({
   label,
   value,
@@ -176,28 +185,28 @@ export const Field: React.FC<FieldProps> = ({
   hint,
   disabled,
   required,
-}) => (
-  <div>
-    <label className="block text-sm font-medium text-foreground mb-1">
-      {label}
-      {required && <span className="text-red-500 ml-1">*</span>}
-    </label>
-    <input
-      type={type}
-      value={value}
-      onChange={(e) => onChange(e.target.value)}
-      placeholder={placeholder}
-      disabled={disabled}
-      required={required}
-      className="form-input w-full"
-    />
-    {hint && <p className="text-xs text-secondary mt-1">{hint}</p>}
-  </div>
-);
-
-// ─────────────────────────────────────────────
-// TextareaField
-// ─────────────────────────────────────────────
+}) => {
+  const id = useId();
+  return (
+    <div>
+      <label className="a-lb" htmlFor={id}>
+        {label}
+        {required && <span style={{ color: "var(--dg)", marginLeft: 4 }}>*</span>}
+      </label>
+      <input
+        id={id}
+        type={type}
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        placeholder={placeholder}
+        disabled={disabled}
+        required={required}
+        className="a-ip"
+      />
+      {hint && <p className="a-tg" style={{ marginTop: 6 }}>{hint}</p>}
+    </div>
+  );
+};
 
 interface TextareaFieldProps {
   label: string;
@@ -209,9 +218,6 @@ interface TextareaFieldProps {
   required?: boolean;
 }
 
-/**
- * Labeled textarea field.
- */
 export const TextareaField: React.FC<TextareaFieldProps> = ({
   label,
   value,
@@ -220,27 +226,27 @@ export const TextareaField: React.FC<TextareaFieldProps> = ({
   placeholder,
   hint,
   required,
-}) => (
-  <div>
-    <label className="block text-sm font-medium text-foreground mb-1">
-      {label}
-      {required && <span className="text-red-500 ml-1">*</span>}
-    </label>
-    <textarea
-      value={value}
-      onChange={(e) => onChange(e.target.value)}
-      rows={rows}
-      placeholder={placeholder}
-      required={required}
-      className="form-input w-full resize-none"
-    />
-    {hint && <p className="text-xs text-secondary mt-1">{hint}</p>}
-  </div>
-);
-
-// ─────────────────────────────────────────────
-// SelectField
-// ─────────────────────────────────────────────
+}) => {
+  const id = useId();
+  return (
+    <div>
+      <label className="a-lb" htmlFor={id}>
+        {label}
+        {required && <span style={{ color: "var(--dg)", marginLeft: 4 }}>*</span>}
+      </label>
+      <textarea
+        id={id}
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        rows={rows}
+        placeholder={placeholder}
+        required={required}
+        className="a-ip"
+      />
+      {hint && <p className="a-tg" style={{ marginTop: 6 }}>{hint}</p>}
+    </div>
+  );
+};
 
 interface SelectOption {
   value: string;
@@ -256,9 +262,6 @@ interface SelectFieldProps {
   disabled?: boolean;
 }
 
-/**
- * Labeled select dropdown field.
- */
 export const SelectField: React.FC<SelectFieldProps> = ({
   label,
   value,
@@ -266,30 +269,29 @@ export const SelectField: React.FC<SelectFieldProps> = ({
   options,
   hint,
   disabled,
-}) => (
-  <div>
-    <label className="block text-sm font-medium text-foreground mb-1">
-      {label}
-    </label>
-    <select
-      value={value}
-      onChange={(e) => onChange(e.target.value)}
-      disabled={disabled}
-      className="form-input w-full"
-    >
-      {options.map((opt) => (
-        <option key={opt.value} value={opt.value}>
-          {opt.label}
-        </option>
-      ))}
-    </select>
-    {hint && <p className="text-xs text-secondary mt-1">{hint}</p>}
-  </div>
-);
-
-// ─────────────────────────────────────────────
-// ArrayStringField
-// ─────────────────────────────────────────────
+}) => {
+  const id = useId();
+  return (
+    <div>
+      <label className="a-lb" htmlFor={id}>{label}</label>
+      <select
+        id={id}
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        disabled={disabled}
+        className="a-ip"
+        style={{ height: 42 }}
+      >
+        {options.map((opt) => (
+          <option key={opt.value} value={opt.value}>
+            {opt.label}
+          </option>
+        ))}
+      </select>
+      {hint && <p className="a-tg" style={{ marginTop: 6 }}>{hint}</p>}
+    </div>
+  );
+};
 
 interface ArrayStringFieldProps {
   label: string;
@@ -297,86 +299,60 @@ interface ArrayStringFieldProps {
   onChange: (items: string[]) => void;
   placeholder?: string;
   hint?: string;
-  /** If true, shows drag handle UI (visual only — full DnD not included) */
   showOrder?: boolean;
 }
 
-/**
- * Editable list of strings with add/remove controls.
- * Used for arrays like syarat_umum, strategies, areas, etc.
- */
 export const ArrayStringField: React.FC<ArrayStringFieldProps> = ({
   label,
   items,
   onChange,
   placeholder = "Isi item...",
   hint,
-  showOrder = false,
 }) => {
   const updateItem = useCallback(
-    (index: number, value: string) => {
-      onChange(items.map((item, i) => (i === index ? value : item)));
-    },
+    (index: number, value: string) => onChange(items.map((item, i) => (i === index ? value : item))),
     [items, onChange],
   );
-
   const removeItem = useCallback(
-    (index: number) => {
-      onChange(items.filter((_, i) => i !== index));
-    },
+    (index: number) => onChange(items.filter((_, i) => i !== index)),
     [items, onChange],
   );
-
-  const addItem = useCallback(() => {
-    onChange([...items, ""]);
-  }, [items, onChange]);
+  const addItem = useCallback(() => onChange([...items, ""]), [items, onChange]);
 
   return (
     <div>
-      <div className="flex items-center justify-between mb-2">
-        <label className="text-sm font-medium text-foreground">{label}</label>
-        <button
-          onClick={addItem}
-          className="flex items-center gap-1.5 text-xs text-accent hover:text-accent/80 transition-colors"
-          type="button"
-        >
-          <Plus size={13} />
-          Tambah
+      <div className="a-ch" style={{ marginBottom: 8, marginTop: 18 }}>
+        <span className="a-lb" style={{ margin: 0 }}>{label}</span>
+        <button type="button" className="a-btn a-sm" onClick={addItem}>
+          <Plus size={14} />
+          Tambah baris
         </button>
       </div>
-
-      {hint && <p className="text-xs text-secondary mb-2">{hint}</p>}
-
-      <div className="space-y-2">
+      {hint && <p className="a-tg" style={{ marginBottom: 8 }}>{hint}</p>}
+      <div>
         {items.map((item, index) => (
-          <div key={index} className="flex items-center gap-2">
-            {showOrder && (
-              <GripVertical
-                size={14}
-                className="text-secondary/40 flex-shrink-0 cursor-grab"
-              />
-            )}
+          <div key={index} className="a-rp" style={{ gridTemplateColumns: "1fr auto" }}>
             <input
               type="text"
               value={item}
               onChange={(e) => updateItem(index, e.target.value)}
               placeholder={placeholder}
-              className="form-input flex-1"
+              aria-label={`${label} ${index + 1}`}
+              className="a-ip"
             />
             <button
-              onClick={() => removeItem(index)}
-              className="flex-shrink-0 p-2 text-secondary hover:text-red-500 transition-colors rounded-lg hover:bg-red-50 dark:hover:bg-red-950/30"
-              aria-label={`Hapus item ${index + 1}`}
               type="button"
+              className="a-ic a-x"
+              onClick={() => removeItem(index)}
+              aria-label={`Hapus item ${index + 1}`}
             >
-              <Trash2 size={14} />
+              <Trash2 size={16} />
             </button>
           </div>
         ))}
-
         {items.length === 0 && (
-          <p className="text-sm text-secondary/60 italic text-center py-3 border border-dashed border-border rounded-lg">
-            Belum ada item. Klik "+ Tambah" untuk menambahkan.
+          <p className="a-tg" style={{ textAlign: "center", padding: 12, border: "1px dashed var(--bd)", borderRadius: 10 }}>
+            Belum ada item. Klik "Tambah baris" untuk menambahkan.
           </p>
         )}
       </div>
@@ -392,8 +368,9 @@ export const ArrayStringField: React.FC<ArrayStringFieldProps> = ({
  * Full-page centered loading spinner for CMS form pages.
  */
 export const PageLoadingSpinner: React.FC = () => (
-  <div className="flex items-center justify-center py-24">
-    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-accent" />
+  <div className="a-em" aria-busy="true">
+    <RefreshCw className="animate-spin" />
+    <b>Memuat…</b>
   </div>
 );
 
@@ -407,16 +384,19 @@ interface CmsPageHeaderProps {
 }
 
 /**
- * Consistent page header for all CMS editor pages.
+ * Header konsisten untuk semua editor CMS (mockup v3): tombol kembali, judul, deskripsi,
+ * serta status + "Simpan Perubahan" di kanan.
  */
-export const CmsPageHeader: React.FC<CmsPageHeaderProps> = ({
-  title,
-  description,
-}) => (
-  <div className="mb-8">
-    <h2 className="text-2xl font-serif font-bold text-foreground mb-1">
-      {title}
-    </h2>
-    {description && <p className="text-secondary text-sm">{description}</p>}
-  </div>
-);
+export const CmsPageHeader: React.FC<CmsPageHeaderProps> = ({ title, description }) => {
+  useMarkHeaderMounted();
+  return (
+    <div className="a-hd">
+      <div>
+        <CmsBackLink />
+        <h1 className="a-h1">{title.replace(/^Kelola (Halaman )?/i, "") || title}</h1>
+        {description && <p className="a-sub">{description}</p>}
+      </div>
+      <CmsSaveBar />
+    </div>
+  );
+};

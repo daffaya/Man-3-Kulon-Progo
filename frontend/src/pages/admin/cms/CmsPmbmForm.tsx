@@ -29,6 +29,13 @@ import {
   Info,
 } from "lucide-react";
 import CmsLayout from "../../../components/layout/CmsLayout";
+import {
+  SectionCard,
+  Field,
+  TextareaField,
+  saveSection,
+  CmsPageHeader,
+} from "../../../components/cms/CmsFormComponents";
 import { useAuth } from "../../../contexts/AuthContext";
 import { useToastMessage } from "../../../hooks/useToastMessage";
 import { apiFetch } from "../../../lib/api";
@@ -64,166 +71,6 @@ interface PmbmTentang {
 // ─────────────────────────────────────────────
 // Helpers
 // ─────────────────────────────────────────────
-
-/**
- * Saves a single CMS section via PUT /api/atmin/cms/:page/:section.
- * @param page - CMS page key
- * @param section - Section key within the page
- * @param data - Data object to save
- */
-const saveSection = async (page: string, section: string, data: unknown) => {
-  await apiFetch(`/atmin/cms/${page}/${section}`, {
-    method: "PUT",
-    body: JSON.stringify({ data }),
-    headers: {
-      Authorization: `Bearer ${localStorage.getItem("token") ?? ""}`,
-    },
-  });
-};
-
-// ─────────────────────────────────────────────
-// Sub-components
-// ─────────────────────────────────────────────
-
-/**
- * Section card wrapper with title, icon, and save button.
- */
-const SectionCard: React.FC<{
-  title: string;
-  icon: React.ReactNode;
-  description?: string;
-  onSave: () => Promise<void>;
-  isSaving: boolean;
-  children: React.ReactNode;
-}> = ({ title, icon, description, onSave, isSaving, children }) => {
-  const [saveStatus, setSaveStatus] = useState<"idle" | "success" | "error">(
-    "idle",
-  );
-
-  const handleSave = async () => {
-    try {
-      await onSave();
-      setSaveStatus("success");
-      setTimeout(() => setSaveStatus("idle"), 3000);
-    } catch {
-      setSaveStatus("error");
-      setTimeout(() => setSaveStatus("idle"), 3000);
-    }
-  };
-
-  return (
-    <div className="card p-6 mb-6">
-      {/* Card header */}
-      <div className="flex items-start justify-between mb-4 gap-4">
-        <div className="flex items-center gap-2">
-          <div className="text-accent">{icon}</div>
-          <div>
-            <h3 className="font-semibold text-foreground">{title}</h3>
-            {description && (
-              <p className="text-xs text-secondary mt-0.5">{description}</p>
-            )}
-          </div>
-        </div>
-        <button
-          onClick={handleSave}
-          disabled={isSaving}
-          className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all flex-shrink-0 ${
-            saveStatus === "success"
-              ? "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400"
-              : saveStatus === "error"
-                ? "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400"
-                : "btn btn-primary"
-          }`}
-        >
-          {isSaving ? (
-            <RefreshCw size={14} className="animate-spin" />
-          ) : saveStatus === "success" ? (
-            <CheckCircle size={14} />
-          ) : saveStatus === "error" ? (
-            <AlertCircle size={14} />
-          ) : (
-            <Save size={14} />
-          )}
-          {isSaving
-            ? "Menyimpan..."
-            : saveStatus === "success"
-              ? "Tersimpan!"
-              : saveStatus === "error"
-                ? "Gagal"
-                : "Simpan"}
-        </button>
-      </div>
-
-      {/* Divider */}
-      <div className="border-t border-border mb-4" />
-
-      {/* Content */}
-      {children}
-    </div>
-  );
-};
-
-/**
- * Reusable text input field with label.
- */
-const Field: React.FC<{
-  label: string;
-  value: string;
-  onChange: (val: string) => void;
-  type?: string;
-  placeholder?: string;
-  hint?: string;
-  disabled?: boolean;
-}> = ({
-  label,
-  value,
-  onChange,
-  type = "text",
-  placeholder,
-  hint,
-  disabled,
-}) => (
-  <div>
-    <label className="block text-sm font-medium text-foreground mb-1">
-      {label}
-    </label>
-    <input
-      type={type}
-      value={value}
-      onChange={(e) => onChange(e.target.value)}
-      placeholder={placeholder}
-      disabled={disabled}
-      className="form-input w-full"
-    />
-    {hint && <p className="text-xs text-secondary mt-1">{hint}</p>}
-  </div>
-);
-
-/**
- * Reusable textarea field with label.
- */
-const TextareaField: React.FC<{
-  label: string;
-  value: string;
-  onChange: (val: string) => void;
-  rows?: number;
-  placeholder?: string;
-  hint?: string;
-}> = ({ label, value, onChange, rows = 3, placeholder, hint }) => (
-  <div>
-    <label className="block text-sm font-medium text-foreground mb-1">
-      {label}
-    </label>
-    <textarea
-      value={value}
-      onChange={(e) => onChange(e.target.value)}
-      rows={rows}
-      placeholder={placeholder}
-      className="form-input w-full resize-none"
-    />
-    {hint && <p className="text-xs text-secondary mt-1">{hint}</p>}
-  </div>
-);
 
 // ─────────────────────────────────────────────
 // Page
@@ -447,16 +294,11 @@ const CmsPmbmForm: React.FC = () => {
 
   return (
     <CmsLayout title="CMS — PMBM">
-      <div className="max-w-3xl mx-auto">
-        {/* Page header */}
-        <div className="mb-8">
-          <h2 className="text-2xl font-serif font-bold text-foreground mb-1">
-            Kelola Konten PMBM
-          </h2>
-          <p className="text-secondary text-sm">
-            Perubahan yang disimpan akan langsung tampil di halaman PMBM publik.
-          </p>
-        </div>
+      <div className="max-w-3xl">
+        <CmsPageHeader
+          title="Kelola Konten PMBM"
+          description="Perubahan yang disimpan akan langsung tampil di halaman PMBM publik."
+        />
 
         {/* ── Section 1: Config ── */}
         <SectionCard

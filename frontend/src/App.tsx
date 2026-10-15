@@ -27,6 +27,7 @@ import EditArticlePage from "./pages/admin/article/EditArticlePage";
 import LoginPage from "./pages/auth/LoginPage";
 import NotFoundPage from "./pages/NotFoundPage";
 import ProtectedRoute from "./ProtectedRoute";
+import { AdminShell } from "./components/layout/AdminLayout";
 import AdminCategoriesPage from "./pages/AdminCategoriesPage";
 import WebAppPage from "./pages/WebAppPage";
 import SejarahPage from "./pages/profile/SejarahPage";
@@ -97,7 +98,9 @@ import CmsSiswaForm from "./pages/admin/cms/CmsSiswaForm";
  */
 const AdminLayout = () => (
   <ProtectedRoute>
-    <Outlet />
+    <AdminShell>
+      <Outlet />
+    </AdminShell>
   </ProtectedRoute>
 );
 

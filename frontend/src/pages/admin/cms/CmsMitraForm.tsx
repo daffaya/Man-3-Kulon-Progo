@@ -122,7 +122,7 @@ const CmsMitraForm: React.FC = () => {
 
   return (
     <CmsLayout title="CMS — Mitra">
-      <div className="max-w-4xl mx-auto">
+      <div className="max-w-4xl">
         <CmsPageHeader
           title="Kelola Daftar Mitra"
           description="Institusi dan lembaga yang bermitra dengan MAN 3 Kulon Progo."

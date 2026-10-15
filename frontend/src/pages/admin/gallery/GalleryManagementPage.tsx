@@ -1,16 +1,16 @@
 /**
- * @fileoverview Page for managing photo albums in the admin panel.
- * Provides functionality for searching, paginating, and deleting albums.
+ * @fileoverview Halaman "Galeri" admin (mockup v3): kartu album dengan cover, judul, tanggal,
+ * jumlah foto, dan aksi Kelola Foto / Sunting / Hapus. AlbumCard & AlbumList publik tidak diubah.
  */
-
-import React, { useEffect, useState } from "react";
-import { Link, Navigate, useNavigate } from "react-router-dom";
-import { Plus, RefreshCw, X, ArrowLeft } from "lucide-react";
+import React, { useCallback, useEffect, useState } from "react";
+import { Link, Navigate, useSearchParams } from "react-router-dom";
+import { Calendar, ImagePlus, Images, Plus, Search, SearchX, SquarePen, Trash2 } from "lucide-react";
+import AdminLayout from "../../../components/layout/AdminLayout";
+import ImageWithFallback from "../../../components/ui/ImageWithFallback";
 import { useGallery } from "../../../contexts/GalleryContext";
 import { useAuth } from "../../../contexts/AuthContext";
 import { useToastMessage } from "../../../hooks/useToastMessage";
-import AlbumList from "../../../components/gallery/AlbumList";
-import AdminLayout from "../../../components/layout/AdminLayout";
+import { shortDate } from "../../../hooks/useAdminSummary";
 
 export const ALLOWED_ROLES = [
   "super_admin",
@@ -20,355 +20,202 @@ export const ALLOWED_ROLES = [
   "arsiparis",
 ] as const;
 
-/**
- * Checks if the logged-in user has the required role for gallery management.
- * @param {boolean} isLoggedIn - The user's login status.
- * @param {string | undefined} role - The user's role.
- * @returns {boolean} True if the user has access, otherwise false.
- */
-const hasEditAccess = (isLoggedIn: boolean, role?: string): boolean =>
-  isLoggedIn && role
-    ? ALLOWED_ROLES.includes(role as (typeof ALLOWED_ROLES)[number])
-    : false;
+const PER_PAGE = 12;
 
-/**
- * Component for the gallery management page.
- * It provides an interface for administrators to view, search, delete, and navigate to create or edit photo albums.
- */
 const GalleryManagementPage: React.FC = () => {
+  const { isLoggedIn, user } = useAuth();
+  const allowed =
+    isLoggedIn && !!user && (ALLOWED_ROLES as readonly string[]).includes(user.role);
+
   const { state, deleteAlbum, fetchAdminAlbums } = useGallery();
-  const [showConfirmation, setShowConfirmation] = useState(false);
-  const [albumToDelete, setAlbumToDelete] = useState<string | null>(null);
   const { showSuccessToast, showErrorToast } = useToastMessage();
 
-  const { isLoggedIn, user } = useAuth();
-  const navigate = useNavigate();
+  const [params] = useSearchParams();
+  const urlQ = params.get("q") ?? "";
+  const [input, setInput] = useState(urlQ);
+  const [keyword, setKeyword] = useState(urlQ);
+
+  useEffect(() => {
+    setInput(urlQ);
+  }, [urlQ]);
+  const [page, setPage] = useState(1);
+  const [toDelete, setToDelete] = useState<string | null>(null);
+  const [deleting, setDeleting] = useState(false);
+
+  useEffect(() => {
+    const t = setTimeout(() => {
+      const kw = input.trim();
+      setKeyword((k) => {
+        if (k !== kw) setPage(1);
+        return kw;
+      });
+    }, 400);
+    return () => clearTimeout(t);
+  }, [input]);
+
+  const load = useCallback(() => {
+    fetchAdminAlbums({ keyword: keyword || undefined, page, limit: PER_PAGE });
+  }, [keyword, page, fetchAdminAlbums]);
+
+  useEffect(() => {
+    if (allowed) load();
+  }, [allowed, load]);
+
+  const confirmDelete = async () => {
+    if (!toDelete) return;
+    setDeleting(true);
+    try {
+      await deleteAlbum(toDelete);
+      showSuccessToast("Album berhasil dihapus");
+      setToDelete(null);
+      load();
+    } catch {
+      showErrorToast("Gagal menghapus album");
+    } finally {
+      setDeleting(false);
+    }
+  };
 
   if (!isLoggedIn) {
-    return (
-      <Navigate to="/login" state={{ redirectTo: "/atmin/gallery" }} replace />
-    );
+    return <Navigate to="/login" state={{ redirectTo: "/atmin/gallery" }} replace />;
   }
+  if (!allowed) return <Navigate to="/atmin" replace />;
 
-  const hasGalleryAccess = hasEditAccess(isLoggedIn, user?.role);
-
-  if (!hasGalleryAccess) {
-    return <Navigate to="/atmin" replace />;
-  }
-
-  const [keyword, setKeyword] = useState("");
-  const [appliedFilters, setAppliedFilters] = useState<{ keyword?: string }>(
-    {},
-  );
-  const [currentPage, setCurrentPage] = useState(1);
-  const albumsPerPage = 10;
-  const [debouncedKeyword, setDebouncedKeyword] = useState("");
-
-  // Delays search execution to avoid excessive API calls.
-  useEffect(() => {
-    const handler = setTimeout(() => {
-      setDebouncedKeyword(keyword);
-    }, 500);
-    return () => clearTimeout(handler);
-  }, [keyword]);
-
-  // Fetches albums when filters, page, or auth status change.
-  useEffect(() => {
-    if (isLoggedIn && hasGalleryAccess) {
-      const filtersWithPagination = {
-        ...appliedFilters,
-        page: currentPage,
-        limit: albumsPerPage,
-      };
-      fetchAdminAlbums(filtersWithPagination);
-    }
-  }, [
-    appliedFilters,
-    currentPage,
-    isLoggedIn,
-    hasGalleryAccess,
-    fetchAdminAlbums,
-  ]);
-
-  // Applies the debounced keyword as a filter.
-  useEffect(() => {
-    handleApplyFilters();
-  }, [debouncedKeyword]);
-
-  /**
-   * Navigates to the previous page of the album list.
-   */
-  const handlePreviousPage = () => {
-    if (currentPage > 1) setCurrentPage(currentPage - 1);
-  };
-
-  /**
-   * Navigates to the next page of the album list.
-   */
-  const handleNextPage = () => {
-    if (
-      state.adminPagination &&
-      currentPage < state.adminPagination.totalPages
-    ) {
-      setCurrentPage(currentPage + 1);
-    }
-  };
-
-  /**
-   * Applies the current search keyword as a filter and resets pagination.
-   */
-  const handleApplyFilters = () => {
-    const filtersToApply = {
-      keyword:
-        debouncedKeyword.trim() !== "" ? debouncedKeyword.trim() : undefined,
-    };
-    setAppliedFilters(filtersToApply);
-    setCurrentPage(1);
-  };
-
-  /**
-   * Clears all active filters and refreshes the album list.
-   */
-  const handleRemoveFilters = () => {
-    setKeyword("");
-  };
-
-  /**
-   * Updates the search keyword state as the user types.
-   * @param {React.ChangeEvent<HTMLInputElement>} e - The input change event.
-   */
-  const handleKeywordInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setKeyword(e.target.value);
-  };
-
-  /**
-   * Handles the 'Enter' key press in the search input to trigger the search.
-   * @param {React.KeyboardEvent<HTMLInputElement>} e - The keyboard event.
-   */
-  const handleKeywordInputKeyPress = (
-    e: React.KeyboardEvent<HTMLInputElement>,
-  ) => {
-    if (e.key === "Enter") {
-      e.preventDefault();
-      handleApplyFilters();
-    }
-  };
-
-  /**
-   * Initiates the album deletion process by showing a confirmation modal.
-   * @param {string} id - The ID of the album to delete.
-   */
-  const handleDeleteClick = (id: string) => {
-    setAlbumToDelete(id);
-    setShowConfirmation(true);
-  };
-
-  /**
-   * Executes the album deletion after user confirmation.
-   */
-  const confirmDelete = async () => {
-    if (albumToDelete) {
-      try {
-        await deleteAlbum(albumToDelete);
-        const filtersWithPagination = {
-          ...appliedFilters,
-          page: currentPage,
-          limit: albumsPerPage,
-        };
-        fetchAdminAlbums(filtersWithPagination);
-        setShowConfirmation(false);
-        setAlbumToDelete(null);
-        showSuccessToast("Album berhasil dihapus");
-      } catch (error) {
-        showErrorToast("Gagal menghapus album");
-        console.error("Error deleting album:", error);
-      }
-    }
-  };
-
-  /**
-   * Cancels the album deletion and hides the confirmation modal.
-   */
-  const cancelDelete = () => {
-    setShowConfirmation(false);
-    setAlbumToDelete(null);
-  };
-
-  const albumsToDisplay = state.adminAlbums;
-  const hasActiveFilters = appliedFilters.keyword;
-
-  if (!state.adminLoading && albumsToDisplay.length === 0 && hasActiveFilters) {
-    return (
-      <AdminLayout>
-        <div className="container mx-auto px-4 sm:px-6 py-12 text-center">
-          <p className="text-xl text-secondary">
-            Tidak ada album yang cocok dengan filter.
-          </p>
-          {hasActiveFilters && (
-            <button
-              onClick={handleRemoveFilters}
-              className="mt-4 btn btn-secondary text-sm"
-            >
-              <X size={16} className="mr-1" /> Hapus Filter
-            </button>
-          )}
-        </div>
-      </AdminLayout>
-    );
-  }
-
-  if (
-    !state.adminLoading &&
-    albumsToDisplay.length === 0 &&
-    !hasActiveFilters
-  ) {
-    return (
-      <AdminLayout>
-        <div className="container mx-auto px-4 sm:px-6 py-12 text-center">
-          <p className="text-xl text-secondary">
-            Belum ada album yang ditemukan.
-          </p>
-          <Link
-            to="/atmin/gallery/new"
-            className="mt-4 btn btn-primary flex items-center mx-auto w-fit"
-          >
-            <Plus size={18} className="mr-1" /> Buat Album Pertama Anda
-          </Link>
-        </div>
-      </AdminLayout>
-    );
-  }
-
-  const isPreviousDisabled =
-    state.adminLoading || state.adminPagination.currentPage <= 1;
-  const isNextDisabled =
-    state.adminLoading ||
-    state.adminPagination.currentPage >= state.adminPagination.totalPages;
+  const { adminAlbums: albums, adminLoading: loading, adminPagination: pg } = state;
+  const empty = !loading && albums.length === 0;
 
   return (
     <AdminLayout>
-      <div className="container mx-auto px-4 sm:px-6 py-12 fade-in">
-        <Link
-          to="/atmin"
-          className="text-sm text-secondary hover:text-accent flex items-center mb-4 transition-colors"
-        >
-          <ArrowLeft className="h-4 w-4 mr-1" />
-          Kembali ke admin dashboard
-        </Link>
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-8">
-          <h1 className="text-3xl font-serif font-bold text-foreground mb-4 sm:mb-0">
-            Manajemen Galeri
-          </h1>
-          <div className="flex space-x-2">
-            <Link
-              to="/atmin/gallery/new"
-              className="btn btn-primary flex items-center"
-            >
-              <Plus size={18} className="mr-1" /> Album Baru
-            </Link>
+      <div className="a-pg">
+        <div className="a-hd">
+          <div>
+            <h1 className="a-h1">Galeri</h1>
+            <p className="a-sub">Kelola album foto kegiatan sekolah.</p>
+          </div>
+          <Link to="/atmin/gallery/new" className="a-btn a-p">
+            <Plus size={18} />
+            Album Baru
+          </Link>
+        </div>
+
+        <div className="a-tl" style={{ border: "1px solid var(--bd)", borderRadius: 12, background: "var(--sf)", marginBottom: 16 }}>
+          <div className="a-sr">
+            <Search size={16} />
+            <input
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              placeholder="Cari judul album…"
+              aria-label="Cari album"
+            />
           </div>
         </div>
 
-        <div className="card p-6">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6">
-            {hasActiveFilters && (
-              <button
-                onClick={handleRemoveFilters}
-                className="btn btn-secondary text-primary py-1 text-sm"
-              >
-                Hapus Filter
-              </button>
-            )}
+        {loading ? (
+          <div className="a-gg" aria-busy="true">
+            {[...Array(6)].map((_, i) => (
+              <div key={i} className="a-cd a-gc">
+                <div className="a-cv" />
+                <div className="a-gb">
+                  <div className="a-sk" style={{ width: "80%", marginBottom: 12 }} />
+                  <div className="a-sk" style={{ width: "50%" }} />
+                </div>
+              </div>
+            ))}
           </div>
-          <div className="mb-6 grid grid-cols-1 gap-4">
-            <div>
-              <label
-                htmlFor="keyword"
-                className="block text-sm font-medium mb-1 text-foreground"
-              >
-                Cari Kata Kunci{" "}
-                <span className="text-xs text-secondary">(Tekan Enter)</span>
-              </label>
-              <input
-                type="text"
-                id="keyword"
-                value={keyword}
-                onChange={handleKeywordInputChange}
-                onKeyPress={handleKeywordInputKeyPress}
-                placeholder="Cari judul album..."
-                className="form-input w-full"
-              />
+        ) : empty ? (
+          <div className="a-cd">
+            <div className="a-em">
+              {keyword ? <SearchX /> : <Images />}
+              <b>{keyword ? "Album tidak ditemukan" : "Belum ada album"}</b>
+              {keyword ? "Coba kata kunci lain." : "Buat album pertama untuk foto kegiatan sekolah."}
+              <br />
+              {keyword ? (
+                <button type="button" className="a-btn a-sm" style={{ marginTop: 12 }} onClick={() => setInput("")}>
+                  Reset pencarian
+                </button>
+              ) : (
+                <Link to="/atmin/gallery/new" className="a-btn a-p" style={{ marginTop: 12 }}>
+                  <Plus size={18} />
+                  Buat Album Pertama
+                </Link>
+              )}
             </div>
           </div>
+        ) : (
+          <div className="a-gg">
+            {albums.map((a) => (
+              <article key={a.id} className="a-cd a-gc">
+                <Link to={`/atmin/gallery/${a.id}/photos`} className="a-cv" aria-label={`Kelola foto ${a.title}`}>
+                  {a.cover_thumbnail_url ? (
+                    <ImageWithFallback
+                      src={a.cover_thumbnail_url}
+                      alt={a.title}
+                      className="w-full h-full object-cover"
+                      fallback="/placeholder-image.jpg"
+                    />
+                  ) : (
+                    <Images />
+                  )}
+                </Link>
+                <div className="a-gb">
+                  <b>{a.title}</b>
+                  <div className="a-gm">
+                    <span>
+                      <Calendar size={14} />
+                      {shortDate(a.created_at)}
+                    </span>
+                    <span className="a-b a-ok">{a.photo_count} foto</span>
+                  </div>
+                  <div className="a-gf">
+                    <Link to={`/atmin/gallery/${a.id}/photos`} className="a-btn a-sm">
+                      <ImagePlus size={16} />
+                      Kelola Foto
+                    </Link>
+                    <Link to={`/atmin/gallery/${a.id}/edit`} className="a-ic" aria-label={`Sunting album ${a.title}`} title="Sunting album">
+                      <SquarePen size={18} />
+                    </Link>
+                    <button type="button" className="a-ic a-x" aria-label={`Hapus album ${a.title}`} title="Hapus album" onClick={() => setToDelete(a.id)}>
+                      <Trash2 size={18} />
+                    </button>
+                  </div>
+                </div>
+              </article>
+            ))}
+          </div>
+        )}
 
-          {state.adminLoading ? (
-            <div className="text-center py-12">
-              <RefreshCw
-                size={32}
-                className="mx-auto animate-spin text-accent"
-              />
-              <p className="mt-4 text-secondary">Memuat album...</p>
-            </div>
-          ) : (
-            <AlbumList
-              albums={albumsToDisplay}
-              loading={state.adminLoading}
-              onDelete={handleDeleteClick}
-              showDeleteButton={true}
-              isAdmin={true}
-            />
-          )}
-
-          {state.adminPagination.totalPages > 1 && (
-            <div className="flex justify-center items-center mt-6 space-x-4">
-              <button
-                onClick={handlePreviousPage}
-                disabled={isPreviousDisabled}
-                className={`btn btn-secondary text-sm ${
-                  isPreviousDisabled ? "opacity-50 cursor-not-allowed" : ""
-                }`}
-              >
+        {!empty && pg.totalPages > 1 && (
+          <div className="a-tf" style={{ marginTop: 16, border: "1px solid var(--bd)", borderRadius: 12, background: "var(--sf)" }}>
+            <span>{pg.totalAlbums} album</span>
+            <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+              <button type="button" className="a-btn a-sm" disabled={loading || pg.currentPage <= 1} onClick={() => setPage((p) => p - 1)}>
                 Sebelumnya
               </button>
-              <span className="text-secondary">
-                Halaman {state.adminPagination.currentPage} dari{" "}
-                {state.adminPagination.totalPages}
-              </span>
-              <button
-                onClick={handleNextPage}
-                disabled={isNextDisabled}
-                className={`btn btn-secondary text-sm ${
-                  isNextDisabled ? "opacity-50 cursor-not-allowed" : ""
-                }`}
-              >
+              Halaman {pg.currentPage} dari {pg.totalPages}
+              <button type="button" className="a-btn a-sm a-p" disabled={loading || pg.currentPage >= pg.totalPages} onClick={() => setPage((p) => p + 1)}>
                 Berikutnya
               </button>
-            </div>
-          )}
-        </div>
-
-        {showConfirmation && (
-          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-            <div className="card p-6 max-w-md w-full">
-              <h3 className="text-xl font-bold text-foreground mb-4">
-                Konfirmasi Hapus
-              </h3>
-              <p className="mb-6 text-secondary">
-                Apakah Anda yakin ingin menghapus album ini? Semua foto di dalam
-                album juga akan dihapus. Tindakan ini tidak dapat dibatalkan.
-              </p>
-              <div className="flex justify-end space-x-4">
-                <button onClick={cancelDelete} className="btn btn-secondary">
-                  Batal
-                </button>
-                <button onClick={confirmDelete} className="btn btn-danger">
-                  Hapus
-                </button>
-              </div>
             </div>
           </div>
         )}
       </div>
+
+      {toDelete && (
+        <div className="a-mo" role="dialog" aria-modal="true" aria-labelledby="gdel-t">
+          <div className="a-mc">
+            <h2 className="a-h2" id="gdel-t" style={{ marginBottom: 8 }}>Hapus album?</h2>
+            <p style={{ color: "var(--mu)", marginBottom: 20 }}>
+              Semua foto di dalam album juga akan dihapus. Tindakan ini tidak dapat dibatalkan.
+            </p>
+            <div style={{ display: "flex", justifyContent: "flex-end", gap: 8 }}>
+              <button type="button" className="a-btn" onClick={() => setToDelete(null)} disabled={deleting}>Batal</button>
+              <button type="button" className="a-btn a-d" onClick={confirmDelete} disabled={deleting}>
+                {deleting ? "Menghapus…" : "Hapus"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </AdminLayout>
   );
 };

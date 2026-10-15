@@ -215,7 +215,7 @@ const CmsProgramKerjaForm: React.FC = () => {
 
   return (
     <CmsLayout title="CMS — Program Kerja">
-      <div className="max-w-3xl mx-auto">
+      <div className="max-w-3xl">
         <CmsPageHeader
           title="Kelola Program Kerja"
           description="Program kerja per bidang untuk tahun ajaran aktif."

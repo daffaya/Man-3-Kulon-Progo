@@ -131,7 +131,7 @@ const CmsSarprasForm: React.FC = () => {
 
   return (
     <CmsLayout title="CMS — Sarana Prasarana">
-      <div className="max-w-4xl mx-auto">
+      <div className="max-w-4xl">
         <CmsPageHeader
           title="Kelola Sarana & Prasarana"
           description="Daftar fasilitas sekolah beserta ketersediaan dan kondisinya."

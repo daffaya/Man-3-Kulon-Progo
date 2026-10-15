@@ -398,7 +398,7 @@ const CmsZonaIntegritasForm: React.FC = () => {
 
   return (
     <CmsLayout title="CMS — Zona Integritas">
-      <div className="max-w-3xl mx-auto">
+      <div className="max-w-3xl">
         <CmsPageHeader
           title="Kelola Zona Integritas"
           description="Header, 6 area zona integritas, LKJ, dan kontak pengaduan."

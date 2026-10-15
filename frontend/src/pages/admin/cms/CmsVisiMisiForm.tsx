@@ -247,7 +247,7 @@ const CmsVisiMisiForm: React.FC = () => {
 
   return (
     <CmsLayout title="CMS — Visi & Misi">
-      <div className="max-w-3xl mx-auto">
+      <div className="max-w-3xl">
         <CmsPageHeader
           title="Kelola Visi & Misi"
           description="Visi, misi, tujuan, dan strategi madrasah. Setiap bagian disimpan terpisah."

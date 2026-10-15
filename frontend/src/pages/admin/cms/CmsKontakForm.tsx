@@ -117,7 +117,7 @@ const CmsKontakForm: React.FC = () => {
 
   return (
     <CmsLayout title="CMS — Kontak">
-      <div className="max-w-3xl mx-auto">
+      <div className="max-w-3xl">
         <CmsPageHeader
           title="Kelola Halaman Kontak"
           description="Informasi kontak yang ditampilkan di halaman Kontak dan footer website."

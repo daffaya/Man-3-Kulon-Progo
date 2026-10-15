@@ -1,232 +1,111 @@
 /**
- * @fileoverview AdminHeader component — improved version.
- *
- * Improvements over previous version:
- * - Always-solid background (no transparent at top — admin pages don't need it)
- * - Active route highlighting in navigation
- * - Breadcrumb indicator showing current section
- * - Horizontal quick-nav for desktop (Dashboard, CMS, back to site)
- * - Cleaner mobile menu with better hierarchy
- * - Extracted sub-components for readability
- * - Fixed event.target type assertion
+ * @fileoverview AdminHeader — top bar admin (sesuai mockup v2): tombol menu (tablet/mobile),
+ * pencarian artikel, tombol "Lihat Website", notifikasi, tema, dan menu akun.
  */
-
-import React, { useState, useEffect, useRef, useCallback } from "react";
-import { Link, useNavigate, useLocation } from "react-router-dom";
+import React, { useCallback, useContext, useEffect, useRef, useState } from "react";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import {
-  User,
-  LogOut,
+  Bell,
   ChevronDown,
-  LayoutDashboard,
-  Globe,
-  FileText,
-  Settings,
-  X,
+  ExternalLink,
+  KeyRound,
+  LogOut,
   Menu,
+  Moon,
+  Sun,
+  User,
 } from "lucide-react";
-import ThemeToggle from "../ui/ThemeToggle";
 import { useAuth } from "../../contexts/AuthContext";
-import ImageWithFallback from "../ui/ImageWithFallback";
+import { ThemeContext } from "../../contexts/ThemeContext";
+import {
+  ARTICLE_ROLES,
+  relativeDay,
+  useAdminSummary,
+} from "../../hooks/useAdminSummary";
+import { CMS_NEEDS_CHECK } from "../../pages/admin/cms/cmsPages";
+import AdminSearch from "./AdminSearch";
 
-// ─────────────────────────────────────────────
-// Types
-// ─────────────────────────────────────────────
-
-interface NavItem {
-  label: string;
-  to: string;
-  icon: React.ReactNode;
-  /** If true, only exact match highlights this item */
-  exact?: boolean;
+interface Props {
+  onMenu: () => void;
 }
 
-// ─────────────────────────────────────────────
-// Constants
-// ─────────────────────────────────────────────
+/** Dropdown kecil: tutup saat klik di luar, Escape, atau pindah halaman. */
+const useDropdown = () => {
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+  const { pathname } = useLocation();
 
-/** Quick-navigation items shown in the admin header. */
-const NAV_ITEMS: NavItem[] = [
-  {
-    label: "Dashboard",
-    to: "/atmin",
-    icon: <LayoutDashboard size={15} />,
-    exact: true,
-  },
-  { label: "Kelola Konten", to: "/atmin/cms", icon: <Settings size={15} /> },
-  { label: "Artikel", to: "/atmin/articles", icon: <FileText size={15} /> },
-  { label: "Lihat Website", to: "/", icon: <Globe size={15} /> },
-];
+  useEffect(() => setOpen(false), [pathname]);
+  useEffect(() => {
+    if (!open) return;
+    const onDown = (e: MouseEvent) => {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
+    };
+    const onKey = (e: KeyboardEvent) => e.key === "Escape" && setOpen(false);
+    document.addEventListener("mousedown", onDown);
+    document.addEventListener("keydown", onKey);
+    return () => {
+      document.removeEventListener("mousedown", onDown);
+      document.removeEventListener("keydown", onKey);
+    };
+  }, [open]);
 
-// ─────────────────────────────────────────────
-// Sub-components
-// ─────────────────────────────────────────────
-
-/**
- * Avatar element — shows user image or fallback icon.
- * @param {object} props
- * @param {string | null} props.avatarUrl - URL to the user's avatar image
- * @param {string} props.displayName - Name used as alt text
- * @param {string} [props.className] - Additional CSS classes for the wrapper
- */
-const UserAvatar: React.FC<{
-  avatarUrl: string | null;
-  displayName: string;
-  className?: string;
-}> = ({ avatarUrl, displayName, className = "h-8 w-8" }) => (
-  <div
-    className={`${className} rounded-full bg-semibackground flex items-center justify-center overflow-hidden ring-2 ring-accent/20`}
-  >
-    {avatarUrl ? (
-      <ImageWithFallback
-        src={avatarUrl}
-        alt={displayName}
-        className="w-full h-full object-cover"
-        fallback="/logo.png"
-      />
-    ) : (
-      <User size={16} className="text-secondary" />
-    )}
-  </div>
-);
-
-/**
- * Single desktop navigation link with active state.
- * @param {object} props
- * @param {NavItem} props.item - Navigation item data
- * @param {string} props.currentPath - Current URL pathname
- */
-const DesktopNavLink: React.FC<{ item: NavItem; currentPath: string }> = ({
-  item,
-  currentPath,
-}) => {
-  const isActive = item.exact
-    ? currentPath === item.to
-    : currentPath.startsWith(item.to);
-
-  return (
-    <Link
-      to={item.to}
-      className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium transition-all duration-200 ${
-        isActive
-          ? "bg-accent/10 text-accent"
-          : "text-secondary hover:text-foreground hover:bg-semibackground"
-      }`}
-    >
-      {item.icon}
-      {item.label}
-    </Link>
-  );
+  return { open, setOpen, ref };
 };
 
-/**
- * Profile dropdown menu shown on desktop.
- * @param {object} props
- * @param {string} props.displayName - Username to display
- * @param {string} props.displayRole - User role to display
- * @param {string | null} props.avatarUrl - User avatar URL
- * @param {() => void} props.onLogout - Logout handler
- * @param {() => void} props.onClose - Close dropdown handler
- */
-const ProfileDropdown: React.FC<{
-  displayName: string;
-  displayRole: string;
-  avatarUrl: string | null;
-  onLogout: () => void;
-  onClose: () => void;
-}> = ({ displayName, displayRole, avatarUrl, onLogout, onClose }) => (
-  <div className="absolute right-0 mt-2 w-56 card shadow-xl z-50 overflow-hidden">
-    {/* User info */}
-    <div className="px-4 py-3 border-b border-border flex items-center gap-3">
-      <UserAvatar
-        avatarUrl={avatarUrl}
-        displayName={displayName}
-        className="h-10 w-10"
-      />
-      <div className="min-w-0">
-        <p className="text-sm font-semibold text-foreground truncate">
-          {displayName}
-        </p>
-        <p className="text-xs text-secondary capitalize">
-          {displayRole.replace("_", " ")}
-        </p>
-      </div>
-    </div>
-
-    {/* Actions */}
-    <div className="py-1">
-      <Link
-        to="/atmin/userProfile"
-        onClick={onClose}
-        className="flex items-center gap-2 px-4 py-2.5 text-sm text-foreground hover:bg-semibackground transition-colors"
-      >
-        <User size={15} className="text-secondary" />
-        Profil Saya
-      </Link>
-      <button
-        onClick={onLogout}
-        className="flex items-center gap-2 w-full px-4 py-2.5 text-sm text-red-500 hover:bg-red-50 dark:hover:bg-red-950/30 transition-colors"
-      >
-        <LogOut size={15} />
-        Keluar
-      </button>
-    </div>
-  </div>
-);
-
-// ─────────────────────────────────────────────
-// Main Component
-// ─────────────────────────────────────────────
-
-/**
- * AdminHeader — fixed header for all admin pages.
- *
- * Features:
- * - Always-solid background (no transparency)
- * - Quick navigation between admin modules
- * - Profile dropdown with user info
- * - Responsive mobile menu
- * - Active route highlighting
- */
-const AdminHeader: React.FC = () => {
-  const [isProfileOpen, setIsProfileOpen] = useState(false);
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const [isScrolled, setIsScrolled] = useState(false);
-
-  const dropdownRef = useRef<HTMLDivElement>(null);
-  const navigate = useNavigate();
-  const location = useLocation();
+const AdminHeader: React.FC<Props> = ({ onMenu }) => {
   const { user, logout } = useAuth();
+  const { theme, toggleTheme } = useContext(ThemeContext);
+  const navigate = useNavigate();
+  const summary = useAdminSummary();
+  const bell = useDropdown();
+  const account = useDropdown();
 
+  const role = user?.role ?? "";
+  const canArticles = ARTICLE_ROLES.includes(role);
   const displayName = user?.username || "Admin";
-  const displayRole = user?.role || "Administrator";
-  const avatarUrl = user?.avatar || null;
+  const roleLabel = role ? role.replace(/_/g, " ") : "Administrator";
 
-  // ── Scroll shadow ──
-  useEffect(() => {
-    const handleScroll = () => setIsScrolled(window.scrollY > 4);
-    window.addEventListener("scroll", handleScroll, { passive: true });
-    return () => window.removeEventListener("scroll", handleScroll);
-  }, []);
-
-  // ── Close menus on route change ──
-  useEffect(() => {
-    setIsMobileMenuOpen(false);
-    setIsProfileOpen(false);
-  }, [location.pathname]);
-
-  // ── Close dropdown on outside click ──
-  useEffect(() => {
-    const handleClickOutside = (e: MouseEvent) => {
-      if (
-        dropdownRef.current &&
-        !dropdownRef.current.contains(e.target as Node)
-      ) {
-        setIsProfileOpen(false);
-      }
-    };
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
+  const notifs: {
+    key: string;
+    to: string;
+    tone: "wn" | "in" | "ok";
+    badge: string;
+    text: string;
+    meta: string;
+  }[] = [];
+  if (canArticles && summary.drafts > 0) {
+    notifs.push({
+      key: "drafts",
+      to: "/atmin/articles",
+      tone: "wn",
+      badge: "Draf",
+      text: `${summary.drafts} draf menunggu ditinjau`,
+      meta: "Artikel",
+    });
+  }
+  if (role === "super_admin" && CMS_NEEDS_CHECK.length > 0) {
+    notifs.push({
+      key: "cms",
+      to: "/atmin/cms",
+      tone: "in",
+      badge: "Cek",
+      text: `${CMS_NEEDS_CHECK.length} halaman website perlu dicek`,
+      meta: "Halaman Website",
+    });
+  }
+  const latest = summary.latestPublished[0];
+  if (canArticles && latest) {
+    notifs.push({
+      key: "latest",
+      to: "/atmin/articles",
+      tone: "ok",
+      badge: "Info",
+      text: `Artikel "${latest.title.length > 34 ? latest.title.slice(0, 34) + "…" : latest.title}" terbit`,
+      meta: `Artikel · ${relativeDay(latest.publishedDate)}`,
+    });
+  }
+  const attention = notifs.filter((n) => n.tone !== "ok").length;
 
   const handleLogout = useCallback(() => {
     logout();
@@ -234,148 +113,105 @@ const AdminHeader: React.FC = () => {
   }, [logout, navigate]);
 
   return (
-    <>
-      <header
-        className={`fixed top-0 left-0 right-0 z-50 bg-background border-b border-border transition-shadow duration-200 ${
-          isScrolled ? "shadow-md" : "shadow-none"
-        }`}
+    <header className="a-tp">
+      <button
+        type="button"
+        className="a-ic a-hb"
+        onClick={onMenu}
+        aria-label="Buka menu"
+        aria-controls="admin-sidebar"
       >
-        <div className="container max-w-7xl mx-auto px-4 sm:px-6">
-          <div className="flex items-center h-16 gap-4">
-            {/* Logo */}
-            <Link to="/atmin" className="flex items-center gap-2 flex-shrink-0">
-              <img src="/logo.png" alt="Logo MAN 3 KP" className="w-8 h-8" />
-              <span className="hidden sm:block text-sm font-semibold text-foreground">
-                Admin Panel
+        <Menu size={18} />
+      </button>
+
+      <AdminSearch />
+      <div className="a-sp" />
+
+      <a
+        className="a-btn a-hm"
+        href="/"
+        target="_blank"
+        rel="noopener noreferrer"
+      >
+        <ExternalLink size={16} />
+        Lihat Website
+      </a>
+
+      <div className={`a-dd${bell.open ? " a-open" : ""}`} ref={bell.ref}>
+        <button
+          type="button"
+          className="a-ic"
+          aria-label="Notifikasi"
+          aria-expanded={bell.open}
+          onClick={() => {
+            account.setOpen(false);
+            bell.setOpen((v) => !v);
+          }}
+        >
+          <Bell size={18} />
+          {attention > 0 && <span className="a-pip" />}
+        </button>
+        <div className="a-md" style={{ width: 310 }}>
+          <div className="a-mh">
+            <b>Notifikasi</b>
+            {attention > 0 ? `${attention} perlu perhatian` : "Tidak ada yang perlu ditindaklanjuti"}
+          </div>
+          {notifs.map((n) => (
+            <Link key={n.key} to={n.to} className="a-menu-link">
+              <span className={`a-b a-${n.tone}`}>{n.badge}</span>
+              <span>
+                {n.text}
+                <small>{n.meta}</small>
               </span>
             </Link>
-
-            {/* Divider */}
-            <div className="hidden md:block w-px h-5 bg-border" />
-
-            {/* Desktop Nav */}
-            <nav className="hidden md:flex items-center gap-1 flex-1">
-              {NAV_ITEMS.map((item) => (
-                <DesktopNavLink
-                  key={item.to}
-                  item={item}
-                  currentPath={location.pathname}
-                />
-              ))}
-            </nav>
-
-            {/* Right side */}
-            <div className="flex items-center gap-2 ml-auto">
-              <ThemeToggle />
-
-              {/* Profile dropdown */}
-              <div className="relative" ref={dropdownRef}>
-                <button
-                  onClick={() => setIsProfileOpen((prev) => !prev)}
-                  className="flex items-center gap-2 px-2 py-1.5 rounded-lg hover:bg-semibackground transition-colors"
-                  aria-label="Profil pengguna"
-                  aria-expanded={isProfileOpen}
-                >
-                  <UserAvatar avatarUrl={avatarUrl} displayName={displayName} />
-                  <span className="hidden md:block text-sm font-medium text-foreground max-w-[120px] truncate">
-                    {displayName}
-                  </span>
-                  <ChevronDown
-                    size={14}
-                    className={`hidden md:block text-secondary transition-transform duration-200 ${
-                      isProfileOpen ? "rotate-180" : ""
-                    }`}
-                  />
-                </button>
-
-                {isProfileOpen && (
-                  <ProfileDropdown
-                    displayName={displayName}
-                    displayRole={displayRole}
-                    avatarUrl={avatarUrl}
-                    onLogout={handleLogout}
-                    onClose={() => setIsProfileOpen(false)}
-                  />
-                )}
-              </div>
-
-              {/* Mobile menu toggle */}
-              <button
-                onClick={() => setIsMobileMenuOpen((prev) => !prev)}
-                className="md:hidden p-2 rounded-lg text-secondary hover:text-foreground hover:bg-semibackground transition-colors"
-                aria-label="Toggle menu navigasi"
-                aria-expanded={isMobileMenuOpen}
-              >
-                {isMobileMenuOpen ? <X size={20} /> : <Menu size={20} />}
-              </button>
-            </div>
-          </div>
+          ))}
         </div>
-      </header>
+      </div>
 
-      {/* Mobile Menu */}
-      {isMobileMenuOpen && (
-        <div className="fixed top-16 left-0 right-0 z-40 bg-background border-b border-border shadow-lg md:hidden">
-          {/* User info */}
-          <div className="flex items-center gap-3 px-4 py-3 border-b border-border">
-            <UserAvatar
-              avatarUrl={avatarUrl}
-              displayName={displayName}
-              className="h-10 w-10"
-            />
-            <div>
-              <p className="text-sm font-semibold text-foreground">
-                {displayName}
-              </p>
-              <p className="text-xs text-secondary capitalize">
-                {displayRole.replace("_", " ")}
-              </p>
-            </div>
+      <button
+        type="button"
+        className="a-ic"
+        onClick={toggleTheme}
+        aria-label={theme === "dark" ? "Beralih ke mode terang" : "Beralih ke mode gelap"}
+      >
+        {theme === "dark" ? <Sun size={18} /> : <Moon size={18} />}
+      </button>
+
+      <div className={`a-dd${account.open ? " a-open" : ""}`} ref={account.ref}>
+        <button
+          type="button"
+          className="a-btn"
+          aria-label="Menu akun"
+          aria-expanded={account.open}
+          onClick={() => {
+            bell.setOpen(false);
+            account.setOpen((v) => !v);
+          }}
+        >
+          <span className="a-av">{displayName.charAt(0).toUpperCase()}</span>
+          <span className="a-hm">{displayName}</span>
+          <ChevronDown size={16} />
+        </button>
+        <div className="a-md">
+          <div className="a-mh">
+            <b>{displayName}</b>
+            <span style={{ textTransform: "capitalize" }}>{roleLabel}</span>
           </div>
-
-          {/* Nav items */}
-          <nav className="py-2">
-            {NAV_ITEMS.map((item) => {
-              const isActive = item.exact
-                ? location.pathname === item.to
-                : location.pathname.startsWith(item.to);
-              return (
-                <Link
-                  key={item.to}
-                  to={item.to}
-                  className={`flex items-center gap-3 px-4 py-3 text-sm transition-colors ${
-                    isActive
-                      ? "text-accent bg-accent/5"
-                      : "text-foreground hover:bg-semibackground"
-                  }`}
-                >
-                  {item.icon}
-                  {item.label}
-                </Link>
-              );
-            })}
-          </nav>
-
-          {/* Actions */}
-          <div className="border-t border-border py-2">
-            <Link
-              to="/atmin/userProfile"
-              className="flex items-center gap-3 px-4 py-3 text-sm text-foreground hover:bg-semibackground transition-colors"
-            >
-              <User size={15} className="text-secondary" />
-              Profil Saya
-            </Link>
-            <button
-              onClick={handleLogout}
-              className="flex items-center gap-3 w-full px-4 py-3 text-sm text-red-500 hover:bg-red-50 dark:hover:bg-red-950/30 transition-colors"
-            >
-              <LogOut size={15} />
-              Keluar
-            </button>
-          </div>
+          <Link to="/atmin/userProfile" className="a-menu-link">
+            <User size={16} />
+            Profil saya
+          </Link>
+          <Link to="/atmin/userProfile" className="a-menu-link">
+            <KeyRound size={16} />
+            Ganti password
+          </Link>
+          <button type="button" className="a-menu-link" onClick={handleLogout}>
+            <LogOut size={16} />
+            Keluar
+          </button>
         </div>
-      )}
-    </>
+      </div>
+    </header>
   );
 };
 

@@ -287,7 +287,7 @@ const CmsPtspForm: React.FC = () => {
 
   return (
     <CmsLayout title="CMS — PTSP">
-      <div className="max-w-3xl mx-auto">
+      <div className="max-w-3xl">
         <CmsPageHeader
           title="Kelola PTSP Online"
           description="Header halaman dan daftar layanan terpadu satu pintu."

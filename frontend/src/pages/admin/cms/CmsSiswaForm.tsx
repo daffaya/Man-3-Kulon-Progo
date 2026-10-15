@@ -145,7 +145,7 @@ const CmsSiswaForm: React.FC = () => {
 
   return (
     <CmsLayout title="CMS — Siswa">
-      <div className="max-w-3xl mx-auto">
+      <div className="max-w-3xl">
         <CmsPageHeader
           title="Kelola Data Peserta Didik"
           description="Rekapitulasi jumlah siswa per kelas. Update setiap awal tahun ajaran baru."

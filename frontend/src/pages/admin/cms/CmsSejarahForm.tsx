@@ -97,7 +97,7 @@ const CmsSejarahForm: React.FC = () => {
 
   return (
     <CmsLayout title="CMS — Sejarah">
-      <div className="max-w-3xl mx-auto">
+      <div className="max-w-3xl">
         <CmsPageHeader
           title="Kelola Halaman Sejarah"
           description="Paragraf teks yang ditampilkan di halaman Sejarah madrasah."

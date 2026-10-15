@@ -101,7 +101,7 @@ const CmsWebAppForm: React.FC = () => {
 
   return (
     <CmsLayout title="CMS — Web App">
-      <div className="max-w-3xl mx-auto">
+      <div className="max-w-3xl">
         <CmsPageHeader
           title="Kelola Halaman Aplikasi Sekolah"
           description="Judul dan deskripsi yang tampil di header halaman Web App."

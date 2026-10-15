@@ -1,233 +1,264 @@
 /**
- * @fileoverview Admin dashboard component that displays available applications based on user roles.
- * This component serves as the main entry point for the admin panel, showing different
- * application cards according to the authenticated user's permissions. It handles authentication
- * checks and redirects unauthenticated users to the login page.
+ * @fileoverview Dashboard admin (mockup v2): pusatnya menulis artikel — tombol "Tulis Artikel",
+ * tiga angka ringkas, daftar draf untuk dilanjutkan, artikel terbaru, pintasan, dan
+ * halaman website yang perlu dicek. Widget artikel hanya untuk role yang boleh mengelola artikel.
  */
-
-import React, { useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import React from "react";
+import { Link } from "react-router-dom";
 import {
   Archive,
-  Clipboard,
+  ChevronRight,
+  FilePen,
+  Image as ImageIcon,
+  Images,
+  Newspaper,
+  PanelsTopLeft,
+  Plus,
+  Send,
+  Upload,
   Users,
-  BookOpen,
-  Image,
-  LogIn,
-  UserCheck,
-  UserPlus,
-  GraduationCap,
-  LayoutDashboard,
 } from "lucide-react";
-import AppCard from "../../components/ui/AppCard";
-import { useAuth } from "../../contexts/AuthContext";
-import { useToastMessage } from "../../hooks/useToastMessage";
+import type { LucideIcon } from "lucide-react";
 import AdminLayout from "../../components/layout/AdminLayout";
-import type { UserRole } from "../../types/userTypes";
+import { useAuth } from "../../contexts/AuthContext";
+import {
+  ARTICLE_ROLES,
+  relativeDay,
+  shortDate,
+  useAdminSummary,
+} from "../../hooks/useAdminSummary";
+import { CMS_NEEDS_CHECK } from "./cms/cmsPages";
 
-/**
- * Admin dashboard component that displays application cards based on user roles.
- * Serves as the main entry point for the admin panel, showing different
- * applications according to the authenticated user's permissions.
- */
+interface Shortcut {
+  label: string;
+  to: string;
+  icon: LucideIcon;
+  roles?: string[];
+}
+
+const SHORTCUTS: Shortcut[] = [
+  { label: "Tambah album galeri", to: "/atmin/gallery/new", icon: Images },
+  { label: "Unggah arsip dokumen", to: "/atmin/uploadArchive", icon: Upload, roles: ["arsiparis"] },
+  { label: "Edit halaman website", to: "/atmin/cms", icon: PanelsTopLeft, roles: [] },
+  { label: "Kelola guru & staf", to: "/atmin/staff", icon: Users, roles: [] },
+];
+
+const greeting = (h: number) =>
+  h < 11 ? "pagi" : h < 15 ? "siang" : h < 18 ? "sore" : "malam";
+
 const AdminDashboard: React.FC = () => {
-  const navigate = useNavigate();
-  const { user, isLoggedIn, isLoadingAuth } = useAuth();
-  const { showErrorToast } = useToastMessage();
+  const { user } = useAuth();
+  const s = useAdminSummary();
+  const role = user?.role ?? "";
+  const canArticles = ARTICLE_ROLES.includes(role);
+  const isSuper = role === "super_admin";
+  const now = new Date();
+  const dateLabel = now.toLocaleDateString("id-ID", {
+    weekday: "long",
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+  });
 
-  useEffect(() => {
-    if (!isLoadingAuth && !isLoggedIn) {
-      navigate("/login", { state: { redirectTo: "/atmin" } });
-    }
-  }, [isLoadingAuth, isLoggedIn, navigate]);
-
-  if (isLoadingAuth) {
-    return (
-      <AdminLayout children={undefined}>{/* skeleton loading */}</AdminLayout>
-    );
-  }
-
-  if (!isLoggedIn) {
-    return null;
-  }
-
-  const userRole = (user?.role || "User") as UserRole;
-  const username = user?.username || "Administrator";
-
-  const apps = [
+  const delta = s.publishedThisMonth - s.publishedLastMonth;
+  const stats: { icon: LucideIcon; label: string; value: string; sub: React.ReactNode }[] = [
     {
-      id: "cms",
-      title: "CMS",
-      description: "Kelola konten website sekolah dengan mudah",
-      icon: <LayoutDashboard className="w-6 h-6" />,
-      requiredRole: [
-        "super_admin",
-        "jurnalis",
-        "arsiparis",
-        "guru_bk",
-        "pengelola_bmn",
-      ] as UserRole[],
-      to: "/atmin/cms",
+      icon: Send,
+      label: "Terbit bulan ini",
+      value: String(s.publishedThisMonth),
+      sub:
+        delta === 0 ? (
+          "Sama seperti bulan lalu"
+        ) : (
+          <>
+            <span className={delta > 0 ? "a-up" : undefined}>
+              {delta > 0 ? "+" : "−"}
+              {Math.abs(delta)}
+            </span>{" "}
+            dari bulan lalu
+          </>
+        ),
     },
     {
-      id: "articles",
-      title: "Artikel Sekolah",
-      description: "Buat dan kelola artikel untuk website sekolah",
-      icon: <BookOpen className="w-6 h-6" />,
-      requiredRole: "jurnalis" as UserRole,
-      to: "/atmin/articles",
+      icon: FilePen,
+      label: "Draf",
+      value: String(s.drafts),
+      sub: s.draftList[0]
+        ? `Terakhir disunting ${relativeDay(s.draftList[0].lastModified)}`
+        : "Tidak ada draf",
     },
     {
-      id: "articles",
-      title: "Artikel Sekolah",
-      description: "Buat dan kelola artikel untuk website sekolah",
-      icon: <BookOpen className="w-6 h-6" />,
-      requiredRole: "jurnalis" as UserRole,
-      to: "/atmin/articles",
-    },
-    {
-      id: "archives",
-      title: "Manajemen Arsip",
-      description: "Kelola dokumen dan arsip sekolah dengan mudah",
-      icon: <Archive className="w-6 h-6" />,
-      requiredRole: "arsiparis" as UserRole,
-      to: "/archives",
-    },
-    {
-      id: "presensi",
-      title: "Presensi Siswa",
-      description: "Rekap presensi dan kehadiran siswa",
-      icon: <Users className="w-6 h-6" />,
-      requiredRole: "guru_bk" as UserRole,
-      to: "/atmin/presensi",
-    },
-    {
-      id: "users",
-      title: "Manajemen User",
-      description: "Kelola pengguna sistem",
-      icon: <Users className="w-6 h-6" />,
-      requiredRole: "super_admin" as UserRole,
-      to: "/atmin/users",
-    },
-    {
-      id: "inventory",
-      title: "Inventaris",
-      description: "Pantau dan kelola barang inventaris sekolah",
-      icon: <Clipboard className="w-6 h-6" />,
-      requiredRole: "pengelola_bmn" as UserRole,
-      to: "/atmin/inventory",
-    },
-    {
-      id: "galeri",
-      title: "Galeri Sekolah",
-      description: "Kelola foto dan video kegiatan sekolah",
-      icon: <Image className="w-6 h-6" />,
-      requiredRole: [
-        "super_admin",
-        "jurnalis",
-        "arsiparis",
-        "guru_bk",
-        "pengelola_bmn",
-      ] as UserRole[],
-      to: "/atmin/gallery",
-    },
-    {
-      id: "pmbm",
-      title: "PMBM",
-      description: "Dashboard Penerimaan Murid Baru Madrasah",
-      icon: <UserPlus className="w-6 h-6" />,
-      requiredRole: [
-        "super_admin",
-        "jurnalis",
-        "arsiparis",
-        "guru_bk",
-        "pengelola_bmn",
-      ] as UserRole[],
-      to: "/atmin/pmbm",
-    },
-    {
-      id: "kelulusan",
-      title: "Cek Kelulusan",
-      description: "Kelola dan lihat hasil kelulusan siswa",
-      icon: <GraduationCap className="w-6 h-6" />,
-      requiredRole: ["super_admin", "guru_bk"] as UserRole[],
-      to: "/atmin/kelulusan",
-    },
-    {
-      id: "staff",
-      title: "Manajemen Guru & Staf",
-      description: "Kelola data guru dan tenaga kependidikan",
-      icon: <UserCheck className="w-6 h-6" />,
-      requiredRole: ["super_admin"] as UserRole[],
-      to: "/atmin/staff",
+      icon: Newspaper,
+      label: "Total artikel",
+      value: String(s.total),
+      sub: s.lastPublishedDate
+        ? `Terakhir terbit ${shortDate(s.lastPublishedDate)}`
+        : "Belum ada artikel terbit",
     },
   ];
 
-  /**
-   * Checks if the current user has access to a specific application based on required roles.
-   * Super admins have access to all applications.
-   * @param {UserRole | UserRole[]} requiredRole - Required role(s) for the application
-   * @returns {boolean} True if user has access, otherwise false
-   */
-  const hasAccess = (requiredRole: UserRole | UserRole[]): boolean => {
-    if (userRole === "super_admin") return true;
-    if (Array.isArray(requiredRole)) return requiredRole.includes(userRole);
-    return userRole === requiredRole;
-  };
-
-  /**
-   * Handles application card clicks by checking permissions and navigating if authorized.
-   * Shows an error toast if the user lacks permission.
-   * @param {UserRole | UserRole[]} requiredRole - Required role(s) for the application
-   * @param {string} to - Navigation path for the application
-   */
-  const handleAppClick = (requiredRole: UserRole | UserRole[], to: string) => {
-    if (!hasAccess(requiredRole)) {
-      showErrorToast("Anda tidak memiliki akses ke aplikasi ini");
-      return;
-    }
-    navigate(to);
-  };
-
-  const visibleApps = apps.filter((app) => hasAccess(app.requiredRole));
+  const shortcuts = SHORTCUTS.filter(
+    (x) => isSuper || !x.roles || x.roles.includes(role),
+  );
 
   return (
     <AdminLayout>
-      <div className="container mx-auto px-4 sm:px-6 py-8 fade-in">
-        <div className="mb-10">
-          <h1 className="text-3xl md:text-4xl font-serif font-bold text-foreground mb-2">
-            Dashboard Admin
-          </h1>
-          <p className="text-lg text-secondary">
-            Selamat datang kembali,{" "}
-            <span className="font-medium">{username}</span>
-          </p>
+      <div className="a-pg">
+        <div className="a-hd">
+          <div>
+            <h1 className="a-h1">
+              Selamat {greeting(now.getHours())}, {user?.username || "Admin"}
+            </h1>
+            <p className="a-sub">{dateLabel}</p>
+          </div>
+          {canArticles && (
+            <Link to="/atmin/articles/new" className="a-btn a-p">
+              <Plus size={18} />
+              Tulis Artikel
+            </Link>
+          )}
         </div>
 
-        {visibleApps.length > 0 ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            {visibleApps.map((app) => (
-              <AppCard
-                key={app.id}
-                title={app.title}
-                description={app.description}
-                icon={app.icon}
-                onClick={() => handleAppClick(app.requiredRole, app.to)}
-              />
+        {canArticles && (
+          <div className="a-g a-g3">
+            {stats.map(({ icon: Icon, label, value, sub }) => (
+              <div key={label} className="a-cd a-st">
+                <div className="a-l">
+                  <Icon size={18} />
+                  {label}
+                </div>
+                {s.loading ? (
+                  <>
+                    <div className="a-sk" style={{ width: 56, height: 28, margin: "10px 0 8px" }} />
+                    <div className="a-sk" style={{ width: "70%" }} />
+                  </>
+                ) : (
+                  <>
+                    <div className="a-v">{s.error ? "—" : value}</div>
+                    <div className="a-d">{s.error ? "Gagal memuat data" : sub}</div>
+                  </>
+                )}
+              </div>
             ))}
           </div>
-        ) : (
-          <div className="card p-12 text-center">
-            <div className="mx-auto w-20 h-20 bg-semibackground/50 rounded-full flex items-center justify-center mb-5">
-              <LogIn className="h-10 w-10 text-secondary/60" />
+        )}
+
+        <div className={canArticles ? "a-g a-g2" : "a-g"} style={canArticles ? undefined : { maxWidth: 520 }}>
+          {canArticles && (
+            <div className="a-g" style={{ alignContent: "start" }}>
+              <section className="a-cd a-z">
+                <div className="a-gh">
+                  <h2 className="a-h2">Lanjutkan menulis</h2>
+                  <span className="a-b a-wn">{s.drafts} draf</span>
+                </div>
+                {s.loading ? (
+                  [0, 1].map((i) => (
+                    <div key={i} className="a-cr">
+                      <div className="a-sk" style={{ width: "60%" }} />
+                    </div>
+                  ))
+                ) : s.draftList.length === 0 ? (
+                  <div className="a-em" style={{ padding: "28px 16px" }}>
+                    <FilePen />
+                    <b>Tidak ada draf</b>
+                    Semua tulisan sudah terbit.
+                  </div>
+                ) : (
+                  s.draftList.slice(0, 3).map((a) => (
+                    <div key={a.id} className="a-cr">
+                      <span className="a-th a-wn"><FilePen size={18} /></span>
+                      <p>
+                        <b>{a.title}</b>
+                        <span>
+                          {a.category ?? "Tanpa kategori"} · disunting {shortDate(a.lastModified)}
+                        </span>
+                      </p>
+                      <Link to={`/atmin/articles/${a.id}/edit`} className="a-btn a-sm">
+                        Lanjutkan
+                      </Link>
+                    </div>
+                  ))
+                )}
+              </section>
+
+              <section className="a-cd a-z">
+                <div className="a-gh">
+                  <h2 className="a-h2">Artikel terbaru</h2>
+                  <Link to="/atmin/articles" className="a-btn a-sm">Lihat semua</Link>
+                </div>
+                {s.loading ? (
+                  [0, 1, 2].map((i) => (
+                    <div key={i} className="a-cr">
+                      <div className="a-sk" style={{ width: "70%" }} />
+                    </div>
+                  ))
+                ) : s.latestPublished.length === 0 ? (
+                  <div className="a-em" style={{ padding: "28px 16px" }}>
+                    <Newspaper />
+                    <b>Belum ada artikel terbit</b>
+                  </div>
+                ) : (
+                  s.latestPublished.map((a) => (
+                    <div key={a.id} className="a-cr">
+                      <span className="a-th">
+                        {a.coverImage ? <img src={a.coverImage} alt="" loading="lazy" /> : <ImageIcon size={18} />}
+                      </span>
+                      <p>
+                        <b>{a.title}</b>
+                        <span>
+                          {a.category ?? "Tanpa kategori"} · {shortDate(a.publishedDate)}
+                        </span>
+                      </p>
+                      <span className="a-b a-ok a-hm">Terbit</span>
+                      <Link to={`/atmin/articles/${a.id}/edit`} className="a-btn a-sm">Edit</Link>
+                    </div>
+                  ))
+                )}
+              </section>
             </div>
-            <h3 className="text-xl font-semibold text-foreground mb-2">
-              Tidak Ada Akses Aplikasi
-            </h3>
-            <p className="text-secondary max-w-md mx-auto">
-              Role Anda saat ini tidak memiliki akses ke aplikasi admin. Hubungi
-              super admin untuk penyesuaian.
-            </p>
+          )}
+
+          <div className="a-g" style={{ alignContent: "start" }}>
+            {shortcuts.length > 0 && (
+              <section className="a-cd a-z">
+                <div className="a-gh"><h2 className="a-h2">Pintasan</h2></div>
+                {shortcuts.map(({ label, to, icon: Icon }) => (
+                  <Link key={to} to={to} className="a-cr" style={{ width: "100%" }}>
+                    <span className="a-th"><Icon size={18} /></span>
+                    <p><b>{label}</b></p>
+                    <ChevronRight size={18} />
+                  </Link>
+                ))}
+              </section>
+            )}
+
+            {isSuper && (
+              <section className="a-cd a-z">
+                <div className="a-gh">
+                  <h2 className="a-h2">Halaman website perlu dicek</h2>
+                  <span className="a-b a-wn">{CMS_NEEDS_CHECK.length}</span>
+                </div>
+                {CMS_NEEDS_CHECK.map((p) => (
+                  <div key={p.to} className="a-cr">
+                    <p>
+                      <b>{p.label}</b>
+                      <span>{p.badge}</span>
+                    </p>
+                    <Link to={p.to} className="a-btn a-sm">Edit</Link>
+                  </div>
+                ))}
+              </section>
+            )}
+          </div>
+        </div>
+
+        {!canArticles && shortcuts.length === 0 && (
+          <div className="a-cd">
+            <div className="a-em">
+              <Archive />
+              <b>Belum ada pintasan</b>
+              Gunakan menu di samping untuk membuka fitur yang tersedia untuk akun Anda.
+            </div>
           </div>
         )}
       </div>
