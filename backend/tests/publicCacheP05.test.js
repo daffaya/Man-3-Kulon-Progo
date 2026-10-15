@@ -9,6 +9,8 @@ import publicCache, { PUBLIC_CACHE } from "../src/middleware/publicCache.js";
 import cmsRouterFactory from "../src/routes/cmsRoutes.js";
 import publicArticleRouterFactory from "../src/routes/publicArticleRoutes.js";
 import publicGalleryRouterFactory from "../src/routes/publicGalleryRoutes.js";
+import publicStaffRouterFactory from "../src/routes/publicStaffRoutes.js";
+import publicStudentStatsRouterFactory from "../src/routes/publicStudentStatRoutes.js";
 
 let server;
 let base;
@@ -114,5 +116,17 @@ test("public article router: list and detail are wired", () => {
 test("public gallery router: albums and album detail are wired", () => {
   const routes = wiredGetRoutes(publicGalleryRouterFactory({ pool: {} }));
   assert.deepEqual(routes.map((r) => r.path), ["/albums", "/albums/:slug"]);
+  assert.ok(routes.every((r) => r.cached), JSON.stringify(routes));
+});
+
+test("public staff router: teacher/staff recap and tendik are wired", () => {
+  const routes = wiredGetRoutes(publicStaffRouterFactory({ pool: {} }));
+  assert.deepEqual(routes.map((r) => r.path), ["/teachers/recap", "/staff/recap", "/tendik"]);
+  assert.ok(routes.every((r) => r.cached), JSON.stringify(routes));
+});
+
+test("public student stats router: /students is wired", () => {
+  const routes = wiredGetRoutes(publicStudentStatsRouterFactory({ pool: {} }));
+  assert.deepEqual(routes.map((r) => r.path), ["/students"]);
   assert.ok(routes.every((r) => r.cached), JSON.stringify(routes));
 });

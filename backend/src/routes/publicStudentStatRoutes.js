@@ -4,6 +4,7 @@
  */
 
 import { Router } from "express";
+import publicCache, { PUBLIC_CACHE } from "../middleware/publicCache.js";
 
 /**
  * Higher-order function to wrap async route handlers.
@@ -33,6 +34,7 @@ const publicStudentStatsRouterFactory = ({ pool }) => {
    */
   router.get(
     "/students",
+    publicCache(PUBLIC_CACHE),
     asyncHandler(async (req, res) => {
       try {
         const [rows] = await pool.execute(

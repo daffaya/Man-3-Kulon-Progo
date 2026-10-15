@@ -4,6 +4,7 @@
  */
 
 import { Router } from "express";
+import publicCache, { PUBLIC_CACHE } from "../middleware/publicCache.js";
 
 // Model
 import createStaffModel from "../models/staffModel.js";
@@ -26,9 +27,9 @@ const publicStaffRouterFactory = ({ pool }) => {
   const staffController = createStaffController({ staffModel });
 
   // Public recap routes
-  router.get("/teachers/recap", staffController.getTeacherRecap);
-  router.get("/staff/recap", staffController.getStaffRecap);
-  router.get("/tendik", staffController.getAllTendik);
+  router.get("/teachers/recap", publicCache(PUBLIC_CACHE), staffController.getTeacherRecap);
+  router.get("/staff/recap", publicCache(PUBLIC_CACHE), staffController.getStaffRecap);
+  router.get("/tendik", publicCache(PUBLIC_CACHE), staffController.getAllTendik);
 
   return router;
 };
