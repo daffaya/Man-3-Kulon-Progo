@@ -396,6 +396,16 @@ const importStudentServiceFactory = ({ studentModel }) => {
     const allClasses = await studentModel.getClassesByAcademicYear(academicYear);
     const classByName = new Map(allClasses.map((c) => [c.name, c]));
 
+    if (allClasses.length === 0) {
+      results.hasCriticalError = true;
+      results.errors.push({
+        row: 1,
+        worksheet: worksheetName,
+        error: `Belum ada data kelas untuk tahun ajaran ${academicYear}. Buat kelas tahun ajaran tersebut terlebih dahulu sebelum import.`,
+      });
+      return results;
+    }
+
     const tempData = [];
 
     const validateRowData = (rowData, rowNumber) => {

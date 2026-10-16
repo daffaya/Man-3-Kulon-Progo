@@ -260,19 +260,39 @@ const studentModelFactory = ({ pool }) => {
   };
 
   /**
-   * Retrieves the current academic year from system settings.
+   * Derives the academic year from today's date (school year starts in July).
+   * e.g. Oct 2026 -> "2026/2027", Mar 2027 -> "2026/2027".
+   * @returns {string} Academic year in "YYYY/YYYY" format.
+   */
+  const deriveAcademicYearFromDate = (now = new Date()) => {
+    const year = now.getFullYear();
+    const startYear = now.getMonth() >= 6 ? year : year - 1;
+    return `${startYear}/${startYear + 1}`;
+  };
+
+  /**
+   * Retrieves the current academic year.
+   * Uses the larger of the stored setting and the date-derived year, so a
+   * stale `current_academic_year` setting (never auto-updated) can no longer
+   * pin new imports to last year's classes. A setting manually advanced
+   * ahead of the date still wins.
    * @async
    * @returns {Promise<string>} A promise that resolves to the current academic year string.
    */
   const getCurrentAcademicYear = async () => {
+    const derived = deriveAcademicYearFromDate();
     try {
       const [settings] = await pool.query(
         "SELECT value FROM attendance_system_settings WHERE `key` = 'current_academic_year'"
       );
-      return settings[0]?.value || "2023/2024";
+      const stored = settings[0]?.value;
+      if (stored && /^\d{4}\/\d{4}$/.test(stored) && stored > derived) {
+        return stored;
+      }
+      return derived;
     } catch (error) {
-      // Return default value if table doesn't exist or has error
-      return "2023/2024";
+      // Table missing or query error: fall back to the date-derived year
+      return derived;
     }
   };
 
