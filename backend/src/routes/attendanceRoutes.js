@@ -15,6 +15,8 @@ import {
 import attendanceControllerFactory from "../controllers/attendanceController.js";
 import attendanceModelFactory from "../models/attendanceModel.js";
 import { exportToExcel, exportToPDF } from "../services/exportService.js";
+import { HttpError } from "../utils/errorResponse.js";
+import { isValidDateStr } from "../utils/dateUtils.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -66,11 +68,13 @@ const asyncHandler = (fn) => (req, res, next) => {
  * @param {string} options.JWT_SECRET - Secret key for JWT authentication.
  * @returns {import('express').Router} Configured Express router for attendance endpoints.
  */
-const attendanceRouterFactory = ({ pool, JWT_SECRET }) => {
+const READ_ROLES = ["guru_bk", "super_admin"];
+
+const attendanceRouterFactory = ({ pool, JWT_SECRET, now }) => {
   const router = Router();
   const authenticateToken = authenticateTokenFactory({ JWT_SECRET });
-  const attendanceController = attendanceControllerFactory({ pool });
-  const attendanceModel = attendanceModelFactory({ pool });
+  const attendanceController = attendanceControllerFactory({ pool, now });
+  const attendanceModel = attendanceModelFactory({ pool, now });
 
   router.use(authenticateToken);
 
@@ -90,106 +94,83 @@ const attendanceRouterFactory = ({ pool, JWT_SECRET }) => {
    * @desc    Get attendance records filtered by date and class.
    * @access  Private
    */
-  router.get("/", attendanceController.getAttendanceByDateAndClass);
+  router.get(
+    "/",
+    restrictTo(READ_ROLES),
+    attendanceController.getAttendanceByDateAndClass,
+  );
 
   /**
    * @route   GET /students
    * @desc    Get a list of students filtered by class.
    * @access  Private
    */
-  router.get("/students", attendanceController.getStudentsByClass);
+  router.get(
+    "/students",
+    restrictTo(READ_ROLES),
+    attendanceController.getStudentsByClass,
+  );
 
   /**
    * @route   GET /recap
    * @desc    Get a recap of attendance records.
    * @access  Private
    */
-  router.get("/recap", attendanceController.getAttendanceRecap);
+  router.get(
+    "/recap",
+    restrictTo(READ_ROLES),
+    attendanceController.getAttendanceRecap,
+  );
 
   /**
    * @route   GET /check-existing
    * @desc    Check if attendance data already exists for a given class and date.
-   * @access  Private
+   * @access  Private (guru_bk, super_admin)
    */
   router.get(
     "/check-existing",
-    asyncHandler(async (req, res) => {
-      const { classId, date } = req.query;
-
-      validateRequiredParams({ classId, date }, ["classId", "date"]);
-
-      const existing = await attendanceModel.checkExistingAttendance(
-        date,
-        classId,
-      );
-      res.json({ existing });
-    }),
+    restrictTo(READ_ROLES),
+    attendanceController.checkExistingAttendance,
   );
 
   /**
    * @route   GET /verify
    * @desc    Verify and retrieve attendance data for a specific class and date.
-   * @access  Private
+   * @access  Private (guru_bk, super_admin)
    */
   router.get(
     "/verify",
+    restrictTo(READ_ROLES),
     asyncHandler(async (req, res) => {
       const { classId, date } = req.query;
 
       validateRequiredParams({ classId, date }, ["classId", "date"]);
 
       const attendance = await attendanceModel.getAttendanceByDate(date);
-
       const filteredAttendance = attendance.filter(
         (att) => att.class_id === parseInt(classId),
       );
 
-      res.json({
-        count: filteredAttendance.length,
-        data: filteredAttendance,
-      });
+      res.json({ count: filteredAttendance.length, data: filteredAttendance });
     }),
   );
 
   /**
-   * @route   GET /classes
-   * @desc    Get a list of all available classes.
-   * @access  Private
+   * @route   GET /classes?date=
+   * @desc    Classes of the academic year containing `date` (default today).
+   * @access  Private (guru_bk, super_admin)
    */
-  router.get(
-    "/classes",
-    asyncHandler(async (req, res) => {
-      const classes = await attendanceModel.getClasses();
-      res.json(classes);
-    }),
-  );
+  router.get("/classes", restrictTo(READ_ROLES), attendanceController.getClasses);
 
   /**
    * @route   GET /student/:studentId
-   * @desc    Get attendance records for a specific student within a date range.
-   * @access  Private
+   * @desc    Attendance records of one student within a date range.
+   * @access  Private (guru_bk, super_admin)
    */
   router.get(
     "/student/:studentId",
-    asyncHandler(async (req, res) => {
-      const { studentId } = req.params;
-      const { startDate, endDate } = req.query;
-
-      if (!startDate || !endDate) {
-        return res.status(400).json({
-          error: "Parameter startDate dan endDate wajib diisi",
-        });
-      }
-
-      const attendances =
-        await attendanceModel.getAttendanceByStudentAndDateRange(
-          studentId,
-          startDate,
-          endDate,
-        );
-
-      res.json(attendances);
-    }),
+    restrictTo(READ_ROLES),
+    attendanceController.getAttendanceByStudentAndDateRange,
   );
 
   /**
@@ -197,121 +178,76 @@ const attendanceRouterFactory = ({ pool, JWT_SECRET }) => {
    * @desc    Get attendance statistics for a specific date.
    * @access  Private
    */
-  router.get(
-    "/today-stats",
-    asyncHandler(async (req, res) => {
-      const { date } = req.query;
-
-      validateRequiredParams({ date }, ["date"]);
-
-      const stats = await attendanceModel.getTodayAttendanceStats(date);
-      res.json(stats);
-    }),
-  );
+  router.get("/today-stats", attendanceController.getTodayAttendanceStats);
 
   /**
    * @route   GET /stats
    * @desc    Get attendance statistics for a date range.
    * @access  Private
    */
-  router.get(
-    "/stats",
-    asyncHandler(async (req, res) => {
-      const { startDate, endDate } = req.query;
-
-      if (!startDate || !endDate) {
-        return res.status(400).json({
-          error: "Parameter startDate dan endDate wajib diisi",
-        });
-      }
-
-      const stats = await attendanceModel.getAttendanceStats(
-        startDate,
-        endDate,
-      );
-      res.json(stats);
-    }),
-  );
+  router.get("/stats", attendanceController.getAttendanceStats);
 
   /**
    * @route   POST /holidays
-   * @desc    Add a new school holiday.
-   * @access  Private (guru_bk, super_admin)
+   * @desc    Add a school holiday. The academic year is derived from the
+   *          date on the server; a client-supplied year is ignored.
+   * @access  Private (super_admin)
    */
   router.post(
     "/holidays",
-    restrictTo(["guru_bk", "super_admin"]),
+    restrictTo([]),
     asyncHandler(async (req, res) => {
-      const { date, description, academicYear } = req.body;
+      const { date, description } = req.body || {};
 
-      validateRequiredParams({ date, description, academicYear }, [
-        "date",
-        "description",
-        "academicYear",
-      ]);
+      validateRequiredParams({ date, description }, ["date", "description"]);
+      if (!isValidDateStr(date)) {
+        return res.status(400).json({ error: "Tanggal harus berformat YYYY-MM-DD" });
+      }
 
-      const existingHoliday = await attendanceModel.getHolidayByDate(date);
-
-      if (existingHoliday) {
-        return res.status(400).json({ error: "Tanggal libur sudah ada" });
+      if (await attendanceModel.getHolidayByDate(date)) {
+        return res.status(409).json({ error: "Tanggal libur sudah ada" });
       }
 
       try {
-        await pool.query(
-          "INSERT INTO school_holidays (date, description, academic_year) VALUES (?, ?, ?)",
-          [date, description, academicYear],
-        );
-
-        res.json({ success: true, message: "Hari libur berhasil ditambahkan" });
-      } catch (error) {
-        console.error("Error adding holiday:", error);
-
-        if (error.code === "ER_DUP_ENTRY") {
-          if (error.message.includes("PRIMARY")) {
-            return res.status(500).json({
-              error:
-                "Terjadi kesalahan dengan ID primary key. Silakan hubungi administrator.",
-            });
-          } else if (error.message.includes("date")) {
-            return res.status(400).json({ error: "Tanggal libur sudah ada" });
-          }
+        const result = await attendanceModel.addHoliday(date, String(description).slice(0, 100));
+        if (result.error === "outside_year") {
+          return res
+            .status(422)
+            .json({ error: "Tanggal berada di luar semua tahun ajaran" });
         }
-
-        res.status(500).json({ error: "Gagal menambahkan hari libur" });
+        res.status(201).json({
+          success: true,
+          message: "Hari libur berhasil ditambahkan",
+          academic_year: result.academic_year,
+        });
+      } catch (error) {
+        if (error.code === "ER_DUP_ENTRY") {
+          return res.status(409).json({ error: "Tanggal libur sudah ada" });
+        }
+        throw error;
       }
     }),
   );
 
   /**
    * @route   GET /holidays
-   * @desc    Get a list of school holidays for a specific academic year.
-   * @access  Private
+   * @desc    Get school holidays, optionally for one academic year.
+   * @access  Private (guru_bk, super_admin)
    */
-  router.get(
-    "/holidays",
-    asyncHandler(async (req, res) => {
-      const { academicYear } = req.query;
-
-      const holidays = await attendanceModel.getHolidays(academicYear);
-      res.json(holidays);
-    }),
-  );
+  router.get("/holidays", restrictTo(READ_ROLES), attendanceController.getHolidays);
 
   /**
    * @route   DELETE /holidays/:id
    * @desc    Delete a school holiday by its ID.
-   * @access  Private (guru_bk, super_admin)
+   * @access  Private (super_admin)
    */
   router.delete(
     "/holidays/:id",
-    restrictTo(["guru_bk", "super_admin"]),
+    restrictTo([]),
     asyncHandler(async (req, res) => {
       const { id } = req.params;
 
-      const [result] = await pool.query(
-        "DELETE FROM school_holidays WHERE id = ?",
-        [id],
-      );
+      const [result] = await pool.query("DELETE FROM school_holidays WHERE id = ?", [id]);
 
       if (result.affectedRows === 0) {
         return res.status(404).json({ error: "Hari libur tidak ditemukan" });
@@ -410,21 +346,7 @@ const attendanceRouterFactory = ({ pool, JWT_SECRET }) => {
   router.post(
     "/archive",
     restrictTo(["guru_bk", "super_admin"]),
-    asyncHandler(async (req, res) => {
-      const { academicYear, semester } = req.body;
-
-      validateRequiredParams({ academicYear, semester }, [
-        "academicYear",
-        "semester",
-      ]);
-
-      const result = await attendanceModel.archiveAttendanceData(
-        academicYear,
-        semester,
-      );
-
-      res.json(result);
-    }),
+    attendanceController.archiveAttendanceData,
   );
 
   /**
@@ -523,114 +445,36 @@ const attendanceRouterFactory = ({ pool, JWT_SECRET }) => {
     }),
   );
 
-  /**
-   * @route   GET /absence-analysis/day-of-week
-   * @desc    Get absence data grouped by day of the week.
-   * @access  Private
-   */
+  /** Absence analysis (read) — guru_bk, super_admin. */
   router.get(
     "/absence-analysis/day-of-week",
-    asyncHandler(async (req, res) => {
-      const { classId, startDate, endDate } = req.query;
-
-      validateRequiredParams({ startDate, endDate }, ["startDate", "endDate"]);
-
-      const absenceData = await attendanceModel.getAbsenceByDayOfWeek(
-        classId,
-        startDate,
-        endDate,
-      );
-      res.json({
-        classId,
-        startDate,
-        endDate,
-        data: absenceData,
-      });
-    }),
+    restrictTo(READ_ROLES),
+    attendanceController.getAbsenceByDayOfWeek,
   );
-
-  /**
-   * @route   GET /absence-analysis/by-date
-   * @desc    Get absence data for each calendar date in a date range.
-   * @access  Private
-   */
   router.get(
     "/absence-analysis/by-date",
-    asyncHandler(async (req, res) => {
-      const { classId, startDate, endDate } = req.query;
-
-      validateRequiredParams({ startDate, endDate }, ["startDate", "endDate"]);
-
-      const absenceData = await attendanceModel.getAbsenceByDate(
-        classId,
-        startDate,
-        endDate,
-      );
-      res.json({
-        classId,
-        startDate,
-        endDate,
-        data: absenceData,
-      });
-    }),
+    restrictTo(READ_ROLES),
+    attendanceController.getAbsenceByDate,
   );
-
-  /**
-   * @route   GET /absence-analysis/students-by-date
-   * @desc    Get detailed student absence data for a specific date.
-   * @access  Private
-   */
   router.get(
     "/absence-analysis/students-by-date",
-    asyncHandler(async (req, res) => {
-      const { classId, date } = req.query;
-
-      validateRequiredParams({ date }, ["date"]);
-
-      const students = await attendanceModel.getStudentAbsencesByDate(
-        classId,
-        date,
-      );
-      res.json({
-        classId,
-        date,
-        data: students,
-      });
-    }),
+    restrictTo(READ_ROLES),
+    attendanceController.getStudentAbsencesByDate,
   );
-
-  /**
-   * @route   GET /absence-analysis/monthly-trends
-   * @desc    Get monthly absence trends for a specific class and academic year.
-   * @access  Private
-   */
   router.get(
     "/absence-analysis/monthly-trends",
-    asyncHandler(async (req, res) => {
-      const { classId } = req.query;
-
-      const trends = await attendanceModel.getMonthlyAbsenceTrends(classId);
-      res.json({
-        classId,
-        data: trends,
-      });
-    }),
+    restrictTo(READ_ROLES),
+    attendanceController.getMonthlyAbsenceTrends,
   );
-
-  /**
-   * Global error handler for this router.
-   * Catches any errors from the above routes and sends a JSON response.
-   */
-  router.use((err, req, res, next) => {
-    console.error(err);
-    res.status(500).json({
-      error: err.message || "Terjadi kesalahan pada server",
-    });
-  });
+  router.get(
+    "/absence-analysis/students-by-day-of-week",
+    restrictTo(READ_ROLES),
+    attendanceController.getStudentAbsencesByDayOfWeek,
+  );
 
   /**
    * @route   GET /missing
-   * @desc    Get dates with missing attendance and the classes that are missing.
+   * @desc    Dates with missing attendance and the classes that are missing.
    * @access  Private (guru_bk, super_admin)
    */
   router.get(
@@ -639,28 +483,19 @@ const attendanceRouterFactory = ({ pool, JWT_SECRET }) => {
     attendanceController.getMissingAttendanceByDateRange,
   );
 
-  router.get(
-    "/absence-analysis/students-by-day-of-week",
-    asyncHandler(async (req, res) => {
-      const { classId, startDate, endDate, dayOfWeek } = req.query;
-
-      validateRequiredParams({ startDate, endDate, dayOfWeek }, [
-        "startDate",
-        "endDate",
-        "dayOfWeek",
-      ]);
-
-      const students = await attendanceModel.getStudentAbsencesByDayOfWeek(
-        classId,
-        startDate,
-        endDate,
-        dayOfWeek,
-      );
-      res.json({
-        data: students,
-      });
-    }),
-  );
+  /**
+   * Router-level error handler. Never leaks error.message (AUDIT-012).
+   */
+  router.use((err, req, res, next) => {
+    if (err instanceof HttpError) {
+      return res.status(err.status).json({ error: err.message });
+    }
+    console.error(err);
+    const status = err.message && err.message.startsWith("Parameter ") ? 400 : 500;
+    res.status(status).json({
+      error: status === 400 ? err.message : "Terjadi kesalahan pada server",
+    });
+  });
 
   return router;
 };

@@ -16,6 +16,7 @@ import {
   GraduationCap,
   ClipboardCheck,
   ShieldCheck,
+  CalendarRange,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { useAuth } from "../../contexts/AuthContext";
@@ -164,6 +165,13 @@ const AdminSidebar: React.FC<Props> = ({ open }) => {
           icon: ShieldCheck,
           roles: [],
           match: starts("/atmin/users"),
+        },
+        {
+          label: "Tahun Ajaran",
+          to: "/atmin/tahun-ajaran",
+          icon: CalendarRange,
+          roles: [],
+          match: starts("/atmin/tahun-ajaran"),
         },
       ],
     },

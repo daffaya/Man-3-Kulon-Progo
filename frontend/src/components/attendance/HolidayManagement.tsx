@@ -48,23 +48,6 @@ const HolidayManagement = () => {
   const [loading, setLoading] = useState(false);
   const [deleteLoading, setDeleteLoading] = useState<number | null>(null);
 
-  /**
-   * Generates the current academic year in the format YYYY/YYYY+1
-   * @returns {string} The academic year string (e.g., "2024/2025")
-   */
-  const getCurrentAcademicYear = () => {
-    const currentYear = new Date().getFullYear();
-    const currentMonth = new Date().getMonth();
-
-    // If month is June or earlier, academic year is previous year/current year
-    // If month is July or later, academic year is current year/next year
-    if (currentMonth < 6) {
-      return `${currentYear - 1}/${currentYear}`;
-    } else {
-      return `${currentYear}/${currentYear + 1}`;
-    }
-  };
-
   useEffect(() => {
     const loadHolidays = async () => {
       try {
@@ -95,13 +78,8 @@ const HolidayManagement = () => {
 
     setLoading(true);
     try {
-      await addHoliday(
-        {
-          ...newHoliday,
-          academicYear: getCurrentAcademicYear(), // Fixed: Use proper academic year format
-        },
-        token || "",
-      );
+      // The server derives the academic year from the date.
+      await addHoliday(newHoliday, token || "");
       setNewHoliday({ date: "", description: "" });
       showSuccessToast("Hari libur berhasil ditambahkan");
       const updatedHolidays = await fetchHolidays(token || "");
@@ -111,8 +89,10 @@ const HolidayManagement = () => {
           new Date(b.date).getTime() - new Date(a.date).getTime(),
       );
       setHolidays(sortedHolidays);
-    } catch (error) {
-      showErrorToast("Gagal menambah hari libur");
+    } catch (error: any) {
+      showErrorToast(
+        error?.data?.error || error?.message || "Gagal menambah hari libur",
+      );
     } finally {
       setLoading(false);
     }

@@ -32,15 +32,15 @@ export const signToken = (role, overrides = {}) =>
   );
 
 /**
- * Mounts routerFactory({ pool: fakePool, JWT_SECRET: TEST_JWT_SECRET }) at
+ * Mounts routerFactory({ pool: fakePool, JWT_SECRET: TEST_JWT_SECRET, ...extra }) at
  * mountPath on a fresh Express app and starts it on an ephemeral port.
  * @returns {Promise<{baseUrl: string, close: () => Promise<void>}>}
  */
-export const startTestServer = async (routerFactory, mountPath) => {
+export const startTestServer = async (routerFactory, mountPath, extra = {}) => {
   const app = express();
   app.use(express.json());
   app.use(cookieParser());
-  app.use(mountPath, routerFactory({ pool: fakePool, JWT_SECRET: TEST_JWT_SECRET }));
+  app.use(mountPath, routerFactory({ pool: fakePool, JWT_SECRET: TEST_JWT_SECRET, ...extra }));
 
   return new Promise((resolve) => {
     const server = app.listen(0, "127.0.0.1", () => {

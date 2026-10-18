@@ -13,14 +13,16 @@ const backendUrl =
 /**
  * Custom hook to fetch and manage a list of classes from the API.
  * It provides the list of classes, loading status, any error that occurred,
- * and a function to manually trigger a refetch.
+ * and a function to manually trigger a refetch. Only classes of the academic
+ * year containing `date` (default: today) are returned.
+ * @param {string} [date] - YYYY-MM-DD; defaults to today on the server.
  * @returns {Object} An object containing:
  *   - {Class[]} classes - The array of fetched classes.
  *   - {boolean} loading - True if the data is currently being fetched.
  *   - {string | null} error - An error message if the fetch failed, otherwise null.
  *   - {Function} refetch - A function to manually refetch the classes.
  */
-export const useClasses = () => {
+export const useClasses = (date?: string) => {
   const [classes, setClasses] = useState<Class[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -36,7 +38,8 @@ export const useClasses = () => {
 
     try {
       const token = localStorage.getItem("token");
-      const response = await fetch(`${backendUrl}/api/attendance/classes`, { credentials: "include",
+      const query = date ? `?date=${date}` : "";
+      const response = await fetch(`${backendUrl}/api/attendance/classes${query}`, { credentials: "include",
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -57,7 +60,8 @@ export const useClasses = () => {
 
   useEffect(() => {
     fetchClasses();
-  }, []);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [date]);
 
   return {
     classes,

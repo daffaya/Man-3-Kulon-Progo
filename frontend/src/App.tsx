@@ -47,6 +47,7 @@ const AttendanceStudentPage = lazyWithRetry(() => import("./pages/admin/attendan
 const ArchiveManagementPage = lazyWithRetry(() => import("./pages/archive/ArchiveManagementPage"));
 const UploadArchivePage = lazyWithRetry(() => import("./pages/archive/UploadArchivePage"));
 const EditArchivePage = lazyWithRetry(() => import("./pages/archive/EditArchivePage"));
+const YearTransitionPage = lazyWithRetry(() => import("./pages/admin/YearTransitionPage"));
 const AttendanceInputPage = lazyWithRetry(() => import("./pages/admin/attendance/AttendanceInputPage"));
 const AttendanceRecapPage = lazyWithRetry(() => import("./pages/admin/attendance/AttendanceRecapPage"));
 const AttendanceHolidaysPage = lazyWithRetry(() => import("./pages/admin/attendance/AttendanceHolidaysPage"));
@@ -307,6 +308,12 @@ function App() {
                         <Route
                           path="archives/:id/edit"
                           element={<EditArchivePage />}
+                        />
+
+                        {/* Academic year wizard (super_admin only, enforced in the page and API) */}
+                        <Route
+                          path="tahun-ajaran"
+                          element={<YearTransitionPage />}
                         />
 
                         {/* Attendance */}

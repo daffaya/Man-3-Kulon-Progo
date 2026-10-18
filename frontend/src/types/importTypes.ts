@@ -1,54 +1,56 @@
 /**
- * @fileoverview Type definitions for data import results and error handling.
- * This file defines interfaces for representing the outcome of an import operation,
- * particularly from spreadsheet files that may contain multiple worksheets.
- * It provides structures for detailed success/failure counts, error tracking,
- * and a breakdown of results per worksheet.
+ * @fileoverview Types for the two-step student import (preview -> commit).
+ * Step 1 classifies every row against the database without writing anything;
+ * step 2 applies the batch with the actions the admin chose.
  */
 
-/**
- * Represents the overall result of a multi-worksheet data import operation.
- * It includes a summary of all actions (successes, failures, updates, skips)
- * and a detailed breakdown of the results for each worksheet processed.
- */
-export interface ImportResult {
-  skipBreakdown: any;
-  success: number;
-  failed: number;
-  updated: number;
-  skipped: number;
-  errors: ImportError[];
-  worksheetDetails: { [worksheetName: string]: WorksheetResult };
+/** How a file row relates to what is already in the database. */
+export type ImportCategory =
+  | "new"
+  | "unchanged"
+  | "changed"
+  | "moved"
+  | "error";
+
+export interface ImportFieldDiff {
+  field: string;
+  old: string | null;
+  new: string | null;
 }
 
-/**
- * Represents the import result for a single worksheet within a larger file.
- * This mirrors the structure of ImportResult but is scoped to one specific worksheet.
- */
-export interface WorksheetResult {
-  success: number;
-  failed: number;
-  updated: number;
-  skipped: number;
-  errors: ImportError[];
-}
-
-/**
- * Represents a single error that occurred during the import process.
- * Provides context about the location and nature of the error.
- */
-export interface ImportError {
+export interface ImportPreviewRow {
   row: number;
-  worksheet?: string;
-  error: string;
+  worksheet: string;
+  nisn: string;
+  name: string;
+  category: ImportCategory;
+  class_name?: string | null;
+  current_class_name?: string | null;
+  diff?: ImportFieldDiff[];
+  errors?: string[];
 }
 
-/**
- * Represents the top-level API response for an import request.
- * Indicates whether the request was accepted and provides the detailed results.
- */
-export interface ImportResponse {
+export interface ImportPreview {
+  batch_id: number;
+  /** True when a file with identical content was already committed. */
+  file_seen_before: boolean;
+  academic_year: { id: number; label: string };
+  counts: Record<ImportCategory, number>;
+  rows: ImportPreviewRow[];
+}
+
+export interface ImportActions {
+  changed: "update" | "skip";
+  moved: "move" | "skip";
+}
+
+export interface ImportCommitResult {
   success: boolean;
-  message?: string;
-  results?: ImportResult;
+  result: {
+    created: number;
+    updated: number;
+    moved: number;
+    skipped: number;
+    failed: number;
+  };
 }

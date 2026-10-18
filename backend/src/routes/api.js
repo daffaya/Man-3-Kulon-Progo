@@ -26,6 +26,8 @@ import staffRouterFactory from "./staffRoutes.js";
 import publicStaffRouterFactory from "./publicStaffRoutes.js";
 import pmbmRouterFactory from "./pmbmRoutes.js";
 import kelulusanRouterFactory from "./kelulusanRoutes.js";
+import academicYearRouterFactory from "./academicYearRoutes.js";
+import yearTransitionRouterFactory from "./yearTransitionRoutes.js";
 
 const apiRouterFactory = ({
   pool,
@@ -91,6 +93,11 @@ const apiRouterFactory = ({
   apiRouter.use("/attendance", attendanceRouterFactory({ pool, JWT_SECRET }));
   apiRouter.use("/archives", archiveRouterFactory({ pool, JWT_SECRET }));
   apiRouter.use("/students", studentRouterFactory({ pool, JWT_SECRET }));
+  apiRouter.use("/academic-years", academicYearRouterFactory({ pool, JWT_SECRET }));
+  apiRouter.use(
+    "/year-transition",
+    yearTransitionRouterFactory({ pool, JWT_SECRET }),
+  );
   apiRouter.use("/alumni", alumniRouterFactory({ pool, JWT_SECRET }));
   apiRouter.use("/studentStats", publicStudentStatsRouterFactory({ pool }));
 

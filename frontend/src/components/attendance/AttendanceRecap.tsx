@@ -67,15 +67,21 @@ const AttendanceRecap = () => {
       if (!token) return;
 
       try {
-        const data = await fetchClasses(token);
+        // Classes of the academic year containing the selected start date.
+        const data = await fetchClasses(token, startDate);
         setClasses(data);
+        setClassId((current) =>
+          current && !data.some((c: any) => String(c.id) === current)
+            ? ""
+            : current,
+        );
       } catch (error) {
         console.error("Error fetching classes:", error);
       }
     };
 
     if (isLoggedIn) loadClasses();
-  }, [isLoggedIn, token]);
+  }, [isLoggedIn, token, startDate]);
 
   useEffect(() => {
     const fetchRecapData = async () => {

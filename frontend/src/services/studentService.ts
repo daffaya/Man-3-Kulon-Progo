@@ -7,8 +7,6 @@
 
 import {
   Student,
-  BulkMoveClassResponse,
-  GraduateStudentsResponse,
   Angkatan,
   Class,
 } from "../types/studentTypes";
@@ -323,14 +321,16 @@ export const studentService = {
   },
 
   /**
-   * Moves a student to a different class.
-   * @param {number} studentId - The ID of the student to move.
-   * @param {number} classId - The ID of the destination class.
+   * Transfers a student to another class of the same grade level and academic
+   * year, effective on a date. A date equal to the current enrollment's start
+   * corrects a wrongly assigned class in place.
+   * @param {number} studentId - The ID of the student.
+   * @param {{toClassId: number, effectiveDate: string}} data - Destination class and YYYY-MM-DD date.
    * @param {string | null} token - Authentication token.
    */
-  moveStudentClass: async (
+  transferStudent: async (
     studentId: number,
-    classId: number,
+    data: { toClassId: number; effectiveDate: string },
     token: string | null,
   ): Promise<void> => {
     if (!token) {
@@ -338,91 +338,60 @@ export const studentService = {
     }
 
     const response = await fetch(
-      `${backendUrl}/api/students/${studentId}/move-class`,
-      { credentials: "include",
+      `${backendUrl}/api/students/${studentId}/transfer`,
+      {
+        credentials: "include",
         method: "POST",
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify({ classId }),
+        body: JSON.stringify({
+          to_class_id: data.toClassId,
+          effective_date: data.effectiveDate,
+        }),
       },
     );
 
     if (!response.ok) {
       const error = await response.json();
-      throw new Error(error.message || "Failed to move student class");
+      throw new Error(error.error || error.message || "Gagal memindahkan kelas");
     }
   },
 
   /**
-   * Moves multiple students to a different class in bulk.
-   * @param {Object} data - The data for the bulk move operation.
-   * @param {number} data.classIdFrom - The source class ID.
-   * @param {number} data.classIdTo - The destination class ID.
-   * @param {string} data.academicYear - The academic year.
-   * @param {string} data.angkatan - The batch/angkatan.
-   * @param {string | null} token - Authentication token.
-   * @returns {Promise<BulkMoveClassResponse>} Promise resolving to the bulk move response.
+   * Marks a student as having left school (super_admin only). The enrollment
+   * is closed on the effective date; attendance history is kept.
    */
-  bulkMoveClass: async (
-    data: {
-      classIdFrom: number;
-      classIdTo: number;
-      academicYear: string;
-      angkatan: string;
-    },
+  leaveStudent: async (
+    studentId: number,
+    data: { effectiveDate: string; reason: string },
     token: string | null,
-  ): Promise<BulkMoveClassResponse> => {
-    if (!token) throw new Error("Token is required");
-
-    const response = await fetch(`${backendUrl}/api/students/bulk-move-class`, { credentials: "include",
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-      },
-      body: JSON.stringify(data),
-    });
-
-    if (!response.ok) {
-      const errorData = await response.json();
-      throw new Error(errorData.error || "Failed to move students");
+  ): Promise<void> => {
+    if (!token) {
+      throw new Error("Token is required");
     }
 
-    return response.json();
-  },
-
-  /**
-   * Graduates multiple students from a class.
-   * @param {Object} data - The data for the graduation operation.
-   * @param {number} data.classIdFrom - The source class ID.
-   * @param {string} data.academicYear - The academic year.
-   * @param {string} data.angkatan - The batch/angkatan.
-   * @param {string | null} token - Authentication token.
-   * @returns {Promise<GraduateStudentsResponse>} Promise resolving to the graduation response.
-   */
-  graduateStudents: async (
-    data: { classIdFrom: number; academicYear: string; angkatan: string },
-    token: string | null,
-  ): Promise<GraduateStudentsResponse> => {
-    if (!token) throw new Error("Token is required");
-
-    const response = await fetch(`${backendUrl}/api/students/graduate`, { credentials: "include",
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
+    const response = await fetch(
+      `${backendUrl}/api/students/${studentId}/leave`,
+      {
+        credentials: "include",
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          effective_date: data.effectiveDate,
+          reason: data.reason,
+        }),
       },
-      body: JSON.stringify(data),
-    });
+    );
 
     if (!response.ok) {
-      const errorData = await response.json();
-      throw new Error(errorData.error || "Failed to graduate students");
+      const error = await response.json();
+      throw new Error(error.error || error.message || "Gagal menandai siswa keluar");
     }
-
-    return response.json();
   },
 
   /**

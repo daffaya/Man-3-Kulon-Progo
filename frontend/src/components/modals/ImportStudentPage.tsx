@@ -38,8 +38,8 @@ const ImportStudentPage: React.FC<ImportStudentPageProps> = ({
 }) => {
   const { user } = useAuth();
 
-  const hasPermission =
-    user?.role === "super_admin" || user?.role === "guru_bk";
+  // The import writes students and classes: super admin only.
+  const hasPermission = user?.role === "super_admin";
 
   if (!isOpen) return null;
 
@@ -71,7 +71,7 @@ const ImportStudentPage: React.FC<ImportStudentPageProps> = ({
               Akses Ditolak
             </h2>
             <p className="text-gray-600 dark:text-gray-400 mb-4">
-              Hanya Super Admin dan Guru BK yang dapat mengimport data siswa.
+              Hanya Super Admin yang dapat mengimport data siswa.
             </p>
             <button
               onClick={onClose}

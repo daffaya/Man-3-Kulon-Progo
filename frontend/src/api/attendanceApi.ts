@@ -11,11 +11,17 @@ import { apiFetch } from "../lib/api";
  * Fetches a list of students belonging to a specific class.
  * @param {number} classId - The ID of the class to fetch students for.
  * @param {string} token - The authentication bearer token.
+ * @param {string} [date] - Roster date (YYYY-MM-DD). Defaults to today on the server.
  * @returns {Promise<any>} A promise that resolves to the JSON response containing the list of students.
  * @throws {Error} If the fetch request fails.
  */
-export const fetchStudentsByClass = async (classId: number, token: string) => {
-  return apiFetch(`/attendance/students?classId=${classId}`, {
+export const fetchStudentsByClass = async (
+  classId: number,
+  token: string,
+  date?: string,
+) => {
+  const dateQuery = date ? `&date=${date}` : "";
+  return apiFetch(`/attendance/students?classId=${classId}${dateQuery}`, {
     headers: {
       Authorization: `Bearer ${token}`,
     },
@@ -58,6 +64,10 @@ export const saveAttendance = async (
       status: "hadir" | "izin" | "sakit" | "alpa";
       notes?: string;
     }[];
+    /** super_admin only: allow saving on a holiday. */
+    override?: boolean;
+    /** Required of super_admin when correcting beyond the correction window. */
+    reason?: string;
   },
   token: string,
 ) => {
@@ -105,8 +115,9 @@ export const fetchAttendanceRecap = async (
  * @returns {Promise<any>} A promise that resolves to the JSON response containing the list of classes.
  * @throws {Error} If the fetch request fails.
  */
-export const fetchClasses = async (token: string) => {
-  return apiFetch(`/attendance/classes`, {
+export const fetchClasses = async (token: string, date?: string) => {
+  const query = date ? `?date=${date}` : "";
+  return apiFetch(`/attendance/classes${query}`, {
     headers: {
       Authorization: `Bearer ${token}`,
     },
@@ -134,8 +145,11 @@ export const fetchTodayStats = async (date: string, token: string) => {
  * @returns {Promise<any>} A promise that resolves to the JSON response containing the list of holidays.
  * @throws {Error} If the fetch request fails.
  */
-export const fetchHolidays = async (token: string) => {
-  return apiFetch(`/attendance/holidays`, {
+export const fetchHolidays = async (token: string, academicYear?: string) => {
+  const query = academicYear
+    ? `?academicYear=${encodeURIComponent(academicYear)}`
+    : "";
+  return apiFetch(`/attendance/holidays${query}`, {
     headers: {
       Authorization: `Bearer ${token}`,
     },
@@ -144,7 +158,7 @@ export const fetchHolidays = async (token: string) => {
 
 /**
  * Adds a new holiday to the system.
- * @param {{date: string, description: string, academicYear: string}} data - The holiday data to add.
+ * @param {{date: string, description: string}} data - The holiday data to add. The server derives the academic year from the date.
  * @param {string} token - The authentication bearer token.
  * @returns {Promise<any>} A promise that resolves to the JSON response from the server.
  * @throws {Error} If the add operation fails.
@@ -153,7 +167,6 @@ export const addHoliday = async (
   data: {
     date: string;
     description: string;
-    academicYear: string;
   },
   token: string,
 ) => {
@@ -379,13 +392,17 @@ export const fetchPublicAttendanceRecap = async (params: {
     import.meta.env.VITE_BACKEND_URL ||
     "https://backend.man3kulonprogo.sch.id/api";
 
-  let url = `${backendUrl}/public-attendance/recap?classId=${params.classId}&period=${params.period}&startDate=${params.startDate}&password=${params.password}`;
+  let url = `${backendUrl}/public-attendance/recap?classId=${params.classId}&period=${params.period}&startDate=${params.startDate}`;
 
   if (params.endDate) {
     url += `&endDate=${params.endDate}`;
   }
 
-  const response = await fetch(url, { credentials: "include" });
+  // The password travels in a header, never in the URL.
+  const response = await fetch(url, {
+    credentials: "include",
+    headers: { "X-Attendance-Password": params.password },
+  });
 
   if (!response.ok) {
     const errorData = await response.json();

@@ -90,20 +90,28 @@ const AttendanceInputPage: React.FC = () => {
 
   useEffect(() => {
     /**
-     * Fetches available classes from the API.
-     * Updates the classes state with the fetched data.
+     * Fetches the classes of the academic year that contains the selected
+     * date (B6): choosing a date in another year shows that year's classes.
+     * A selected class that does not belong to that year is cleared.
      */
     const fetchClasses = async () => {
       try {
-        const response = await fetch(`${backendUrl}/api/attendance/classes`, { credentials: "include",
-          headers: {
-            Authorization: `Bearer ${token}`,
+        const response = await fetch(
+          `${backendUrl}/api/attendance/classes?date=${selectedDate}`,
+          {
+            credentials: "include",
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
           },
-        });
+        );
 
         if (response.ok) {
-          const data = await response.json();
+          const data: ClassData[] = await response.json();
           setClasses(data);
+          setSelectedClass((current) =>
+            current && !data.some((c) => c.id === current) ? 0 : current,
+          );
         } else {
           showErrorToast("Gagal mengambil data kelas");
         }
@@ -112,98 +120,71 @@ const AttendanceInputPage: React.FC = () => {
       }
     };
 
-    if (isLoggedIn) {
+    if (isLoggedIn && selectedDate) {
       fetchClasses();
     }
-  }, [isLoggedIn, token, showErrorToast]);
+  }, [isLoggedIn, token, selectedDate, showErrorToast]);
 
   useEffect(() => {
     /**
-     * Fetches students for the selected class.
-     * Initializes attendance data with default "hadir" status for all students.
+     * Loads the roster of the class ON the selected date together with any
+     * attendance already saved for it, then builds the form in one step.
+     * Students without a saved row default to "hadir" — never to a status
+     * left over from a previously selected date (B8).
      */
-    const fetchStudents = async () => {
-      if (!selectedClass) return;
+    let cancelled = false;
 
+    const loadClassDay = async () => {
       try {
-        const response = await fetch(
-          `${backendUrl}/api/attendance/students?classId=${selectedClass}`,
-          { credentials: "include",
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          },
-        );
+        const headers = { Authorization: `Bearer ${token}` };
+        const [studentsRes, attendanceRes] = await Promise.all([
+          fetch(
+            `${backendUrl}/api/attendance/students?classId=${selectedClass}&date=${selectedDate}`,
+            { credentials: "include", headers },
+          ),
+          fetch(
+            `${backendUrl}/api/attendance?classId=${selectedClass}&date=${selectedDate}`,
+            { credentials: "include", headers },
+          ),
+        ]);
 
-        if (response.ok) {
-          const data = await response.json();
-          setStudents(data);
-
-          const initialAttendances: Attendance[] = data.map(
-            (student: Student) => ({
-              student_id: student.id,
-              status: "hadir",
-            }),
-          );
-          setAttendances(initialAttendances);
-        } else {
+        if (!studentsRes.ok) {
           showErrorToast("Gagal mengambil data siswa");
+          return;
         }
-      } catch (err) {
-        showErrorToast("Terjadi kesalahan saat mengambil data siswa");
-      }
-    };
+        const roster: Student[] = await studentsRes.json();
+        const saved: Attendance[] = attendanceRes.ok
+          ? await attendanceRes.json()
+          : [];
+        if (cancelled) return;
 
-    if (isLoggedIn && selectedClass) {
-      fetchStudents();
-    }
-  }, [isLoggedIn, selectedClass, token, showErrorToast]);
-
-  useEffect(() => {
-    /**
-     * Fetches existing attendance data for the selected class and date.
-     * Updates the attendance state with the fetched data if available.
-     */
-    const fetchAttendance = async () => {
-      if (!selectedClass || !selectedDate) return;
-
-      try {
-        const response = await fetch(
-          `${backendUrl}/api/attendance?classId=${selectedClass}&date=${selectedDate}`,
-          { credentials: "include",
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          },
+        setStudents(roster);
+        setAttendances(
+          roster.map((student) => {
+            const existing = saved.find((d) => d.student_id === student.id);
+            return {
+              student_id: student.id,
+              status: existing ? existing.status : "hadir",
+              notes: existing?.notes || "",
+            };
+          }),
         );
-
-        if (response.ok) {
-          const data = await response.json();
-
-          if (data.length > 0) {
-            // Create a new array instead of mapping over the existing one
-            const updatedAttendances = students.map((student) => {
-              const fetchedAtt = data.find(
-                (d: Attendance) => d.student_id === student.id,
-              );
-              return {
-                student_id: student.id,
-                status: fetchedAtt ? fetchedAtt.status : "hadir",
-                notes: fetchedAtt ? fetchedAtt.notes || "" : "",
-              };
-            });
-            setAttendances(updatedAttendances);
-          }
-        }
       } catch (err) {
-        console.error("Error fetching attendance:", err);
+        if (!cancelled) {
+          showErrorToast("Terjadi kesalahan saat mengambil data siswa");
+        }
       }
     };
 
     if (isLoggedIn && selectedClass && selectedDate) {
-      fetchAttendance();
+      setStudents([]);
+      setAttendances([]);
+      loadClassDay();
     }
-  }, [isLoggedIn, selectedClass, selectedDate, token, students]);
+    return () => {
+      cancelled = true;
+    };
+  }, [isLoggedIn, selectedClass, selectedDate, token, showErrorToast]);
 
   /**
    * Handles status change for a student's attendance.
@@ -238,7 +219,9 @@ const AttendanceInputPage: React.FC = () => {
    * Saves the attendance data to the backend API.
    * Validates required fields before sending and shows appropriate feedback.
    */
-  const saveAttendance = async () => {
+  const saveAttendance = async (
+    extra: { override?: boolean; reason?: string } = {},
+  ) => {
     if (!selectedClass || !selectedDate) {
       showErrorToast("Pilih kelas dan tanggal terlebih dahulu");
       return;
@@ -267,9 +250,11 @@ const AttendanceInputPage: React.FC = () => {
           status: att.status,
           notes: att.notes || "",
         })),
+        ...extra,
       };
 
-      const response = await fetch(`${backendUrl}/api/attendance`, { credentials: "include",
+      const response = await fetch(`${backendUrl}/api/attendance`, {
+        credentials: "include",
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -281,25 +266,30 @@ const AttendanceInputPage: React.FC = () => {
       const data = await response.json();
 
       if (response.ok && data.success) {
-        showSuccessToast("Data presensi berhasil disimpan");
-
-        setTimeout(async () => {
-          try {
-            const verifyResponse = await fetch(
-              `${backendUrl}/api/attendance/verify?classId=${selectedClass}&date=${selectedDate}`,
-              { credentials: "include",
-                headers: {
-                  Authorization: `Bearer ${token}`,
-                },
-              },
-            );
-
-            const verifyData = await verifyResponse.json();
-            showSuccessToast(`${verifyData.count} siswa berhasil disimpan`);
-          } catch (err) {
-            console.error("Error verifying attendance:", err);
-          }
-        }, 1000);
+        showSuccessToast(`Presensi ${data.saved} siswa berhasil disimpan`);
+      } else if (
+        user?.role === "super_admin" &&
+        response.status === 422 &&
+        String(data.error).includes("hari libur") &&
+        !extra.override
+      ) {
+        if (confirm(`${data.error}. Tetap simpan presensi pada tanggal ini?`)) {
+          setLoading(false);
+          return saveAttendance({ ...extra, override: true });
+        }
+      } else if (
+        user?.role === "super_admin" &&
+        response.status === 422 &&
+        String(data.error).includes("Alasan koreksi") &&
+        !extra.reason
+      ) {
+        const reason = window.prompt(
+          "Presensi ini di luar batas koreksi. Tulis alasan koreksi:",
+        );
+        if (reason && reason.trim()) {
+          setLoading(false);
+          return saveAttendance({ ...extra, reason: reason.trim() });
+        }
       } else {
         showErrorToast(data.error || "Gagal menyimpan data presensi");
       }
@@ -504,7 +494,7 @@ const AttendanceInputPage: React.FC = () => {
                     <button
                       type="button"
                       className="btn btn-primary"
-                      onClick={saveAttendance}
+                      onClick={() => saveAttendance()}
                       disabled={loading}
                     >
                       {loading ? "Menyimpan..." : "Simpan Presensi"}

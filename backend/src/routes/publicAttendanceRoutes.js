@@ -1,13 +1,27 @@
 // In backend/src/routes/publicAttendanceRoutes.js
 import { Router } from "express";
-import attendanceControllerFactory from "../controllers/attendanceController.js";
 import attendanceModelFactory from "../models/attendanceModel.js";
 import rateLimiter from "../middleware/rateLimiter.js";
+import crypto from "crypto";
+import { isValidDateStr } from "../utils/dateUtils.js";
 
-const publicAttendanceRouterFactory = ({ pool, PUBLIC_ATTENDANCE_PASSWORD }) => {
+/** Constant-time comparison so response timing does not reveal the password. */
+const passwordMatches = (given, expected) => {
+  if (typeof given !== "string" || typeof expected !== "string") return false;
+  const a = crypto.createHash("sha256").update(given).digest();
+  const b = crypto.createHash("sha256").update(expected).digest();
+  return crypto.timingSafeEqual(a, b);
+};
+
+/** Public pages never show a full NISN: keep only the last 4 digits. */
+const maskNisn = (nisn) => {
+  const digits = String(nisn ?? "");
+  return digits.length > 4 ? `${"*".repeat(digits.length - 4)}${digits.slice(-4)}` : digits;
+};
+
+const publicAttendanceRouterFactory = ({ pool, PUBLIC_ATTENDANCE_PASSWORD, now }) => {
   const router = Router();
-  const attendanceController = attendanceControllerFactory({ pool });
-  const attendanceModel = attendanceModelFactory({ pool });
+  const attendanceModel = attendanceModelFactory({ pool, now });
 
   // AUDIT-006: no hardcoded fallback — bootstrap.js already fails startup
   // if PUBLIC_ATTENDANCE_PASSWORD isn't set, so this is always a real value.
@@ -32,7 +46,7 @@ const publicAttendanceRouterFactory = ({ pool, PUBLIC_ATTENDANCE_PASSWORD }) => 
     }
 
     // Simple password comparison
-    if (password === PUBLIC_ATTENDANCE_PASSWORD) {
+    if (passwordMatches(password, PUBLIC_ATTENDANCE_PASSWORD)) {
       return res.json({
         success: true,
         message: "Password verified successfully",
@@ -49,15 +63,26 @@ const publicAttendanceRouterFactory = ({ pool, PUBLIC_ATTENDANCE_PASSWORD }) => 
    */
   router.get("/recap", passwordGuessLimiter, async (req, res) => {
     try {
-      const { classId, period, startDate, endDate, password } = req.query;
+      // B13: the password travels in a header, never in the URL (URLs end up
+      // in access logs, browser history and Referer headers).
+      const password = req.get("X-Attendance-Password");
+      const { classId, period, startDate, endDate } = req.query;
 
       if (!password) {
         return res.status(400).json({ error: "Password is required" });
       }
 
-      // Verify password
-      if (password !== PUBLIC_ATTENDANCE_PASSWORD) {
+      if (!passwordMatches(password, PUBLIC_ATTENDANCE_PASSWORD)) {
         return res.status(401).json({ error: "Invalid password" });
+      }
+
+      if (
+        !classId ||
+        !["daily", "monthly", "semester"].includes(period) ||
+        !isValidDateStr(startDate) ||
+        (endDate && !isValidDateStr(endDate))
+      ) {
+        return res.status(400).json({ error: "Parameter tidak valid" });
       }
 
       // Get attendance recap data
@@ -73,7 +98,7 @@ const publicAttendanceRouterFactory = ({ pool, PUBLIC_ATTENDANCE_PASSWORD }) => 
         classId,
         startDate,
         endDate,
-        data: recap,
+        data: recap.map((row) => ({ ...row, nisn: maskNisn(row.nisn) })),
       });
     } catch (error) {
       console.error("Error fetching attendance recap:", error);
@@ -83,7 +108,7 @@ const publicAttendanceRouterFactory = ({ pool, PUBLIC_ATTENDANCE_PASSWORD }) => 
 
   /**
    * @route   GET /classes
-   * @desc    Get list of classes (no password required)
+   * @desc    Get list of classes of the current academic year (no password required)
    * @access  Public
    */
   router.get("/classes", async (req, res) => {

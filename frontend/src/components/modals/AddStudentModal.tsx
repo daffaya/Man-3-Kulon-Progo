@@ -45,18 +45,16 @@ const AddStudentModal: React.FC<AddStudentModalProps> = ({
 
   if (!isOpen || !token) return null;
 
-  // Set default values for the form
-  const currentYear = new Date().getFullYear();
-  const defaultAcademicYear = `${currentYear}/${currentYear + 1}`;
-  const defaultAngkatan = currentYear.toString();
+  // The server derives the academic year from the chosen class and computes
+  // the angkatan from the year and grade, so neither is guessed here.
 
   // Create default form data
   const defaultFormData: StudentFormData = {
     nisn: "",
     name: "",
     class_id: 0,
-    academic_year: defaultAcademicYear,
-    angkatan: defaultAngkatan,
+    academic_year: "",
+    angkatan: "",
     jenis_kelamin: undefined,
     nik: "",
     birth_place: "",

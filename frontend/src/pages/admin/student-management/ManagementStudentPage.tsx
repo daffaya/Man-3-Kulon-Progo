@@ -16,7 +16,6 @@ import AddStudentModal from "../../../components/modals/AddStudentModal";
 import EditStudentModal from "../../../components/modals/EditStudentModal";
 import MoveClassModal from "../../../components/modals/MoveClassModal";
 import ImportStudentPage from "../../../components/modals/ImportStudentPage";
-import BulkMoveClassModal from "../../../components/modals/BulkMoveClassModal";
 import {
   Search,
   Plus,
@@ -43,7 +42,6 @@ const ManagementStudentPage: React.FC = () => {
   const [showImportModal, setShowImportModal] = useState(false);
   const [editStudent, setEditStudent] = useState<any>(null);
   const [moveStudent, setMoveStudent] = useState<any>(null);
-  const [showBulkMoveModal, setShowBulkMoveModal] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const studentsPerPage = 40;
 
@@ -217,13 +215,15 @@ const ManagementStudentPage: React.FC = () => {
               <Upload className="h-5 w-5 mr-2" />
               Import
             </button>
-            <button
-              onClick={() => setShowBulkMoveModal(true)}
-              className="btn btn-secondary flex items-center"
-            >
-              <Users className="h-5 w-5 mr-2" />
-              Naik Kelas
-            </button>
+            {canEditClasses && (
+              <button
+                onClick={() => navigate("/atmin/tahun-ajaran")}
+                className="btn btn-secondary flex items-center"
+              >
+                <Users className="h-5 w-5 mr-2" />
+                Tahun Ajaran Baru
+              </button>
+            )}
             <button
               onClick={() => setShowAddModal(true)}
               className="btn btn-primary flex items-center"
@@ -382,19 +382,6 @@ const ManagementStudentPage: React.FC = () => {
               setMoveStudent(null);
               refetch();
             }}
-          />
-        )}
-
-        {showBulkMoveModal && (
-          <BulkMoveClassModal
-            isOpen={true}
-            onClose={() => setShowBulkMoveModal(false)}
-            onSuccess={() => {
-              setShowBulkMoveModal(false);
-              refetch();
-            }}
-            classes={classes}
-            angkatans={angkatans}
           />
         )}
 

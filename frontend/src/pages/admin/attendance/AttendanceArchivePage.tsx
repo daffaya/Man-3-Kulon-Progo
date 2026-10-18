@@ -10,7 +10,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../../../contexts/AuthContext";
 import { useToastMessage } from "../../../hooks/useToastMessage";
 import AdminLayout from "../../../components/layout/AdminLayout";
-import { format } from "date-fns";
+import { fetchAcademicYears } from "../../../api/academicYearApi";
 import { ChevronLeft } from "lucide-react";
 
 interface ArchiveData {
@@ -67,18 +67,35 @@ const AttendanceArchivePage: React.FC = () => {
   const [classes, setClasses] = useState<ClassData[]>([]);
   const [archiveRecords, setArchiveRecords] = useState<ArchiveData[]>([]);
   const [loading, setLoading] = useState(false);
-  const [selectedYear, setSelectedYear] = useState<string>(
-    format(new Date(), "yyyy"),
-  );
+  const [selectedYear, setSelectedYear] = useState<string>("");
   const [selectedSemester, setSelectedSemester] = useState<string>("ganjil");
   const [selectedClass, setSelectedClass] = useState<number>(0);
 
   const isAdminOrGuruBK = hasEditAccess(isLoggedIn, user?.role);
 
   useEffect(() => {
+    // Default to the academic year containing today (computed by the server).
+    const loadCurrentYear = async () => {
+      try {
+        const years = await fetchAcademicYears(token || "");
+        const current = years.find((y) => y.is_current) || years[years.length - 1];
+        if (current) setSelectedYear((prev) => prev || current.label);
+      } catch (err) {
+        showErrorToast("Gagal mengambil tahun ajaran");
+      }
+    };
+
+    if (isLoggedIn && token) loadCurrentYear();
+  }, [isLoggedIn, token, showErrorToast]);
+
+  useEffect(() => {
     const fetchClasses = async () => {
       try {
-        const response = await fetch(`${backendUrl}/api/attendance/classes`, { credentials: "include",
+        // Classes of the selected academic year (its first day falls inside it).
+        const yearStart = /^\d{4}\//.test(selectedYear)
+          ? `?date=${selectedYear.slice(0, 4)}-07-01`
+          : "";
+        const response = await fetch(`${backendUrl}/api/attendance/classes${yearStart}`, { credentials: "include",
           headers: {
             Authorization: `Bearer ${token}`,
           },
@@ -95,10 +112,10 @@ const AttendanceArchivePage: React.FC = () => {
       }
     };
 
-    if (isLoggedIn) {
+    if (isLoggedIn && selectedYear) {
       fetchClasses();
     }
-  }, [isLoggedIn, token, showErrorToast]);
+  }, [isLoggedIn, token, selectedYear, showErrorToast]);
 
   useEffect(() => {
     const fetchArchiveData = async () => {

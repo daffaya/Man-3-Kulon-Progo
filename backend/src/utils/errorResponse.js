@@ -20,3 +20,30 @@ export const sendServerError = (
   console.error(error);
   return res.status(500).json({ error: publicMessage });
 };
+
+/**
+ * Error with an HTTP status, thrown by services for expected (business-rule)
+ * failures: 400 validation, 403 access, 404 not found, 409 conflict,
+ * 422 business-rule violation. Anything else is treated as a 500.
+ */
+export class HttpError extends Error {
+  constructor(status, message) {
+    super(message);
+    this.name = "HttpError";
+    this.status = status;
+  }
+}
+
+/**
+ * Sends the right response for a caught error: HttpError -> its status and
+ * message; anything else -> logged server-side and a generic 500.
+ * @param {import('express').Response} res
+ * @param {Error} error
+ * @param {string} [publicMessage] - Safe message for unexpected errors.
+ */
+export const sendError = (res, error, publicMessage) => {
+  if (error instanceof HttpError) {
+    return res.status(error.status).json({ error: error.message });
+  }
+  return sendServerError(res, error, publicMessage);
+};
