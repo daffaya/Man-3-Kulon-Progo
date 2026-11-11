@@ -19,6 +19,7 @@ import {
   Users,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
+import { resolveImageUrl } from "../../lib/api";
 import AdminLayout from "../../components/layout/AdminLayout";
 import { useAuth } from "../../contexts/AuthContext";
 import {
@@ -58,10 +59,6 @@ const fromInput = (v: string) => {
   const [y, m, d] = v.split("-").map(Number);
   return new Date(y, m - 1, d).getTime();
 };
-
-/** URL cover dari backend: path relatif (/uploads/...) harus diawali URL backend. */
-const BACKEND = (import.meta.env.VITE_BACKEND_URL ?? "").replace(/\/$/, "");
-const coverUrl = (src: string) => (/^(https?:|data:|blob:)/.test(src) ? src : `${BACKEND}${src.startsWith("/") ? "" : "/"}${src}`);
 
 const greeting = (h: number) =>
   h < 11 ? "pagi" : h < 15 ? "siang" : h < 18 ? "sore" : "malam";
@@ -289,7 +286,7 @@ const AdminDashboard: React.FC = () => {
                   s.latestPublished.map((a) => (
                     <div key={a.id} className="a-cr">
                       <span className="a-th">
-                        {a.coverImage ? <img src={coverUrl(a.coverImage)} alt="" loading="lazy" /> : <ImageIcon size={18} />}
+                        {a.coverImage ? <img src={resolveImageUrl(a.coverImage)} alt="" loading="lazy" /> : <ImageIcon size={18} />}
                       </span>
                       <p>
                         <b>{a.title}</b>

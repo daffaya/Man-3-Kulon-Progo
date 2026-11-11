@@ -35,6 +35,7 @@ import { useAuth } from "../../contexts/AuthContext";
 import { useToastMessage } from "../../hooks/useToastMessage";
 import articleApi from "../../api/articleApi";
 import { fitImage } from "../../lib/imageCompress";
+import { resolveImageUrl } from "../../lib/api";
 import ArticleContent from "../article/ArticleContent";
 
 interface ArticleFormProps {
@@ -394,7 +395,7 @@ const ArticleForm: React.FC<ArticleFormProps> = ({
                 title: formData.title || "(Tanpa judul)",
                 content: formData.content,
                 overview: formData.overview,
-                coverImage: preview || formData.coverImage,
+                coverImage: resolveImageUrl(preview || formData.coverImage),
                 tags: formData.tags,
                 publishedDate: formData.publishedDate || null,
                 lastModified: new Date().toISOString(),
@@ -539,7 +540,7 @@ const ArticleForm: React.FC<ArticleFormProps> = ({
             {preview ? (
               <div>
                 <div className="a-cover">
-                  <img src={preview} alt="Pratinjau gambar sampul" />
+                  <img src={resolveImageUrl(preview)} alt="Pratinjau gambar sampul" />
                 </div>
                 <div style={{ display: "flex", gap: 8, marginTop: 8 }}>
                   <button type="button" className="a-btn a-sm" onClick={() => fileRef.current?.click()}>

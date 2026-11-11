@@ -17,6 +17,16 @@ const API_BASE =
 export const BACKEND_ORIGIN = API_BASE.replace(/\/api\/?$/, "");
 
 /**
+ * Ubah path upload relatif (mis. /uploads/covers/x.jpeg) menjadi URL absolut backend.
+ * URL absolut, data: dan blob: dibiarkan apa adanya.
+ */
+export const resolveImageUrl = (src?: string | null): string => {
+  if (!src) return "";
+  if (/^(https?:|data:|blob:)/i.test(src)) return src;
+  return `${BACKEND_ORIGIN}${src.startsWith("/") ? "" : "/"}${src}`;
+};
+
+/**
  * A wrapper function around the native `fetch` API to simplify communication with the backend.
  * It automatically prepends the base API URL, includes credentials for cookie-based authentication,
  * sets the 'Content-Type' header to 'application/json', and has a 15-second timeout.

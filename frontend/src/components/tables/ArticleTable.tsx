@@ -8,6 +8,7 @@ import { Link } from "react-router-dom";
 import { Eye, Image as ImageIcon, SquarePen, Trash2 } from "lucide-react";
 import type { Article } from "../../types/articleTypes";
 import { shortDate } from "../../hooks/useAdminSummary";
+import { resolveImageUrl } from "../../lib/api";
 
 interface ArticleTableProps {
   articles: Article[];
@@ -59,7 +60,7 @@ const ArticleTable: React.FC<ArticleTableProps> = ({
                   <div className="a-tt">
                     <span className="a-th">
                       {a.coverImage ? (
-                        <img src={a.coverImage} alt="" loading="lazy" />
+                        <img src={resolveImageUrl(a.coverImage)} alt="" loading="lazy" />
                       ) : (
                         <ImageIcon size={18} />
                       )}
