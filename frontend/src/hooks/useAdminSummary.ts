@@ -28,6 +28,8 @@ export interface AdminSummary {
   publishedThisMonth: number;
   publishedLastMonth: number;
   lastPublishedDate: string | null;
+  /** Tanggal terbit semua artikel (untuk hitungan per periode di dashboard). */
+  publishedDates: string[];
   draftList: MiniArticle[];
   latestPublished: MiniArticle[];
 }
@@ -42,6 +44,7 @@ const EMPTY: AdminSummary = {
   publishedThisMonth: 0,
   publishedLastMonth: 0,
   lastPublishedDate: null,
+  publishedDates: [],
   draftList: [],
   latestPublished: [],
 };
@@ -112,6 +115,7 @@ const load = async (): Promise<AdminSummary> => {
       inMonth(a, last.getFullYear(), last.getMonth()),
     ).length,
     lastPublishedDate: pub[0]?.publishedDate ?? null,
+    publishedDates: pub.flatMap((a) => (a.publishedDate ? [a.publishedDate] : [])),
     draftList: [...drafts.articles]
       .sort((a, b) => time(b.lastModified) - time(a.lastModified))
       .slice(0, 5)
@@ -164,6 +168,13 @@ export const useAdminSummary = (): AdminSummary => {
 
   return summary;
 };
+
+/** Hitung tanggal terbit dalam rentang [from, to) (ms epoch). */
+export const countInRange = (dates: string[], from: number, to: number): number =>
+  dates.reduce((n, d) => {
+    const t = new Date(d).getTime();
+    return t >= from && t < to ? n + 1 : n;
+  }, 0);
 
 /** Format tanggal ringkas untuk UI admin, mis. "21 Sep 2026". */
 export const shortDate = (d: string | null | undefined): string => {

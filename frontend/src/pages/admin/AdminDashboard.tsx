@@ -3,7 +3,7 @@
  * tiga angka ringkas, daftar draf untuk dilanjutkan, artikel terbaru, pintasan, dan
  * halaman website yang perlu dicek. Widget artikel hanya untuk role yang boleh mengelola artikel.
  */
-import React from "react";
+import React, { useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import {
   Archive,
@@ -23,6 +23,7 @@ import AdminLayout from "../../components/layout/AdminLayout";
 import { useAuth } from "../../contexts/AuthContext";
 import {
   ARTICLE_ROLES,
+  countInRange,
   relativeDay,
   shortDate,
   useAdminSummary,
@@ -43,6 +44,25 @@ const SHORTCUTS: Shortcut[] = [
   { label: "Kelola guru & staf", to: "/atmin/staff", icon: Users, roles: [] },
 ];
 
+const DAY = 86_400_000;
+const PRESETS = [
+  { key: "1", months: 1, label: "Bulan ini", short: "Terbit bulan ini", prev: "bulan lalu" },
+  { key: "3", months: 3, label: "3 bulan", short: "Terbit 3 bulan terakhir", prev: "3 bulan sebelumnya" },
+  { key: "6", months: 6, label: "6 bulan", short: "Terbit 6 bulan terakhir", prev: "6 bulan sebelumnya" },
+  { key: "12", months: 12, label: "12 bulan", short: "Terbit 12 bulan terakhir", prev: "12 bulan sebelumnya" },
+] as const;
+
+const toInput = (d: Date) =>
+  `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+const fromInput = (v: string) => {
+  const [y, m, d] = v.split("-").map(Number);
+  return new Date(y, m - 1, d).getTime();
+};
+
+/** URL cover dari backend: path relatif (/uploads/...) harus diawali URL backend. */
+const BACKEND = (import.meta.env.VITE_BACKEND_URL ?? "").replace(/\/$/, "");
+const coverUrl = (src: string) => (/^(https?:|data:|blob:)/.test(src) ? src : `${BACKEND}${src.startsWith("/") ? "" : "/"}${src}`);
+
 const greeting = (h: number) =>
   h < 11 ? "pagi" : h < 15 ? "siang" : h < 18 ? "sore" : "malam";
 
@@ -60,22 +80,53 @@ const AdminDashboard: React.FC = () => {
     year: "numeric",
   });
 
-  const delta = s.publishedThisMonth - s.publishedLastMonth;
+  const [preset, setPreset] = useState<string>("1");
+  const [customFrom, setCustomFrom] = useState(() => toInput(new Date(now.getFullYear(), now.getMonth(), 1)));
+  const [customTo, setCustomTo] = useState(() => toInput(now));
+
+  // Rentang periode [from, to) + periode pembanding dengan panjang sama tepat sebelumnya.
+  const period = useMemo(() => {
+    const today = new Date();
+    if (preset === "custom") {
+      let from = fromInput(customFrom);
+      let to = fromInput(customTo) + DAY;
+      if (!isFinite(from) || !isFinite(to) || to <= from) {
+        from = new Date(today.getFullYear(), today.getMonth(), 1).getTime();
+        to = today.getTime() + DAY;
+      }
+      const len = to - from;
+      return {
+        from,
+        to,
+        prevFrom: from - len,
+        label: "Terbit di periode ini",
+        prev: "periode sebelumnya",
+      };
+    }
+    const p = PRESETS.find((x) => x.key === preset) ?? PRESETS[0];
+    const from = new Date(today.getFullYear(), today.getMonth() - (p.months - 1), 1).getTime();
+    const prevFrom = new Date(today.getFullYear(), today.getMonth() - 2 * p.months + 1, 1).getTime();
+    return { from, to: today.getTime() + DAY, prevFrom, label: p.short, prev: p.prev };
+  }, [preset, customFrom, customTo]);
+
+  const publishedInPeriod = countInRange(s.publishedDates, period.from, period.to);
+  const publishedPrev = countInRange(s.publishedDates, period.prevFrom, period.from);
+  const delta = publishedInPeriod - publishedPrev;
   const stats: { icon: LucideIcon; label: string; value: string; sub: React.ReactNode }[] = [
     {
       icon: Send,
-      label: "Terbit bulan ini",
-      value: String(s.publishedThisMonth),
+      label: period.label,
+      value: String(publishedInPeriod),
       sub:
         delta === 0 ? (
-          "Sama seperti bulan lalu"
+          `Sama seperti ${period.prev}`
         ) : (
           <>
             <span className={delta > 0 ? "a-up" : undefined}>
               {delta > 0 ? "+" : "−"}
               {Math.abs(delta)}
             </span>{" "}
-            dari bulan lalu
+            dari {period.prev}
           </>
         ),
     },
@@ -118,6 +169,43 @@ const AdminDashboard: React.FC = () => {
             </Link>
           )}
         </div>
+
+        {canArticles && (
+          <div style={{ display: "flex", flexWrap: "wrap", alignItems: "center", gap: 8, marginBottom: 12 }}>
+            <span className="a-sub" style={{ marginRight: 4 }}>Periode:</span>
+            {[...PRESETS.map((p) => ({ key: p.key as string, label: p.label as string })), { key: "custom", label: "Kustom" }].map((p) => (
+              <button
+                key={p.key}
+                type="button"
+                className={`a-btn a-sm${preset === p.key ? " a-p" : ""}`}
+                onClick={() => setPreset(p.key)}
+              >
+                {p.label}
+              </button>
+            ))}
+            {preset === "custom" && (
+              <span style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
+                <input
+                  type="date"
+                  value={customFrom}
+                  max={customTo}
+                  onChange={(e) => setCustomFrom(e.target.value)}
+                  className="a-btn a-sm"
+                  aria-label="Dari tanggal"
+                />
+                <span>–</span>
+                <input
+                  type="date"
+                  value={customTo}
+                  min={customFrom}
+                  onChange={(e) => setCustomTo(e.target.value)}
+                  className="a-btn a-sm"
+                  aria-label="Sampai tanggal"
+                />
+              </span>
+            )}
+          </div>
+        )}
 
         {canArticles && (
           <div className="a-g a-g3">
@@ -201,7 +289,7 @@ const AdminDashboard: React.FC = () => {
                   s.latestPublished.map((a) => (
                     <div key={a.id} className="a-cr">
                       <span className="a-th">
-                        {a.coverImage ? <img src={a.coverImage} alt="" loading="lazy" /> : <ImageIcon size={18} />}
+                        {a.coverImage ? <img src={coverUrl(a.coverImage)} alt="" loading="lazy" /> : <ImageIcon size={18} />}
                       </span>
                       <p>
                         <b>{a.title}</b>
