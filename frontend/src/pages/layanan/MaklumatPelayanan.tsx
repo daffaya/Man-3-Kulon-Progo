@@ -8,6 +8,7 @@ import Layout from "../../components/layout/Layout";
 import { Scroll, ZoomIn } from "lucide-react";
 import ImageZoomModal from "../../components/modals/ImageZoomModal";
 import { useCmsSection } from "../../hooks/useCmsPage";
+import { resolveImageUrl } from "../../lib/api";
 
 interface MaklumatContent {
   title: string;
@@ -32,8 +33,14 @@ const MaklumatPelayananPage: React.FC = () => {
   const content: MaklumatContent = {
     title: data?.title ?? FALLBACK.title,
     description: data?.description ?? FALLBACK.description,
-    image_url: data?.image_url ?? FALLBACK.image_url,
+    image_url: data?.image_url || FALLBACK.image_url,
   };
+
+  // Uploaded files (/uploads/...) are served by the backend; other paths
+  // (e.g. /maklumat_pelayanan.jpeg) live in the frontend's public/ folder.
+  const imageSrc = content.image_url.startsWith("/uploads/")
+    ? resolveImageUrl(content.image_url)
+    : content.image_url;
 
   return (
     <Layout>
@@ -77,7 +84,7 @@ const MaklumatPelayananPage: React.FC = () => {
                   onClick={() => setIsImageModalOpen(true)}
                 >
                   <img
-                    src={content.image_url}
+                    src={imageSrc}
                     alt={content.title}
                     className="w-full h-auto object-contain transition-transform duration-300 group-hover:scale-105"
                   />
@@ -96,7 +103,7 @@ const MaklumatPelayananPage: React.FC = () => {
       </div>
 
       <ImageZoomModal
-        src={content.image_url}
+        src={imageSrc}
         alt={content.title}
         isOpen={isImageModalOpen}
         onClose={() => setIsImageModalOpen(false)}
