@@ -1,15 +1,9 @@
 import { Router } from "express";
-import path from "path";
-import fs from "fs";
-import { fileURLToPath } from "url";
 import {
   authenticateTokenFactory,
   restrictTo,
 } from "../middleware/authMiddleware.js";
 import cmsUpload from "../middleware/cmsUpload.js";
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
 
 /**
  * Factory for CMS upload route.
@@ -26,12 +20,6 @@ const cmsUploadRouterFactory = ({ JWT_SECRET }) => {
   const authenticateToken = authenticateTokenFactory({ JWT_SECRET });
   router.use(authenticateToken);
   router.use(restrictTo(["super_admin"]));
-
-  // Ensure upload directory exists
-  const uploadDir = path.join(__dirname, "../../uploads/cms");
-  if (!fs.existsSync(uploadDir)) {
-    fs.mkdirSync(uploadDir, { recursive: true });
-  }
 
   /**
    * POST /upload

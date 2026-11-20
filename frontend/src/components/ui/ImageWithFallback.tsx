@@ -6,6 +6,10 @@
  */
 
 import React, { useState, useEffect } from "react";
+import { BACKEND_ORIGIN } from "../../lib/api";
+
+const BACKEND_PATH_PREFIX =
+  /^\/(uploads|covers|avatars|gallery|cms|content)\//;
 
 interface ImageWithFallbackProps {
   src: string | File;
@@ -55,14 +59,16 @@ const ImageWithFallback: React.FC<ImageWithFallbackProps> = ({
     if (imagePath.startsWith("http") || imagePath.startsWith("blob:")) {
       return imagePath;
     }
-    const backendUrl =
-      import.meta.env.VITE_BACKEND_URL ||
-      "https://backend.man3kulonprogo.sch.id";
-
     const normalizedPath = imagePath.startsWith("/")
       ? imagePath
       : `/${imagePath}`;
-    return `${backendUrl}${normalizedPath}`;
+
+    // Only backend-served upload paths are resolved against the backend.
+    // Anything else (e.g. /maklumat_pelayanan.jpeg) lives in frontend/public.
+    if (!BACKEND_PATH_PREFIX.test(normalizedPath)) {
+      return normalizedPath;
+    }
+    return `${BACKEND_ORIGIN}${normalizedPath}`;
   };
 
   useEffect(() => {

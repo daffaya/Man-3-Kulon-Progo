@@ -26,7 +26,7 @@ import ImageUploader from "../../../components/ui/ImageUploader";
 import { useAuth } from "../../../contexts/AuthContext";
 import { useToastMessage } from "../../../hooks/useToastMessage";
 
-import { apiFetch } from "../../../lib/api";
+import { apiFetch, BACKEND_ORIGIN } from "../../../lib/api";
 
 import {
   SectionCard,
@@ -63,16 +63,14 @@ const uploadCmsImage = async (file: File): Promise<string> => {
   const formData = new FormData();
   formData.append("image", file);
 
-  const res = await fetch(
-    `${import.meta.env.VITE_BACKEND_URL}/api/atmin/cms/upload`,
-    { credentials: "include",
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${localStorage.getItem("token") ?? ""}`,
-      },
-      body: formData,
-    },
-  );
+  // VITE_BACKEND_URL may already end with /api, so build from the bare origin.
+  const token = localStorage.getItem("token");
+  const res = await fetch(`${BACKEND_ORIGIN}/api/atmin/cms/upload`, {
+    credentials: "include",
+    method: "POST",
+    headers: token ? { Authorization: `Bearer ${token}` } : {},
+    body: formData,
+  });
 
   if (!res.ok) throw new Error("Upload gagal");
 
